@@ -583,6 +583,7 @@ body.auth-lock .wrap,body.auth-lock .dock,body.auth-lock .tip,body.auth-lock .bn
 .tab[hidden],.bnav button[hidden],.msheet-grid button[hidden]{display:none!important}
 body.sem-calc .summary,body.sem-calc .dock{display:none!important}
 .us-espera{justify-content:space-between}
+.us-cota{display:grid;gap:4px;text-align:left;margin-bottom:6px}.us-cota .inp{width:120px}.us-cota .inp input{text-align:left}
 .us-abas{display:flex;flex-wrap:wrap;gap:6px 14px;white-space:normal;text-align:left}
 .us-abas label{display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .us-abas input{accent-color:var(--accent)}
@@ -3894,6 +3895,9 @@ const Auth={
   mode:()=>A.mode,owner:()=>A.owner,
   dono:()=>A.supa?!!A.dono:A.mode==="nuvem"?A.owner:Auth.admOk(),
   async listarAdmins(){const {data,error}=await A.sb.rpc("ras_listar_admins");if(error)throw supaErr(error);return data||[]},
+  async minhaCota(){const {data,error}=await A.sb.rpc("ras_minha_cota");if(error)throw supaErr(error);const r=(data||[])[0]||{};return {limite:r.limite||0,usados:r.usados||0}},
+  async definirLimite(id,n){const {error}=await A.sb.rpc("ras_definir_limite",{alvo:id,novo:n});if(error)throw {msg:/dono/i.test(error.message)?"Só o dono do app define a cota.":"Não foi possível salvar a cota: "+error.message}},
+  async aprovar(id){const {data,error}=await A.sb.rpc("ras_aprovar",{alvo:id});if(error)throw {msg:/Cota/i.test(error.message)?"Sua cota de logins acabou. Peça ao dono do app para aumentá-la.":/Bloqueado/i.test(error.message)?"Esta pessoa foi bloqueada pelo dono do app.":/inscri/i.test(error.message)?"Esta pessoa não tem inscrição ativa.":"Não foi possível liberar: "+error.message};return data},
   async definirAdmin(id,ser){const {error}=await A.sb.rpc("ras_definir_admin",{alvo:id,ser:!!ser});if(error)throw {msg:/dono/i.test(error.message)?"O dono do app não pode ser removido.":/permiss|dono do app/i.test(error.message)?"Só o dono do app pode escolher administradores.":"Não foi possível concluir: "+error.message}},
   supa:()=>A.supa,email:()=>A.email,
   ok(){if(A.supa)return !!A.uid&&!A.recovery;if(A.mode==="nuvem"){const s=sessao();return !!(s&&s.k==="nuvem:"+A.uid&&A.hashNuvem)}if(A.mode==="local")return !!usuarioLocal()||false;return false},
@@ -4264,7 +4268,7 @@ const PADRAO0=["aqua","bio","racao","dash"],LABAS=PK+"-abas",LABASP=PK+"-abas-pa
 const abasTxt=l=>{if(!l)return "Todas";l=l.filter(v=>!SO_ADMIN.includes(v));return l.length?ABAS_USU.filter(a=>l.includes(a[0])).map(a=>a[2]).join(", "):"Nenhuma (só Projetos)"};
 const abasForm=(key,sel)=>`<div class="us-abas" data-abas="${esc(key)}" role="group" aria-label="Abas liberadas">${ABAS_USU.map(([v,t])=>`<label><input type="checkbox" value="${v}"${sel.includes(v)?" checked":""}> ${t}</label>`).join("")}</div>`;
 const lerAbas=key=>[...el.querySelectorAll(`.us-abas[data-abas="${CSS.escape(key)}"] input:checked`)].map(i=>i.value);
-const st={cfgAcesso:{},adminCelular:false,admins:new Map(),padrao:PADRAO0,mode:"init",db:null,usr:null,uid:null,owner:false,modo:"livre",minha:null,meuAcesso:null,lista:[],nomes:{},comSenha:new Set(),busy:false,msg:"",err:false,confirm:null,filtro:"todos",apagar:false,ident:""};
+const st={minhaCota:{limite:0,usados:0},cfgAcesso:{},adminCelular:false,admins:new Map(),padrao:PADRAO0,mode:"init",db:null,usr:null,uid:null,owner:false,modo:"livre",minha:null,meuAcesso:null,lista:[],nomes:{},comSenha:new Set(),busy:false,msg:"",err:false,confirm:null,filtro:"todos",apagar:false,ident:""};
 
 function situacao(insc,ac,modo){
   if(!insc||insc.status==="cancelada")return insc?"cancelada":"sem";
@@ -4325,7 +4329,8 @@ async function carregarLista(){
   const db=st.db;
   const [qi,qa,cs]=await Promise.all([db.collection("inscricoes").limit(500).get(),db.collection("acessos").limit(500).get(),Auth.senhasDefinidas().catch(()=>new Set())]);
   const ac={};qa.docs.forEach(d=>ac[d.id]=d.data());st.comSenha=cs;
-  if(Auth.supa()){try{st.admins=new Map((await Auth.listarAdmins()).map(r=>[r.user_id,!!r.dono]))}catch(e){st.admins=new Map()}}
+  if(Auth.supa()){try{st.admins=new Map((await Auth.listarAdmins()).map(r=>[r.user_id,{dono:!!r.dono,limite:r.limite||0,usados:r.usados||0}]))}catch(e){st.admins=new Map()}
+    if(!Auth.dono()){try{st.minhaCota=await Auth.minhaCota()}catch(e){st.minhaCota={limite:0,usados:0}}}}
   st.lista=qi.docs.filter(d=>d.id!==st.uid).map(d=>({id:d.id,insc:d.data(),ac:ac[d.id]||null})).sort((a,b)=>(b.insc.em||0)-(a.insc.em||0));
   try{st.nomes=st.lista.length?await st.usr.profiles(st.lista.map(x=>x.id)):{}}catch(e){st.nomes={}}
 }
@@ -4388,6 +4393,17 @@ const avancadaHTML=(adm)=>adm?`<section class="card us-pro"><div class="card-hea
   <p>Esta é a versão para celular: aqui ficam o login, os seus projetos e as abas liberadas para você.</p>
   <ul class="us-pro-list"><li>Aprovar, suspender e cancelar inscrições</li><li>Local e viabilidade e Calculadora</li><li>Escolher as abas de cada usuário</li><li>Cadastrar usuários e redefinir senhas</li><li>Exigir senha para abrir o app inteiro</li></ul>
   <p class="muted">Esses recursos fazem parte da versão avançada. A administração é feita no computador; o dono do app pode liberá-la também no celular em Usuários e acesso &gt; Regras de acesso.</p></div></section>`;
+function painelRestrito(){
+  const c=st.minhaCota,rest=Math.max(0,c.limite-c.usados);
+  const rows=st.lista.map(x=>({...x,s:situacao(x.insc,x.ac,st.modo)}));
+  const pend=rows.filter(x=>x.s==="pendente"),lib=rows.filter(x=>x.ac&&x.ac.por===st.uid);
+  const nome=x=>(st.nomes[x.id]&&st.nomes[x.id].name)||x.insc.ident||"Pessoa sem nome visível";
+  return `<section class="card wide"><div class="card-head"><i class="n">2</i><h2>Liberar logins<span>Administrador · cota definida pelo dono do app</span></h2><span class="us-pro-tag us-cota-tag">${rest} de ${c.limite} disponíveis</span></div>
+   <div class="pj-body"><p>Você já liberou <b>${c.usados}</b> de <b>${c.limite}</b> login${c.limite===1?"":"s"}.${rest?"":" <b>Sua cota acabou</b>: peça ao dono do app para aumentá-la."}</p>
+   <p class="muted">Como administrador, você vê todas as abas e libera os logins de quem está aguardando aprovação, até a sua cota. Suspender, cancelar, liberar abas e versão avançada são feitos pelo dono do app.</p></div>
+   ${!pend.length?`<p class="pj-body muted">Ninguém aguardando aprovação agora.</p>`:`<div class="scroll"><table class="pj-tab us-tab"><thead><tr><th>Pessoa</th><th>Situação</th><th class="num">Inscrição</th><th></th></tr></thead><tbody>${pend.map(x=>`<tr><td><b>${esc(nome(x))}</b></td><td>${badge(x.s)}</td><td class="num">${dataBR(x.insc.em)}</td><td class="pj-acts"><button type="button" class="btn solid" data-us="aprovar" data-id="${x.id}"${rest?"":" disabled"}>Liberar login</button></td></tr>`).join("")}</tbody></table></div>`}
+   ${lib.length?`<div class="card-foot">Liberados por você: ${lib.map(x=>esc(nome(x))).join(", ")}</div>`:""}</section>`;
+}
 const badge=s=>`<span class="us-st ${SIT[s][1]}">${SIT[s][0]}</span>`;
 const pwf=(id,lab,ac)=>`<label for="${id}">${lab}</label><div class="inp au-pw"><input type="password" id="${id}" autocomplete="${ac}" maxlength="128"><button type="button" class="au-eye" data-eye="${id}" aria-label="Mostrar senha">mostrar</button></div>`;
 const trocaHTML=()=>`<details class="us-det"><summary>Trocar minha senha</summary><form class="pj-form au-grid us-troca" id="us-troca">${pwf("us-pa","Senha atual","current-password")}${pwf("us-pn","Nova senha","new-password")}${pwf("us-pc","Confirme a nova","new-password")}<div class="pj-btns"><button type="submit" class="btn solid">Salvar nova senha</button></div></form></details>`;
@@ -4416,6 +4432,7 @@ function draw(){
       ${trocaHTML()}
     </div></section>`;
     if(admCelBloq()){if(st.owner)h+=avancadaHTML(true)}
+    else if(st.owner&&Auth.supa()&&!Auth.dono())h+=painelRestrito();
     else if(st.owner){
       const cont={ativo:0,pendente:0,suspenso:0,cancelado:0,cancelada:0};
       const rows=st.lista.map(x=>({...x,s:situacao(x.insc,x.ac,st.modo)}));rows.forEach(x=>cont[x.s]=(cont[x.s]||0)+1);
@@ -4434,15 +4451,15 @@ function draw(){
         ${!rows.length?`<p class="pj-body muted">Ninguém se inscreveu ainda. Quando alguém com acesso ao link criar a senha e clicar em Inscrever-me, a pessoa aparece aqui.</p>`:!vis.length?`<p class="pj-body muted">Ninguém nesta situação.</p>`:
         `<div class="scroll"><table class="pj-tab us-tab"><thead><tr><th>Pessoa</th><th>Situação</th><th>Versão</th><th>Abas</th>${Auth.supa()?"":"<th>Senha</th>"}<th class="num">Inscrição</th><th></th></tr></thead><tbody>${vis.map(x=>{
           const nm=(st.nomes[x.id]&&st.nomes[x.id].name)||"",idt=x.insc.ident||"",c=cf&&cf.id===x.id?cf.t:null,temS=st.comSenha.has(x.id);
-          const acts=c==="abas"?`${abasForm("u:"+x.id,(x.ac&&Array.isArray(x.ac.abas))?x.ac.abas:st.padrao)}<div class="pj-btns"><button type="button" class="btn solid" data-us="abas-ok" data-id="${x.id}">Salvar abas</button><button type="button" class="btn" data-us="x">Voltar</button></div>`:c?`<button type="button" class="btn warn" data-us="${c}" data-id="${x.id}">Confirmar ${c==="cancelado"?"cancelamento":c==="senha"?"redefinição":c==="admin"?": tornar administrador":c==="desadmin"?": remover administrador":"suspensão"}</button><button type="button" class="btn" data-us="x">Voltar</button>`:
+          const acts=c==="cota"?`<div class="us-cota"><label for="us-cota-${x.id}">Logins que pode liberar</label><div class="inp"><input type="number" min="0" step="1" inputmode="numeric" id="us-cota-${x.id}" value="${(st.admins.get(x.id)||{}).limite||0}"></div></div><div class="pj-btns"><button type="button" class="btn solid" data-us="cota-ok" data-id="${x.id}">Salvar cota</button><button type="button" class="btn" data-us="x">Voltar</button></div>`:c==="abas"?`${abasForm("u:"+x.id,(x.ac&&Array.isArray(x.ac.abas))?x.ac.abas:st.padrao)}<div class="pj-btns"><button type="button" class="btn solid" data-us="abas-ok" data-id="${x.id}">Salvar abas</button><button type="button" class="btn" data-us="x">Voltar</button></div>`:c?`<button type="button" class="btn warn" data-us="${c}" data-id="${x.id}">Confirmar ${c==="cancelado"?"cancelamento":c==="senha"?"redefinição":c==="admin"?": tornar administrador":c==="desadmin"?": remover administrador":"suspensão"}</button><button type="button" class="btn" data-us="x">Voltar</button>`:
             [x.s==="cancelada"?"":x.s!=="ativo"?`<button type="button" class="btn solid" data-us="ativo" data-id="${x.id}">${x.s==="pendente"?"Aprovar":"Reativar"}</button>`:"",
              x.s==="ativo"||x.s==="pendente"?`<button type="button" class="btn" data-us="ask-suspenso" data-id="${x.id}">Suspender</button>`:"",
              x.s!=="cancelada"&&x.s!=="cancelado"&&!st.admins.has(x.id)?(planoAvancado(x.ac)?`<button type="button" class="btn" data-us="plano-basica" data-id="${x.id}">Voltar para básica</button>`:`<button type="button" class="btn solid" data-us="plano-avancada" data-id="${x.id}">Liberar versão avançada</button>`):"",
              x.s!=="cancelada"&&x.s!=="cancelado"&&!st.admins.has(x.id)&&!planoAvancado(x.ac)?`<button type="button" class="btn" data-us="ask-abas" data-id="${x.id}">Abas</button>`:"",
-             Auth.supa()&&Auth.dono()&&x.s==="ativo"?(st.admins.has(x.id)?(st.admins.get(x.id)?"":`<button type="button" class="btn warn" data-us="ask-desadmin" data-id="${x.id}">Remover administrador</button>`):`<button type="button" class="btn" data-us="ask-admin" data-id="${x.id}">Tornar administrador</button>`):"",
+             Auth.supa()&&Auth.dono()&&x.s==="ativo"?(st.admins.has(x.id)?(st.admins.get(x.id).dono?"":`<button type="button" class="btn" data-us="ask-cota" data-id="${x.id}">Definir cota</button><button type="button" class="btn warn" data-us="ask-desadmin" data-id="${x.id}">Remover administrador</button>`):`<button type="button" class="btn" data-us="ask-admin" data-id="${x.id}">Tornar administrador</button>`):"",
              temS?`<button type="button" class="btn" data-us="ask-senha" data-id="${x.id}">Redefinir senha</button>`:"",
              x.s!=="cancelado"&&x.s!=="cancelada"?`<button type="button" class="btn warn" data-us="ask-cancelado" data-id="${x.id}">Cancelar inscrição</button>`:""].join("")||`<span class="muted">Cancelada pela própria pessoa</span>`;
-          return `<tr><td><b>${esc(nm||idt||"Pessoa sem nome visível")}</b>${nm&&idt?`<small>${esc(idt)}</small>`:""}</td><td>${badge(x.s)}${x.ac&&x.ac.em?`<small>decisão em ${dataBR(x.ac.em)}</small>`:""}</td><td>${st.admins.has(x.id)?`<span class="us-st ok">${st.admins.get(x.id)?"Dono":"Administrador"}</span>`:planoAvancado(x.ac)?`<span class="us-st ok">Avançada</span>`:`<span class="muted">Básica</span>`}</td><td>${st.admins.has(x.id)||planoAvancado(x.ac)?"Todas":x.ac&&Array.isArray(x.ac.abas)?esc(abasTxt(x.ac.abas)):`<span class="muted">padrão: ${esc(abasTxt(st.padrao))}</span>`}</td>${Auth.supa()?"":`<td>${temS?"definida":"<span class=\"muted\">não criada</span>"}</td>`}<td class="num">${dataBR(x.insc.em)}</td><td class="pj-acts">${acts}</td></tr>`}).join("")}</tbody></table></div>`}
+          return `<tr><td><b>${esc(nm||idt||"Pessoa sem nome visível")}</b>${nm&&idt?`<small>${esc(idt)}</small>`:""}</td><td>${badge(x.s)}${x.ac&&x.ac.em?`<small>decisão em ${dataBR(x.ac.em)}</small>`:""}</td><td>${st.admins.has(x.id)?`<span class="us-st ok">${st.admins.get(x.id).dono?"Dono":"Administrador"}</span>`:planoAvancado(x.ac)?`<span class="us-st ok">Avançada</span>`:`<span class="muted">Básica</span>`}</td><td>${st.admins.has(x.id)?(st.admins.get(x.id).dono?"Todas":`Todas<small>cota: ${st.admins.get(x.id).usados} de ${st.admins.get(x.id).limite} logins liberados</small>`):planoAvancado(x.ac)?"Todas":x.ac&&Array.isArray(x.ac.abas)?esc(abasTxt(x.ac.abas)):`<span class="muted">padrão: ${esc(abasTxt(st.padrao))}</span>`}</td>${Auth.supa()?"":`<td>${temS?"definida":"<span class=\"muted\">não criada</span>"}</td>`}<td class="num">${dataBR(x.insc.em)}</td><td class="pj-acts">${acts}</td></tr>`}).join("")}</tbody></table></div>`}
         <div class="card-foot"><b>Versão avançada</b> libera todas as abas para a pessoa, inclusive Local e viabilidade e Calculadora. ${Auth.supa()?"<b>Tornar administrador</b> (só o dono) dá à pessoa um login de administrador: ela aprova inscrições e libera abas, mas não escolhe outros administradores. ":""}Suspender bloqueia temporariamente; Reativar devolve o acesso. ${Auth.supa()?"Quem esquecer a senha usa Esqueci a senha na tela de entrada e recebe um link por e-mail. ":"Redefinir senha apaga a senha da pessoa (ninguém, nem você, consegue ver a senha); no próximo acesso ela cria outra. "}Cancelar a inscrição encerra o acesso ao salvamento de projetos; os projetos dela ficam privados na conta dela. ${Auth.supa()?"":"Para tirar alguém do link, use o menu Compartilhar do claude.ai."}</div></section>`;
     }
   }else{
@@ -4499,6 +4516,8 @@ function bind(){
     else if(a.indexOf("ask-")===0){st.confirm={t:a.slice(4),id};draw()}
     else if(a==="senha"){st.confirm=null;redefinirNuvem(id)}
     else if(a==="abas-ok")salvarAbasNuvem(id);
+    else if(a==="aprovar")rodar(async()=>{const r=await Auth.aprovar(id);await carregar();aviso(r==="ja_ativo"?"Esta pessoa já estava liberada.":"Login liberado.")});
+    else if(a==="cota-ok"){const v=parseInt((el.querySelector("#us-cota-"+CSS.escape(id))||{}).value,10);if(!(v>=0)){aviso("Digite um número inteiro (0 ou mais).",true);return}st.confirm=null;rodar(async()=>{await Auth.definirLimite(id,v);await carregarLista();aviso(`Cota salva: esse administrador pode liberar até ${v} login${v===1?"":"s"}.`)})}
     else if(a==="plano-avancada"||a==="plano-basica")mudarPlano(id,a==="plano-avancada"?"avancada":"basica");
     else if(a==="admin"||a==="desadmin"){st.confirm=null;mudarAdmin(id,a==="admin")}
     else{st.confirm=null;decidir(id,a)}}));
