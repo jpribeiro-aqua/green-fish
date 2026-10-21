@@ -582,6 +582,7 @@ body.auth-lock .wrap,body.auth-lock .dock,body.auth-lock .tip,body.auth-lock .bn
 /* Abas liberadas por usuário */
 .tab[hidden],.bnav button[hidden],.msheet-grid button[hidden]{display:none!important}
 body.sem-calc .summary,body.sem-calc .dock{display:none!important}
+.us-espera{justify-content:space-between}
 .us-abas{display:flex;flex-wrap:wrap;gap:6px 14px;white-space:normal;text-align:left}
 .us-abas label{display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .us-abas input{accent-color:var(--accent)}
@@ -4270,7 +4271,7 @@ window.projGate=function(){
   if(st.mode!=="nuvem"||st.owner)return {ok:true};
   const s=situacao(st.minha,st.meuAcesso,st.modo);
   if(s==="ativo")return {ok:true};
-  return {ok:false,txt:{sem:"Para salvar projetos na sua conta, faça a sua inscrição na aba Usuários e acesso.",cancelada:"Sua inscrição foi cancelada. Para voltar a salvar projetos, inscreva-se de novo na aba Usuários e acesso.",pendente:"Sua inscrição está aguardando a aprovação do administrador do app.",suspenso:"Seu acesso foi suspenso pelo administrador do app.",cancelado:"Sua inscrição foi cancelada pelo administrador do app."}[s]};
+  return {ok:false,txt:{sem:"Clique em Inscrever-me, logo abaixo, para pedir acesso ao app.",cancelada:"Sua inscrição foi cancelada. Para pedir acesso de novo, clique em Inscrever-me de novo, logo abaixo.",pendente:"Sua inscrição está aguardando a aprovação do administrador do app.",suspenso:"Seu acesso foi suspenso pelo administrador do app.",cancelado:"Sua inscrição foi cancelada pelo administrador do app."}[s]};
 };
 /* abas que esta pessoa pode ver: null = todas (administrador) */
 function abasPermitidas(){
@@ -4280,7 +4281,9 @@ function abasPermitidas(){
   const u=Auth.user(),m=rd(LABAS,{});return u&&Array.isArray(m[u])?m[u]:rd(LABASP,PADRAO0);
 }
 const sempre=v=>v==="proj"||v==="users";
-window.abaPermitida=v=>{const p=abasPermitidas();if(sempre(v)||!p)return true;if(SO_ADMIN.includes(v))return false;return p.includes(v)};
+/* conta na nuvem sem aprovação (ou sem login): só a aba Usuários e acesso, com o aviso de aguardando aprovação */
+function bloqueado(){if(st.mode!=="nuvem")return false;if(!Auth.ok())return true;if(st.owner)return false;return !window.projGate().ok}
+window.abaPermitida=v=>{if(bloqueado())return v==="users";const p=abasPermitidas();if(sempre(v)||!p)return true;if(SO_ADMIN.includes(v))return false;return p.includes(v)};
 function aplicarAbas(){
   const ok=window.abaPermitida;
   document.querySelectorAll(".tab[data-view]").forEach(t=>t.hidden=!ok(t.dataset.view));
@@ -4376,7 +4379,7 @@ function draw(){
   if(el.hidden)return;
   const cf=st.confirm;
   let h=`<section class="card wide"><div class="card-head"><h2>Usuários e acesso<span>Login com senha, inscrições, aprovação, suspensão e cancelamento</span></h2>${st.mode==="nuvem"&&st.owner&&Auth.ok()&&!Auth.basica()?`<button type="button" class="btn us-ref" id="us-ref">↻ Recarregar lista</button>`:""}</div>
-    <div class="pj-msg${st.err?" bad":""}" id="us-msg" role="status" aria-live="polite">${esc(st.msg)}</div></section>`;
+    <div class="pj-msg${st.err?" bad":""}" id="us-msg" role="status" aria-live="polite">${esc(st.msg)}</div>${st.mode==="nuvem"&&Auth.ok()&&bloqueado()?`<div class="pj-gate us-espera"><span><b>${st.minha&&st.minha.status!=="cancelada"&&situacao(st.minha,st.meuAcesso,st.modo)==="pendente"?"Aguardando aprovação.":"Acesso ainda não liberado."}</b> ${esc(window.projGate().txt)} As abas do app aparecem assim que o acesso for liberado.</span><button type="button" class="btn" id="us-verif">Verificar agora</button></div>`:""}</section>`;
   if(st.mode==="init"){el.innerHTML=h+`<section class="card wide"><p class="pj-body muted">Verificando sua conta…</p></section>`;bind();return}
   if(st.mode==="nuvem"){
     if(!Auth.ok()){el.innerHTML=h+`<section class="card"><div class="card-head"><i class="n">1</i><h2>Entrar<span>Conta claude.ai + senha do app</span></h2></div>${Auth.loginHTML("us")}</section>`;bind();return}
@@ -4389,7 +4392,7 @@ function draw(){
        <div class="pj-form us-form"><label for="us-ident">Identificação</label><div class="inp"><input id="us-ident" maxlength="120" placeholder="Nome, instituição ou matrícula (opcional)" value="${esc(st.ident)}"></div></div>
        ${cf&&cf.t==="cancel-me"?cancelaConf(`<label class="us-chk"><input type="checkbox" id="us-apagar"${st.apagar?" checked":""}> Excluir também todos os meus projetos salvos na conta (não dá para desfazer)</label>`):
        `<div class="pj-btns">${!temInsc?`<button type="button" class="btn solid" id="us-insc">${st.minha?"Inscrever-me de novo":"Inscrever-me"}</button>`:`<button type="button" class="btn" id="us-insc">Atualizar identificação</button><button type="button" class="btn warn" id="us-cancel">Cancelar minha inscrição</button>`}</div>`}
-       <p>Abas liberadas para você: <b>${esc(abasTxt(abasPermitidas()))}</b>${Auth.ok()?"":" (entre com a sua senha para ver as suas)"}</p>
+       <p>${bloqueado()?"Abas que serão liberadas após a aprovação":"Abas liberadas para você"}: <b>${esc(abasTxt(abasPermitidas()))}</b>${Auth.ok()?"":" (entre com a sua senha para ver as suas)"}</p>
        <p class="muted">${st.modo==="aprovacao"?"Neste app, novas inscrições precisam ser aprovadas pelo administrador.":"Neste app, a inscrição é liberada na hora."}</p>`}
       ${trocaHTML()}
     </div></section>`;
@@ -4453,6 +4456,7 @@ function bind(){
   q("#us-sair")&&q("#us-sair").addEventListener("click",()=>{Auth.logout();aviso("Você saiu.")});
   q("#us-admsair")&&q("#us-admsair").addEventListener("click",()=>{Auth.admSair();aviso("Você saiu do modo administrador.")});
   q("#us-insc")&&q("#us-insc").addEventListener("click",inscrever);
+  q("#us-verif")&&q("#us-verif").addEventListener("click",()=>rodar(async()=>{await carregar();aviso(bloqueado()?"Ainda aguardando a liberação do administrador.":"Acesso liberado! As abas já estão disponíveis.")}));
   q("#us-ident")&&q("#us-ident").addEventListener("input",e=>{st.ident=e.target.value});
   q("#us-cancel")&&q("#us-cancel").addEventListener("click",()=>{st.confirm={t:"cancel-me"};st.apagar=false;draw();const i=q("#us-cpw");i&&i.focus()});
   q("#us-apagar")&&q("#us-apagar").addEventListener("change",e=>{st.apagar=e.target.checked});
@@ -4481,7 +4485,7 @@ function bind(){
     else if(a==="senha-ok"){st.confirm=null;Auth.redefinirLocal(u);aviso(`Senha de ${u} apagada: no próximo login ele cria uma senha nova.`);draw()}
     else locBloquear(u,a==="blq")}));
 }
-window.drawUsers=()=>{st.confirm=null;if(st.mode==="nuvem"&&st.owner&&Auth.ok()&&!st.busy)rodar(carregar);else draw()};
+window.drawUsers=()=>{st.confirm=null;if(st.mode==="nuvem"&&Auth.ok()&&!st.busy)rodar(carregar);else draw()};
 
 async function iniciar(){
   let {db,usr}=await rasBackend();
