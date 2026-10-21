@@ -4384,7 +4384,7 @@ function locExcluir(u,proprio){const a=rd(PK,{usuarios:{}});const n=Object.keys(
   aviso(`${proprio?"Sua inscrição":"A inscrição de "+u} foi cancelada${n?` e ${n} projeto${n===1?"":"s"} ${n===1?"foi excluído":"foram excluídos"}`:""}.`);if(window.projApi)projApi.relogin();draw()}
 
 /* ---- tela ---- */
-const avancadaHTML=()=>`<section class="card us-pro"><div class="card-head"><i class="n" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i><h2>Administração<span>Versão avançada</span></h2><span class="us-pro-tag">Em breve</span></div><div class="pj-body">
+const avancadaHTML=(adm)=>adm?`<section class="card us-pro"><div class="card-head"><h2>Administração<span>Você é administrador</span></h2><span class="us-pro-tag">Só no computador</span></div><div class="pj-body"><p>Sua conta é de <b>administrador</b>, mas o dono do app ainda não liberou a administração pelo celular.</p><p class="muted">Use o app no computador para aprovar inscrições e liberar abas, ou peça ao dono para ligar <b>Liberar a administração no celular</b> em Usuários e acesso &gt; Regras de acesso. Depois disso, toque em Verificar ou feche e abra o app.</p><div class="pj-btns"><button type="button" class="btn" id="us-verif">Verificar agora</button></div></div></section>`:`<section class="card us-pro"><div class="card-head"><i class="n" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i><h2>Administração<span>Versão avançada</span></h2><span class="us-pro-tag">Em breve</span></div><div class="pj-body">
   <p>Esta é a versão para celular: aqui ficam o login, os seus projetos e as abas liberadas para você.</p>
   <ul class="us-pro-list"><li>Aprovar, suspender e cancelar inscrições</li><li>Local e viabilidade e Calculadora</li><li>Escolher as abas de cada usuário</li><li>Cadastrar usuários e redefinir senhas</li><li>Exigir senha para abrir o app inteiro</li></ul>
   <p class="muted">Esses recursos fazem parte da versão avançada. A administração é feita no computador; o dono do app pode liberá-la também no celular em Usuários e acesso &gt; Regras de acesso.</p></div></section>`;
@@ -4415,7 +4415,7 @@ function draw(){
        <p class="muted">${st.modo==="aprovacao"?"Neste app, novas inscrições precisam ser aprovadas pelo administrador.":"Neste app, a inscrição é liberada na hora."}</p>`}
       ${trocaHTML()}
     </div></section>`;
-    if(admCelBloq()){if(st.owner)h+=avancadaHTML()}
+    if(admCelBloq()){if(st.owner)h+=avancadaHTML(true)}
     else if(st.owner){
       const cont={ativo:0,pendente:0,suspenso:0,cancelado:0,cancelada:0};
       const rows=st.lista.map(x=>({...x,s:situacao(x.insc,x.ac,st.modo)}));rows.forEach(x=>cont[x.s]=(cont[x.s]||0)+1);
