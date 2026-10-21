@@ -10,7 +10,7 @@ Esta pasta é o app pronto para ser hospedado num endereço próprio e instalado
 | `config.js` | Onde entram o endereço e a chave do Supabase (login de verdade) |
 | `manifest.webmanifest` | Nome, cores e ícones do app instalado |
 | `sw.js` | Guarda o app no celular para abrir sem internet |
-| `icons/` | Ícones do app |
+| `*.png` | Ícones do app |
 | `supabase_setup.sql` | Script que cria o banco e as regras de acesso no Supabase |
 
 ## Dois modos de funcionamento
@@ -18,11 +18,17 @@ Esta pasta é o app pronto para ser hospedado num endereço próprio e instalado
 - **Demonstração** (como está agora, `config.js` em branco): login com usuário e senha guardados só no aparelho, com administrador local. Bom para ver e testar.
 - **Conta do app** (com o Supabase configurado): login por e-mail e senha, "Esqueci a senha" por e-mail, projetos guardados na nuvem e abertos no celular ou no computador. A primeira conta criada vira administradora.
 
+## Versão básica (celular) e versão avançada
+
+No celular (app instalado ou navegador do celular), o app funciona como **versão básica**: só login de usuário, projetos e as abas liberadas para cada pessoa (por padrão, Local e viabilidade e Calculadora). A administração (aprovar inscrições, liberar abas, cadastrar usuários, redefinir senhas) aparece como **versão avançada** bloqueada.
+
+A administração é feita na versão completa, no computador. Para liberar a versão avançada também no celular, troque em `config.js` a linha `adminNoCelular: false` para `adminNoCelular: true`.
+
 ## Passo 1 — Publicar o app (GitHub Pages, gratuito)
 
 1. Crie uma conta em <https://github.com> (pode usar o e-mail da UFMA).
 2. Clique em **New repository**, dê o nome `ras-aqua`, marque **Public** e clique em **Create repository**.
-3. Na página do repositório, clique em **uploading an existing file** e arraste **todo o conteúdo desta pasta** (incluindo a pasta `icons`). Clique em **Commit changes**.
+3. Na página do repositório, clique em **uploading an existing file** e arraste **todo o conteúdo desta pasta** . Clique em **Commit changes**.
 4. Vá em **Settings > Pages**. Em *Branch*, escolha `main` e `/ (root)` e clique em **Save**.
 5. Em 1 a 2 minutos o app fica no ar em `https://SEU-USUARIO.github.io/ras-aqua/`.
 

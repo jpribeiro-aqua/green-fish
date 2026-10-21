@@ -588,6 +588,13 @@ body.sem-calc .summary,body.sem-calc .dock{display:none!important}
 .us-abas-box{display:grid;gap:8px;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
 .us-abas-box .muted{font-size:12px}
 .pj-acts .us-abas{margin-bottom:6px;min-width:220px}
+
+/* Versão avançada bloqueada no celular */
+.us-pro{border-style:dashed}
+.us-pro .card-head .n{background:var(--warn-soft);color:var(--warn)}
+.us-pro-tag{margin-left:auto;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:2px 8px}
+.us-pro-list{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:grid;gap:4px}
+.us-pro p{margin:0}
 </style>
 
 <div class="wrap">
@@ -3781,6 +3788,9 @@ function validaNova(p,c){if((p||"").length<MIN)return `A senha precisa ter pelo 
 const A={mode:"init",db:null,uid:null,owner:false,nome:"",hashNuvem:undefined,trava:false,listeners:[],supa:false,sb:null,email:"",recovery:false,sform:"entrar",sok:"",supaErro:false};
 /* ---- conta própria do app (Supabase): ativada quando config.js traz o endereço e a chave pública ---- */
 const CFG=window.RAS_CONFIG||{},SUPA=!!(CFG.supabaseUrl&&CFG.supabaseAnonKey);
+/* versão básica: no app instalado/celular, a administração fica bloqueada até ser liberada (config.js: adminNoCelular: true) */
+const CELULAR=(()=>{try{const peq=Math.min(screen.width,screen.height)<900;return matchMedia("(display-mode: standalone)").matches||/Android|iPhone|iPod|Mobile/i.test(navigator.userAgent)||(peq&&(matchMedia("(pointer: coarse)").matches||navigator.maxTouchPoints>0))}catch(e){return false}})();
+const BASICA="adminNoCelular" in CFG&&!CFG.adminNoCelular&&CELULAR;
 const SB_LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm";
 let beOk;const beProm=new Promise(r=>beOk=r);
 window.rasBackend=()=>beProm;
@@ -3887,7 +3897,8 @@ const Auth={
   localTemSenha:u=>!!senhasLoc()[u],
   /* administrador local */
   admExiste:()=>!!rd(ADM,null),
-  admOk(){const s=rd(SESADM,null,true);return !!(s&&s.exp>Date.now()&&Auth.admExiste())},
+  basica:()=>BASICA,
+  admOk(){if(BASICA)return false;const s=rd(SESADM,null,true);return !!(s&&s.exp>Date.now()&&Auth.admExiste())},
   async admCriar(p,c){const e=validaNova(p,c);if(e)throw{msg:e};if(Auth.admExiste())throw{msg:"Já existe uma senha de administrador."};wr(ADM,await novoHash(p));wr(SESADM,{exp:Date.now()+HORAS*3600e3},true);emit()},
   async admEntrar(p){const w=espera("adm");if(w)throw{msg:`Muitas tentativas erradas. Aguarde ${fmtEspera(w)}.`};
     if(!await confere(p,rd(ADM,null))){falhou("adm");throw{msg:"Senha de administrador incorreta."}}acertou("adm");wr(SESADM,{exp:Date.now()+HORAS*3600e3},true);emit()},
@@ -3928,7 +3939,7 @@ const Auth={
       ${pw("senha","Senha","current-password")}<div class="au-conf" hidden>${pw("conf","Confirme a senha","new-password")}</div></div>
       <div class="pj-btns"><button type="submit" class="btn solid">Entrar</button></div>
       <p class="au-err" role="alert"></p>
-      <p class="muted">${trava?"Só usuários cadastrados pelo administrador deste navegador podem entrar.":"Usuário novo? Digite um nome e uma senha: o app pede a confirmação e cria a conta."} Esqueceu a senha? O administrador deste navegador pode redefini-la na aba Usuários e acesso.</p></form>`;
+      <p class="muted">${trava?"Só usuários cadastrados pelo administrador deste navegador podem entrar.":"Usuário novo? Digite um nome e uma senha: o app pede a confirmação e cria a conta."}${BASICA?" Esqueceu a senha? Peça ao administrador do app para redefini-la.":" Esqueceu a senha? O administrador deste navegador pode redefini-la na aba Usuários e acesso."}</p></form>`;
   },
   bindLogin(root){
     if(A.supa)supaBind(root);
@@ -3972,7 +3983,7 @@ function overlay(){
   if(!precisa){if(o)o.remove();return}
   if(!o){o=document.createElement("div");o.id="auth-ovl";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");o.setAttribute("aria-labelledby","au-tit");document.body.appendChild(o)}
   o.innerHTML=`<section class="card au-box"><div class="card-head"><h2 id="au-tit">Sistema RAS Multitanques<span>${A.supa?"Entre com a sua conta do app":"Acesso restrito: entre com a sua senha"}</span></h2></div>${Auth.loginHTML("ov")}
-    ${A.mode==="local"&&Auth.admExiste()?`<details class="au-adm"><summary>Entrar como administrador deste navegador</summary><form class="pj-body" id="ov-adm"><div class="pj-form au-grid"><label for="ov-admp">Senha de administrador</label><div class="inp au-pw"><input type="password" id="ov-admp" autocomplete="current-password"></div></div><div class="pj-btns"><button type="submit" class="btn">Entrar como administrador</button></div><p class="au-err" role="alert"></p></form></details>`:""}</section>`;
+    ${A.mode==="local"&&Auth.admExiste()&&!BASICA?`<details class="au-adm"><summary>Entrar como administrador deste navegador</summary><form class="pj-body" id="ov-adm"><div class="pj-form au-grid"><label for="ov-admp">Senha de administrador</label><div class="inp au-pw"><input type="password" id="ov-admp" autocomplete="current-password"></div></div><div class="pj-btns"><button type="submit" class="btn">Entrar como administrador</button></div><p class="au-err" role="alert"></p></form></details>`:""}</section>`;
   Auth.bindLogin(o);
   const fa=o.querySelector("#ov-adm");fa&&fa.addEventListener("submit",async e=>{e.preventDefault();try{await Auth.admEntrar(o.querySelector("#ov-admp").value);setView("users")}catch(x){fa.querySelector(".au-err").textContent=erro(x)}});
   const first=o.querySelector('input[type="email"],input[type="password"]');first&&!o.contains(document.activeElement)&&setTimeout(()=>first.focus(),30);
@@ -4262,8 +4273,8 @@ window.projGate=function(){
 /* abas que esta pessoa pode ver: null = todas (administrador) */
 function abasPermitidas(){
   if(st.mode==="init")return null;
-  if(st.mode==="nuvem"){if(st.owner&&Auth.ok())return null;const ac=st.meuAcesso;return Auth.ok()&&ac&&Array.isArray(ac.abas)?ac.abas:st.padrao}
-  if(!Auth.admExiste()||Auth.admOk())return null;
+  if(st.mode==="nuvem"){if(st.owner&&Auth.ok()&&!Auth.basica())return null;const ac=st.meuAcesso;return Auth.ok()&&ac&&Array.isArray(ac.abas)?ac.abas:st.padrao}
+  if(!Auth.basica()&&(!Auth.admExiste()||Auth.admOk()))return null;
   const u=Auth.user(),m=rd(LABAS,{});return u&&Array.isArray(m[u])?m[u]:rd(LABASP,PADRAO0);
 }
 const sempre=v=>v==="proj"||v==="users";
@@ -4349,6 +4360,10 @@ function locExcluir(u,proprio){const a=rd(PK,{usuarios:{}});const n=Object.keys(
   aviso(`${proprio?"Sua inscrição":"A inscrição de "+u} foi cancelada${n?` e ${n} projeto${n===1?"":"s"} ${n===1?"foi excluído":"foram excluídos"}`:""}.`);if(window.projApi)projApi.relogin();draw()}
 
 /* ---- tela ---- */
+const avancadaHTML=()=>`<section class="card us-pro"><div class="card-head"><i class="n" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i><h2>Administração<span>Versão avançada</span></h2><span class="us-pro-tag">Em breve</span></div><div class="pj-body">
+  <p>Esta é a versão para celular: aqui ficam o login, os seus projetos e as abas liberadas para você.</p>
+  <ul class="us-pro-list"><li>Aprovar, suspender e cancelar inscrições</li><li>Escolher as abas de cada usuário</li><li>Cadastrar usuários e redefinir senhas</li><li>Exigir senha para abrir o app inteiro</li></ul>
+  <p class="muted">Esses recursos fazem parte da versão avançada e serão liberados mais adiante. Por enquanto, a administração é feita na versão completa, no computador.</p></div></section>`;
 const badge=s=>`<span class="us-st ${SIT[s][1]}">${SIT[s][0]}</span>`;
 const pwf=(id,lab,ac)=>`<label for="${id}">${lab}</label><div class="inp au-pw"><input type="password" id="${id}" autocomplete="${ac}" maxlength="128"><button type="button" class="au-eye" data-eye="${id}" aria-label="Mostrar senha">mostrar</button></div>`;
 const trocaHTML=()=>`<details class="us-det"><summary>Trocar minha senha</summary><form class="pj-form au-grid us-troca" id="us-troca">${pwf("us-pa","Senha atual","current-password")}${pwf("us-pn","Nova senha","new-password")}${pwf("us-pc","Confirme a nova","new-password")}<div class="pj-btns"><button type="submit" class="btn solid">Salvar nova senha</button></div></form></details>`;
@@ -4357,7 +4372,7 @@ function draw(){
   aplicarAbas();
   if(el.hidden)return;
   const cf=st.confirm;
-  let h=`<section class="card wide"><div class="card-head"><h2>Usuários e acesso<span>Login com senha, inscrições, aprovação, suspensão e cancelamento</span></h2>${st.mode==="nuvem"&&st.owner&&Auth.ok()?`<button type="button" class="btn us-ref" id="us-ref">↻ Recarregar lista</button>`:""}</div>
+  let h=`<section class="card wide"><div class="card-head"><h2>Usuários e acesso<span>Login com senha, inscrições, aprovação, suspensão e cancelamento</span></h2>${st.mode==="nuvem"&&st.owner&&Auth.ok()&&!Auth.basica()?`<button type="button" class="btn us-ref" id="us-ref">↻ Recarregar lista</button>`:""}</div>
     <div class="pj-msg${st.err?" bad":""}" id="us-msg" role="status" aria-live="polite">${esc(st.msg)}</div></section>`;
   if(st.mode==="init"){el.innerHTML=h+`<section class="card wide"><p class="pj-body muted">Verificando sua conta…</p></section>`;bind();return}
   if(st.mode==="nuvem"){
@@ -4365,7 +4380,7 @@ function draw(){
     const s=st.owner?"ativo":situacao(st.minha,st.meuAcesso,st.modo);
     const temInsc=st.minha&&st.minha.status!=="cancelada";
     h+=`<section class="card"><div class="card-head"><i class="n">1</i><h2>Minha conta<span>${Auth.supa()?esc(Auth.email()):st.owner?"Você é o dono e administrador do app":esc(Auth.user()||"Conta claude.ai")}</span></h2><button type="button" class="btn us-ref" id="us-sair">Sair</button></div><div class="pj-body">
-      ${st.owner?`<p>${badge("ativo")} ${Auth.supa()?"Você é administrador do app: tem acesso total e não precisa de inscrição.":"Como dono do app, você tem acesso total e não precisa de inscrição."}</p>`:
+      ${st.owner?`<p>${badge("ativo")} ${Auth.basica()?"Você é administrador do app. Nesta versão para celular você usa as abas padrão; a administração completa fica na versão avançada.":Auth.supa()?"Você é administrador do app: tem acesso total e não precisa de inscrição.":"Como dono do app, você tem acesso total e não precisa de inscrição."}</p>`:
       `<p>Situação: ${badge(s)}</p>
        ${st.minha?`<p class="muted">Inscrito(a) em ${dataBR(st.minha.em)}${st.minha.atualizadoEm&&st.minha.atualizadoEm!==st.minha.em?` · última mudança em ${dataBR(st.minha.atualizadoEm)}`:""}</p>`:""}
        <div class="pj-form us-form"><label for="us-ident">Identificação</label><div class="inp"><input id="us-ident" maxlength="120" placeholder="Nome, instituição ou matrícula (opcional)" value="${esc(st.ident)}"></div></div>
@@ -4375,7 +4390,8 @@ function draw(){
        <p class="muted">${st.modo==="aprovacao"?"Neste app, novas inscrições precisam ser aprovadas pelo administrador.":"Neste app, a inscrição é liberada na hora."}</p>`}
       ${trocaHTML()}
     </div></section>`;
-    if(st.owner){
+    if(Auth.basica()){if(st.owner)h+=avancadaHTML()}
+    else if(st.owner){
       const cont={ativo:0,pendente:0,suspenso:0,cancelado:0,cancelada:0};
       const rows=st.lista.map(x=>({...x,s:situacao(x.insc,x.ac,st.modo)}));rows.forEach(x=>cont[x.s]=(cont[x.s]||0)+1);
       const vis=rows.filter(x=>st.filtro==="todos"||x.s===st.filtro||(st.filtro==="cancel"&&(x.s==="cancelado"||x.s==="cancelada")));
@@ -4404,8 +4420,9 @@ function draw(){
   }else{
     const eu=Auth.user(),adm=Auth.admOk(),us=locUsuarios();
     h+=`<section class="card"><div class="card-head"><i class="n">1</i><h2>Minha conta<span>${eu?esc(eu):"Usuário e senha"}</span></h2>${eu?`<button type="button" class="btn us-ref" id="us-sair">Sair</button>`:""}</div>${!eu?Auth.loginHTML("us"):
-      `<div class="pj-body"><p>${badge("ativo")} Conectado(a) como <b>${esc(eu)}</b>.</p>${Auth.admExiste()&&!adm?`<p>Abas liberadas para você: <b>${esc(abasTxt(abasPermitidas()))}</b></p>`:""}${trocaHTML()}
+      `<div class="pj-body"><p>${badge("ativo")} Conectado(a) como <b>${esc(eu)}</b>.</p>${(Auth.basica()||Auth.admExiste())&&!adm?`<p>Abas liberadas para você: <b>${esc(abasTxt(abasPermitidas()))}</b></p>`:""}${trocaHTML()}
        ${cf&&cf.t==="cancel-me"?cancelaConf(`<p class="muted">Isto apaga o usuário ${esc(eu)} e todos os projetos dele neste navegador. Não dá para desfazer.</p>`):`<div class="pj-btns"><button type="button" class="btn warn" id="us-cancel">Cancelar minha inscrição</button></div>`}</div>`}</section>`;
+    if(Auth.basica())h+=avancadaHTML();else{
     h+=`<section class="card"><div class="card-head"><i class="n">2</i><h2>Administrador deste navegador<span>${adm?"Modo administrador ativo":"Gerencia usuários e senhas"}</span></h2>${adm?`<button type="button" class="btn us-ref" id="us-admsair">Sair do modo administrador</button>`:""}</div><div class="pj-body">
       ${!Auth.admExiste()?`<p class="muted">Crie a senha de administrador. Com ela você suspende usuários, redefine senhas esquecidas, cadastra usuários e pode exigir senha para abrir o app inteiro. Anote esta senha: se ela for perdida, não há como recuperá-la.</p><form class="pj-form au-grid" id="us-admnova">${pwf("us-an","Senha de administrador","new-password")}${pwf("us-ac","Confirme a senha","new-password")}<div class="pj-btns"><button type="submit" class="btn solid">Criar senha de administrador</button></div></form>`:
       !adm?`<form class="pj-form au-grid" id="us-admin">${pwf("us-ap","Senha de administrador","current-password")}<div class="pj-btns"><button type="submit" class="btn solid">Entrar como administrador</button></div></form>`:
@@ -4423,7 +4440,7 @@ function draw(){
         c==="senha"?`<button type="button" class="btn warn" data-loc="senha-ok" data-u="${esc(x.u)}">Confirmar redefinição</button><button type="button" class="btn" data-us="x">Voltar</button>`:
         `${x.blq?`<button type="button" class="btn solid" data-loc="lib" data-u="${esc(x.u)}">Reativar</button>`:`<button type="button" class="btn" data-loc="blq" data-u="${esc(x.u)}">Suspender</button>`}<button type="button" class="btn" data-loc="abas" data-u="${esc(x.u)}">Abas</button>${x.senha?`<button type="button" class="btn" data-loc="senha" data-u="${esc(x.u)}">Redefinir senha</button>`:""}<button type="button" class="btn warn" data-loc="del" data-u="${esc(x.u)}">Cancelar inscrição</button>`}</td>`:""}</tr>`}).join("")}</tbody></table></div>`}
       <div class="card-foot">As senhas são guardadas embaralhadas (PBKDF2), nunca o texto da senha. Redefinir senha apaga a senha do usuário: no próximo login ele cria outra. Neste arquivo aberto no computador, a proteção vale para o uso normal do app, mas os dados ficam no navegador e não resistem a quem souber mexer nas ferramentas do navegador. Para proteção de verdade, use o app publicado no claude.ai.</div></section>`;
-  }
+  }}
   el.innerHTML=h;bind();
 }
 function bind(){

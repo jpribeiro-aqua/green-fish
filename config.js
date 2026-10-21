@@ -4,5 +4,8 @@
    Supabase > Project Settings > API > Project URL e anon public key. */
 window.RAS_CONFIG = {
   supabaseUrl: "",
-  supabaseAnonKey: ""
+  supabaseAnonKey: "",
+  /* Versão básica no celular: false = só login de usuário; a administração aparece como "versão avançada" bloqueada.
+     Para liberar a administração também no celular, troque para true. */
+  adminNoCelular: false
 };
