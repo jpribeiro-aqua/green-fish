@@ -1,4 +1,4 @@
-# RAS Multitanques — app para celular (PWA)
+# Green Fish — app para celular (PWA)
 
 Esta pasta é o app pronto para ser hospedado num endereço próprio e instalado no celular, com ícone na tela inicial e funcionamento sem internet.
 

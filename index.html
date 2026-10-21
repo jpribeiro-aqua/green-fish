@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <meta charset="utf-8">
-<title>Sistema RAS Multitanques</title>
+<title>Green Fish</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f7a6c">
 <link rel="manifest" href="manifest.webmanifest">
@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="RAS Aqua">
+<meta name="apple-mobile-web-app-title" content="Green Fish">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -35,6 +35,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);fo
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
 .wrap{max-width:1240px;margin:0 auto;display:grid;gap:20px}
 
+.marca{display:flex;align-items:center;gap:8px;color:var(--accent);font:700 24px/1 var(--f-display);letter-spacing:.01em;margin-bottom:6px}
+.au-marca{display:flex;flex-wrap:wrap;align-items:center;gap:8px;color:var(--accent)}.au-marca span{flex-basis:100%}
 header h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4vw,38px);line-height:1.05;margin:0;text-wrap:balance}
 header p{margin:6px 0 0;color:var(--muted);max-width:72ch}
 
@@ -561,7 +563,7 @@ body.auth-lock .wrap,body.auth-lock .dock,body.auth-lock .tip,body.auth-lock .bn
  body.has-bnav{padding-bottom:calc(68px + env(safe-area-inset-bottom))}
  body.has-bnav .tabs,body.has-bnav .dock{display:none!important}
  body.has-bnav header p{display:none}
- body.has-bnav header h1{font-size:22px;line-height:1.15}
+ body.has-bnav header h1{font-size:16px;line-height:1.2;font-weight:600;color:var(--muted)}
  body.has-bnav[data-view]:not([data-view="calc"]) .summary{display:none}
  .bnav{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);padding:4px 4px env(safe-area-inset-bottom)}
  .bnav button{display:grid;justify-items:center;gap:2px;border:0;background:none;color:var(--muted);font:600 11px var(--f-body);padding:6px 2px;min-height:52px;cursor:pointer;border-radius:10px}
@@ -604,6 +606,7 @@ body.sem-calc .summary,body.sem-calc .dock{display:none!important}
 
 <div class="wrap">
   <header>
+    <div class="marca"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1"/></svg><span>Green Fish</span></div>
     <h1>Dimensionamento de sistema de recirculação com vários tanques</h1>
     <p>Monte o sistema do cliente com quantos grupos de tanques precisar (quantidade × volume). O volume total alimenta o cálculo de biomassa, ração, filtros e mídia, e cada grupo recebe sua parte. A aba de biomassa acompanha o crescimento dos lotes dia a dia.</p>
   </header>
@@ -4002,7 +4005,7 @@ function overlay(){
   if(o&&o.dataset.k===chave)return;
     if(!o){o=document.createElement("div");o.id="auth-ovl";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");o.setAttribute("aria-labelledby","au-tit");document.body.appendChild(o)}
   o.dataset.k=chave;
-  o.innerHTML=`<section class="card au-box"><div class="card-head"><h2 id="au-tit">Sistema RAS Multitanques<span>${A.supa?"Entre com a sua conta do app":"Acesso restrito: entre com a sua senha"}</span></h2></div>${Auth.loginHTML("ov")}
+  o.innerHTML=`<section class="card au-box"><div class="card-head"><h2 id="au-tit" class="au-marca"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1"/></svg>Green Fish<span>${A.supa?"Sistema RAS Multitanques · entre com a sua conta":"Sistema RAS Multitanques · acesso restrito"}</span></h2></div>${Auth.loginHTML("ov")}
     ${A.mode==="local"&&Auth.admExiste()&&!BASICA?`<details class="au-adm"><summary>Entrar como administrador deste navegador</summary><form class="pj-body" id="ov-adm"><div class="pj-form au-grid"><label for="ov-admp">Senha de administrador</label><div class="inp au-pw"><input type="password" id="ov-admp" autocomplete="current-password"></div></div><div class="pj-btns"><button type="submit" class="btn">Entrar como administrador</button></div><p class="au-err" role="alert"></p></form></details>`:""}</section>`;
   Auth.bindLogin(o);
   const fa=o.querySelector("#ov-adm");fa&&fa.addEventListener("submit",async e=>{e.preventDefault();try{await Auth.admEntrar(o.querySelector("#ov-admp").value);setView("users")}catch(x){fa.querySelector(".au-err").textContent=erro(x)}});

@@ -1,7 +1,7 @@
 {
-  "name": "RAS Multitanques",
-  "short_name": "RAS Aqua",
-  "description": "Dimensionamento de sistemas de recirculação, monitoramento AquaNictemeral, biomassa, arraçoamento e viabilidade.",
+  "name": "Green Fish",
+  "short_name": "Green Fish",
+  "description": "Green Fish: sistema RAS multitanques, monitoramento AquaNictemeral, biomassa, arraçoamento e viabilidade.",
   "lang": "pt-BR",
   "start_url": "./",
   "scope": "./",
@@ -10,8 +10,21 @@
   "background_color": "#eef3f2",
   "theme_color": "#0f7a6c",
   "icons": [
-    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
-    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
-    {"src": "maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
