@@ -4477,7 +4477,7 @@ function draw(){
              x.s!=="cancelada"&&x.s!=="cancelado"&&!st.admins.has(x.id)?(planoAvancado(x.ac)?`<button type="button" class="btn" data-us="plano-basica" data-id="${x.id}">Voltar para básica</button>`:`<button type="button" class="btn solid" data-us="plano-avancada" data-id="${x.id}">Liberar versão avançada</button>`):"",
              x.s!=="cancelada"&&x.s!=="cancelado"&&!st.admins.has(x.id)&&!planoAvancado(x.ac)?`<button type="button" class="btn" data-us="ask-abas" data-id="${x.id}">Abas</button>`:"",
              Auth.supa()&&Auth.dono()&&admOpts.length&&!st.admins.has(x.id)&&x.s!=="cancelada"?`<button type="button" class="btn" data-us="ask-equipe" data-id="${x.id}">Equipe</button>`:"",
-             Auth.supa()&&Auth.dono()&&x.s==="ativo"?(st.admins.has(x.id)?(st.admins.get(x.id).dono?"":`<button type="button" class="btn" data-us="ask-cota" data-id="${x.id}">Definir cota</button><button type="button" class="btn warn" data-us="ask-desadmin" data-id="${x.id}">Remover administrador</button>`):`<button type="button" class="btn" data-us="ask-admin" data-id="${x.id}">Tornar administrador</button>`):"",
+             Auth.supa()&&Auth.dono()&&x.s==="ativo"?(st.admins.has(x.id)?(st.admins.get(x.id).dono?"":`<button type="button" class="btn solid" data-us="copiar-link" data-id="${x.id}">Copiar link da equipe</button><button type="button" class="btn" data-us="ask-cota" data-id="${x.id}">Definir cota</button><button type="button" class="btn warn" data-us="ask-desadmin" data-id="${x.id}">Remover administrador</button>`):`<button type="button" class="btn" data-us="ask-admin" data-id="${x.id}">Tornar administrador</button>`):"",
              temS?`<button type="button" class="btn" data-us="ask-senha" data-id="${x.id}">Redefinir senha</button>`:"",
              x.s!=="cancelado"&&x.s!=="cancelada"?`<button type="button" class="btn warn" data-us="ask-cancelado" data-id="${x.id}">Cancelar inscrição</button>`:""].join("")||`<span class="muted">Cancelada pela própria pessoa</span>`;
           const eqx=eqDe(x);
@@ -4541,6 +4541,8 @@ function bind(){
     else if(a==="senha"){st.confirm=null;redefinirNuvem(id)}
     else if(a==="abas-ok")salvarAbasNuvem(id);
     else if(a==="equipe-ok"){const v=(el.querySelector("#us-eq-"+CSS.escape(id))||{}).value||"";st.confirm=null;rodar(async()=>{const x=st.lista.find(y=>y.id===id);const novo={...((x&&x.insc)||{})};if(v)novo.equipe=v;else delete novo.equipe;await st.db.doc("inscricoes/"+id).set(novo);if(x)x.insc=novo;aviso(v?"Pessoa colocada na equipe escolhida.":"Pessoa retirada da equipe.")})}
+    else if(a==="copiar-link"){const lk=linkApp()+"?equipe="+id.slice(0,8),nm=(st.nomes[id]&&st.nomes[id].name)||"administrador";
+      (navigator.clipboard?navigator.clipboard.writeText(lk):Promise.reject()).then(()=>aviso(`Link da equipe de ${nm} copiado: ${lk}`)).catch(()=>{window.prompt("Copie o link da equipe de "+nm+":",lk)})}
     else if(a==="aprovar")rodar(async()=>{const r=await Auth.aprovar(id);await carregar();aviso(r==="ja_ativo"?"Esta pessoa já estava liberada.":"Login liberado.")});
     else if(a==="cota-ok"){const v=parseInt((el.querySelector("#us-cota-"+CSS.escape(id))||{}).value,10);if(!(v>=0)){aviso("Digite um número inteiro (0 ou mais).",true);return}st.confirm=null;rodar(async()=>{await Auth.definirLimite(id,v);await carregarLista();aviso(`Cota salva: esse administrador pode liberar até ${v} login${v===1?"":"s"}.`)})}
     else if(a==="plano-avancada"||a==="plano-basica")mudarPlano(id,a==="plano-avancada"?"avancada":"basica");
