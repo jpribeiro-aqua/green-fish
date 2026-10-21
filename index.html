@@ -2148,7 +2148,7 @@ function drawDash(){
   const all=groups.filter(g=>g.vol>0).map(withColor);
   const gs=colored(groups.filter(g=>g.vol>0));
   const share=g=>p.perEsp&&r.BM>0?(g.bm||0)/r.BM:g.vol/p.V;
-  let h=(window.localDashHTML?localDashHTML():"")+(window.shrimpDashHTML?shrimpDashHTML():"");
+  let h=(window.localDashHTML&&(!window.abaPermitida||abaPermitida("local"))?localDashHTML():"")+(window.shrimpDashHTML?shrimpDashHTML():"");
 
   // 1. Distribuição da água (parte do todo)
   const stack=gs.map(g=>`<div style="flex:${g.vol} 1 0;background:${g.color}" ${tipAttr(g.name,`${n(g.vol,0)} m³ · ${fmt(share(g)*100,1)} % da água`)}></div>`).join("");
@@ -4249,9 +4249,11 @@ const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch
 const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
 const SIT={ativo:["Ativo","ok"],pendente:["Aguardando aprovação","wait"],suspenso:["Suspenso","bad"],cancelado:["Cancelado pelo administrador","bad"],cancelada:["Inscrição cancelada pelo usuário","off"],sem:["Sem inscrição","off"]};
 const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"]];
-const PADRAO0=["local","calc"],LABAS=PK+"-abas",LABASP=PK+"-abas-padrao";
-const abasTxt=l=>!l||l.length===ABAS.length?"Todas":l.length?ABAS.filter(a=>l.includes(a[0])).map(a=>a[2]).join(", "):"Nenhuma (só Projetos)";
-const abasForm=(key,sel)=>`<div class="us-abas" data-abas="${esc(key)}" role="group" aria-label="Abas liberadas">${ABAS.map(([v,t])=>`<label><input type="checkbox" value="${v}"${sel.includes(v)?" checked":""}> ${t}</label>`).join("")}</div>`;
+const SO_ADMIN=["local","calc"];          // Local e viabilidade e Calculadora: só administrador (versão avançada)
+const ABAS_USU=ABAS.filter(a=>!SO_ADMIN.includes(a[0]));
+const PADRAO0=["aqua","bio","racao","dash"],LABAS=PK+"-abas",LABASP=PK+"-abas-padrao";
+const abasTxt=l=>{if(!l)return "Todas";l=l.filter(v=>!SO_ADMIN.includes(v));return l.length?ABAS_USU.filter(a=>l.includes(a[0])).map(a=>a[2]).join(", "):"Nenhuma (só Projetos)"};
+const abasForm=(key,sel)=>`<div class="us-abas" data-abas="${esc(key)}" role="group" aria-label="Abas liberadas">${ABAS_USU.map(([v,t])=>`<label><input type="checkbox" value="${v}"${sel.includes(v)?" checked":""}> ${t}</label>`).join("")}</div>`;
 const lerAbas=key=>[...el.querySelectorAll(`.us-abas[data-abas="${CSS.escape(key)}"] input:checked`)].map(i=>i.value);
 const st={padrao:PADRAO0,mode:"init",db:null,usr:null,uid:null,owner:false,modo:"livre",minha:null,meuAcesso:null,lista:[],nomes:{},comSenha:new Set(),busy:false,msg:"",err:false,confirm:null,filtro:"todos",apagar:false,ident:""};
 
@@ -4278,7 +4280,7 @@ function abasPermitidas(){
   const u=Auth.user(),m=rd(LABAS,{});return u&&Array.isArray(m[u])?m[u]:rd(LABASP,PADRAO0);
 }
 const sempre=v=>v==="proj"||v==="users";
-window.abaPermitida=v=>{const p=abasPermitidas();return sempre(v)||!p||p.includes(v)};
+window.abaPermitida=v=>{const p=abasPermitidas();if(sempre(v)||!p)return true;if(SO_ADMIN.includes(v))return false;return p.includes(v)};
 function aplicarAbas(){
   const ok=window.abaPermitida;
   document.querySelectorAll(".tab[data-view]").forEach(t=>t.hidden=!ok(t.dataset.view));
@@ -4287,6 +4289,7 @@ function aplicarAbas(){
   const cur=document.querySelector('.tab[aria-selected="true"]');
   if(cur&&!ok(cur.dataset.view))setView(VIEWS.find(ok)||"proj");
 }
+window.aplicarAbas=aplicarAbas;
 {const orig=setView;setView=function(v){if(!window.abaPermitida(v))v=VIEWS.find(window.abaPermitida)||"proj";orig(v)}}
 const aviso=(t,err)=>{st.msg=t;st.err=!!err;const m=el.querySelector("#us-msg");if(m){m.textContent=t;m.classList.toggle("bad",!!err)}};
 const erroTxt=e=>e&&e.msg?e.msg:Auth.erro(e);
@@ -4362,7 +4365,7 @@ function locExcluir(u,proprio){const a=rd(PK,{usuarios:{}});const n=Object.keys(
 /* ---- tela ---- */
 const avancadaHTML=()=>`<section class="card us-pro"><div class="card-head"><i class="n" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></i><h2>Administração<span>Versão avançada</span></h2><span class="us-pro-tag">Em breve</span></div><div class="pj-body">
   <p>Esta é a versão para celular: aqui ficam o login, os seus projetos e as abas liberadas para você.</p>
-  <ul class="us-pro-list"><li>Aprovar, suspender e cancelar inscrições</li><li>Escolher as abas de cada usuário</li><li>Cadastrar usuários e redefinir senhas</li><li>Exigir senha para abrir o app inteiro</li></ul>
+  <ul class="us-pro-list"><li>Aprovar, suspender e cancelar inscrições</li><li>Local e viabilidade e Calculadora</li><li>Escolher as abas de cada usuário</li><li>Cadastrar usuários e redefinir senhas</li><li>Exigir senha para abrir o app inteiro</li></ul>
   <p class="muted">Esses recursos fazem parte da versão avançada e serão liberados mais adiante. Por enquanto, a administração é feita na versão completa, no computador.</p></div></section>`;
 const badge=s=>`<span class="us-st ${SIT[s][1]}">${SIT[s][0]}</span>`;
 const pwf=(id,lab,ac)=>`<label for="${id}">${lab}</label><div class="inp au-pw"><input type="password" id="${id}" autocomplete="${ac}" maxlength="128"><button type="button" class="au-eye" data-eye="${id}" aria-label="Mostrar senha">mostrar</button></div>`;
@@ -4400,7 +4403,7 @@ function draw(){
           <label><input type="radio" name="us-modo" value="livre"${st.modo==="livre"?" checked":""}> <b>Inscrição livre</b><span class="muted">quem se inscreve já fica ativo</span></label>
           <label><input type="radio" name="us-modo" value="aprovacao"${st.modo==="aprovacao"?" checked":""}> <b>Com aprovação</b><span class="muted">cada nova inscrição espera você aprovar</span></label></div>
         ${Auth.supa()?"":`<label class="us-chk us-trava"><input type="checkbox" id="us-trava"${Auth.trava()?" checked":""}> <span><b>Exigir senha para abrir o app inteiro</b><br><span class="muted">Desligado: só Projetos e Usuários e acesso pedem senha. Ligado: nenhuma aba aparece antes do login.</span></span></label>`}
-        <div class="us-abas-box"><b>Abas liberadas por padrão</b><span class="muted">Para quem não tem abas definidas individualmente. Projetos e Usuários e acesso ficam sempre disponíveis; você, como administrador, vê todas.</span>${abasForm("padrao",st.padrao)}<div class="pj-btns"><button type="button" class="btn solid" id="us-pad-ok">Salvar padrão</button></div></div>
+        <div class="us-abas-box"><b>Abas liberadas por padrão</b><span class="muted">Para quem não tem abas definidas individualmente. Projetos e Usuários e acesso ficam sempre disponíveis. Local e viabilidade e Calculadora são só do administrador (versão avançada).</span>${abasForm("padrao",st.padrao)}<div class="pj-btns"><button type="button" class="btn solid" id="us-pad-ok">Salvar padrão</button></div></div>
         <div class="us-kpis"><div><b>${cont.ativo}</b>ativos</div><div><b>${cont.pendente}</b>aguardando</div><div><b>${cont.suspenso}</b>suspensos</div><div><b>${cont.cancelado+cont.cancelada}</b>cancelados</div></div>
         <p class="muted">${Auth.supa()?"Qualquer pessoa com o endereço do app pode criar uma conta. Com aprovação, só quem você aprovar consegue salvar projetos.":"Quem pode abrir o link do app é definido no menu Compartilhar do claude.ai. Esta aba controla o que cada pessoa pode fazer dentro do app."}</p></div></section>`;
       h+=`<section class="card wide"><div class="card-head"><i class="n">3</i><h2>Pessoas inscritas<span>${rows.length} inscriç${rows.length===1?"ão":"ões"}</span></h2>
@@ -4427,7 +4430,7 @@ function draw(){
       ${!Auth.admExiste()?`<p class="muted">Crie a senha de administrador. Com ela você suspende usuários, redefine senhas esquecidas, cadastra usuários e pode exigir senha para abrir o app inteiro. Anote esta senha: se ela for perdida, não há como recuperá-la.</p><form class="pj-form au-grid" id="us-admnova">${pwf("us-an","Senha de administrador","new-password")}${pwf("us-ac","Confirme a senha","new-password")}<div class="pj-btns"><button type="submit" class="btn solid">Criar senha de administrador</button></div></form>`:
       !adm?`<form class="pj-form au-grid" id="us-admin">${pwf("us-ap","Senha de administrador","current-password")}<div class="pj-btns"><button type="submit" class="btn solid">Entrar como administrador</button></div></form>`:
       `<label class="us-chk us-trava"><input type="checkbox" id="us-trava"${Auth.trava()?" checked":""}> <span><b>Exigir senha para abrir o app inteiro</b><br><span class="muted">Ligado: nenhuma aba aparece antes do login, e só entram usuários já cadastrados.</span></span></label>
-       <div class="us-abas-box"><b>Abas liberadas por padrão</b><span class="muted">Para usuários sem abas definidas individualmente. Projetos e Usuários e acesso ficam sempre disponíveis; no modo administrador você vê todas.</span>${abasForm("padrao",rd(LABASP,PADRAO0))}<div class="pj-btns"><button type="button" class="btn solid" id="us-pad-ok">Salvar padrão</button></div></div>
+       <div class="us-abas-box"><b>Abas liberadas por padrão</b><span class="muted">Para usuários sem abas definidas individualmente. Projetos e Usuários e acesso ficam sempre disponíveis. Local e viabilidade e Calculadora são só do administrador (versão avançada).</span>${abasForm("padrao",rd(LABASP,PADRAO0))}<div class="pj-btns"><button type="button" class="btn solid" id="us-pad-ok">Salvar padrão</button></div></div>
        <details class="us-det"${cf&&cf.t==="novo"?" open":""}><summary>Cadastrar usuário</summary><form class="pj-form au-grid" id="us-novo"><label for="us-nu">Nome do usuário</label><div class="inp"><input id="us-nu" maxlength="60" autocomplete="off"></div>${pwf("us-np","Senha inicial","new-password")}${pwf("us-nc","Confirme a senha","new-password")}<div class="pj-btns"><button type="submit" class="btn solid">Cadastrar</button></div></form></details>
        <details class="us-det"><summary>Trocar a senha de administrador</summary><form class="pj-form au-grid" id="us-admtroca">${pwf("us-aa","Senha atual","current-password")}${pwf("us-an2","Nova senha","new-password")}${pwf("us-ac2","Confirme a nova","new-password")}<div class="pj-btns"><button type="submit" class="btn solid">Salvar nova senha</button></div></form></details>`}
     </div></section>`;
@@ -4551,6 +4554,7 @@ sh.querySelector(".msheet-acts").prepend(inst);
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();pedido=e;inst.hidden=false});
 inst.addEventListener("click",async()=>{if(!pedido)return;pedido.prompt();try{await pedido.userChoice}catch(e){}pedido=null;inst.hidden=true});
 window.addEventListener("appinstalled",()=>{inst.hidden=true});
+if(window.aplicarAbas)aplicarAbas();
 })();
 </script>
 

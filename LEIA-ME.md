@@ -20,7 +20,7 @@ Esta pasta é o app pronto para ser hospedado num endereço próprio e instalado
 
 ## Versão básica (celular) e versão avançada
 
-No celular (app instalado ou navegador do celular), o app funciona como **versão básica**: só login de usuário, projetos e as abas liberadas para cada pessoa (por padrão, Local e viabilidade e Calculadora). A administração (aprovar inscrições, liberar abas, cadastrar usuários, redefinir senhas) aparece como **versão avançada** bloqueada.
+No celular (app instalado ou navegador do celular), o app funciona como **versão básica**: só login de usuário, projetos e as abas liberadas para cada pessoa (por padrão, AquaNictemeral, Biomassa, Arraçoamento e Painel). Local e viabilidade e Calculadora ficam só para o administrador, na versão avançada. A administração (aprovar inscrições, liberar abas, cadastrar usuários, redefinir senhas) aparece como **versão avançada** bloqueada.
 
 A administração é feita na versão completa, no computador. Para liberar a versão avançada também no celular, troque em `config.js` a linha `adminNoCelular: false` para `adminNoCelular: true`.
 
