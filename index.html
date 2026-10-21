@@ -3928,6 +3928,10 @@ const Auth={
   async minhaCota(){const {data,error}=await A.sb.rpc("ras_minha_cota");if(error)throw supaErr(error);const r=(data||[])[0]||{};return {limite:r.limite||0,usados:r.usados||0}},
   async definirLimite(id,n){const {error}=await A.sb.rpc("ras_definir_limite",{alvo:id,novo:n});if(error)throw {msg:/dono/i.test(error.message)?"Só o dono do app define a cota.":"Não foi possível salvar a cota: "+error.message}},
   async aprovar(id){const {data,error}=await A.sb.rpc("ras_aprovar",{alvo:id});if(error)throw {msg:/Mensalidade/i.test(error.message)?"Sua mensalidade está em atraso: regularize o pagamento para voltar a liberar logins.":/Cota/i.test(error.message)?"Sua cota de logins acabou. Peça ao dono do app para aumentá-la.":/Bloqueado/i.test(error.message)?"Esta pessoa foi bloqueada pelo dono do app.":/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe: só o dono do app pode liberá-la.":/inscri/i.test(error.message)?"Esta pessoa não tem inscrição ativa.":"Não foi possível liberar: "+error.message};return data},
+  async todosProjetos(){const {data,error}=await A.sb.from("ras_docs").select("path,data").like("col","data/users/%/perfil/projetos").limit(2000);if(error)throw supaErr(error);
+    const l=(data||[]).map(r=>{const p=r.path.split("/");return {uid:p[2],id:p[5],...(r.data||{})}}).filter(x=>x.uid&&x.id&&x.uid!==A.uid),ids=[...new Set(l.map(x=>x.uid))],pf={};
+    if(ids.length){try{const {data:d}=await A.sb.from("ras_docs").select("path,data").in("path",ids.map(i=>"perfis/"+i));(d||[]).forEach(r=>pf[r.path.slice(7)]=r.data||{})}catch(e){}}
+    return l.map(x=>({...x,cliente:(pf[x.uid]&&(pf[x.uid].nome||pf[x.uid].email))||"Cliente "+x.uid.slice(0,8),email:(pf[x.uid]&&pf[x.uid].email)||""}))},
   async situacaoPagamento(id){const {data,error}=await A.sb.rpc("ras_situacao_pagamento",{alvo:id||A.uid});if(error)throw supaErr(error);return data||"isento"},
   async registrarPagamento(id,meses,valor,ref){const {data,error}=await A.sb.rpc("ras_registrar_pagamento",{alvo:id,meses,valor,ref});if(error)throw {msg:/dono/i.test(error.message)?"Só o dono do app registra pagamentos.":/meses/i.test(error.message)?"Quantidade de meses inválida (1 a 24).":"Não foi possível registrar o pagamento: "+error.message};return data},
   async definirAdmin(id,ser){const {error}=await A.sb.rpc("ras_definir_admin",{alvo:id,ser:!!ser});if(error)throw {msg:/dono/i.test(error.message)?"O dono do app não pode ser removido.":/permiss|dono do app/i.test(error.message)?"Só o dono do app pode escolher administradores.":"Não foi possível concluir: "+error.message}},
@@ -4062,7 +4066,7 @@ const PK="ras-projetos-v1";                 // projetos salvos no navegador (mod
 const CUR=PK+"-atual",LUSR=PK+"-usuario",FLASH=PK+"-aviso";
 const isSnap=k=>k&&(k.indexOf("ras-multitanques-v1")===0||k.indexOf("aquanictemeral")===0);
 const CHUNK=180000;                         // partes de até ~180 mil caracteres (limite do banco: 256 KiB por documento)
-const st={mode:"init",uid:null,uname:"",db:null,list:[],busy:false,msg:"",err:false,confirm:null,filtro:""};
+const st={todos:null,buscaT:"",confT:null,mode:"init",uid:null,uname:"",db:null,list:[],busy:false,msg:"",err:false,confirm:null,filtro:""};
 const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
 const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const novoId=()=>"p"+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -4093,11 +4097,11 @@ function restaurar(dados){
 
 /* ---- armazenamento: conta claude.ai (banco privado) ou navegador ---- */
 const nuvem={
-  col(){return st.db.doc("data/users/"+st.uid+"/perfil").collection("projetos")},
-  partes(){return st.db.doc("data/users/"+st.uid+"/perfil").collection("partes")},
+  col(u){return st.db.doc("data/users/"+(u||st.uid)+"/perfil").collection("projetos")},
+  partes(u){return st.db.doc("data/users/"+(u||st.uid)+"/perfil").collection("partes")},
   async list(){const q=await this.col().limit(200).get();return q.docs.map(d=>({id:d.id,...d.data()}))},
-  async get(id){const m=(await this.col().doc(id).get()).data();if(!m)throw{code:"nao_achado"};
-    let s="";for(let i=0;i<(m.np||0);i++){const p=(await this.partes().doc(id+"_"+i).get()).data();if(!p)throw{code:"incompleto"};s+=p.s}
+  async get(id,u){const m=(await this.col(u).doc(id).get()).data();if(!m)throw{code:"nao_achado"};
+    let s="";for(let i=0;i<(m.np||0);i++){const p=(await this.partes(u).doc(id+"_"+i).get()).data();if(!p)throw{code:"incompleto"};s+=p.s}
     return {...m,id,dados:JSON.parse(s||"{}")}},
   async put(id,meta,dados){const s=JSON.stringify(dados),np=Math.max(1,Math.ceil(s.length/CHUNK));
     const old=(await this.col().doc(id).get()).data();
@@ -4166,6 +4170,39 @@ async function abrir(id){if(barrar())return;await rodar(async()=>{
   try{localStorage.setItem(FLASH,`Projeto “${p.nome}” aberto. Todas as abas foram carregadas com os dados dele.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
   location.reload();
 })}
+/* ---- dono do app: projetos de todos os clientes (somente leitura; abre como cópia) ---- */
+const ehDono=()=>st.mode==="nuvem"&&!!window.Auth&&Auth.supa()&&Auth.ok()&&Auth.dono();
+async function carregarTodos(){await rodar(async()=>{
+  const l=await Auth.todosProjetos(),ids=[...new Set(l.map(p=>p.uid))];
+  st.todos=l.sort((a,b)=>(b.atualizadoEm||0)-(a.atualizadoEm||0));
+  aviso(`${st.todos.length} projeto${st.todos.length===1?"":"s"} de ${ids.length} cliente${ids.length===1?"":"s"} carregado${st.todos.length===1?"":"s"}.`)})}
+async function abrirCliente(uid,id){await rodar(async()=>{
+  const p=await nuvem.get(id,uid),x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};restaurar(p.dados||{});
+  wr(CUR,{nome:`Cópia de ${p.nome} (${x.cliente||"cliente"})`,modo:st.mode});
+  try{localStorage.setItem(FLASH,`Projeto “${p.nome}” de ${x.cliente||"cliente"} aberto como cópia em todas as abas. O original do cliente não muda; para guardar a cópia na sua conta, clique em Salvar projeto.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
+  location.reload();
+})}
+async function exportarCliente(uid,id){await rodar(async()=>{
+  const p=await nuvem.get(id,uid),x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};
+  const arq={app:"ras-multitanques",versao:1,nome:p.nome,notas:p.notas||"",resp:p.resp||"",cliente:x.cliente||"",resumo:p.resumo||{},criadoEm:p.criadoEm||p.atualizadoEm,atualizadoEm:p.atualizadoEm,dados:p.dados};
+  const nomeArq=((x.cliente||"cliente")+"_"+(p.nome||"projeto")).normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w-]+/g,"_").slice(0,80)+".json";
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(arq,null,1)],{type:"application/json"}));a.download=nomeArq;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);aviso(`Arquivo ${nomeArq} gerado.`)})}
+function todosHTML(){
+  if(!ehDono())return "";
+  const T=st.todos,fl=st.buscaT.toLowerCase(),cf=st.confT;
+  const lista=(T||[]).filter(p=>!fl||(p.cliente+" "+p.email+" "+p.nome+" "+(p.notas||"")+" "+((p.resumo||{}).local||"")+" "+((p.resumo||{}).esp||"")).toLowerCase().includes(fl));
+  const nCli=T?new Set(T.map(p=>p.uid)).size:0;
+  return `<section class="card wide"><div class="card-head"><i class="n">4</i><h2>Projetos dos clientes<span>${T?`${T.length} projeto${T.length===1?"":"s"} de ${nCli} cliente${nCli===1?"":"s"} · só o dono do app vê`:"Só o dono do app vê · somente leitura"}</span></h2>
+    <div class="pj-tools">${T?`<div class="inp"><input id="pj-buscat" placeholder="Buscar por cliente, projeto, local ou espécie" value="${esc(st.buscaT)}" aria-label="Buscar projetos dos clientes"></div>`:""}<button type="button" class="btn${T?"":" solid"}" id="pj-todos">${T?"↻ Atualizar":"Carregar projetos dos clientes"}</button></div></div>
+    ${!T?`<p class="pj-body muted">Veja os projetos salvos por todas as pessoas do app. Abrir carrega uma <b>cópia</b> nas abas: o projeto do cliente nunca é alterado.</p>`:
+      !T.length?`<p class="pj-body muted">Nenhum cliente salvou projetos ainda.</p>`:!lista.length?`<p class="pj-body muted">Nenhum projeto corresponde à busca.</p>`:
+      `<div class="scroll"><table class="pj-tab"><thead><tr><th>Cliente</th><th>Projeto</th><th>Local e sistema</th><th class="num">VPL</th><th class="num">Atualizado</th><th></th></tr></thead><tbody>${lista.map(p=>{const r=p.resumo||{},k=p.uid+"/"+p.id;
+        return `<tr><td><b>${esc(p.cliente)}</b>${p.email&&p.email!==p.cliente?`<small>${esc(p.email)}</small>`:""}</td><td><b>${esc(p.nome||"Sem nome")}</b>${p.notas?`<small>${esc(p.notas.length>110?p.notas.slice(0,110)+"…":p.notas)}</small>`:""}${p.resp?`<small>Responsável: ${esc(p.resp)}</small>`:""}</td>
+          <td>${esc(r.local||"—")}<small>${r.tanques!=null?`${fmt(r.tanques,0)} tanques · ${r.grupos} grupo${r.grupos===1?"":"s"}${r.vol?` · ${fmt(r.vol,0)} m³`:""}`:""}</small>${r.esp?`<small>${esc(r.esp)}</small>`:""}</td>
+          <td class="num">${r.vpl!=null?`<span class="${r.vpl<0?"neg":""}">${R$(r.vpl)}</span>`:"—"}</td><td class="num">${dataBR(p.atualizadoEm)}<small>${p.bytes?tamanho(p.bytes):""}</small></td>
+          <td class="pj-acts">${cf===k?`<button type="button" class="btn solid" data-pt="open-ok" data-u="${p.uid}" data-id="${p.id}">Confirmar: abrir cópia</button><button type="button" class="btn" data-pt="cancel">Cancelar</button>`:`<button type="button" class="btn solid" data-pt="open" data-u="${p.uid}" data-id="${p.id}">Abrir cópia</button><button type="button" class="btn" data-pt="exp" data-u="${p.uid}" data-id="${p.id}">Exportar</button>`}</td></tr>`}).join("")}</tbody></table></div>`}
+    <div class="card-foot">Somente leitura: você não altera nem exclui os projetos dos clientes. Abrir uma cópia substitui o que está nas abas agora (salve antes o que quiser manter); para guardá-la, use Salvar projeto: ela vai para a sua conta.</div></section>`;
+}
 async function excluir(id){if(barrar())return;await rodar(async()=>{
   const p=st.list.find(x=>x.id===id);await back().del(id);
   const c=atual();if(c&&c.id===id)localStorage.removeItem(CUR);
@@ -4202,7 +4239,7 @@ function draw(){
   const c=atual(),cur=c&&c.modo===st.mode?st.list.find(p=>p.id===c.id):null;
   const cardLogin= st.mode==="init"?`<div class="pj-body"><p class="muted">Verificando sua conta…</p></div>`:
     !logado()?Auth.loginHTML("pj"):
-    `<div class="pj-body pj-user"><span class="pj-av" aria-hidden="true">${esc((st.uname||"?").trim().charAt(0).toUpperCase()||"?")}</span><div><b>${esc(st.uname||"Sua conta claude.ai")}</b><div class="muted">${st.mode==="nuvem"?(Auth.supa()?"Conta do app ("+esc(Auth.email())+"). Os projetos ficam guardados na sua conta, só você vê, no celular e no computador.":"Entrou com a conta claude.ai e a senha do app. Os projetos ficam guardados na sua conta, só você vê."):"Usuário local deste navegador, protegido por senha. Os projetos ficam guardados só aqui; para levar a outro computador, use Exportar e Importar."}</div></div><div class="pj-btns"><button type="button" class="btn" id="pj-troca">Trocar senha</button><button type="button" class="btn" id="pj-sair">Sair</button></div></div>`;
+    `<div class="pj-body pj-user"><span class="pj-av" aria-hidden="true">${esc((st.uname||"?").trim().charAt(0).toUpperCase()||"?")}</span><div><b>${esc(st.uname||"Sua conta claude.ai")}</b><div class="muted">${st.mode==="nuvem"?(Auth.supa()?"Conta do app ("+esc(Auth.email())+"). Os projetos ficam guardados na sua conta, no celular e no computador. Só você e o dono do app (para suporte) podem vê-los.":"Entrou com a conta claude.ai e a senha do app. Os projetos ficam guardados na sua conta, só você vê."):"Usuário local deste navegador, protegido por senha. Os projetos ficam guardados só aqui; para levar a outro computador, use Exportar e Importar."}</div></div><div class="pj-btns"><button type="button" class="btn" id="pj-troca">Trocar senha</button><button type="button" class="btn" id="pj-sair">Sair</button></div></div>`;
   const dis=logado()&&!bloq()?"":" disabled";
   const fl=st.filtro.toLowerCase();
   const lista=st.list.filter(p=>!fl||(p.nome+" "+(p.notas||"")+" "+((p.resumo||{}).local||"")+" "+((p.resumo||{}).esp||"")).toLowerCase().includes(fl));
@@ -4233,7 +4270,7 @@ function draw(){
        !st.list.length?`<p class="pj-body muted">Nenhum projeto salvo ainda. Preencha as abas, dê um nome no item 2 e clique em Salvar projeto.</p>`:
        !lista.length?`<p class="pj-body muted">Nenhum projeto corresponde à busca.</p>`:
        `<div class="scroll"><table class="pj-tab"><thead><tr><th>Projeto</th><th>Local e sistema</th><th class="num">VPL</th><th class="num">Atualizado</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>`}
-     <div class="card-foot">Abrir um projeto substitui os dados que estão nas abas agora: salve antes o que quiser manter. O VPL mostrado é o calculado em Local e viabilidade no momento em que o projeto foi salvo.</div></section>`;
+     <div class="card-foot">Abrir um projeto substitui os dados que estão nas abas agora: salve antes o que quiser manter. O VPL mostrado é o calculado em Local e viabilidade no momento em que o projeto foi salvo.</div></section>`+todosHTML();
   bind();
 }
 function bind(){
@@ -4249,6 +4286,10 @@ function bind(){
   q("#pj-blank-ok")&&q("#pj-blank-ok").addEventListener("click",novoEmBranco);
   const b=q("#pj-busca");b&&b.addEventListener("input",()=>{st.filtro=b.value;const p=b.selectionStart;draw();const nb=q("#pj-busca");nb.focus();nb.setSelectionRange(p,p)});
   const imp=q("#pj-imp");imp&&imp.addEventListener("change",()=>{const f=imp.files&&imp.files[0];if(f)importar(f);imp.value=""});
+  q("#pj-todos")&&q("#pj-todos").addEventListener("click",carregarTodos);
+  const bt=q("#pj-buscat");bt&&bt.addEventListener("input",()=>{st.buscaT=bt.value;const p=bt.selectionStart;draw();const nb=q("#pj-buscat");nb.focus();nb.setSelectionRange(p,p)});
+  el.querySelectorAll("[data-pt]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.pt,u=x.dataset.u,id=x.dataset.id;
+    if(a==="cancel"){st.confT=null;draw()}else if(a==="open"){st.confT=u+"/"+id;draw()}else if(a==="open-ok"){st.confT=null;abrirCliente(u,id)}else if(a==="exp")exportarCliente(u,id)}));
   el.querySelectorAll("[data-pj]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.pj,id=x.dataset.id;
     if(a==="cancel"){st.confirm=null;draw()}
     else if(a==="open"){st.confirm={t:"open",id};draw()}
@@ -4442,7 +4483,7 @@ async function decidir(id,status){await rodar(async()=>{
   const x=st.lista.find(y=>y.id===id),novo={...((x&&x.ac)||{}),status,em:Date.now()};
   await st.db.doc("acessos/"+id).set(novo);if(x)x.ac=novo;
   if(status==="ativo"&&cobAtiva()&&!st.ass[id]){const a={plano:(st.admins.has(id)||planoAvancado(novo))?"avancado":"basico",vencimento:Date.now(),criada:Date.now()};await st.db.doc("assinaturas/"+id).set(a);st.ass[id]=a}
-  aviso({ativo:"Acesso liberado."+(cobAtiva()?" A assinatura foi aberta: a pessoa tem a carência para pagar a primeira mensalidade.":""),suspenso:"Acesso suspenso: a pessoa continua inscrita, mas não salva nem abre projetos até ser reativada.",cancelado:"Inscrição cancelada: a pessoa perde o acesso ao salvamento de projetos. Os projetos dela continuam privados na conta dela."}[status]);
+  aviso({ativo:"Acesso liberado."+(cobAtiva()?" A assinatura foi aberta: a pessoa tem a carência para pagar a primeira mensalidade.":""),suspenso:"Acesso suspenso: a pessoa continua inscrita, mas não salva nem abre projetos até ser reativada.",cancelado:"Inscrição cancelada: a pessoa perde o acesso ao salvamento de projetos. Os projetos dela continuam na conta dela."}[status]);
 })}
 async function salvarPlanos(){await rodar(async()=>{const n=id=>parseFloat(String(val(id)).replace(/\./g,"").replace(",","."))||0;
   const p={ativa:!!(el.querySelector("#pl-ativa")||{}).checked,carencia:Math.max(0,Math.min(60,parseInt(val("pl-car"),10)||0)),
@@ -4644,7 +4685,7 @@ function draw(){
              x.s!=="cancelado"&&x.s!=="cancelada"?`<button type="button" class="btn warn" data-us="ask-cancelado" data-id="${x.id}">Cancelar inscrição</button>`:""].join("")||`<span class="muted">Cancelada pela própria pessoa</span>`;
           const eqx=eqDe(x);
           return `<tr${x===lider?` class="us-lider"`:""}><td>${x===lider?`<span class="us-st ok">Administrador da equipe</span>`:""}<b>${esc(nm||idt||"Pessoa sem nome visível")}</b>${nm&&idt?`<small>${esc(idt)}</small>`:""}</td>${Auth.supa()?`<td>${eqx?(eqx.id?`<span class="us-st ok">de ${esc(eqx.nome)}</span>`:`<span class="muted">código ${esc(eqx.c)}</span>`):`<span class="muted">—</span>`}${st.admins.has(x.id)&&!st.admins.get(x.id).dono?`<small>código da equipe: ${x.id.slice(0,8)}</small>`:""}</td>`:""}<td>${badge(x.s)}${x.ac&&x.ac.em?`<small>decisão em ${dataBR(x.ac.em)}</small>`:""}</td><td>${st.admins.has(x.id)?`<span class="us-st ok">${st.admins.get(x.id).dono?"Dono":"Administrador"}</span>`:planoAvancado(x.ac)?`<span class="us-st ok">Avançada</span>`:`<span class="muted">Básica</span>`}</td>${cobOn?`<td>${pbadge(sitPag(x.id,st.ass[x.id]))}${st.ass[x.id]?`<small>${esc(planoDe(st.ass[x.id].plano).nome)} · ${st.ass[x.id].isento?"isento":"até "+dia(st.ass[x.id].vencimento)}</small>`:""}${st.avisos[x.id]?`<small class="us-inf">pagamento informado</small>`:""}</td>`:""}<td>${st.admins.has(x.id)?(st.admins.get(x.id).dono?"Todas":`${abasAdm(x.ac)?`<span class="us-st wait">Restritas</span> ${esc(abasTxtAdm(abasAdm(x.ac)))}`:"Todas"}<small>cota: ${st.admins.get(x.id).usados} de ${st.admins.get(x.id).limite} logins liberados</small><small>abas da equipe: ${esc(abasTxt(eqAbas(x.id.slice(0,8))||st.padrao))}${eqAbas(x.id.slice(0,8))?"":" (padrão geral)"}</small>`):planoAvancado(x.ac)?"Todas":x.ac&&Array.isArray(x.ac.abas)?esc(abasTxt(x.ac.abas)):eqAbas(x.insc&&x.insc.equipe)?`<span class="muted">da equipe: ${esc(abasTxt(eqAbas(x.insc.equipe)))}</span>`:`<span class="muted">padrão: ${esc(abasTxt(st.padrao))}</span>`}</td>${Auth.supa()?"":`<td>${temS?"definida":"<span class=\"muted\">não criada</span>"}</td>`}<td class="num">${dataBR(x.insc.em)}</td><td class="pj-acts">${acts}</td></tr>`}).join("")}</tbody></table></div>`}
-        <div class="card-foot"><b>Versão avançada</b> libera todas as abas para a pessoa, inclusive Local e viabilidade e Calculadora. ${Auth.supa()?"<b>Tornar administrador</b> (só o dono) dá à pessoa um login de administrador: ela aprova inscrições e libera abas, mas não escolhe outros administradores. ":""}Suspender bloqueia temporariamente; Reativar devolve o acesso. ${Auth.supa()?"Quem esquecer a senha usa Esqueci a senha na tela de entrada e recebe um link por e-mail. ":"Redefinir senha apaga a senha da pessoa (ninguém, nem você, consegue ver a senha); no próximo acesso ela cria outra. "}Cancelar a inscrição encerra o acesso ao salvamento de projetos; os projetos dela ficam privados na conta dela. ${Auth.supa()?"":"Para tirar alguém do link, use o menu Compartilhar do claude.ai."}</div></section>`;
+        <div class="card-foot"><b>Versão avançada</b> libera todas as abas para a pessoa, inclusive Local e viabilidade e Calculadora. ${Auth.supa()?"<b>Tornar administrador</b> (só o dono) dá à pessoa um login de administrador: ela aprova inscrições e libera abas, mas não escolhe outros administradores. ":""}Suspender bloqueia temporariamente; Reativar devolve o acesso. ${Auth.supa()?"Quem esquecer a senha usa Esqueci a senha na tela de entrada e recebe um link por e-mail. ":"Redefinir senha apaga a senha da pessoa (ninguém, nem você, consegue ver a senha); no próximo acesso ela cria outra. "}Cancelar a inscrição encerra o acesso ao salvamento de projetos; os projetos dela ficam na conta dela (só ela e você, dono, podem vê-los). ${Auth.supa()?"":"Para tirar alguém do link, use o menu Compartilhar do claude.ai."}</div></section>`;
     }
   }else{
     const eu=Auth.user(),adm=Auth.admOk(),us=locUsuarios();
