@@ -3832,7 +3832,7 @@ const supaMsg=e=>{const m=(e&&e.message)||"";
 function supaLoginHTML(px){
   const pw=(id,lab,ac)=>`<label for="${px}-${id}">${lab}</label><div class="inp au-pw"><input type="password" id="${px}-${id}" autocomplete="${ac}" maxlength="128"><button type="button" class="au-eye" data-eye="${px}-${id}" aria-label="Mostrar senha">mostrar</button></div>`;
   const tx=(id,lab,ac,t)=>`<label for="${px}-${id}">${lab}</label><div class="inp au-pw"><input type="${t||"text"}" id="${px}-${id}" autocomplete="${ac}" maxlength="120"${t==="email"?' inputmode="email" autocapitalize="off"':""}></div>`;
-  if(A.supaErro)return `<div class="pj-body"><p class="au-err">Não foi possível conectar ao servidor de login. Verifique a internet.</p><div class="pj-btns"><button type="button" class="btn solid" onclick="location.reload()">Tentar de novo</button></div></div>`;
+  if(A.supaErro)return `<div class="pj-body"><p class="au-err">Não foi possível conectar ao servidor de login. Verifique a internet.</p><div class="pj-btns"><button type="button" class="btn solid" onclick="location.reload()">Tentar de novo</button>${CFG.appUrl&&location.href.indexOf(CFG.appUrl)!==0?`<a class="btn" href="${esc(CFG.appUrl)}" target="_blank" rel="noopener">Abrir o app no navegador</a>`:""}</div></div>`;
   if(A.mode==="init")return `<div class="pj-body"><p class="muted">Conectando…</p></div>`;
   const f=A.recovery?"nova":A.sform||"entrar";
   const tabs=f==="nova"?"":`<div class="au-tabs" role="tablist">${[["entrar","Entrar"],["criar","Criar conta"]].map(([k,t])=>`<button type="button" role="tab" aria-selected="${f===k}" data-sf="${k}">${t}</button>`).join("")}</div>`;
@@ -3868,7 +3868,10 @@ function supaBind(root){
 async function iniciarSupa(){
   try{const lib=window.RAS_SB_FACTORY?{createClient:window.RAS_SB_FACTORY}:await import(SB_LIB);
     A.sb=lib.createClient(CFG.supabaseUrl,CFG.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-    A.sb.auth.onAuthStateChange(ev=>{if(ev==="PASSWORD_RECOVERY"){A.recovery=true;emit()}});
+    /* sessão trocada ou encerrada em outra aba/janela (ex.: outra pessoa entrou neste navegador): recarrega para não continuar com a conta errada */
+    A.sb.auth.onAuthStateChange((ev,ses)=>{if(ev==="PASSWORD_RECOVERY"){A.recovery=true;emit();return}
+      if(A.uid&&(ev==="SIGNED_OUT"||(ses&&ses.user&&ses.user.id!==A.uid)))setTimeout(()=>location.reload(),50)});
+    document.addEventListener("visibilitychange",async()=>{if(document.hidden||!A.uid)return;try{const {data}=await A.sb.auth.getSession();const u=data&&data.session&&data.session.user;if(!u||u.id!==A.uid)location.reload()}catch(e){}});
     const {data}=await A.sb.auth.getSession();if(data&&data.session&&!A.recovery)await entrouSupa(data.session.user);
   }catch(e){A.supaErro=true}
   A.mode="nuvem";emit();
@@ -3892,7 +3895,7 @@ const Auth={
   ok(){if(A.supa)return !!A.uid&&!A.recovery;if(A.mode==="nuvem"){const s=sessao();return !!(s&&s.k==="nuvem:"+A.uid&&A.hashNuvem)}if(A.mode==="local")return !!usuarioLocal()||false;return false},
   user(){return A.mode==="nuvem"?A.nome:usuarioLocal()},
   temSenhaNuvem:()=>!!A.hashNuvem,
-  logout(){if(A.supa){A.sb.auth.signOut().catch(()=>{}).finally(()=>location.reload());return}rm(SES,true);rm(SESADM,true);emit()},
+  logout(){if(A.supa){A.uid=null;A.sb.auth.signOut().catch(()=>{}).finally(()=>location.reload());return}rm(SES,true);rm(SESADM,true);emit()},
   trava:()=>A.supa?true:A.mode==="nuvem"?A.trava:!!rd(TRAVA,false),
   async setTrava(on){if(A.mode==="nuvem"){await A.db.doc("config/senha").set({appInteiro:!!on,em:Date.now()});A.trava=!!on}else wr(TRAVA,!!on);emit()},
   localTemSenha:u=>!!senhasLoc()[u],
