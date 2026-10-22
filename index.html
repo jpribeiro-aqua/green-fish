@@ -618,6 +618,18 @@ tr.us-lider>td{background:var(--accent-soft)}
 tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pj-tag.pj-novo{background:var(--warn-soft);color:var(--warn)}
 .pj-ok{color:var(--accent)!important}.pj-wait{color:var(--warn)!important}
+.rp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px 14px;margin-bottom:12px}
+.rp-grid label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+.rp-grid input,.rp-grid select,.rp-nome{font:inherit;font-size:14px;color:var(--ink);background:var(--sunken,var(--bg));border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+.rp-grid .rp-wide{grid-column:1/-1}
+.rp-nome{flex:1 1 200px}
+.rp-tl{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.rp-tl li{display:grid;grid-template-columns:150px 1fr;gap:12px;padding:8px 0 8px 14px;border-left:2px solid var(--accent);position:relative}
+.rp-tl li::before{content:"";position:absolute;left:-6px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.rp-tl b{font-variant-numeric:tabular-nums}
+.rp-steps{margin:0;padding-left:20px;display:grid;gap:6px}
+.rp-esp{padding:0 16px 12px;flex-wrap:wrap}
+@media (max-width:600px){.rp-tl li{grid-template-columns:1fr;gap:2px}}
 .pj-cli{margin:0 16px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .us-eqsel.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);font-weight:600}
 .pj-acts .us-abas{margin-bottom:6px;min-width:220px}
@@ -658,6 +670,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
     <button type="button" class="tab" role="tab" id="tab-bio" aria-controls="view-bio" data-view="bio">Biomassa total em tempo real</button>
     <button type="button" class="tab" role="tab" id="tab-racao" aria-controls="view-racao" data-view="racao">Arraçoamento</button>
     <button type="button" class="tab" role="tab" id="tab-dash" aria-controls="view-dash" data-view="dash">Painel</button>
+    <button type="button" class="tab" role="tab" id="tab-repro" aria-controls="view-repro" data-view="repro">Reprodução</button>
     <button type="button" class="tab" role="tab" id="tab-proj" aria-controls="view-proj" data-view="proj">Projetos</button>
     <button type="button" class="tab" role="tab" id="tab-users" aria-controls="view-users" data-view="users">Usuários e acesso</button>
     <span class="sp"></span>
@@ -667,6 +680,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 
   <div class="dash" id="view-dash" role="tabpanel" aria-labelledby="tab-dash"></div>
   <div class="dash" id="view-local" role="tabpanel" aria-labelledby="tab-local" hidden></div>
+  <div class="dash" id="view-repro" role="tabpanel" aria-labelledby="tab-repro" hidden></div>
   <div class="dash" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden></div>
   <div class="dash" id="view-users" role="tabpanel" aria-labelledby="tab-users" hidden></div>
 
@@ -2781,7 +2795,7 @@ function drawPlan(){
 }
 
 /* ---------- Abas ---------- */
-const VIEWS=["local","calc","aqua","bio","racao","dash","proj","users"];
+const VIEWS=["local","calc","aqua","bio","racao","dash","repro","proj","users"];
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
@@ -2791,6 +2805,7 @@ function setView(v){
   if(v==="bio"){drawBioEditor();drawBio()}
   feedEl.hidden=v!=="racao";if(v==="racao")drawFeedDash();
   document.getElementById("view-local").hidden=v!=="local";if(v==="local"&&window.drawLocal)drawLocal();
+  document.getElementById("view-repro").hidden=v!=="repro";if(v==="repro"&&window.drawRepro)drawRepro();
   document.getElementById("view-proj").hidden=v!=="proj";if(v==="proj"&&window.drawProj)drawProj();
   document.getElementById("view-users").hidden=v!=="users";if(v==="users"&&window.drawUsers)drawUsers();
 }
@@ -4062,6 +4077,267 @@ Auth.ready=(async()=>{
 })();
 </script>
 <script>
+/* ---------- Reprodução: protocolos de indução hormonal, desova, incubação, reversão sexual e maturação de camarão ---------- */
+(function(){
+const el=document.getElementById("view-repro");if(!el)return;
+const RK="ras-multitanques-v1-repro";       // entra na fotografia dos Projetos
+const rd=()=>{try{return JSON.parse(localStorage.getItem(RK))||{}}catch(e){return {}}};
+const wr=v=>{try{localStorage.setItem(RK,JSON.stringify(v))}catch(e){}};
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const num=v=>{if(typeof v==="number")return v;const x=parseFloat(String(v||"").replace(/\./g,"").replace(",","."));return isFinite(x)?x:NaN};
+const N=(v,d=1)=>isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const I=v=>isFinite(v)?Math.round(v).toLocaleString("pt-BR"):"—";
+const pad=n=>String(n).padStart(2,"0");
+const dtl=t=>{const d=new Date(t);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())};
+const hora=t=>{const d=new Date(t);return d.toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"})+" "+pad(d.getHours())+":"+pad(d.getMinutes())};
+const dia=t=>new Date(t).toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"2-digit"});
+const H=3600e3,D=864e5;
+
+/* ---- protocolos de referência (valores editáveis; fontes no rodapé da aba) ---- */
+const UN={mg:"mg/kg",pel:"pellets/kg",ui:"UI/kg",ml:"mL/kg"};
+const SP={
+ lambari:{nome:"Lambari",cient:"Astyanax lacustris (rabo-amarelo)",tipo:"ind",pf:12,pm:6,temp:27,vol:5,conc:0.5,met:"Semi-natural: fêmeas e machos juntos no tanque de desova (1:1); ovos recolhidos no coletor.",
+  rel:"1 macho : 1 fêmea",ecl:[14,18],tRef:27,vit:"3 a 4 dias",
+  ind:{ebhc:{n:"Extrato bruto de hipófise de carpa (EBHC)",u:"mg",f:5.5,p1:10,int:12,m:2.5,hg:[180,220],src:"Brazilian Journal of Biology (A. lacustris): 5,5 mg/kg em 2 doses (10% + 90%, 12 h); machos 2,5 mg/kg; ~183 horas-grau."},
+       ovopel:{n:"Ovopel® (GnRH + metoclopramida)",u:"pel",f:0.4,p1:100,int:0,m:0.4,hg:[190,220],src:"0,4 pellet/kg, dose única para fêmeas e machos; ~205 horas-grau."},
+       buser:{n:"Acetato de buserelina (0,0042 mg/mL)",u:"ml",f:0.5,p1:100,int:0,m:0.5,hg:[180,215],src:"0,5 mL/kg, dose única para fêmeas e machos; maior fertilização no estudo (82%)."}},
+  passos:["Seleção: fêmeas com abdome abaulado e macio e papila avermelhada; machos com espículas na nadadeira anal.","Aplicação intramuscular na base da nadadeira peitoral.","Desova semi-natural em caixas de 1.000 L com fluxo de água; ovos coletados no tanque coletor.","Incubadoras de 60 L com ~9 L/min; avaliar fertilização ~8 h após o início da incubação."]},
+ tambaqui:{nome:"Tambaqui",cient:"Colossoma macropomum",tipo:"ind",pf:8000,pm:6000,temp:28,vol:0.5,conc:4,met:"Extrusão (desova a seco): massagem abdominal, mistura com sêmen e hidratação.",
+  rel:"2 machos : 1 fêmea",ecl:[14,18],tRef:28,vit:"3 a 6 dias",semen:80,dens:[1,1.5],
+  ind:{ebhc:{n:"Extrato bruto de hipófise de carpa (EBHC)",u:"mg",f:5.5,p1:10,int:12,m:2.5,hg:[200,300],src:"Embrapa (Boas práticas de alevinos de tambaqui, 2021): 5,5 mg/kg em 2 doses (10% + 90%, 12 h); machos 2,5 mg/kg com a 2ª dose; 200 a 300 horas-grau (média ~215 a 28 °C)."}},
+  passos:["Jejum de 24 h antes do manejo.","Seleção: fêmeas com ventre abaulado e papila avermelhada e intumescida; machos liberando sêmen à massagem.","EBHC macerado e diluído em soro fisiológico 0,9% (1 mL para cada 4 mg de hipófise).","Anestesia: benzocaína (100 g em 1 L de álcool; 100 mL da solução por 1 L de água) ou óleo de cravo (1 mL + 10 mL de álcool para 10 L).","Monitorar a temperatura a cada hora após a última dose; observar os peixes ~2 h antes da hora prevista.","Pesar a massa de ovos, misturar com o sêmen, hidratar com ~10× o volume e mexer ~2 min com pena; trocar a água antes de incubar.","Incubadoras de 60 ou 200 L, 1,0 a 1,5 g de ovos por litro; vazão 1–2 L/min nas 4 primeiras horas, 3–4 L/min nas 4 seguintes e 5–6 L/min até a eclosão.","Fertilização: contar ≥100 ovos em 3 amostras 6 h após o início da incubação."]},
+ curimata:{nome:"Curimatã",cient:"Prochilodus spp.",tipo:"ind",pf:1200,pm:900,temp:26,vol:0.5,conc:4,met:"Extrusão; incubação a 24–26 °C.",
+  rel:"2 machos : 1 fêmea",ecl:[16,20],tRef:26,vit:"3 a 4 dias",semen:80,dens:[1,1.5],
+  ind:{ebhc2:{n:"EBHC em 2 doses (0,6 + 6 mg/kg)",u:"mg",f:6.6,p1:9.1,int:14.5,m:2,hg:[215,275],src:"Pesquisa Agropecuária Brasileira (P. argenteus): 0,6 mg/kg + 6 mg/kg com 14–15 h de intervalo; machos 2 mg/kg com a 2ª dose; extrusão ~9 h após a 2ª dose a ~26 °C."},
+       ebhc1:{n:"EBHC em dose única (6 mg/kg)",u:"mg",f:6,p1:100,int:0,m:2,hg:[290,315],src:"Mesmo estudo: dose única de 6 mg/kg; extrusão ~11,7 h depois a ~26 °C."}},
+  passos:["Seleção: fêmeas com ventre abaulado e papila avermelhada; machos liberando sêmen.","Aplicação na cavidade celomática (ou intramuscular, conforme o seu protocolo).","O protocolo em 2 doses encurta o tempo da última dose até a extrusão.","Incubação entre 24 e 26 °C; retirar ovos não fertilizados para evitar fungos."]},
+ pangasius:{nome:"Pangasius",cient:"Pangasianodon hypophthalmus",tipo:"ind",pf:5000,pm:4000,temp:28,vol:0.5,conc:4,met:"Extrusão a seco; ovos adesivos: tratar com argila ou tanino antes de incubar.",
+  rel:"1 a 2 machos : 1 fêmea",ecl:[22,24],tRef:28,vit:"~1 dia (alimentar logo; canibalismo)",semen:80,dens:[1,1.5],
+  ind:{hcg:{n:"hCG (gonadotrofina coriônica)",u:"ui",f:2500,p1:20,int:10,m:1000,lat:[8,12],src:"FAO: 2.000 a 8.000 UI/kg funcionam para Pangasius; usual em laboratório: dose preparatória e decisiva com 8–12 h de intervalo. Ajuste à sua experiência."},
+       ovaprim:{n:"Ovaprim® (GnRHa + domperidona)",u:"ml",f:0.7,p1:100,int:0,m:0.2,lat:[16,18],src:"J. Aquat. Res. Sci.: 0,5–0,7 mL/kg nas fêmeas (dose única) e 0,2 mL/kg nos machos; latência 16–18 h a 28–30 °C; eclosão 18–24 h."}},
+  passos:["Selecionar fêmeas com ovócitos soltos e uniformes (biópsia ovariana).","Machos recebem dose única junto com a dose decisiva das fêmeas.","Extrusão a seco; retirar a adesividade dos ovos (argila ou tanino) e incubar em funis/jarras com fluxo ascendente.","Eclosão ~22–24 h; transferir as larvas antes de terminar o saco vitelino, com alimento vivo (Moina/Artemia) para reduzir o canibalismo."]},
+ tilapia:{nome:"Tilápia",cient:"Oreochromis niloticus",tipo:"tilapia"},
+ camarao:{nome:"Camarão",cient:"Penaeus (Litopenaeus) vannamei",tipo:"camarao"}
+};
+const ORDEM=["lambari","tambaqui","curimata","pangasius","tilapia","camarao"];
+
+/* ---- estado ---- */
+const S=rd();S.esp=S.esp||"tambaqui";S.f=S.f||{};S.lotes=S.lotes||[];S.meus=S.meus||{};
+const salvar=()=>wr(S);
+function F(esp){            // formulário da espécie, com padrões
+  const sp=SP[esp],f=S.f[esp]=S.f[esp]||{};
+  if(sp.tipo==="ind"){const k=Object.keys(sp.ind)[0];
+    if(!f.ind)f.ind=k;if(!f.t0)f.t0=dtl(Date.now()+2*H);
+    const dflt={temp:sp.temp,nf:esp==="lambari"?20:4,nm:esp==="lambari"?20:(esp==="tambaqui"||esp==="curimata"?8:6),pf:sp.pf,pm:sp.pm,vol:sp.vol,conc:sp.conc,mgg:3,margem:10,massa:"",fert:"",ecl:""};
+    for(const x in dflt)if(f[x]==null)f[x]=dflt[x];
+    if(!f.p||f.p._k!==f.ind)f.p={...protoDe(esp,f.ind),_k:f.ind}}
+  if(sp.tipo==="tilapia"){const d={nf:300,rel:3,ciclo:30,ovos:1000,inter:7,dIni:dtl(Date.now()).slice(0,10),pl:20000,pi:0.01,pfim:0.3,dose:60,dias:28,taxa:15,ref:8,veic:"alcool",sob:85};for(const x in d)if(f[x]==null)f[x]=d[x]}
+  if(sp.tipo==="camarao"){const d={nf:100,nm:100,dens:5,temp:28,sal:34,abl:dtl(Date.now()).slice(0,10),desN:10,ovos:150000,eclP:60,sobPL:60,banho:100,racao:5};for(const x in d)if(f[x]==null)f[x]=d[x]}
+  return f;
+}
+function protoDe(esp,k){const sp=SP[esp];if(sp.ind[k])return {...sp.ind[k]};const m=(S.meus[esp]||[]).find(x=>x.id===k);return m?{...m}:{...sp.ind[Object.keys(sp.ind)[0]]}}
+const indutores=esp=>[...Object.entries(SP[esp].ind).map(([k,v])=>[k,v.n]),...(S.meus[esp]||[]).map(m=>[m.id,"Meu protocolo: "+m.n])];
+
+/* ---- cálculos: peixes com indução hormonal ---- */
+function calcInd(esp,f){
+  const sp=SP[esp],p=f.p,T=num(f.temp),nf=num(f.nf),nm=num(f.nm),pf=num(f.pf)/1000,pm=num(f.pm)/1000,mg=1+(num(f.margem)||0)/100;
+  const d1=p.p1>=100?num(p.f):num(p.f)*num(p.p1)/100,d2=p.p1>=100?0:num(p.f)-d1,dm=num(p.m);
+  const kgF=nf*pf,kgM=nm*pm,t0=new Date(f.t0).getTime();
+  const tot1=d1*kgF,tot2=d2*kgF,totM=dm*kgM,tot=(tot1+tot2+totM)*mg;
+  const tLast=t0+(p.p1>=100?0:num(p.int))*H;
+  let h0,h1;if(p.hg){h0=p.hg[0]/T;h1=p.hg[1]/T}else{h0=p.lat[0];h1=p.lat[1]}
+  const des0=tLast+h0*H,des1=tLast+h1*H;
+  const e0=sp.ecl[0]*sp.tRef/T,e1=sp.ecl[1]*sp.tRef/T;
+  const vol=num(f.vol);   // mL de solução por kg de peixe (hormônios diluídos)
+  return {T,nf,nm,pf,pm,d1,d2,dm,kgF,kgM,tot1,tot2,totM,tot,t0,tLast,h0,h1,des0,des1,e0,e1,vol,
+    glan:p.u==="mg"?tot/num(f.mgg):NaN,conc:p.u==="ml"?NaN:(vol>0?((d1||d2||dm)?1:1):NaN)};
+}
+const qtd=(u,v)=>u==="mg"?N(v,v<1?3:2)+" mg":u==="pel"?N(v,2)+" pellets":u==="ui"?I(v)+" UI":N(v,2)+" mL";
+const volP=(u,f,kgDose,kg)=>u==="ml"?kgDose*kg:u==="mg"?kgDose*kg/num(f.conc):num(f.vol)*kg;   // mL injetados no peixe
+
+function htmlInd(esp){
+  const sp=SP[esp],f=F(esp),p=f.p,c=calcInd(esp,f),u=p.u,dois=p.p1<100;
+  const linhaPeixe=(rot,peso,dose)=>{const kg=num(peso)/1000;return `<tr><td>${rot}</td><td class="num">${N(num(peso),0)} g</td><td class="num">${qtd(u,dose*kg)}</td><td class="num">${N(volP(u,f,dose,kg),volP(u,f,dose,kg)<0.1?3:2)} mL</td></tr>`};
+  const conc=u==="ml"?"":u==="mg"?`<p>Diluir o extrato em soro fisiológico 0,9% a <b>${N(num(f.conc),2)} mg/mL</b>: preparar <b>${N(c.tot/num(f.conc),1)} mL</b> de solução para o lote (com a sobra).</p>`:`<p>Concentração da solução: <b>${N(num(p.f)/num(f.vol)*(dois?num(p.p1)/100:1),u==="ui"?0:3)} ${u==="mg"?"mg":u==="pel"?"pellet":"UI"}/mL</b> na 1ª dose${dois?` e <b>${N(num(p.f)*(1-num(p.p1)/100)/num(f.vol),u==="ui"?0:3)}</b> na 2ª`:""}; machos: <b>${N(num(p.m)/num(f.vol),u==="ui"?0:3)}</b> (com ${N(num(f.vol),2)} mL de solução por kg de peixe).</p>`;
+  const tl=[...(dois?[[c.t0,"1ª dose nas fêmeas ("+N(num(p.p1),0)+"% da dose total)"],[c.tLast,"2ª dose (decisiva) nas fêmeas + dose dos machos"]]:[[c.t0,"Dose única nas fêmeas e nos machos"]]),
+    [c.des0-2*H,"Começar a observar os peixes (comportamento de desova)"],[c.des0,"Início da janela prevista de desova/extrusão"],[c.des1,"Fim da janela prevista"],
+    ...(sp.dens?[[c.des0+6*H,"Conferir a fertilização (3 amostras de ≥100 ovos)"]]:[]),
+    [c.des0+c.e0*H,"Início previsto da eclosão"],[c.des1+c.e1*H,"Fim previsto da eclosão"]];
+  const ovos=num(f.massa);
+  return `<section class="card wide"><div class="card-head"><i class="n">1</i><h2>${E(sp.nome)} · indução hormonal<span>${E(sp.cient)} · ${E(sp.rel)}</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Indutor<select class="lv-sel" data-f="ind">${indutores(esp).map(([k,n])=>`<option value="${k}"${k===f.ind?" selected":""}>${E(n)}</option>`).join("")}</select></label>
+    <label>1ª aplicação (data e hora)<input type="datetime-local" data-f="t0" value="${E(f.t0)}"></label>
+    <label>Temperatura da água (°C)<input inputmode="decimal" data-f="temp" value="${E(f.temp)}"></label>
+    <label>Fêmeas (nº)<input inputmode="numeric" data-f="nf" value="${E(f.nf)}"></label>
+    <label>Peso médio das fêmeas (g)<input inputmode="decimal" data-f="pf" value="${E(f.pf)}"></label>
+    <label>Machos (nº)<input inputmode="numeric" data-f="nm" value="${E(f.nm)}"></label>
+    <label>Peso médio dos machos (g)<input inputmode="decimal" data-f="pm" value="${E(f.pm)}"></label>
+    ${u==="ml"?"":u==="mg"?`<label>Concentração do extrato (mg por mL de soro)<input inputmode="decimal" data-f="conc" value="${E(f.conc)}"></label>`:`<label>Solução aplicada (mL por kg de peixe)<input inputmode="decimal" data-f="vol" value="${E(f.vol)}"></label>`}
+    ${u==="mg"?`<label>Peso médio de 1 hipófise (mg)<input inputmode="decimal" data-f="mgg" value="${E(f.mgg)}"></label>`:""}
+    <label>Margem de sobra (%)<input inputmode="numeric" data-f="margem" value="${E(f.margem)}"></label>
+   </div>
+   <details class="us-det"><summary>Doses do protocolo (editáveis)</summary><div class="rp-grid">
+    <label>Dose total nas fêmeas (${UN[u]})<input inputmode="decimal" data-p="f" value="${E(p.f)}"></label>
+    <label>1ª dose (% do total; 100 = dose única)<input inputmode="decimal" data-p="p1" value="${E(p.p1)}"></label>
+    <label>Intervalo entre doses (h)<input inputmode="decimal" data-p="int" value="${E(p.int)}"></label>
+    <label>Dose nos machos (${UN[u]})<input inputmode="decimal" data-p="m" value="${E(p.m)}"></label>
+    ${p.hg?`<label>Horas-grau até a desova (mín.)<input inputmode="numeric" data-p="hg0" value="${E(p.hg[0])}"></label><label>Horas-grau até a desova (máx.)<input inputmode="numeric" data-p="hg1" value="${E(p.hg[1])}"></label>`:`<label>Latência até a ovulação (h, mín.)<input inputmode="decimal" data-p="lat0" value="${E(p.lat[0])}"></label><label>Latência (h, máx.)<input inputmode="decimal" data-p="lat1" value="${E(p.lat[1])}"></label>`}
+   </div><p class="muted">${E(p.src||"Protocolo salvo por você.")}</p>
+   <div class="pj-btns"><input class="rp-nome" data-meu="nome" placeholder="Nome (ex.: Curso Fábio Sússel)" maxlength="60"><button type="button" class="btn" data-a="meu-salvar">Salvar como meu protocolo</button>${S.meus[esp]&&S.meus[esp].some(m=>m.id===f.ind)?`<button type="button" class="btn warn" data-a="meu-del">Excluir este protocolo</button>`:""}<button type="button" class="btn" data-a="padrao">Voltar ao padrão</button></div></details>
+  </div></section>
+  <section class="card wide"><div class="card-head"><i class="n">2</i><h2>Hormônio a preparar<span>${E(p.n)}</span></h2></div><div class="pj-body">
+   <div class="us-kpis"><div><b>${qtd(u,c.tot)}</b>total com ${E(f.margem)}% de sobra</div>${u==="mg"?`<div><b>${N(c.glan,1)}</b>hipófises de ${E(f.mgg)} mg</div>`:u==="ui"?`<div><b>${N(c.tot/5000,1)}</b>frascos de 5.000 UI</div>`:`<div><b>${N(c.kgF,2)} kg</b>de fêmeas</div>`}<div><b>${N(c.kgF,2)} kg</b>fêmeas · ${I(c.nf)}</div><div><b>${N(c.kgM,2)} kg</b>machos · ${I(c.nm)}</div></div>
+   <div class="scroll"><table class="pj-tab"><thead><tr><th>Aplicação</th><th class="num">Total do lote</th></tr></thead><tbody>
+    ${dois?`<tr><td>1ª dose · fêmeas (${N(c.d1,2)} ${UN[u]})</td><td class="num">${qtd(u,c.tot1)}</td></tr><tr><td>2ª dose · fêmeas (${N(c.d2,2)} ${UN[u]})</td><td class="num">${qtd(u,c.tot2)}</td></tr>`:`<tr><td>Dose única · fêmeas (${N(c.d1,2)} ${UN[u]})</td><td class="num">${qtd(u,c.tot1)}</td></tr>`}
+    <tr><td>Machos (${N(c.dm,2)} ${UN[u]})</td><td class="num">${qtd(u,c.totM)}</td></tr></tbody></table></div>
+   ${conc}
+   <div class="scroll"><table class="pj-tab"><thead><tr><th>Por peixe (peso médio)</th><th class="num">Peso</th><th class="num">Hormônio</th><th class="num">Volume</th></tr></thead><tbody>
+    ${dois?linhaPeixe("Fêmea · 1ª dose",f.pf,c.d1)+linhaPeixe("Fêmea · 2ª dose",f.pf,c.d2):linhaPeixe("Fêmea · dose única",f.pf,c.d1)}${linhaPeixe("Macho",f.pm,c.dm)}</tbody></table></div>
+   <p class="muted">Para peixes de pesos diferentes, a dose é proporcional ao peso: pese cada reprodutor.</p></div></section>
+  <section class="card${sp.dens?"":" wide"}"><div class="card-head"><i class="n">3</i><h2>Cronograma<span>${p.hg?`${p.hg[0]}–${p.hg[1]} horas-grau ÷ ${N(c.T,1)} °C = ${N(c.h0,1)}–${N(c.h1,1)} h após a última dose`:`latência de ${p.lat[0]}–${p.lat[1]} h após a última dose`}</span></h2></div><div class="pj-body">
+   <ol class="rp-tl">${tl.map(([t,x])=>`<li><b>${hora(t)}</b><span>${E(x)}</span></li>`).join("")}</ol>
+   <p class="muted">Eclosão estimada em ${N(c.e0,0)}–${N(c.e1,0)} h após a desova a ${N(c.T,1)} °C (referência: ${sp.ecl[0]}–${sp.ecl[1]} h a ${sp.tRef} °C). Absorção do saco vitelino: ${E(sp.vit)}. Horas-grau = soma das temperaturas medidas a cada hora: meça a água de hora em hora e confira.</p></div></section>
+  ${sp.dens?`<section class="card"><div class="card-head"><i class="n">4</i><h2>Após a extrusão<span>Fertilização, hidratação e incubação</span></h2></div><div class="pj-body">
+   <div class="rp-grid"><label>Massa de ovos pesada (g)<input inputmode="decimal" data-f="massa" value="${E(f.massa)}" placeholder="ex.: 1500"></label></div>
+   ${ovos>0?`<div class="us-kpis"><div><b>${N(ovos/sp.semen,1)} mL</b>de sêmen (1 mL por ${sp.semen} g)</div><div><b>${N(ovos*10/1000,1)} L</b>de água para hidratar (~10×)</div><div><b>${N(ovos/sp.dens[1],0)}–${N(ovos/sp.dens[0],0)} L</b>de incubadora (${sp.dens[0]}–${sp.dens[1]} g/L)</div><div><b>${Math.ceil(ovos/sp.dens[1]/200)}</b>incubadoras de 200 L (ou ${Math.ceil(ovos/sp.dens[1]/60)} de 60 L)</div></div>`:`<p class="muted">Digite a massa de ovos para calcular sêmen, água de hidratação e incubadoras.</p>`}
+  </div></section>`:""}
+  <section class="card${sp.dens?"":" wide"}"><div class="card-head"><i class="n">${sp.dens?5:4}</i><h2>Passo a passo<span>${E(sp.met)}</span></h2></div><div class="pj-body"><ol class="rp-steps">${sp.passos.map(x=>`<li>${E(x)}</li>`).join("")}</ol></div></section>`+resultadoHTML(esp,f);
+}
+
+/* ---- tilápia: reprodutores, coletas, incubação e reversão sexual ---- */
+function htmlTil(){
+  const f=F("tilapia"),nf=num(f.nf),rel=num(f.rel),nm=Math.ceil(nf/rel),inter=num(f.inter),ciclo=num(f.ciclo);
+  const ovosCol=nf*inter/ciclo*num(f.ovos),t0=new Date(f.dIni+"T08:00").getTime();
+  const pl=num(f.pl),pi=num(f.pi),pfim=num(f.pfim),dias=num(f.dias),taxa=num(f.taxa)/100,sob=num(f.sob)/100;
+  const g=Math.log(pfim/pi)/dias;let racao=0;const sem=[];
+  for(let d=0;d<dias;d++){const n=pl*(1-(1-sob)*d/dias),w=pi*Math.exp(g*d),r=n*w*taxa/1000;racao+=r;if(d%7===0)sem.push([d,n,w,r])}
+  const kgR=racao*1.1,mt=kgR*num(f.dose),alc=f.veic==="alcool";
+  return `<section class="card wide"><div class="card-head"><i class="n">1</i><h2>Tilápia · reprodutores e coleta de ovos<span>Oreochromis niloticus · incubação artificial</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Fêmeas (nº)<input inputmode="numeric" data-f="nf" value="${E(f.nf)}"></label>
+    <label>Fêmeas por macho<input inputmode="decimal" data-f="rel" value="${E(f.rel)}"></label>
+    <label>Intervalo entre coletas (dias)<input inputmode="numeric" data-f="inter" value="${E(f.inter)}"></label>
+    <label>Intervalo entre desovas da fêmea (dias)<input inputmode="numeric" data-f="ciclo" value="${E(f.ciclo)}"></label>
+    <label>Ovos por desova<input inputmode="numeric" data-f="ovos" value="${E(f.ovos)}"></label>
+    <label>1ª coleta<input type="date" data-f="dIni" value="${E(f.dIni)}"></label>
+   </div>
+   <div class="us-kpis"><div><b>${I(nm)}</b>machos</div><div><b>${I(ovosCol)}</b>ovos por coleta (estimativa)</div><div><b>${I(ovosCol*30/inter)}</b>ovos por mês</div><div><b>${I(nf+nm)}</b>reprodutores</div></div>
+   <p>Próximas coletas: ${[0,1,2,3,4,5].map(i=>`<b>${dia(t0+i*inter*D)}</b>`).join(" · ")}</p>
+   <p class="muted">Referências: 3 fêmeas por macho em hapas (4 por macho em tanques maiores); desova acima de 21 °C, ideal 27–29 °C; fêmeas a partir de ~100 g ou 3–4 meses; cada fêmea desova a cada ~30 dias, com 500 a 2.000 ovos. Incubação a 26–28 °C: eclosão em 1–3 dias (ovos amarelados) ou 4–5 dias (ovos esbranquiçados); as larvas não comem nos ~3 primeiros dias (saco vitelino).</p></div></section>
+  <section class="card wide"><div class="card-head"><i class="n">2</i><h2>Reversão sexual<span>17α-metiltestosterona na ração · masculinização</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Pós-larvas (nº)<input inputmode="numeric" data-f="pl" value="${E(f.pl)}"></label>
+    <label>Peso inicial (g)<input inputmode="decimal" data-f="pi" value="${E(f.pi)}"></label>
+    <label>Peso ao final (g)<input inputmode="decimal" data-f="pfim" value="${E(f.pfim)}"></label>
+    <label>Dose (mg de MT por kg de ração)<input inputmode="decimal" data-f="dose" value="${E(f.dose)}"></label>
+    <label>Duração (dias)<input inputmode="numeric" data-f="dias" value="${E(f.dias)}"></label>
+    <label>Ração (% da biomassa por dia)<input inputmode="decimal" data-f="taxa" value="${E(f.taxa)}"></label>
+    <label>Refeições por dia<input inputmode="numeric" data-f="ref" value="${E(f.ref)}"></label>
+    <label>Sobrevivência esperada (%)<input inputmode="numeric" data-f="sob" value="${E(f.sob)}"></label>
+    <label>Veículo<select class="lv-sel" data-f="veic"><option value="alcool"${alc?" selected":""}>Álcool (0,5 L por kg de ração)</option><option value="oleo"${alc?"":" selected"}>Óleo (16 mL por kg de ração)</option></select></label>
+   </div>
+   <div class="us-kpis"><div><b>${N(kgR,2)} kg</b>de ração com hormônio (com 10% de sobra)</div><div><b>${N(mt,0)} mg</b>de MT (${N(mt/1000,3)} g)</div><div><b>${alc?N(kgR*0.5,2)+" L":N(kgR*16,0)+" mL"}</b>de ${alc?"álcool":"óleo"}</div><div><b>${I(pl*sob)}</b>alevinos revertidos esperados</div></div>
+   ${alc?`<p>Solução-mãe: 1 g de MT em 1 L de álcool (1 mg/mL) → <b>${N(num(f.dose),0)} mL por kg de ração</b>, completando com álcool até 0,5 L/kg. Misturar, secar à sombra ou em estufa (~50 °C, 24 h) e guardar em local fresco e escuro.</p>`:`<p>Dissolver ${N(mt,0)} mg de MT em ${N(kgR*16,0)} mL de óleo e misturar bem em ${N(kgR,2)} kg de ração farelada.</p>`}
+   <div class="scroll"><table class="pj-tab"><thead><tr><th>Dia</th><th class="num">Peixes</th><th class="num">Peso médio</th><th class="num">Ração/dia</th><th class="num">Por refeição</th></tr></thead><tbody>
+    ${sem.map(([d,n,w,r])=>`<tr><td>${d+1} · ${dia(t0+d*D)}</td><td class="num">${I(n)}</td><td class="num">${N(w,3)} g</td><td class="num">${N(r*1000,0)} g</td><td class="num">${N(r*1000/num(f.ref),0)} g</td></tr>`).join("")}</tbody></table></div>
+   <p class="muted">Referências: protocolo difundido de 60 mg/kg por 28–30 dias; a Embrapa (2023) obteve ~98% de machos com 30 mg/kg em óleo por 32 dias a 26,5 °C, com 15% da biomassa em 8 refeições diárias. Os pesos inicial e final são estimativas: ajuste com as suas biometrias. Use luvas e máscara ao manusear o hormônio, siga a receita do médico-veterinário e as normas do MAPA.</p></div></section>`+resultadoHTML("tilapia",f);
+}
+
+/* ---- camarão: maturação, desova, náuplios e larvicultura ---- */
+function htmlCam(){
+  const f=F("camarao"),nf=num(f.nf),nm=num(f.nm),dens=num(f.dens),abl=new Date(f.abl+"T08:00").getTime();
+  const desN=nf*num(f.desN)/100,ovos=desN*num(f.ovos),nau=ovos*num(f.eclP)/100,banho=num(f.banho);
+  const fases=[["Ablação unilateral (fêmeas em intermuda)",0],["Primeiras fêmeas com ovário maduro (estágio IV)",7],["Desova → eclosão dos náuplios (~16 h)",8],["Náuplio (6 subestágios; não se alimenta)",8],["Zoea/protozoea (3 subestágios): microalgas",10],["Mysis (3 subestágios): microalgas + náuplios de Artemia",14],["Pós-larva PL1: Artemia + ração",17],["PL10–12: venda/transferência (~21 dias após a eclosão)",29]];
+  const dieta=[["07:00",15,"Poliquetas"],["11:00",10,"Lula"],["16:00",10,"Ostra/mexilhão"],["22:00",60,"Poliquetas"],["02:00",5,"Ração semiúmida de maturação"]];
+  return `<section class="card wide"><div class="card-head"><i class="n">1</i><h2>Camarão · maturação e desova<span>Penaeus (Litopenaeus) vannamei</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Fêmeas (nº)<input inputmode="numeric" data-f="nf" value="${E(f.nf)}"></label>
+    <label>Machos (nº)<input inputmode="numeric" data-f="nm" value="${E(f.nm)}"></label>
+    <label>Densidade (animais/m²)<input inputmode="decimal" data-f="dens" value="${E(f.dens)}"></label>
+    <label>Data da ablação<input type="date" data-f="abl" value="${E(f.abl)}"></label>
+    <label>Fêmeas que desovam por noite (%)<input inputmode="decimal" data-f="desN" value="${E(f.desN)}"></label>
+    <label>Ovos por desova<input inputmode="numeric" data-f="ovos" value="${E(f.ovos)}"></label>
+    <label>Eclosão (% de náuplios)<input inputmode="decimal" data-f="eclP" value="${E(f.eclP)}"></label>
+    <label>Sobrevivência até PL10–12 (%)<input inputmode="decimal" data-f="sobPL" value="${E(f.sobPL)}"></label>
+    <label>Ração fresca total (kg/dia)<input inputmode="decimal" data-f="racao" value="${E(f.racao)}"></label>
+   </div>
+   <div class="us-kpis"><div><b>${N(nf/dens,1)} m²</b>de tanque para fêmeas</div><div><b>${N(nm/dens,1)} m²</b>para machos</div><div><b>${N(desN,0)}</b>desovas por noite</div><div><b>${I(nau)}</b>náuplios por noite</div><div><b>${I(nau*7)}</b>náuplios por semana</div><div><b>${I(nau*num(f.sobPL)/100)}</b>PL10–12 por noite de desova</div></div>
+   <p class="muted">Referências (FAO; Kannan et al.): reprodutores de 7–8 meses, fêmeas >40 g e machos >35 g; 5 animais/m²; 27–28 °C, salinidade 33 ppt, fotoperíodo 14 h claro : 10 h escuro, pH 7,8–8,2; 5–15% das fêmeas desovam por noite; 100.000–250.000 ovos por desova (fêmeas de 30–45 g); eclosão ~16 h.</p></div></section>
+  <section class="card"><div class="card-head"><i class="n">2</i><h2>Dieta de maturação<span>5 refeições · % da ração diária</span></h2></div><div class="pj-body">
+   <div class="scroll"><table class="pj-tab"><thead><tr><th>Hora</th><th>Alimento</th><th class="num">%</th><th class="num">Quantidade</th></tr></thead><tbody>${dieta.map(([h,p,a])=>`<tr><td>${h}</td><td>${a}</td><td class="num">${p}%</td><td class="num">${N(num(f.racao)*p/100,2)} kg</td></tr>`).join("")}</tbody></table></div></div></section>
+  <section class="card"><div class="card-head"><i class="n">3</i><h2>Desova e desinfecção dos ovos<span>Rotina noturna</span></h2></div><div class="pj-body">
+   <div class="rp-grid"><label>Volume do banho (L)<input inputmode="decimal" data-f="banho" value="${E(f.banho)}"></label></div>
+   <ol class="rp-steps"><li>15:00 – fêmeas em estágio IV para o tanque de acasalamento (luz acesa até 22:00); selecionar as que têm espermatóforo no télico.</li><li>Banho das fêmeas em formalina a 100 ppm e enxágue; tanques de desova de 500 L com EDTA a 10 ppm.</li><li>Ovos: peneira de 350 µm (sujeira) e coleta em 100 µm; lavar ≥5 min em água do mar.</li><li>Formalina 100 ppm por 30 s: <b>${N(banho*0.1,1)} mL</b> em ${N(banho,0)} L.</li><li>Iodo (PVPI) 50 ppm por 60 s: <b>${N(banho*0.05,1)} mL</b> em ${N(banho,0)} L.</li><li>Lavar 5 min e passar para os tanques de eclosão; coletar os náuplios na manhã seguinte atraindo-os com luz.</li></ol></div></section>
+  <section class="card wide"><div class="card-head"><i class="n">4</i><h2>Calendário<span>A partir da ablação</span></h2></div><div class="pj-body">
+   <ol class="rp-tl">${fases.map(([x,d])=>`<li><b>${dia(abl+d*D)}</b><span>${E(x)}</span></li>`).join("")}</ol>
+   <p class="muted">Os dias são aproximados e variam com a temperatura, a dieta e a origem dos reprodutores. A ablação peduncular é prática comum, mas há programas que a evitam por bem-estar animal: siga a política do seu laboratório.</p></div></section>`+resultadoHTML("camarao",f);
+}
+
+/* ---- registro dos lotes ---- */
+function resultadoHTML(esp,f){
+  const sp=SP[esp],lotes=S.lotes.filter(l=>l.esp===esp),cur=S.cur&&lotes.find(l=>l.id===S.cur);
+  const r=f.res=f.res||{};
+  return `<section class="card wide"><div class="card-head"><i class="n">✓</i><h2>Registro dos lotes<span>${lotes.length} lote${lotes.length===1?"":"s"} de ${E(sp.nome)}${cur?" · editando "+E(cur.nome):""}</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Nome do lote<input data-r="nome" value="${E(r.nome||"")}" placeholder="ex.: Lote 03/2026"></label>
+    ${sp.tipo==="ind"?`<label>Fêmeas que desovaram (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Massa de ovos (g)<input inputmode="decimal" data-r="massa" value="${E(r.massa||"")}"></label>`:sp.tipo==="tilapia"?`<label>Ovos coletados (nº)<input inputmode="numeric" data-r="ovos" value="${E(r.ovos||"")}"></label><label>Machos após reversão (%)<input inputmode="decimal" data-r="machos" value="${E(r.machos||"")}"></label>`:`<label>Desovas (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Náuplios (nº)<input inputmode="numeric" data-r="nau" value="${E(r.nau||"")}"></label>`}
+    <label>Fertilização (%)<input inputmode="decimal" data-r="fert" value="${E(r.fert||"")}"></label>
+    <label>Eclosão (%)<input inputmode="decimal" data-r="ecl" value="${E(r.ecl||"")}"></label>
+    <label>Larvas/alevinos/PL obtidos (nº)<input inputmode="numeric" data-r="larvas" value="${E(r.larvas||"")}"></label>
+    <label class="rp-wide">Observações<input data-r="obs" value="${E(r.obs||"")}" maxlength="300"></label>
+   </div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="lote-salvar">${cur?"Salvar alterações do lote":"Registrar lote"}</button>${cur?`<button type="button" class="btn" data-a="lote-novo">Novo lote</button>`:""}</div>
+   ${lotes.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>Lote</th><th>Data</th><th>Protocolo</th><th class="num">Fert.</th><th class="num">Eclosão</th><th class="num">Obtidos</th><th></th></tr></thead><tbody>${lotes.slice().sort((a,b)=>b.em-a.em).map(l=>`<tr${l.id===S.cur?' class="on"':""}><td><b>${E(l.nome)}</b>${l.r.obs?`<small>${E(l.r.obs)}</small>`:""}</td><td>${dia(l.data||l.em)}</td><td>${E(l.prot||"")}</td><td class="num">${l.r.fert?E(l.r.fert)+"%":"—"}</td><td class="num">${l.r.ecl?E(l.r.ecl)+"%":"—"}</td><td class="num">${l.r.larvas?I(num(l.r.larvas)):"—"}</td><td class="pj-acts"><button type="button" class="btn" data-a="lote-abrir" data-id="${l.id}">Abrir</button>${S.confDel===l.id?`<button type="button" class="btn warn" data-a="lote-del-ok" data-id="${l.id}">Confirmar exclusão</button>`:`<button type="button" class="btn" data-a="lote-del" data-id="${l.id}">Excluir</button>`}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Registre cada indução para comparar protocolos e resultados ao longo das safras. Os lotes ficam salvos neste aparelho e entram no projeto quando você salva em Projetos.</p>`}
+  </div></section>`;
+}
+
+/* ---- tela ---- */
+let msg="";
+function draw(){
+  if(el.hidden)return;
+  const esp=S.esp,sp=SP[esp];
+  const body=sp.tipo==="ind"?htmlInd(esp):sp.tipo==="tilapia"?htmlTil():htmlCam();
+  el.innerHTML=`<section class="card wide"><div class="card-head"><h2>Reprodução<span>Protocolos de indução, desova, incubação, reversão sexual e larvicultura</span></h2></div>
+   <div class="pj-tools chips rp-esp" role="tablist" aria-label="Espécie">${ORDEM.map(k=>`<button type="button" class="chip${k===esp?" on":""}" data-esp="${k}" aria-pressed="${k===esp}">${E(SP[k].nome)}</button>`).join("")}</div>
+   <div class="pj-msg" id="rp-msg" role="status" aria-live="polite">${E(msg)}</div></section>`+body+
+   `<section class="card wide"><div class="card-foot">Os valores de referência vêm da literatura técnica e servem de ponto de partida: ajuste às condições do seu laboratório e à orientação do responsável técnico. Hormônios (EBHC, hCG, Ovopel®, Ovaprim®, buserelina, 17α-metiltestosterona) exigem receita e seguem as normas do MAPA. Fontes: Embrapa (Boas práticas de produção de alevinos de tambaqui, 2021; Comunicado Técnico 271, 2023); Brazilian Journal of Biology (lambari, Ovopel e buserelina); Pesquisa Agropecuária Brasileira (curimatã-pacu); FAO (Penaeus vannamei; hCG em bagres); Kannan et al. (maturação de vannamei); J. Aquat. Res. Sci. (Ovaprim em Pangasius); GIA (Guia de indução hormonal de peixes reofílicos).</div></section>`;
+  bind();
+}
+function aviso(t){msg=t;const m=el.querySelector("#rp-msg");if(m)m.textContent=t}
+function bind(){
+  const esp=S.esp,f=S.f[esp];
+  el.querySelectorAll("[data-esp]").forEach(b=>b.addEventListener("click",()=>{S.esp=b.dataset.esp;S.cur=null;S.confDel=null;msg="";salvar();draw()}));
+  el.querySelectorAll("[data-f]").forEach(i=>i.addEventListener("change",()=>{f[i.dataset.f]=i.value;if(i.dataset.f==="ind")f.p=null;salvar();keepFocus(draw)}));
+  el.querySelectorAll("[data-p]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.p,v=num(i.value);if(!isFinite(v))return;
+    if(k==="hg0")f.p.hg=[v,f.p.hg[1]];else if(k==="hg1")f.p.hg=[f.p.hg[0],v];else if(k==="lat0")f.p.lat=[v,f.p.lat[1]];else if(k==="lat1")f.p.lat=[f.p.lat[0],v];else f.p[k]=v;salvar();keepFocus(draw)}));
+  el.querySelectorAll("[data-r]").forEach(i=>i.addEventListener("input",()=>{f.res=f.res||{};f.res[i.dataset.r]=i.value;salvar()}));
+  el.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.a,b.dataset.id)));
+}
+function keepFocus(fn){const a=document.activeElement,k=a&&(a.dataset.f||a.dataset.p);fn();if(k){const n=el.querySelector(`[data-f="${k}"],[data-p="${k}"]`);if(n&&n.focus)n.focus()}}
+function acao(a,id){
+  const esp=S.esp,f=S.f[esp];
+  if(a==="padrao"){f.p=null;F(esp);salvar();draw();aviso("Doses do protocolo voltaram aos valores de referência.");return}
+  if(a==="meu-salvar"){const nome=(el.querySelector('[data-meu="nome"]').value||"").trim();if(!nome){aviso("Dê um nome ao protocolo (ex.: Curso Fábio Sússel).");return}
+    const m={...f.p,id:"m"+Date.now().toString(36),n:nome,src:"Protocolo salvo por você ("+nome+")."};delete m._k;(S.meus[esp]=S.meus[esp]||[]).push(m);f.ind=m.id;f.p={...m,_k:m.id};salvar();draw();aviso(`Protocolo “${nome}” salvo. Ele aparece na lista de indutores de ${SP[esp].nome}.`);return}
+  if(a==="meu-del"){S.meus[esp]=(S.meus[esp]||[]).filter(m=>m.id!==f.ind);f.ind=Object.keys(SP[esp].ind)[0];f.p=null;F(esp);salvar();draw();aviso("Protocolo excluído.");return}
+  if(a==="lote-novo"){S.cur=null;f.res={};salvar();draw();return}
+  if(a==="lote-salvar"){const r={...(f.res||{})},nome=(r.nome||"").trim()||`${SP[esp].nome} ${new Date().toLocaleDateString("pt-BR")}`;r.nome=nome;
+    const prot=SP[esp].tipo==="ind"?(f.p&&f.p.n)||"":SP[esp].tipo==="tilapia"?`MT ${f.dose} mg/kg · ${f.dias} dias`:`${f.nf} fêmeas · ${f.dens}/m²`;
+    const data=SP[esp].tipo==="ind"?new Date(f.t0).getTime():SP[esp].tipo==="tilapia"?new Date(f.dIni+"T08:00").getTime():new Date(f.abl+"T08:00").getTime();
+    const snap=JSON.parse(JSON.stringify({...f,res:undefined}));
+    let l=S.cur&&S.lotes.find(x=>x.id===S.cur);
+    if(l)Object.assign(l,{nome,r,prot,data,form:snap,atualizado:Date.now()});else{l={id:"l"+Date.now().toString(36),esp,nome,r,prot,data,form:snap,em:Date.now()};S.lotes.push(l);S.cur=l.id}
+    f.res=r;salvar();draw();aviso(`Lote “${nome}” salvo. Salve o projeto em Projetos para guardar na sua conta.`);return}
+  if(a==="lote-abrir"){const l=S.lotes.find(x=>x.id===id);if(!l)return;S.f[esp]={...l.form,res:{...l.r}};S.cur=l.id;salvar();draw();aviso(`Lote “${l.nome}” aberto: os dados e o cronograma voltaram para os dele.`);return}
+  if(a==="lote-del"){S.confDel=id;draw();return}
+  if(a==="lote-del-ok"){S.lotes=S.lotes.filter(x=>x.id!==id);if(S.cur===id)S.cur=null;S.confDel=null;salvar();draw();aviso("Lote excluído.");return}
+}
+window.drawRepro=()=>{try{const s=rd();if(s&&s.f){Object.assign(S,{...s,f:s.f,lotes:s.lotes||[],meus:s.meus||{}})}}catch(e){}draw()};
+})();
+
+</script>
+<script>
 /* ---------- Projetos e login de usuário ---------- */
 (function(){
 const el=document.getElementById("view-proj");if(!el)return;
@@ -4365,7 +4641,7 @@ const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?
 const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
 const SIT={ativo:["Ativo","ok"],pendente:["Aguardando aprovação","wait"],suspenso:["Suspenso","bad"],cancelado:["Cancelado pelo administrador","bad"],cancelada:["Inscrição cancelada pelo usuário","off"],sem:["Sem inscrição","off"]};
-const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"]];
+const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"]];
 const SO_ADMIN=["local","calc"];          // Local e viabilidade e Calculadora: só administrador (versão avançada)
 const ABAS_USU=ABAS.filter(a=>!SO_ADMIN.includes(a[0]));
 const LPLANO=PK+"-planos";
@@ -4830,13 +5106,14 @@ const ICO={
   mais:'<path d="M4 7h16M4 12h16M4 17h16"/>',
   bio:'<path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1"/>',
   racao:'<path d="M5 9h14l-1.5 11h-11z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/>',
+  repro:'<ellipse cx="12" cy="13" rx="6" ry="7.5"/><circle cx="12" cy="11" r="2"/><path d="M9.5 16.5c1.4 1 3.6 1 5 0"/>',
   proj:'<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>',
   users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/>',
   ref:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 const MAIN=[["local","Local"],["calc","Calcular"],["aqua","Água"],["dash","Painel"]];
-const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["proj","Projetos"],["users","Usuários e acesso"]];
+const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
 nav.innerHTML=MAIN.map(([v,t])=>`<button type="button" data-bv="${v}">${svg(v)}<span>${t}</span></button>`).join("")+`<button type="button" data-bv="mais" aria-haspopup="dialog" aria-expanded="false">${svg("mais")}<span>Mais</span></button>`;
