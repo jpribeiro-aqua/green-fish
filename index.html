@@ -4120,6 +4120,7 @@ const SP={
   ind:{hcg:{n:"hCG (gonadotrofina coriônica)",u:"ui",f:2500,p1:20,int:10,m:1000,lat:[8,12],src:"FAO: 2.000 a 8.000 UI/kg funcionam para Pangasius; usual em laboratório: dose preparatória e decisiva com 8–12 h de intervalo. Ajuste à sua experiência."},
        ovaprim:{n:"Ovaprim® (GnRHa + domperidona)",u:"ml",f:0.7,p1:100,int:0,m:0.2,lat:[16,18],src:"J. Aquat. Res. Sci.: 0,5–0,7 mL/kg nas fêmeas (dose única) e 0,2 mL/kg nos machos; latência 16–18 h a 28–30 °C; eclosão 18–24 h."}},
   passos:["Selecionar fêmeas com ovócitos soltos e uniformes (biópsia ovariana).","Machos recebem dose única junto com a dose decisiva das fêmeas.","Extrusão a seco; retirar a adesividade dos ovos (argila ou tanino) e incubar em funis/jarras com fluxo ascendente.","Eclosão ~22–24 h; transferir as larvas antes de terminar o saco vitelino, com alimento vivo (Moina/Artemia) para reduzir o canibalismo."]},
+ pirarucu:{nome:"Pirarucu",cient:"Arapaima gigas",tipo:"pirarucu"},
  tilapia:{nome:"Tilápia",cient:"Oreochromis niloticus",tipo:"tilapia"},
  camarao:{nome:"Camarão",cient:"Penaeus (Litopenaeus) vannamei",tipo:"camarao"}
 };
@@ -4133,6 +4134,10 @@ const GEN={
   faz:["Parentesco entre matrizes (TambaPlus Parentesco): orienta os acasalamentos e evita cruzar aparentados","Pureza específica: detecta introgressão de pacu ou pirapitinga (carabina) a partir de ~3%, ou seja, híbridos misturados ao plantel","Certificação genética das matrizes para a produção de alevinos"],
   porque:"A endogamia está associada a perdas de 10% a 30% da produção. A Embrapa estimou retorno de R$ 65 a R$ 196 para cada R$ 1 investido no teste de parentesco.",
   extra:"Resultado em cerca de 7 dias. Exemplo da Embrapa: parentesco e pureza de 100 matrizes ≈ R$ 12 mil, amortizados em ~3 anos de uso das matrizes."},
+ pirarucu:{t:"ArapaimaPlus",esp:"pirarucu",preco:0,precoTxt:"valor sob consulta à Embrapa",
+  faz:["Paternidade, parentesco, identificação individual e variabilidade genética do pirarucu","Orienta a formação dos casais para evitar cruzar animais aparentados","Junto com o teste de sexagem genética (PCR, Embrapa Pesca e Aquicultura e Amazônia Ocidental), separa machos e fêmeas, que não têm diferença externa fora da reprodução"],
+  porque:"Como cada casal ocupa um viveiro por anos, errar o sexo ou juntar aparentados custa safras inteiras. O ArapaimaPlus foi lançado em 2024 na Plataforma AquaPlus.",
+  extra:"Sexagem: amostra de ~0,5 cm da nadadeira caudal, válida até para animais jovens; resultado em poucas horas após chegar ao laboratório."},
  camarao:{t:"VannaPlus",esp:"camarão (L. vannamei)",preco:0,precoTxt:"valor sob consulta à Embrapa",
   faz:["Paternidade, parentesco e identificação individual com painel de 96 marcadores SNP","Pedigree de camarões de várias famílias criados juntos no mesmo tanque, sem marcação física","Indica reprodutores geneticamente distantes e os cruzamentos com mais chance de sucesso"],
   porque:"Ajuda laboratórios de larvas a controlar o plantel e evitar cruzamentos entre aparentados, que geram prole com malformações e baixo desempenho.",
@@ -4144,12 +4149,12 @@ function genHTML(esp,f){
   const n=num(f.genN),pr=num(f.genP),tot=n*pr;
   return `<section class="card wide rp-dest"><div class="card-head"><i class="n">★</i><h2>Melhoramento genético · ${g.t}<span>Embrapa · Plataforma AquaPlus · teste genômico de reprodutores de ${g.esp}</span></h2><span class="us-pro-tag on">Destaque</span></div><div class="pj-body">
    <div class="rp-gen"><div><b>O que o ${g.t} faz</b><ul>${g.faz.map(x=>`<li>${E(x)}</li>`).join("")}</ul><p>${E(g.porque)}</p><p class="muted">${E(g.extra)}</p></div>
-    <div><b>Como usar na reprodução</b><ol class="rp-steps"><li>Identifique cada reprodutor individualmente${esp==="camarao"?" (ou registre famílias e tanques)":" (ex.: microchip/PIT tag)"}.</li><li>Colete e envie as amostras de todos os reprodutores conforme a orientação da Embrapa.</li><li>Com o laudo, forme os casais entre animais pouco aparentados${esp==="tambaqui"?" e retire do plantel os híbridos (sem pureza)":""}.</li><li>Registre o pedigree e repita o teste ao repor matrizes ou comprar reprodutores de outro produtor.</li></ol>
+    <div><b>Como usar na reprodução</b><ol class="rp-steps"><li>Identifique cada reprodutor individualmente${esp==="camarao"?" (ou registre famílias e tanques)":" com microchip (PIT tag)"} e cadastre em <b>Plantel e chipagem</b>, no fim desta página.</li><li>Colete e envie as amostras de todos os reprodutores seguindo o protocolo de chipagem e envio.</li><li>Com o laudo, forme os casais entre animais pouco aparentados${esp==="tambaqui"?" e retire do plantel os híbridos (sem pureza)":""}.</li><li>Registre o pedigree e repita o teste ao repor matrizes ou comprar reprodutores de outro produtor.</li></ol>
     <div class="rp-grid"><label>Reprodutores a testar (nº)<input inputmode="numeric" data-f="genN" value="${E(f.genN)}"></label><label>Preço por amostra (R$)<input inputmode="decimal" data-f="genP" value="${E(f.genP)}" placeholder="consultar"></label></div>
     ${pr>0?`<p>Custo estimado: <b>${tot.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</b>${esp==="tambaqui"?" por análise (parentesco ou pureza)":""}.</p>`:`<p class="muted">Informe o preço por amostra para estimar o custo.</p>`}</div></div>
    <p class="muted">Preço: ${E(g.precoTxt)}; confirme valores, tipo de amostra e envio com a Embrapa Recursos Genéticos e Biotecnologia: cenargen.negocios@embrapa.br · (61) 3448-4700.</p></div></section>`;
 }
-const ORDEM=["lambari","tambaqui","curimata","pangasius","tilapia","camarao"];
+const ORDEM=["lambari","tambaqui","curimata","pangasius","pirarucu","tilapia","camarao"];
 
 /* ---- estado ---- */
 const S=rd();S.esp=S.esp||"tambaqui";S.f=S.f||{};S.lotes=S.lotes||[];S.meus=S.meus||{};
@@ -4162,6 +4167,7 @@ function F(esp){            // formulário da espécie, com padrões
     for(const x in dflt)if(f[x]==null)f[x]=dflt[x];
     if(!f.p||f.p._k!==f.ind)f.p={...protoDe(esp,f.ind),_k:f.ind}}
   if(sp.tipo==="tilapia"){const d={nf:300,rel:3,ciclo:30,ovos:1000,inter:7,dIni:dtl(Date.now()).slice(0,10),pl:20000,pi:0.01,pfim:0.3,dose:60,dias:28,taxa:15,ref:8,veic:"alcool",sob:85};for(const x in d)if(f[x]==null)f[x]=d[x]}
+  if(sp.tipo==="pirarucu"){const d={casais:5,m2ind:200,viveiro:1125};for(const x in d)if(f[x]==null)f[x]=d[x]}
   if(sp.tipo==="camarao"){const d={nf:100,nm:100,dens:5,temp:28,sal:34,abl:dtl(Date.now()).slice(0,10),desN:10,ovos:150000,eclP:60,sobPL:60,banho:100,racao:5};for(const x in d)if(f[x]==null)f[x]=d[x]}
   return f;
 }
@@ -4333,6 +4339,105 @@ function htmlCam(){
    <p class="muted">Os dias são aproximados e variam com a temperatura, a dieta e a origem dos reprodutores. A ablação peduncular é prática comum, mas há programas que a evitam por bem-estar animal: siga a política do seu laboratório.</p></div></section>`+resultadoHTML("camarao",f);
 }
 
+/* ---- pirarucu: formação de casais e reprodução natural ---- */
+function htmlPir(){
+  const f=F("pirarucu"),cas=num(f.casais),ind=num(f.m2ind),vv=num(f.viveiro),areaMin=2*ind;
+  return `<section class="card wide"><div class="card-head"><i class="n">1</i><h2>Pirarucu · casais e reprodução natural<span>Arapaima gigas · sem indução hormonal · cuidado parental</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Casais a formar (nº)<input inputmode="numeric" data-f="casais" value="${E(f.casais)}"></label>
+    <label>Área por indivíduo (m²)<input inputmode="decimal" data-f="m2ind" value="${E(f.m2ind)}"></label>
+    <label>Área de cada viveiro de casal (m²)<input inputmode="decimal" data-f="viveiro" value="${E(f.viveiro)}"></label>
+   </div>
+   <div class="us-kpis"><div><b>${I(cas*2)}</b>reprodutores sexados (${I(cas)} fêmeas + ${I(cas)} machos)</div><div><b>${N(areaMin,0)} m²</b>mínimo por casal</div><div><b>${N(cas*vv/10000,2)} ha</b>de viveiros (1 casal por viveiro)</div><div><b>${vv>=areaMin?"OK":"pequeno"}</b>viveiro de ${N(vv,0)} m²</div></div>
+   <ol class="rp-steps">
+    <li><b>Sexagem é obrigatória:</b> fora da reprodução o pirarucu não tem diferença externa entre macho e fêmea. Use o teste de sexagem genética da Embrapa (PCR, amostra de ~0,5 cm da nadadeira caudal, serve até para jovens) e chipe todos os animais.</li>
+    <li><b>Casais sem parentesco:</b> confira no ArapaimaPlus e no cadastro do plantel abaixo antes de soltar o casal no viveiro.</li>
+    <li><b>Maturação:</b> a primeira reprodução ocorre a partir do 5º ano, com 40–45 kg. Para formar o plantel, a Embrapa indica começar com animais de 10–15 kg (~2 anos) e comprar mais do que o necessário.</li>
+    <li><b>Viveiro:</b> 1 casal por viveiro escavado, com ~200 m² por indivíduo (referência de 1 animal a cada 200 m²); na fazenda estudada pela Embrapa, viveiros de ~1.125 m² (25 × 45 m).</li>
+    <li><b>Época:</b> com as primeiras chuvas (na Amazônia oriental, de janeiro a maio). Na reprodução, o macho escurece a cabeça e o dorso e fica com flancos e ventre vermelhos; a fêmea continua castanho-clara.</li>
+    <li><b>Desova e cuidado parental:</b> o casal faz o ninho em área rasa e protege o cardume de alevinos, que sobe para respirar junto à cabeça do macho.</li>
+    <li><b>Coleta dos alevinos:</b> captura do cardume com tarrafa ou puçá no momento da respiração aérea; levar ao laboratório (ex.: caixas de 2.000 L com ~600 alevinos de 6–9 cm).</li>
+    <li><b>Alimentação dos reprodutores:</b> ração extrusada para carnívoros (a literatura recomenda 40% ou mais de proteína) ou peixes forrageiros (tilápia, piaba) quando faltar ração.</li>
+   </ol>
+   <p class="muted">Fontes: Embrapa (Formação de plantel de matrizes de pirarucu; Manejo de reprodutores; Teste de sexagem genética para pirarucu). Os valores variam com a região e a estrutura; ajuste com o seu responsável técnico.</p></div></section>`+resultadoHTML("pirarucu",f);
+}
+
+/* ---- plantel e chipagem (programas genéticos da Embrapa) ---- */
+const PL=()=>{S.pl=S.pl||{};const p=S.pl[S.esp]=S.pl[S.esp]||{an:[],par:[]};p.an=p.an||[];p.par=p.par||[];return p};
+const ENVIO={tambaqui:"Embrapa Pesca e Aquicultura (Palmas–TO) · (63) 3229-7800",pirarucu:"Embrapa Amazônia Ocidental (Manaus–AM) · (92) 3303-7800",tilapia:"Embrapa Recursos Genéticos e Biotecnologia (Brasília–DF) · cenargen.negocios@embrapa.br · (61) 3448-4700",camarao:"Embrapa Recursos Genéticos e Biotecnologia (Brasília–DF) · cenargen.negocios@embrapa.br · (61) 3448-4700"};
+const SEXO={F:"Fêmea",M:"Macho","?":"Não sexado"};
+const nomeA=a=>a?(a.chip||"sem chip")+(a.sexo&&a.sexo!=="?"?" · "+SEXO[a.sexo]:""):"—";
+function aparentados(p,x,y){
+  if(!x||!y)return null;
+  if(p.par.some(q=>(q[0]===x.id&&q[1]===y.id)||(q[0]===y.id&&q[1]===x.id)))return "laudo";
+  const pais=a=>[a.pai,a.mae].filter(Boolean).map(s=>s.trim().toLowerCase());
+  const px=pais(x),py=pais(y);
+  if(px.some(c=>py.includes(c)))return "irmaos";
+  const cx=(x.chip||"").trim().toLowerCase(),cy=(y.chip||"").trim().toLowerCase();
+  if((cx&&py.includes(cx))||(cy&&px.includes(cy)))return "paifilho";
+  return "";
+}
+function plantelHTML(esp){
+  const p=PL(),ed=p.ed?p.an.find(a=>a.id===p.ed):null,a=ed||{},cam=esp==="camarao",tamb=esp==="tambaqui";
+  const ativos=p.an.filter(x=>x.st!=="desc"),fem=ativos.filter(x=>x.sexo==="F"),mac=ativos.filter(x=>x.sexo==="M");
+  const opt=(l,sel)=>`<option value="">—</option>`+l.map(x=>`<option value="${x.id}"${x.id===sel?" selected":""}>${E(nomeA(x))}</option>`).join("");
+  const cf=p.cf||{},chk=cf.f&&cf.m?aparentados(p,p.an.find(x=>x.id===cf.f),p.an.find(x=>x.id===cf.m)):null;
+  const fx=cf.f&&p.an.find(x=>x.id===cf.f),mx=cf.m&&p.an.find(x=>x.id===cf.m);
+  const sem=x=>x&&(!x.laudo||x.laudo==="—"),hib=x=>x&&x.laudo==="Híbrido";
+  return `<section class="card wide"><div class="card-head"><i class="n">🔖</i><h2>Plantel e chipagem<span>${I(ativos.length)} reprodutor${ativos.length===1?"":"es"} ativo${ativos.length===1?"":"s"} · ${I(fem.length)} fêmea${fem.length===1?"":"s"} · ${I(mac.length)} macho${mac.length===1?"":"s"}</span></h2></div><div class="pj-body">
+   <details class="us-det"><summary>Protocolo de chipagem e envio de amostras à Embrapa</summary><ol class="rp-steps">
+    <li>${cam?"No camarão o VannaPlus dispensa marcação física: registre família, tanque e lote de cada amostra.":"Aplicar o microchip (PIT tag) com a seringa aplicadora na <b>musculatura dorsal</b> (no tambaqui, lado esquerdo, abaixo da nadadeira dorsal); peixes menores, a partir de ~50 g, na cavidade abdominal. Ler o chip com o leitor e anotar."}</li>
+    <li>Leve sedação (a mesma da indução hormonal). Pegar um animal por vez e conferir a identificação.</li>
+    <li>Cortar ~0,5 cm² da <b>nadadeira caudal</b>${cam?" (ou o tecido indicado pela Embrapa)":""} e colocar em microtubo de 1,5–2 mL com ~1 mL de <b>álcool 90–96°</b> de farmácia. Não precisa de geladeira.</li>
+    <li>Numerar os tubos <b>a lápis</b> (001, 002…) na tampa e na lateral — caneta sai com o álcool. Use o botão <b>Numerar tubos</b> abaixo.</li>
+    <li>Baixar a <b>planilha chip ↔ tubo</b> e enviar junto, em caixa comum, por Sedex. Envio: ${E(ENVIO[esp]||"consulte a unidade da Embrapa da espécie")}.</li>
+    <li>Contratação pelo portal da Embrapa (pagamento pela Faped); a Embrapa pode enviar os tubos (mínimo de 10 amostras). Resultado por e-mail em 1–3 semanas.</li>
+    <li>Com o laudo, registre aqui a pureza${tamb?" (híbridos saem do plantel)":""} e os pares aparentados, e use <b>Verificar casal</b> antes de cada indução ou formação de casal.</li></ol></details>
+   <div class="rp-grid">
+    <label>${cam?"Identificação (família/tanque)":"Nº do microchip"}<input data-pl="chip" value="${E(a.chip||"")}" maxlength="40" placeholder="${cam?"ex.: F12-T3":"ex.: 982000123456789"}"></label>
+    <label>Sexo<select class="lv-sel" data-pl="sexo">${Object.entries(SEXO).map(([k,v])=>`<option value="${k}"${(a.sexo||"?")===k?" selected":""}>${v}</option>`).join("")}</select></label>
+    <label>Peso (g)<input inputmode="decimal" data-pl="peso" value="${E(a.peso||"")}"></label>
+    <label>Comprimento (cm)<input inputmode="decimal" data-pl="comp" value="${E(a.comp||"")}"></label>
+    <label>Origem<input data-pl="orig" value="${E(a.orig||"")}" maxlength="60" placeholder="fornecedor, rio, lote"></label>
+    <label>Família / lote<input data-pl="fam" value="${E(a.fam||"")}" maxlength="40"></label>
+    <label>Pai (nº do chip)<input data-pl="pai" value="${E(a.pai||"")}" maxlength="40"></label>
+    <label>Mãe (nº do chip)<input data-pl="mae" value="${E(a.mae||"")}" maxlength="40"></label>
+    <label>Laudo de pureza<select class="lv-sel" data-pl="laudo">${["—","Puro","Híbrido"].map(v=>`<option${(a.laudo||"—")===v?" selected":""}>${v}</option>`).join("")}</select></label>
+    <label class="rp-wide">Observações<input data-pl="obs" value="${E(a.obs||"")}" maxlength="200"></label>
+   </div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="pl-salvar">${ed?"Salvar alterações":"Adicionar reprodutor"}</button>${ed?`<button type="button" class="btn" data-a="pl-cancel">Cancelar edição</button>`:""}<button type="button" class="btn" data-a="pl-tubos">Numerar tubos (001…)</button><button type="button" class="btn" data-a="pl-csv"${p.an.length?"":" disabled"}>Baixar planilha chip ↔ tubo</button></div>
+   ${p.an.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>Tubo</th><th>${cam?"Identificação":"Chip"}</th><th>Sexo</th><th class="num">Peso</th><th>Origem · família</th><th>Pai · mãe</th><th>Laudo</th><th></th></tr></thead><tbody>${p.an.map(x=>`<tr${x.st==="desc"?' class="muted"':""}><td>${E(x.tubo||"—")}</td><td><b>${E(x.chip||"—")}</b>${x.obs?`<small>${E(x.obs)}</small>`:""}</td><td>${SEXO[x.sexo||"?"]}</td><td class="num">${x.peso?N(num(x.peso),0)+" g":"—"}</td><td>${E(x.orig||"—")}${x.fam?`<small>${E(x.fam)}</small>`:""}</td><td>${E(x.pai||"—")}<small>${E(x.mae||"")}</small></td><td>${x.laudo==="Híbrido"?`<span class="us-st bad">Híbrido</span>`:x.laudo==="Puro"?`<span class="us-st ok">Puro</span>`:`<span class="muted">sem laudo</span>`}${x.st==="desc"?`<small>descartado</small>`:""}</td><td class="pj-acts"><button type="button" class="btn" data-a="pl-ed" data-id="${x.id}">Editar</button><button type="button" class="btn" data-a="pl-desc" data-id="${x.id}">${x.st==="desc"?"Reativar":"Descartar"}</button>${p.conf===x.id?`<button type="button" class="btn warn" data-a="pl-del-ok" data-id="${x.id}">Confirmar exclusão</button>`:`<button type="button" class="btn" data-a="pl-del" data-id="${x.id}">Excluir</button>`}</td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Nenhum reprodutor cadastrado. Cadastre cada animal com o número do chip para organizar o envio das amostras e o resultado do laudo.</p>`}
+   <div class="rp-gen">
+    <div class="us-abas-box"><b>Pares aparentados (do laudo de parentesco)</b><div class="rp-grid"><label>Animal 1<select class="lv-sel" data-pp="a">${opt(ativos,p.pa)}</select></label><label>Animal 2<select class="lv-sel" data-pp="b">${opt(ativos,p.pb)}</select></label></div>
+     <div class="pj-btns"><button type="button" class="btn" data-a="pl-par">Registrar como aparentados</button></div>
+     ${p.par.length?`<ul>${p.par.map((q,i)=>`<li>${E(nomeA(p.an.find(x=>x.id===q[0])))} × ${E(nomeA(p.an.find(x=>x.id===q[1])))} <button type="button" class="btn" data-a="pl-par-del" data-id="${i}">remover</button></li>`).join("")}</ul>`:`<span class="muted">Nenhum par registrado.</span>`}</div>
+    <div class="us-abas-box"><b>Verificar casal</b><div class="rp-grid"><label>Fêmea<select class="lv-sel" data-cf="f">${opt(fem,cf.f)}</select></label><label>Macho<select class="lv-sel" data-cf="m">${opt(mac,cf.m)}</select></label></div>
+     ${fx&&mx?(chk?`<p class="us-pag-alert"><b>Evite este casal:</b> ${chk==="laudo"?"aparentados segundo o laudo":chk==="irmaos"?"têm pai ou mãe em comum (irmãos ou meio-irmãos)":"um é pai ou mãe do outro"}.</p>`:hib(fx)||hib(mx)?`<p class="us-pag-alert"><b>Atenção:</b> animal híbrido no casal — retire do plantel de reprodução.</p>`:sem(fx)||sem(mx)?`<p class="us-pag-alert wait"><b>Sem parentesco registrado</b>, mas ${sem(fx)&&sem(mx)?"os dois animais estão":"um dos animais está"} sem laudo genético: confirme com o teste da Embrapa.</p>`:`<p><span class="us-st ok">Casal liberado</span> sem parentesco registrado e com laudo de pureza.</p>`):`<p class="muted">Escolha uma fêmea e um macho cadastrados.</p>`}</div>
+   </div></div></section>`;
+}
+function plAcao(a,id){
+  const p=PL();
+  const ler=()=>{const o={};el.querySelectorAll("[data-pl]").forEach(i=>o[i.dataset.pl]=i.value.trim());return o};
+  if(a==="pl-salvar"){const o=ler();if(!o.chip){aviso("Informe o número do microchip (ou a identificação).");return}
+    const dup=p.an.find(x=>x.chip===o.chip&&x.id!==p.ed);if(dup){aviso("Já existe um reprodutor com esse chip.");return}
+    if(p.ed){Object.assign(p.an.find(x=>x.id===p.ed),o);p.ed=null;aviso("Reprodutor atualizado.")}else{p.an.push({id:"a"+Date.now().toString(36),...o,st:"at",em:Date.now()});aviso(`Reprodutor ${o.chip} adicionado.`)}
+    salvar();draw();return true}
+  if(a==="pl-cancel"){p.ed=null;draw();return true}
+  if(a==="pl-ed"){p.ed=id;draw();const i=el.querySelector('[data-pl="chip"]');i&&i.scrollIntoView({block:"center"});return true}
+  if(a==="pl-desc"){const x=p.an.find(y=>y.id===id);if(x)x.st=x.st==="desc"?"at":"desc";salvar();draw();return true}
+  if(a==="pl-del"){p.conf=id;draw();return true}
+  if(a==="pl-del-ok"){p.an=p.an.filter(x=>x.id!==id);p.par=p.par.filter(q=>q[0]!==id&&q[1]!==id);p.conf=null;salvar();draw();aviso("Reprodutor excluído.");return true}
+  if(a==="pl-tubos"){let n=p.an.reduce((m,x)=>Math.max(m,parseInt(x.tubo,10)||0),0),k=0;p.an.forEach(x=>{if(!x.tubo&&x.st!=="desc"){x.tubo=String(++n).padStart(3,"0");k++}});salvar();draw();aviso(k?`${k} tubo${k===1?"":"s"} numerado${k===1?"":"s"}. Escreva o número a lápis na tampa e na lateral de cada tubo.`:"Todos os reprodutores ativos já têm tubo.");return true}
+  if(a==="pl-csv"){const lin=[["Tubo","Chip/identificação","Espécie","Sexo","Peso (g)","Comprimento (cm)","Origem","Família","Pai","Mãe","Observações"]].concat(p.an.filter(x=>x.st!=="desc").slice().sort((x,y)=>(x.tubo||"999").localeCompare(y.tubo||"999")).map(x=>[x.tubo||"",x.chip,SP[S.esp].nome,SEXO[x.sexo||"?"],x.peso||"",x.comp||"",x.orig||"",x.fam||"",x.pai||"",x.mae||"",x.obs||""]));
+    const txt="﻿"+lin.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(";")).join("\r\n"),nome=`plantel_${S.esp}_${new Date().toISOString().slice(0,10)}.csv`;
+    (async()=>{const dl=window.claude&&claude.use?await claude.use("downloads").catch(()=>null):null;
+      if(dl){try{await dl.save({filename:nome,data:txt});aviso(`Planilha ${nome} salva.`)}catch(e){aviso("Download cancelado.")}}
+      else{const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));l.download=nome;document.body.appendChild(l);l.click();setTimeout(()=>{URL.revokeObjectURL(l.href);l.remove()},500);aviso(`Planilha ${nome} gerada (abre no Excel).`)}})();return true}
+  if(a==="pl-par"){if(!p.pa||!p.pb||p.pa===p.pb){aviso("Escolha dois animais diferentes.");return true}if(!p.par.some(q=>(q[0]===p.pa&&q[1]===p.pb)||(q[0]===p.pb&&q[1]===p.pa)))p.par.push([p.pa,p.pb]);p.pa=p.pb=null;salvar();draw();aviso("Par aparentado registrado: o casal será bloqueado na verificação.");return true}
+  if(a==="pl-par-del"){p.par.splice(+id,1);salvar();draw();return true}
+  return false;
+}
+
 /* ---- registro dos lotes ---- */
 function resultadoHTML(esp,f){
   const sp=SP[esp],lotes=S.lotes.filter(l=>l.esp===esp),cur=S.cur&&lotes.find(l=>l.id===S.cur);
@@ -4340,7 +4445,7 @@ function resultadoHTML(esp,f){
   return `<section class="card wide"><div class="card-head"><i class="n">✓</i><h2>Registro dos lotes<span>${lotes.length} lote${lotes.length===1?"":"s"} de ${E(sp.nome)}${cur?" · editando "+E(cur.nome):""}</span></h2></div><div class="pj-body">
    <div class="rp-grid">
     <label>Nome do lote<input data-r="nome" value="${E(r.nome||"")}" placeholder="ex.: Lote 03/2026"></label>
-    ${sp.tipo==="ind"?`<label>Fêmeas que desovaram (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Massa de ovos (g)<input inputmode="decimal" data-r="massa" value="${E(r.massa||"")}"></label>`:sp.tipo==="tilapia"?`<label>Ovos coletados (nº)<input inputmode="numeric" data-r="ovos" value="${E(r.ovos||"")}"></label><label>Machos após reversão (%)<input inputmode="decimal" data-r="machos" value="${E(r.machos||"")}"></label>`:`<label>Desovas (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Náuplios (nº)<input inputmode="numeric" data-r="nau" value="${E(r.nau||"")}"></label>`}
+    ${sp.tipo==="ind"?`<label>Fêmeas que desovaram (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Massa de ovos (g)<input inputmode="decimal" data-r="massa" value="${E(r.massa||"")}"></label>`:sp.tipo==="tilapia"?`<label>Ovos coletados (nº)<input inputmode="numeric" data-r="ovos" value="${E(r.ovos||"")}"></label><label>Machos após reversão (%)<input inputmode="decimal" data-r="machos" value="${E(r.machos||"")}"></label>`:sp.tipo==="pirarucu"?`<label>Casais que desovaram (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Alevinos coletados (nº)<input inputmode="numeric" data-r="nau" value="${E(r.nau||"")}"></label>`:`<label>Desovas (nº)<input inputmode="numeric" data-r="desov" value="${E(r.desov||"")}"></label><label>Náuplios (nº)<input inputmode="numeric" data-r="nau" value="${E(r.nau||"")}"></label>`}
     <label>Fertilização (%)<input inputmode="decimal" data-r="fert" value="${E(r.fert||"")}"></label>
     <label>Eclosão (%)<input inputmode="decimal" data-r="ecl" value="${E(r.ecl||"")}"></label>
     <label>Larvas/alevinos/PL obtidos (nº)<input inputmode="numeric" data-r="larvas" value="${E(r.larvas||"")}"></label>
@@ -4356,11 +4461,11 @@ let msg="";
 function draw(){
   if(el.hidden)return;
   const esp=S.esp,sp=SP[esp];
-  const body=sp.tipo==="ind"?htmlInd(esp):sp.tipo==="tilapia"?htmlTil():htmlCam();
+  const body=(sp.tipo==="ind"?htmlInd(esp):sp.tipo==="tilapia"?htmlTil():sp.tipo==="pirarucu"?htmlPir():htmlCam())+plantelHTML(esp);
   el.innerHTML=`<section class="card wide"><div class="card-head"><h2>Reprodução<span>Protocolos de indução, desova, incubação, reversão sexual e larvicultura</span></h2></div>
    <div class="pj-tools chips rp-esp" role="tablist" aria-label="Espécie">${ORDEM.map(k=>`<button type="button" class="chip${k===esp?" on":""}" data-esp="${k}" aria-pressed="${k===esp}">${E(SP[k].nome)}</button>`).join("")}</div>
    <div class="pj-msg" id="rp-msg" role="status" aria-live="polite">${E(msg)}</div></section>`+genHTML(esp,F(esp))+body+
-   `<section class="card wide"><div class="card-foot">Os valores de referência vêm da literatura técnica e servem de ponto de partida: ajuste às condições do seu laboratório e à orientação do responsável técnico. Hormônios (EBHC, hCG, Ovopel®, Ovaprim®, buserelina, 17α-metiltestosterona) exigem receita e seguem as normas do MAPA. Fontes: Embrapa (Boas práticas de produção de alevinos de tambaqui, 2021; Comunicado Técnico 271, 2023); Brazilian Journal of Biology (lambari, Ovopel e buserelina); Pesquisa Agropecuária Brasileira (curimatã-pacu); FAO (Penaeus vannamei; hCG em bagres); Kannan et al. (maturação de vannamei); J. Aquat. Res. Sci. (Ovaprim em Pangasius); GIA (Guia de indução hormonal de peixes reofílicos); Embrapa Recursos Genéticos e Biotecnologia (Plataforma AquaPlus: TilaPlus, TambaPlus e VannaPlus); curso Aprenda a reproduzir lambaris (Fábio Sússel, APTA/Abracoa).</div></section>`;
+   `<section class="card wide"><div class="card-foot">Os valores de referência vêm da literatura técnica e servem de ponto de partida: ajuste às condições do seu laboratório e à orientação do responsável técnico. Hormônios (EBHC, hCG, Ovopel®, Ovaprim®, buserelina, 17α-metiltestosterona) exigem receita e seguem as normas do MAPA. Fontes: Embrapa (Boas práticas de produção de alevinos de tambaqui, 2021; Comunicado Técnico 271, 2023); Brazilian Journal of Biology (lambari, Ovopel e buserelina); Pesquisa Agropecuária Brasileira (curimatã-pacu); FAO (Penaeus vannamei; hCG em bagres); Kannan et al. (maturação de vannamei); J. Aquat. Res. Sci. (Ovaprim em Pangasius); GIA (Guia de indução hormonal de peixes reofílicos); Embrapa Recursos Genéticos e Biotecnologia (Plataforma AquaPlus: TilaPlus, TambaPlus, VannaPlus e ArapaimaPlus); Embrapa (Passo a passo para envio de material genético, 2022; formação de plantel e manejo de reprodutores de pirarucu); curso Aprenda a reproduzir lambaris (Fábio Sússel, APTA/Abracoa).</div></section>`;
   bind();
 }
 function aviso(t){msg=t;const m=el.querySelector("#rp-msg");if(m)m.textContent=t}
@@ -4371,7 +4476,9 @@ function bind(){
   el.querySelectorAll("[data-p]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.p,v=num(i.value);if(!isFinite(v))return;
     if(k==="hg0")f.p.hg=[v,f.p.hg[1]];else if(k==="hg1")f.p.hg=[f.p.hg[0],v];else if(k==="lat0")f.p.lat=[v,f.p.lat[1]];else if(k==="lat1")f.p.lat=[f.p.lat[0],v];else f.p[k]=v;salvar();keepFocus(draw)}));
   el.querySelectorAll("[data-r]").forEach(i=>i.addEventListener("input",()=>{f.res=f.res||{};f.res[i.dataset.r]=i.value;salvar()}));
-  el.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.a,b.dataset.id)));
+  el.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>{if(!plAcao(b.dataset.a,b.dataset.id))acao(b.dataset.a,b.dataset.id)}));
+  el.querySelectorAll("[data-pp]").forEach(i=>i.addEventListener("change",()=>{const p=PL();p[i.dataset.pp==="a"?"pa":"pb"]=i.value||null}));
+  el.querySelectorAll("[data-cf]").forEach(i=>i.addEventListener("change",()=>{const p=PL();p.cf=p.cf||{};p.cf[i.dataset.cf]=i.value||null;salvar();draw()}));
 }
 function keepFocus(fn){const a=document.activeElement,k=a&&(a.dataset.f||a.dataset.p);fn();if(k){const n=el.querySelector(`[data-f="${k}"],[data-p="${k}"]`);if(n&&n.focus)n.focus()}}
 function acao(a,id){
@@ -4382,8 +4489,8 @@ function acao(a,id){
   if(a==="meu-del"){S.meus[esp]=(S.meus[esp]||[]).filter(m=>m.id!==f.ind);f.ind=Object.keys(SP[esp].ind)[0];f.p=null;F(esp);salvar();draw();aviso("Protocolo excluído.");return}
   if(a==="lote-novo"){S.cur=null;f.res={};salvar();draw();return}
   if(a==="lote-salvar"){const r={...(f.res||{})},nome=(r.nome||"").trim()||`${SP[esp].nome} ${new Date().toLocaleDateString("pt-BR")}`;r.nome=nome;
-    const prot=SP[esp].tipo==="ind"?(f.p&&f.p.n)||"":SP[esp].tipo==="tilapia"?`MT ${f.dose} mg/kg · ${f.dias} dias`:`${f.nf} fêmeas · ${f.dens}/m²`;
-    const data=SP[esp].tipo==="ind"?new Date(f.t0).getTime():SP[esp].tipo==="tilapia"?new Date(f.dIni+"T08:00").getTime():new Date(f.abl+"T08:00").getTime();
+    const tp=SP[esp].tipo,prot=tp==="ind"?(f.p&&f.p.n)||"":tp==="tilapia"?`MT ${f.dose} mg/kg · ${f.dias} dias`:tp==="pirarucu"?`${f.casais} casais · reprodução natural`:`${f.nf} fêmeas · ${f.dens}/m²`;
+    const data=tp==="ind"?new Date(f.t0).getTime():tp==="tilapia"?new Date(f.dIni+"T08:00").getTime():tp==="pirarucu"?Date.now():new Date(f.abl+"T08:00").getTime();
     const snap=JSON.parse(JSON.stringify({...f,res:undefined}));
     let l=S.cur&&S.lotes.find(x=>x.id===S.cur);
     if(l)Object.assign(l,{nome,r,prot,data,form:snap,atualizado:Date.now()});else{l={id:"l"+Date.now().toString(36),esp,nome,r,prot,data,form:snap,em:Date.now()};S.lotes.push(l);S.cur=l.id}
