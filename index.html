@@ -4113,9 +4113,9 @@ const nuvem={
     await this.col(u).doc(id).set({...meta,np,bytes:s.length})},
   async meta(id,u){return (await this.col(u).doc(id).get()).data()||null},
   async marcarVisto(id){const m=await this.meta(id);if(m)await this.col().doc(id).set({...m,vistoPeloCliente:Date.now()})},
-  async del(id){const m=(await this.col().doc(id).get()).data();
-    for(let i=0;i<((m&&m.np)||0);i++)await this.partes().doc(id+"_"+i).delete();
-    await this.col().doc(id).delete()}
+  async del(id,u){const m=(await this.col(u).doc(id).get()).data();
+    for(let i=0;i<((m&&m.np)||0);i++)await this.partes(u).doc(id+"_"+i).delete();
+    await this.col(u).doc(id).delete()}
 };
 const local={
   all(){return rd(PK,{usuarios:{}})},
@@ -4201,6 +4201,11 @@ async function abrirCliente(uid,id,editar){await rodar(async()=>{
   try{localStorage.setItem(FLASH,editar?`Editando “${p.nome}”, projeto de ${x.cliente||"cliente"}. Faça as alterações nas abas e clique em Salvar no projeto do cliente: a versão nova aparece também no login dele.`:`Projeto “${p.nome}” de ${x.cliente||"cliente"} aberto como cópia em todas as abas. O original do cliente não muda; para guardar a cópia na sua conta, clique em Salvar projeto.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
   location.reload();
 })}
+async function excluirCliente(uid,id){await rodar(async()=>{
+  const x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};await nuvem.del(id,uid);
+  st.todos=(st.todos||[]).filter(y=>!(y.uid===uid&&y.id===id));
+  const c=atual();if(c&&c.uid===uid&&c.id===id)localStorage.removeItem(CUR);
+  aviso(`“${x.nome||"Projeto"}” excluído da conta de ${x.cliente||"cliente"}.`)})}
 async function exportarCliente(uid,id){await rodar(async()=>{
   const p=await nuvem.get(id,uid),x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};
   const arq={app:"ras-multitanques",versao:1,nome:p.nome,notas:p.notas||"",resp:p.resp||"",cliente:x.cliente||"",resumo:p.resumo||{},criadoEm:p.criadoEm||p.atualizadoEm,atualizadoEm:p.atualizadoEm,dados:p.dados};
@@ -4219,8 +4224,8 @@ function todosHTML(){
         return `<tr><td><b>${esc(p.cliente)}</b>${p.email&&p.email!==p.cliente?`<small>${esc(p.email)}</small>`:""}</td><td><b>${esc(p.nome||"Sem nome")}</b>${p.notas?`<small>${esc(p.notas.length>110?p.notas.slice(0,110)+"…":p.notas)}</small>`:""}${p.resp?`<small>Responsável: ${esc(p.resp)}</small>`:""}</td>
           <td>${esc(r.local||"—")}<small>${r.tanques!=null?`${fmt(r.tanques,0)} tanques · ${r.grupos} grupo${r.grupos===1?"":"s"}${r.vol?` · ${fmt(r.vol,0)} m³`:""}`:""}</small>${r.esp?`<small>${esc(r.esp)}</small>`:""}</td>
           <td class="num">${r.vpl!=null?`<span class="${r.vpl<0?"neg":""}">${R$(r.vpl)}</span>`:"—"}</td><td class="num">${dataBR(p.atualizadoEm)}<small>${p.bytes?tamanho(p.bytes):""}</small>${p.editadoPeloDono?`<small>editado por você</small><small class="${naoVisto(p)?"pj-wait":"pj-ok"}">${naoVisto(p)?"cliente ainda não viu":"✓ cliente viu em "+dataBR(p.vistoPeloCliente)}</small>`:""}</td>
-          <td class="pj-acts">${cf===k||cf==="e:"+k?`<button type="button" class="btn solid" data-pt="${cf===k?"open-ok":"edit-ok"}" data-u="${p.uid}" data-id="${p.id}">${cf===k?"Confirmar: abrir cópia":"Confirmar: abrir para editar"}</button><button type="button" class="btn" data-pt="cancel">Cancelar</button>`:`<button type="button" class="btn solid" data-pt="edit" data-u="${p.uid}" data-id="${p.id}">Abrir para editar</button><button type="button" class="btn" data-pt="open" data-u="${p.uid}" data-id="${p.id}">Abrir cópia</button><button type="button" class="btn" data-pt="exp" data-u="${p.uid}" data-id="${p.id}">Exportar</button>`}</td></tr>`}).join("")}</tbody></table></div>`}
-    <div class="card-foot">Abrir para editar: as alterações salvas vão para a conta do cliente (se ele também estiver editando ao mesmo tempo, vale o último a salvar). Abrir cópia: o original não muda e a cópia vai para a sua conta ao salvar. Você não exclui projetos dos clientes. Abrir substitui o que está nas abas agora: salve antes o que quiser manter.</div></section>`;
+          <td class="pj-acts">${cf==="d:"+k?`<button type="button" class="btn warn" data-pt="del-ok" data-u="${p.uid}" data-id="${p.id}">Confirmar: excluir da conta de ${esc(p.cliente)}</button><button type="button" class="btn" data-pt="cancel">Cancelar</button>`:cf===k||cf==="e:"+k?`<button type="button" class="btn solid" data-pt="${cf===k?"open-ok":"edit-ok"}" data-u="${p.uid}" data-id="${p.id}">${cf===k?"Confirmar: abrir cópia":"Confirmar: abrir para editar"}</button><button type="button" class="btn" data-pt="cancel">Cancelar</button>`:`<button type="button" class="btn solid" data-pt="edit" data-u="${p.uid}" data-id="${p.id}">Abrir para editar</button><button type="button" class="btn" data-pt="open" data-u="${p.uid}" data-id="${p.id}">Abrir cópia</button><button type="button" class="btn" data-pt="exp" data-u="${p.uid}" data-id="${p.id}">Exportar</button><button type="button" class="btn" data-pt="del" data-u="${p.uid}" data-id="${p.id}">Excluir</button>`}</td></tr>`}).join("")}</tbody></table></div>`}
+    <div class="card-foot">Abrir para editar: as alterações salvas vão para a conta do cliente (se ele também estiver editando ao mesmo tempo, vale o último a salvar). Abrir cópia: o original não muda e a cópia vai para a sua conta ao salvar. Excluir apaga o projeto da conta do cliente para sempre (exporte antes, se quiser guardar). Abrir substitui o que está nas abas agora: salve antes o que quiser manter.</div></section>`;
 }
 async function excluir(id){if(barrar())return;await rodar(async()=>{
   const p=st.list.find(x=>x.id===id);await back().del(id);
@@ -4311,7 +4316,7 @@ function bind(){
   q("#pj-todos")&&q("#pj-todos").addEventListener("click",carregarTodos);
   const bt=q("#pj-buscat");bt&&bt.addEventListener("input",()=>{st.buscaT=bt.value;const p=bt.selectionStart;draw();const nb=q("#pj-buscat");nb.focus();nb.setSelectionRange(p,p)});
   el.querySelectorAll("[data-pt]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.pt,u=x.dataset.u,id=x.dataset.id;
-    if(a==="cancel"){st.confT=null;draw()}else if(a==="open"){st.confT=u+"/"+id;draw()}else if(a==="open-ok"){st.confT=null;abrirCliente(u,id)}else if(a==="edit"){st.confT="e:"+u+"/"+id;draw()}else if(a==="edit-ok"){st.confT=null;abrirCliente(u,id,true)}else if(a==="exp")exportarCliente(u,id)}));
+    if(a==="cancel"){st.confT=null;draw()}else if(a==="open"){st.confT=u+"/"+id;draw()}else if(a==="open-ok"){st.confT=null;abrirCliente(u,id)}else if(a==="edit"){st.confT="e:"+u+"/"+id;draw()}else if(a==="edit-ok"){st.confT=null;abrirCliente(u,id,true)}else if(a==="exp")exportarCliente(u,id);else if(a==="del"){st.confT="d:"+u+"/"+id;draw()}else if(a==="del-ok"){st.confT=null;excluirCliente(u,id)}}));
   el.querySelectorAll("[data-pj]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.pj,id=x.dataset.id;
     if(a==="cancel"){st.confirm=null;draw()}
     else if(a==="open"){st.confirm={t:"open",id};draw()}
