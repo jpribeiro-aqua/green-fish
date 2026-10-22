@@ -4098,10 +4098,11 @@ const UN={mg:"mg/kg",pel:"pellets/kg",ui:"UI/kg",ml:"mL/kg"};
 const SP={
  lambari:{nome:"Lambari",cient:"Astyanax lacustris (rabo-amarelo)",tipo:"ind",pf:12,pm:6,temp:27,vol:5,conc:0.5,met:"Semi-natural: fêmeas e machos juntos no tanque de desova (1:1); ovos recolhidos no coletor.",
   rel:"1 macho : 1 fêmea",ecl:[14,18],tRef:27,vit:"3 a 4 dias",
-  ind:{ebhc:{n:"Extrato bruto de hipófise de carpa (EBHC)",u:"mg",f:5.5,p1:10,int:12,m:2.5,hg:[180,220],src:"Brazilian Journal of Biology (A. lacustris): 5,5 mg/kg em 2 doses (10% + 90%, 12 h); machos 2,5 mg/kg; ~183 horas-grau."},
+  ind:{sussel:{n:"Curso Fábio Sússel (APTA) · hipófise 5 + 5 mg/kg",u:"mg",f:5,p1:10,int:6,m:5,lat:[5,10],ecl:[20,20],src:"Curso Aprenda a reproduzir lambaris (Fábio Sússel, APTA/Abracoa): 5 mg/kg nas fêmeas e 5 mg/kg nos machos (no pico da safra, fim de novembro a começo de fevereiro, pode baixar para 3 mg/kg); 1ª dose = 10% da dose das fêmeas; 2ª dose 6 h depois, junto com a dose única dos machos; desova a partir de ~5 h após a 2ª dose; retirar os reprodutores 10–12 h após a 2ª dose; eclosão ~20 h após a desova."},
+       ebhc:{n:"Extrato bruto de hipófise de carpa (EBHC)",u:"mg",f:5.5,p1:10,int:12,m:2.5,hg:[180,220],src:"Brazilian Journal of Biology (A. lacustris): 5,5 mg/kg em 2 doses (10% + 90%, 12 h); machos 2,5 mg/kg; ~183 horas-grau."},
        ovopel:{n:"Ovopel® (GnRH + metoclopramida)",u:"pel",f:0.4,p1:100,int:0,m:0.4,hg:[190,220],src:"0,4 pellet/kg, dose única para fêmeas e machos; ~205 horas-grau."},
        buser:{n:"Acetato de buserelina (0,0042 mg/mL)",u:"ml",f:0.5,p1:100,int:0,m:0.5,hg:[180,215],src:"0,5 mL/kg, dose única para fêmeas e machos; maior fertilização no estudo (82%)."}},
-  passos:["Seleção: fêmeas com abdome abaulado e macio e papila avermelhada; machos com espículas na nadadeira anal.","Aplicação intramuscular na base da nadadeira peitoral.","Desova semi-natural em caixas de 1.000 L com fluxo de água; ovos coletados no tanque coletor.","Incubadoras de 60 L com ~9 L/min; avaliar fertilização ~8 h após o início da incubação."]},
+  passos:["Seleção: fêmeas maiores, de ventre bem abaulado e macio, com os dois ovários sentidos separados ao toque e papila avermelhada; machos com espículas (aspereza) na nadadeira anal. Fêmeas muito abauladas podem estar \"passadas\".","Relação 1 macho : 1 fêmea (não precisa ser exata). Fêmeas e machos em caixas separadas de 500–1.000 L com pequena circulação ou aeração.","Pesar uma amostra de fêmeas e outra de machos (15–20 peixes a cada 100) em recipiente com água tarado na balança, para o peso médio.","Macerar a hipófise ~5 min em gral de porcelana ou vidro, juntando o soro aos poucos (1 mL por vez) e lavando o bastão e o recipiente com o último mL.","Leve hipóxia antes de aplicar: peixes num balde com pouca água até boquejarem na superfície (sem deitar). Ajuda a reprodução e a segurar o peixe.","Seringa de insulina de 1 mL, bisel para baixo, agulha encurtada no esmeril (~0,5–0,6 cm) e levemente torta (~45°); encher 0,7–0,8 mL por vez. Aplicar 0,1 mL na base da nadadeira peitoral (sem escamas), sempre com o peixe na mesma posição.","2ª dose das fêmeas 6 h após a 1ª, junto com a dose única dos machos; em seguida, fêmeas e machos juntos na cuba de desova (entrada de água lateral fazendo redemoinho e saída central para a incubadora) ou em tanque-rede num viveiro preparado (~20 h, depois retirar).","A partir da 5ª hora, mexer a água em círculo a cada 30 min para soltar os ovos da parede; 10–12 h após a 2ª dose, retirar os reprodutores (quem não desovou não desova mais) e separar os peixes já reproduzidos.","Eclosão ~20 h após a desova; larvas ficam ~3 dias na incubadora (só água de baixo) até abrirem a boca. Soltar no viveiro seco, adubado (orgânico + um pouco de ureia ou superfosfato simples) e já enchendo; transferir por mangueira ou balde telado.","Fora da safra (abril a setembro) o hormônio não funciona: ele só sincroniza a desova. Mesmo na safra, o curso relata ~5 a 6 boas desovas a cada 10 induções."]},
  tambaqui:{nome:"Tambaqui",cient:"Colossoma macropomum",tipo:"ind",pf:8000,pm:6000,temp:28,vol:0.5,conc:4,met:"Extrusão (desova a seco): massagem abdominal, mistura com sêmen e hidratação.",
   rel:"2 machos : 1 fêmea",ecl:[14,18],tRef:28,vit:"3 a 6 dias",semen:80,dens:[1,1.5],
   ind:{ebhc:{n:"Extrato bruto de hipófise de carpa (EBHC)",u:"mg",f:5.5,p1:10,int:12,m:2.5,hg:[200,300],src:"Embrapa (Boas práticas de alevinos de tambaqui, 2021): 5,5 mg/kg em 2 doses (10% + 90%, 12 h); machos 2,5 mg/kg com a 2ª dose; 200 a 300 horas-grau (média ~215 a 28 °C)."}},
@@ -4128,7 +4129,7 @@ function F(esp){            // formulário da espécie, com padrões
   const sp=SP[esp],f=S.f[esp]=S.f[esp]||{};
   if(sp.tipo==="ind"){const k=Object.keys(sp.ind)[0];
     if(!f.ind)f.ind=k;if(!f.t0)f.t0=dtl(Date.now()+2*H);
-    const dflt={temp:sp.temp,nf:esp==="lambari"?20:4,nm:esp==="lambari"?20:(esp==="tambaqui"||esp==="curimata"?8:6),pf:sp.pf,pm:sp.pm,vol:sp.vol,conc:sp.conc,mgg:3,margem:10,massa:"",fert:"",ecl:""};
+    const dflt={temp:sp.temp,nf:esp==="lambari"?20:4,nm:esp==="lambari"?20:(esp==="tambaqui"||esp==="curimata"?8:6),pf:sp.pf,pm:sp.pm,vol:sp.vol,conc:sp.conc,mgg:esp==="lambari"?2.5:3,margem:10,massa:"",fert:"",ecl:""};
     for(const x in dflt)if(f[x]==null)f[x]=dflt[x];
     if(!f.p||f.p._k!==f.ind)f.p={...protoDe(esp,f.ind),_k:f.ind}}
   if(sp.tipo==="tilapia"){const d={nf:300,rel:3,ciclo:30,ovos:1000,inter:7,dIni:dtl(Date.now()).slice(0,10),pl:20000,pi:0.01,pfim:0.3,dose:60,dias:28,taxa:15,ref:8,veic:"alcool",sob:85};for(const x in d)if(f[x]==null)f[x]=d[x]}
@@ -4147,7 +4148,7 @@ function calcInd(esp,f){
   const tLast=t0+(p.p1>=100?0:num(p.int))*H;
   let h0,h1;if(p.hg){h0=p.hg[0]/T;h1=p.hg[1]/T}else{h0=p.lat[0];h1=p.lat[1]}
   const des0=tLast+h0*H,des1=tLast+h1*H;
-  const e0=sp.ecl[0]*sp.tRef/T,e1=sp.ecl[1]*sp.tRef/T;
+  const ec=p.ecl||sp.ecl,e0=ec[0]*sp.tRef/T,e1=ec[1]*sp.tRef/T;
   const vol=num(f.vol);   // mL de solução por kg de peixe (hormônios diluídos)
   return {T,nf,nm,pf,pm,d1,d2,dm,kgF,kgM,tot1,tot2,totM,tot,t0,tLast,h0,h1,des0,des1,e0,e1,vol,
     glan:p.u==="mg"?tot/num(f.mgg):NaN,conc:p.u==="ml"?NaN:(vol>0?((d1||d2||dm)?1:1):NaN)};
@@ -4155,14 +4156,43 @@ function calcInd(esp,f){
 const qtd=(u,v)=>u==="mg"?N(v,v<1?3:2)+" mg":u==="pel"?N(v,2)+" pellets":u==="ui"?I(v)+" UI":N(v,2)+" mL";
 const volP=(u,f,kgDose,kg)=>u==="ml"?kgDose*kg:u==="mg"?kgDose*kg/num(f.conc):num(f.vol)*kg;   // mL injetados no peixe
 
+/* ---- método do curso (lambari): solução-estoque e 0,1 mL por peixe ---- */
+function susCalc(f){
+  const nF=num(f.nf),nM=num(f.nm),aF=num(f.amF),qF=num(f.qaF),aM=num(f.amM),qM=num(f.qaM);
+  if(aF>0&&qF>0)f.pf=+(aF/qF).toFixed(2);if(aM>0&&qM>0)f.pm=+(aM/qM).toFixed(2);
+  const p=f.p,kgF=nF*num(f.pf)/1000,kgM=nM*num(f.pm)/1000,dF=kgF*num(p.f),dM=kgM*num(p.m),tot=dF+dM;
+  const auto=nF+nM<=200?4:nF+nM<=1000?5:6,V=num(f.soro)>0?num(f.soro):auto,mgDis=num(f.mgDis)>0?num(f.mgDis):tot,conc=mgDis/V;
+  const v1=dF*num(p.p1)/100/conc,v2=dF*(1-num(p.p1)/100)/conc,vM=dM/conc,fF=nF*0.1,fM=nM*0.1;
+  return {nF,nM,kgF,kgM,dF,dM,tot,auto,V,mgDis,conc,v1,v2,vM,fF,fM,hip:tot/num(f.mgg||2.5),hipI:Math.ceil(tot/num(f.mgg||2.5))};
+}
+function susHTML(f){
+  const k=susCalc(f),lin=(r,v,fin,n)=>`<tr><td>${r}</td><td class="num">${N(v,2)} mL</td><td class="num">${N(fin,1)} mL</td><td class="num">${fin-v>=0?N(fin-v,2)+" mL":"<span class=\"neg\">aumente o soro</span>"}</td><td class="num">0,1 mL × ${I(n)}</td></tr>`;
+  return `<section class="card wide"><div class="card-head"><i class="n">2</i><h2>Planilha do curso<span>Solução-estoque e 0,1 mL por peixe · método Fábio Sússel</span></h2></div><div class="pj-body">
+   <div class="rp-grid">
+    <label>Amostra das fêmeas: peso (g)<input inputmode="decimal" data-f="amF" value="${E(f.amF||"")}" placeholder="ex.: 122"></label>
+    <label>Amostra das fêmeas: nº de peixes<input inputmode="numeric" data-f="qaF" value="${E(f.qaF||"")}" placeholder="ex.: 13"></label>
+    <label>Amostra dos machos: peso (g)<input inputmode="decimal" data-f="amM" value="${E(f.amM||"")}" placeholder="ex.: 72"></label>
+    <label>Amostra dos machos: nº de peixes<input inputmode="numeric" data-f="qaM" value="${E(f.qaM||"")}" placeholder="ex.: 10"></label>
+    <label>Soro da solução-estoque (mL)<input inputmode="decimal" data-f="soro" value="${E(f.soro||"")}" placeholder="automático: ${k.auto} mL"></label>
+    <label>Hipófise pesada e macerada (mg)<input inputmode="decimal" data-f="mgDis" value="${E(f.mgDis||"")}" placeholder="igual ao calculado: ${N(k.tot,2)}"></label>
+    <label>Peso médio de 1 hipófise (mg)<input inputmode="decimal" data-f="mgg" value="${E(f.mgg)}"></label>
+   </div>
+   <div class="us-kpis"><div><b>${N(k.tot,2)} mg</b>de hipófise (fêmeas ${N(k.dF,2)} + machos ${N(k.dM,2)})</div><div><b>${I(k.hipI)}</b>hipófise${k.hipI===1?"":"s"} inteira${k.hipI===1?"":"s"} (~${N(k.hip,1)} de ${N(num(f.mgg),1)} mg)</div><div><b>${N(k.V,1)} mL</b>de soro na solução-estoque</div><div><b>${N(num(f.pf),2)} g · ${N(num(f.pm),2)} g</b>peso médio fêmea · macho</div></div>
+   <p>Macere <b>${N(k.mgDis,2)} mg</b> de hipófise com <b>${N(k.V,1)} mL</b> de soro fisiológico 0,9% (≈${N(k.conc,3)} mg/mL). Depois separe cada aplicação e complete com soro até 0,1 mL por peixe:</p>
+   <div class="scroll"><table class="pj-tab"><thead><tr><th>Aplicação</th><th class="num">Solução-estoque</th><th class="num">Completar até</th><th class="num">Soro a acrescentar</th><th class="num">Por peixe</th></tr></thead><tbody>
+    ${lin("1ª dose · fêmeas ("+N(num(f.p.p1),0)+"%)",k.v1,k.fF,k.nF)}${lin("2ª dose · fêmeas (+"+N(num(f.p.int),0)+" h)",k.v2,k.fF,k.nF)}${lin("Dose única · machos (com a 2ª dose)",k.vM,k.fM,k.nM)}</tbody></table></div>
+   <p class="muted">Soro da solução-estoque sugerido no curso: 4 mL até 200 lambaris, 5 mL de 200 a 1.000 e 6–7 mL acima de 1.000. Cada hipófise pesa 2–3 mg (use 2,5 mg se não tiver balança de precisão); nunca parta uma hipófise: se sobrar, macere tudo e guarde o pó que sobrar. A amostra para o peso médio pode ser de 15–20 peixes a cada 100; todos recebem a mesma dose (pelo peso médio). Guarde a 2ª dose e a dos machos na porta da geladeira e tire ~20 min antes de aplicar.</p></div></section>`;
+}
 function htmlInd(esp){
-  const sp=SP[esp],f=F(esp),p=f.p,c=calcInd(esp,f),u=p.u,dois=p.p1<100;
+  const sp=SP[esp],f=F(esp),p=f.p,sus=esp==="lambari"&&f.ind==="sussel";if(sus)susCalc(f);const c=calcInd(esp,f),u=p.u,dois=p.p1<100;
   const linhaPeixe=(rot,peso,dose)=>{const kg=num(peso)/1000;return `<tr><td>${rot}</td><td class="num">${N(num(peso),0)} g</td><td class="num">${qtd(u,dose*kg)}</td><td class="num">${N(volP(u,f,dose,kg),volP(u,f,dose,kg)<0.1?3:2)} mL</td></tr>`};
   const conc=u==="ml"?"":u==="mg"?`<p>Diluir o extrato em soro fisiológico 0,9% a <b>${N(num(f.conc),2)} mg/mL</b>: preparar <b>${N(c.tot/num(f.conc),1)} mL</b> de solução para o lote (com a sobra).</p>`:`<p>Concentração da solução: <b>${N(num(p.f)/num(f.vol)*(dois?num(p.p1)/100:1),u==="ui"?0:3)} ${u==="mg"?"mg":u==="pel"?"pellet":"UI"}/mL</b> na 1ª dose${dois?` e <b>${N(num(p.f)*(1-num(p.p1)/100)/num(f.vol),u==="ui"?0:3)}</b> na 2ª`:""}; machos: <b>${N(num(p.m)/num(f.vol),u==="ui"?0:3)}</b> (com ${N(num(f.vol),2)} mL de solução por kg de peixe).</p>`;
   const tl=[...(dois?[[c.t0,"1ª dose nas fêmeas ("+N(num(p.p1),0)+"% da dose total)"],[c.tLast,"2ª dose (decisiva) nas fêmeas + dose dos machos"]]:[[c.t0,"Dose única nas fêmeas e nos machos"]]),
     [c.des0-2*H,"Começar a observar os peixes (comportamento de desova)"],[c.des0,"Início da janela prevista de desova/extrusão"],[c.des1,"Fim da janela prevista"],
     ...(sp.dens?[[c.des0+6*H,"Conferir a fertilização (3 amostras de ≥100 ovos)"]]:[]),
-    [c.des0+c.e0*H,"Início previsto da eclosão"],[c.des1+c.e1*H,"Fim previsto da eclosão"]];
+    ...(sus?[[c.des0+30*60e3,"Mexer a água da cuba a cada 30 min (ovos levemente aderentes) até retirar os reprodutores"],[c.tLast+10*H,"Retirar fêmeas e machos (10–12 h após a 2ª dose); drenar a cuba para a incubadora e cortar a água de cima"]]:[]),
+    [c.des0+c.e0*H,"Início previsto da eclosão"],[c.des1+c.e1*H,"Fim previsto da eclosão"],
+    ...(sus?[[c.des0+3*D,"Larvas de boca aberta: soltar no viveiro já drenado, adubado e enchendo"]]:[])].sort((a,b)=>a[0]-b[0]);
   const ovos=num(f.massa);
   return `<section class="card wide"><div class="card-head"><i class="n">1</i><h2>${E(sp.nome)} · indução hormonal<span>${E(sp.cient)} · ${E(sp.rel)}</span></h2></div><div class="pj-body">
    <div class="rp-grid">
@@ -4173,9 +4203,9 @@ function htmlInd(esp){
     <label>Peso médio das fêmeas (g)<input inputmode="decimal" data-f="pf" value="${E(f.pf)}"></label>
     <label>Machos (nº)<input inputmode="numeric" data-f="nm" value="${E(f.nm)}"></label>
     <label>Peso médio dos machos (g)<input inputmode="decimal" data-f="pm" value="${E(f.pm)}"></label>
-    ${u==="ml"?"":u==="mg"?`<label>Concentração do extrato (mg por mL de soro)<input inputmode="decimal" data-f="conc" value="${E(f.conc)}"></label>`:`<label>Solução aplicada (mL por kg de peixe)<input inputmode="decimal" data-f="vol" value="${E(f.vol)}"></label>`}
-    ${u==="mg"?`<label>Peso médio de 1 hipófise (mg)<input inputmode="decimal" data-f="mgg" value="${E(f.mgg)}"></label>`:""}
-    <label>Margem de sobra (%)<input inputmode="numeric" data-f="margem" value="${E(f.margem)}"></label>
+    ${sus?"":u==="ml"?"":u==="mg"?`<label>Concentração do extrato (mg por mL de soro)<input inputmode="decimal" data-f="conc" value="${E(f.conc)}"></label>`:`<label>Solução aplicada (mL por kg de peixe)<input inputmode="decimal" data-f="vol" value="${E(f.vol)}"></label>`}
+    ${u==="mg"&&!sus?`<label>Peso médio de 1 hipófise (mg)<input inputmode="decimal" data-f="mgg" value="${E(f.mgg)}"></label>`:""}
+    ${sus?"":`<label>Margem de sobra (%)<input inputmode="numeric" data-f="margem" value="${E(f.margem)}"></label>`}
    </div>
    <details class="us-det"><summary>Doses do protocolo (editáveis)</summary><div class="rp-grid">
     <label>Dose total nas fêmeas (${UN[u]})<input inputmode="decimal" data-p="f" value="${E(p.f)}"></label>
@@ -4186,7 +4216,7 @@ function htmlInd(esp){
    </div><p class="muted">${E(p.src||"Protocolo salvo por você.")}</p>
    <div class="pj-btns"><input class="rp-nome" data-meu="nome" placeholder="Nome (ex.: Curso Fábio Sússel)" maxlength="60"><button type="button" class="btn" data-a="meu-salvar">Salvar como meu protocolo</button>${S.meus[esp]&&S.meus[esp].some(m=>m.id===f.ind)?`<button type="button" class="btn warn" data-a="meu-del">Excluir este protocolo</button>`:""}<button type="button" class="btn" data-a="padrao">Voltar ao padrão</button></div></details>
   </div></section>
-  <section class="card wide"><div class="card-head"><i class="n">2</i><h2>Hormônio a preparar<span>${E(p.n)}</span></h2></div><div class="pj-body">
+  ${sus?susHTML(f):`<section class="card wide"><div class="card-head"><i class="n">2</i><h2>Hormônio a preparar<span>${E(p.n)}</span></h2></div><div class="pj-body">
    <div class="us-kpis"><div><b>${qtd(u,c.tot)}</b>total com ${E(f.margem)}% de sobra</div>${u==="mg"?`<div><b>${N(c.glan,1)}</b>hipófises de ${E(f.mgg)} mg</div>`:u==="ui"?`<div><b>${N(c.tot/5000,1)}</b>frascos de 5.000 UI</div>`:`<div><b>${N(c.kgF,2)} kg</b>de fêmeas</div>`}<div><b>${N(c.kgF,2)} kg</b>fêmeas · ${I(c.nf)}</div><div><b>${N(c.kgM,2)} kg</b>machos · ${I(c.nm)}</div></div>
    <div class="scroll"><table class="pj-tab"><thead><tr><th>Aplicação</th><th class="num">Total do lote</th></tr></thead><tbody>
     ${dois?`<tr><td>1ª dose · fêmeas (${N(c.d1,2)} ${UN[u]})</td><td class="num">${qtd(u,c.tot1)}</td></tr><tr><td>2ª dose · fêmeas (${N(c.d2,2)} ${UN[u]})</td><td class="num">${qtd(u,c.tot2)}</td></tr>`:`<tr><td>Dose única · fêmeas (${N(c.d1,2)} ${UN[u]})</td><td class="num">${qtd(u,c.tot1)}</td></tr>`}
@@ -4194,10 +4224,10 @@ function htmlInd(esp){
    ${conc}
    <div class="scroll"><table class="pj-tab"><thead><tr><th>Por peixe (peso médio)</th><th class="num">Peso</th><th class="num">Hormônio</th><th class="num">Volume</th></tr></thead><tbody>
     ${dois?linhaPeixe("Fêmea · 1ª dose",f.pf,c.d1)+linhaPeixe("Fêmea · 2ª dose",f.pf,c.d2):linhaPeixe("Fêmea · dose única",f.pf,c.d1)}${linhaPeixe("Macho",f.pm,c.dm)}</tbody></table></div>
-   <p class="muted">Para peixes de pesos diferentes, a dose é proporcional ao peso: pese cada reprodutor.</p></div></section>
+   <p class="muted">Para peixes de pesos diferentes, a dose é proporcional ao peso: pese cada reprodutor.</p></div></section>`}
   <section class="card${sp.dens?"":" wide"}"><div class="card-head"><i class="n">3</i><h2>Cronograma<span>${p.hg?`${p.hg[0]}–${p.hg[1]} horas-grau ÷ ${N(c.T,1)} °C = ${N(c.h0,1)}–${N(c.h1,1)} h após a última dose`:`latência de ${p.lat[0]}–${p.lat[1]} h após a última dose`}</span></h2></div><div class="pj-body">
    <ol class="rp-tl">${tl.map(([t,x])=>`<li><b>${hora(t)}</b><span>${E(x)}</span></li>`).join("")}</ol>
-   <p class="muted">Eclosão estimada em ${N(c.e0,0)}–${N(c.e1,0)} h após a desova a ${N(c.T,1)} °C (referência: ${sp.ecl[0]}–${sp.ecl[1]} h a ${sp.tRef} °C). Absorção do saco vitelino: ${E(sp.vit)}. Horas-grau = soma das temperaturas medidas a cada hora: meça a água de hora em hora e confira.</p></div></section>
+   <p class="muted">Eclosão estimada em ${N(c.e0,0)}–${N(c.e1,0)} h após a desova a ${N(c.T,1)} °C (referência: ${(p.ecl||sp.ecl)[0]}–${(p.ecl||sp.ecl)[1]} h a ${sp.tRef} °C). Absorção do saco vitelino: ${E(sp.vit)}. Horas-grau = soma das temperaturas medidas a cada hora: meça a água de hora em hora e confira.</p></div></section>
   ${sp.dens?`<section class="card"><div class="card-head"><i class="n">4</i><h2>Após a extrusão<span>Fertilização, hidratação e incubação</span></h2></div><div class="pj-body">
    <div class="rp-grid"><label>Massa de ovos pesada (g)<input inputmode="decimal" data-f="massa" value="${E(f.massa)}" placeholder="ex.: 1500"></label></div>
    ${ovos>0?`<div class="us-kpis"><div><b>${N(ovos/sp.semen,1)} mL</b>de sêmen (1 mL por ${sp.semen} g)</div><div><b>${N(ovos*10/1000,1)} L</b>de água para hidratar (~10×)</div><div><b>${N(ovos/sp.dens[1],0)}–${N(ovos/sp.dens[0],0)} L</b>de incubadora (${sp.dens[0]}–${sp.dens[1]} g/L)</div><div><b>${Math.ceil(ovos/sp.dens[1]/200)}</b>incubadoras de 200 L (ou ${Math.ceil(ovos/sp.dens[1]/60)} de 60 L)</div></div>`:`<p class="muted">Digite a massa de ovos para calcular sêmen, água de hidratação e incubadoras.</p>`}
