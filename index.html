@@ -237,6 +237,8 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 .tp-leg{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:12px var(--f-mono);margin:8px 0}.tp-leg i{display:inline-block;width:160px;height:10px;border-radius:4px}
 .tp-chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}.tp-chk small{color:var(--muted);font:11px var(--f-mono)}
 .rp-grid .tp-chk{align-self:end;padding-bottom:10px}
+.tp-nw{white-space:nowrap}
+.tp-viv text{pointer-events:none}
 .tp-cods{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 4px}
 table.tp-prev td{font:11px var(--f-mono);padding:3px 6px}
 .subhead{font:500 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
@@ -3101,6 +3103,7 @@ const s2=v=>String(v).replace(".",",");
 // investimento: quantidade vem do projeto; preço unitário e vida útil são editáveis (valores de referência, não cotações)
 const INV=[
   {k:"topo",nome:"Levantamento topográfico",un:"ha",pu:"1.200",vu:"0"},
+  {k:"terr",nome:"Terraplenagem dos viveiros (aba Levantamentos)",un:"m³ movimentado",pu:"15",vu:"25"},
   {k:"tanq",nome:"Tanques de cultivo",un:"m³",pu:"350",vu:"15"},
   {k:"galp",nome:"Galpão / cobertura",un:"m²",pu:"250",vu:"20"},
   {k:"fmec",nome:"Filtro mecânico",un:"m³/h",pu:"120",vu:"10"},
@@ -3403,9 +3406,10 @@ function compute(){
   o.ciclos=LV.ciclos.trim()===""?o.ciclosAuto:P(LV.ciclos);
   o.prod=okCalc?r.BM*o.ciclos:NaN;
   o.racao=o.prod*num("fca");o.juv=okCalc?r.NP*o.ciclos/(num("sobrev",x=>x>0&&x<=100)/100):NaN;
-  const ctx={topo:Math.max(0.1,o.ha),tanq:V,galp:LV.coberto?o.Atot:0,fmec:o.Qrec*3600,fbio:okCalc?r.VM:NaN,
+  const TR=window.topoResumo?window.topoResumo():null,vLev=okCalc?tanks.reduce((s,t,i)=>s+(/\(lev\.\)$/.test(t.name||"")&&st.groups[i]?st.groups[i].vol||0:0),0):0;o.topoRes=TR;
+  const ctx={topo:Math.max(0.1,TR&&isFinite(TR.ha)?TR.ha:o.ha),terr:TR?TR.mov:0,tanq:V-vLev,galp:LV.coberto?o.Atot:0,fmec:o.Qrec*3600,fbio:okCalc?r.VM:NaN,
     bomb:2*(o.rec.motor+(o.cap.grav?0:o.cap.motor)),tubo:num("lRec")+num("lAd"),rese:o.res,wetl:o.wA,gera:o.kWtot*1.25,equi:1};
-  o.inv=INV.map(it=>{const q=ctx[it.k],pu=qv("inv_"+it.k),vu=P(LV.inv[it.k].vu);return {...it,q,puN:pu,vuN:vu,tot:q*pu,dep:vu>0?q*pu/vu:0}});
+  o.inv=INV.map(it=>{const q=ctx[it.k],pu=it.k==="terr"&&!isQ("inv_terr")&&TR&&TR.mov>0?TR.precoMov:qv("inv_"+it.k),vu=P(LV.inv[it.k].vu);return {...it,q,puN:pu,vuN:vu,tot:q*pu,dep:vu>0?q*pu/vu:0}});
   o.invSub=o.inv.reduce((s,i)=>s+(isFinite(i.tot)?i.tot:0),0);
   o.projPct=num("projPct");o.invProj=o.invSub*o.projPct/100;o.invTot=o.invSub+o.invProj;
   o.dep=o.inv.reduce((s,i)=>s+(isFinite(i.dep)?i.dep:0),0);
@@ -4786,7 +4790,7 @@ function mapaSVG(a,p){
   const rot=a.curvas.filter(c=>Math.abs(c.z/pm-Math.round(c.z/pm))<1e-6&&c.p.length>3).map(c=>{const q=c.p[Math.floor(c.p.length/2)];return `<text x="${q[0].toFixed(2)}" y="${fy(q[1])}" font-size="${(s*11).toFixed(2)}" text-anchor="middle" fill="var(--ink)" stroke="var(--surface)" stroke-width="${(s*3).toFixed(2)}" paint-order="stroke">${N(c.z,a.passo<1?1:0)}</text>`}).join("");
   const maxP=3500,st=Math.ceil(a.pts.length/maxP);
   const pts=a.pts.map((q,i)=>i%st?"":`<circle cx="${a.X[i].toFixed(2)}" cy="${fy(a.Y[i])}" r="${(s*3).toFixed(2)}" fill="${cor((q[4]-a.zmin)/rng)}" data-tt="${E(q[0]+(q[1]?" · "+q[1]:""))}" data-tv="${N(q[4],3)} m · E ${N(q[2],3)} · N ${N(q[3],3)}"/>`).join("");
-  return `<div class="tp-map" id="tp-map"><svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Planta do levantamento com ${a.pts.length} pontos e curvas de nível a cada ${N(a.passo,2)} m">${tri}${cv}${pts}${rot}</svg>
+  return `<div class="tp-map" id="tp-map"><svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Planta do levantamento com ${a.pts.length} pontos e curvas de nível a cada ${N(a.passo,2)} m">${tri}${cv}${pts}${rot}${vivSVG(a,p,fy,s)}</svg>
     <div class="tp-zoom"><button type="button" class="btn" data-z="in" aria-label="Aproximar">+</button><button type="button" class="btn" data-z="out" aria-label="Afastar">−</button><button type="button" class="btn" data-z="fit">Ajustar</button></div></div>
    <div class="tp-leg"><span>${N(a.zmin,2)} m</span><i style="background:linear-gradient(90deg,${[0,.33,.66,1].map(cor).join(",")})"></i><span>${N(a.zmax,2)} m</span><span class="muted">Norte para cima · arraste para mover · ${st>1?`mostrando 1 a cada ${st} pontos`:"todos os pontos"}</span></div>`}
 function bindMapa(p,a){
@@ -4796,9 +4800,9 @@ function bindMapa(p,a){
   box.querySelectorAll("[data-z]").forEach(b=>b.addEventListener("click",()=>{const z=b.dataset.z;if(z==="fit"){vb=null;draw();return}zoom(z==="in"?0.6:1/0.6,vb.x+vb.w/2,vb.y+vb.h/2)}));
   const pt=e=>{const r=svg.getBoundingClientRect(),k=Math.max(vb.w/r.width,vb.h/r.height),ox=(r.width*k-vb.w)/2,oy=(r.height*k-vb.h)/2;return [vb.x-ox+(e.clientX-r.left)*k,vb.y-oy+(e.clientY-r.top)*k,k]};
   svg.addEventListener("wheel",e=>{e.preventDefault();const [x,y]=pt(e);zoom(e.deltaY<0?0.85:1/0.85,x,y)},{passive:false});
-  let drag=null;svg.addEventListener("pointerdown",e=>{if(e.target.closest("[data-tt]"))return;drag=[e.clientX,e.clientY,vb.x,vb.y,pt(e)[2]];svg.setPointerCapture(e.pointerId)});
+  let drag=null;svg.addEventListener("pointerdown",e=>{if(e.target.closest("[data-tt]")&&!S.place)return;drag=[e.clientX,e.clientY,vb.x,vb.y,pt(e)[2]];svg.setPointerCapture(e.pointerId)});
   svg.addEventListener("pointermove",e=>{if(!drag)return;vb.x=drag[2]-(e.clientX-drag[0])*drag[4];vb.y=drag[3]-(e.clientY-drag[1])*drag[4];set()});
-  svg.addEventListener("pointerup",()=>drag=null);svg.addEventListener("pointercancel",()=>drag=null)}
+  svg.addEventListener("pointerup",e=>{const mv=drag?Math.hypot(e.clientX-drag[0],e.clientY-drag[1]):99;drag=null;if(mv<5&&S.place){const v=(p.viv||[]).find(x=>x.id===S.place);if(v){const [x,y]=pt(e),H=Math.max(...a.Y)||1;v.E=Math.round((x+a.ox)*100)/100;v.N=Math.round((H-y+a.oy)*100)/100;S.place=null;salvar();draw()}}});svg.addEventListener("pointercancel",()=>drag=null)}
 
 /* ---- exportação ---- */
 async function baixar(nome,data,mime){
@@ -4810,7 +4814,87 @@ function dxf(a){
   for(const q of a.vis)put("0","POINT","8","PONTOS_TOPO","10",q[2].toFixed(3),"20",q[3].toFixed(3),"30",q[4].toFixed(3));
   for(const c of a.curvas){const m=Math.abs(c.z/pm-Math.round(c.z/pm))<1e-6;put("0","POLYLINE","8",m?"CURVA_MESTRA":"CURVA_SECUNDARIA","66","1","10","0","20","0","30",c.z.toFixed(3),"70","0");
     for(const q of c.p)put("0","VERTEX","8",m?"CURVA_MESTRA":"CURVA_SECUNDARIA","10",(q[0]+a.ox).toFixed(3),"20",(q[1]+a.oy).toFixed(3),"30",c.z.toFixed(3));put("0","SEQEND")}
+  for(const v of (P().viv||[])){if(!isFinite(+v.E)||!isFinite(+v.zF))continue;const g=geo(v),cx=+v.E,cy=+v.N;
+    for(const [lay,A,B,z] of [["VIVEIRO_CRISTA",g.Ao,g.Bo,g.zC],["VIVEIRO_AGUA",g.A,g.B,g.zA],["VIVEIRO_FUNDO",g.Af,g.Bf,g.zF]]){put("0","POLYLINE","8",lay,"66","1","10","0","20","0","30",z.toFixed(3),"70","1");
+      for(const [u,w] of [[-A,-B],[A,-B],[A,B],[-A,B]])put("0","VERTEX","8",lay,"10",(cx+u*g.cos-w*g.sin).toFixed(3),"20",(cy+u*g.sin+w*g.cos).toFixed(3),"30",z.toFixed(3));put("0","SEQEND")}}
   put("0","ENDSEC","0","EOF");return o.join("\r\n")}
+
+/* ---- projeto de viveiros escavados sobre o terreno ---- */
+const VIV0={L:50,W:20,h:1.2,bl:0.5,zi:2,ze:2,c:3,dec:0.5,rot:0};
+function indice(a){                       // grade de triângulos para achar a cota do terreno em qualquer ponto
+  if(a.idx)return a.idx;const W=Math.max(...a.X,1),H=Math.max(...a.Y,1),n=Math.max(1,Math.round(Math.sqrt(a.T.length/2))),cw=W/n,ch=H/n,g=new Map();
+  a.T.forEach((t,k)=>{const xs=t.map(i=>a.X[i]),ys=t.map(i=>a.Y[i]);for(let i=Math.floor(Math.min(...xs)/cw);i<=Math.floor(Math.max(...xs)/cw);i++)for(let j=Math.floor(Math.min(...ys)/ch);j<=Math.floor(Math.max(...ys)/ch);j++){const q=i+"_"+j;if(!g.has(q))g.set(q,[]);g.get(q).push(k)}});
+  return a.idx={cw,ch,g}}
+function zTerr(a,x,y){const ix=indice(a),l=ix.g.get(Math.floor(x/ix.cw)+"_"+Math.floor(y/ix.ch));if(!l)return NaN;
+  for(const k of l){const t=a.T[k],x1=a.X[t[0]],y1=a.Y[t[0]],x2=a.X[t[1]],y2=a.Y[t[1]],x3=a.X[t[2]],y3=a.Y[t[2]],d=(y2-y3)*(x1-x3)+(x3-x2)*(y1-y3);if(!d)continue;
+    const l1=((y2-y3)*(x-x3)+(x3-x2)*(y-y3))/d,l2=((y3-y1)*(x-x3)+(x1-x3)*(y-y3))/d,l3=1-l1-l2;if(l1>=-1e-9&&l2>=-1e-9&&l3>=-1e-9)return l1*a.Z[t[0]]+l2*a.Z[t[1]]+l3*a.Z[t[2]]}return NaN}
+const nv=(v,k)=>{const x=+String(v[k]??VIV0[k]).replace(",",".");return isFinite(x)?x:VIV0[k]};
+function geo(v){const L=nv(v,"L"),W=nv(v,"W"),h=nv(v,"h"),bl=nv(v,"bl"),zi=nv(v,"zi"),ze=Math.max(0.5,nv(v,"ze")),c=nv(v,"c"),dec=nv(v,"dec"),r=nv(v,"rot")*Math.PI/180;
+  const A=L/2,B=W/2,Af=Math.max(0.5,A-zi*h),Bf=Math.max(0.5,B-zi*h),Ai=A+zi*bl,Bi=B+zi*bl,Ao=Ai+c,Bo=Bi+c,zF=+v.zF;
+  return {L,W,h,bl,zi,ze,c,dec,r,A,B,Af,Bf,Ai,Bi,Ao,Bo,zF,zA:zF+h,zC:zF+h+bl,cos:Math.cos(r),sin:Math.sin(r)}}
+function cotaProj(g,u,w){                 // cota do projeto no ponto (u ao longo do comprimento, w na largura)
+  const zf=g.zF-g.dec/100*u,s=Math.max(Math.abs(u)-g.Af,Math.abs(w)-g.Bf);
+  if(s<=0)return [zf,0];const ti=g.zi*(g.h+g.bl);if(s<=ti)return [Math.min(g.zC,zf+s/g.zi),0];if(s<=ti+g.c)return [g.zC,0];return [g.zC,s-ti-g.c]}
+function calcViv(a,v,passo){
+  const g=geo(v);if(!isFinite(g.zF))return null;const cx=+v.E-a.ox,cy=+v.N-a.oy;
+  const relevo=Math.min(60,Math.max(Math.abs(g.zC-a.zmin),Math.abs(a.zmax-g.zC))),m=g.ze*relevo+2,U=g.Ao+m,Wd=g.Bo+m;
+  const st=passo||Math.max(0.5,Math.sqrt(4*U*Wd/120000));let corte=0,aterro=0,fora=0,dentro=0,dique=0;
+  for(let u=-U+st/2;u<U;u+=st)for(let w=-Wd+st/2;w<Wd;w+=st){
+    const x=cx+u*g.cos-w*g.sin,y=cy+u*g.sin+w*g.cos,zt=zTerr(a,x,y),[zd,d]=cotaProj(g,u,w),cel=st*st;
+    if(d===0){if(!isFinite(zt)){fora+=cel;continue}dentro+=cel;const dz=zt-zd;if(dz>0)corte+=dz*cel;else aterro-=dz*cel;
+      const s=Math.max(Math.abs(u)-g.Ai,Math.abs(w)-g.Bi);if(s>0&&zd>zt)dique+=cel;continue}
+    if(!isFinite(zt))continue;const up=zd+d/g.ze,dn=zd-d/g.ze;if(zt>up)corte+=(zt-up)*cel;else if(zt<dn){aterro+=(dn-zt)*cel;dique+=cel}}
+  const Ab=(2*g.Af)*(2*g.Bf),At=g.L*g.W,Am=(g.A+g.Af)*(g.B+g.Bf),agua=g.h/6*(Ab+At+4*Am);
+  // drenagem: terreno a jusante do dreno (lado +u), até 60 m depois do dique
+  let jus=Infinity;for(let d=2;d<=60;d+=2)for(const w of [-g.B/2,0,g.B/2]){const u=g.Ao+d,z=zTerr(a,cx+u*g.cos-w*g.sin,cy+u*g.sin+w*g.cos);if(isFinite(z))jus=Math.min(jus,z)}
+  const zDreno=g.zF-g.dec/100*g.Af;
+  return {g,corte,aterro,agua,esp:At,ocup:4*g.Ao*g.Bo,fora,dentro,dique,zDreno,jus:isFinite(jus)?jus:NaN,cx,cy}}
+function equilibrar(a,v,fat){             // cota de fundo em que o corte dá para o aterro (com fator de compactação)
+  let lo=a.zmin-6,hi=a.zmax+3,st=null;const f=z=>{const r=calcViv(a,{...v,zF:z},st);return r.corte-r.aterro*fat};
+  st=Math.max(1,Math.sqrt(4*(nv(v,"L")/2+20)*(nv(v,"W")/2+20)/15000));
+  if(f(lo)<0||f(hi)>0)return NaN;for(let i=0;i<28;i++){const m=(lo+hi)/2;if(f(m)>0)lo=m;else hi=m}return Math.round((lo+hi)/2*100)/100}
+function poly(g,cx,cy,A,B,fy){return [[-A,-B],[A,-B],[A,B],[-A,B]].map(([u,w])=>{const x=cx+u*g.cos-w*g.sin,y=cy+u*g.sin+w*g.cos;return x.toFixed(2)+","+fy(y)}).join(" ")}
+function vivSVG(a,p,fy,s){
+  return (p.viv||[]).map((v,i)=>{if(!isFinite(+v.E))return "";const g=geo(v),cx=+v.E-a.ox,cy=+v.N-a.oy,sel=S.viv===v.id;
+    const tx=cx,ty=cy;
+    return `<g class="tp-viv${sel?" on":""}" data-viv="${v.id}"><polygon points="${poly(g,cx,cy,g.Ao,g.Bo,fy)}" fill="rgba(140,110,70,.18)" stroke="rgb(140,110,70)" stroke-width="${(s*1.2).toFixed(2)}"/>
+      <polygon points="${poly(g,cx,cy,g.A,g.B,fy)}" fill="rgba(42,120,214,.35)" stroke="rgb(42,120,214)" stroke-width="${(s*(sel?2.2:1.2)).toFixed(2)}" data-tt="${E(v.nome||"Viveiro "+(i+1))}" data-tv="${N(g.L,0)} × ${N(g.W,0)} m · fundo ${N(g.zF,2)} m · água ${N(g.zA,2)} m"/>
+      <polygon points="${poly(g,cx,cy,g.Af,g.Bf,fy)}" fill="none" stroke="rgb(42,120,214)" stroke-dasharray="${(s*4).toFixed(1)} ${(s*3).toFixed(1)}" stroke-width="${(s*0.9).toFixed(2)}"/>
+      <text x="${tx.toFixed(2)}" y="${fy(ty)}" font-size="${(s*12).toFixed(2)}" text-anchor="middle" dominant-baseline="middle" fill="var(--ink)" stroke="var(--surface)" stroke-width="${(s*3).toFixed(2)}" paint-order="stroke">${E(v.nome||"V"+(i+1))}</text></g>`}).join("")}
+function vivHTML(p,a){
+  const vs=p.viv=p.viv||[],cu=p.cu=p.cu||{corte:"18",aterro:"12",fat:"1,25"},fat=+String(cu.fat).replace(",",".")||1.25,pc=+String(cu.corte).replace(",",".")||0,pa=+String(cu.aterro).replace(",",".")||0;
+  const rs=vs.map(v=>calcViv(a,v));const sel=vs.find(v=>v.id===S.viv),T={esp:0,agua:0,corte:0,aterro:0,ocup:0};
+  rs.forEach(r=>{if(r)for(const k in T)T[k]+=r[k]});const custo=T.corte*pc+T.aterro*pa;
+  p.res={n:vs.length,esp:T.esp,agua:T.agua,corte:T.corte,aterro:T.aterro,ocup:T.ocup,custo,em:Date.now(),viv:vs.map((v,i)=>({nome:v.nome||"Viveiro "+(i+1),agua:rs[i]?rs[i].agua:0,esp:rs[i]?rs[i].esp:0}))};
+  const linha=(v,i)=>{const r=rs[i];if(!r)return `<tr><td><b>${E(v.nome||"Viveiro "+(i+1))}</b></td><td colspan="7" class="muted">Defina a cota do fundo</td><td><button type="button" class="btn" data-a="viv-sel" data-id="${v.id}">Editar</button></td></tr>`;
+    const dr=r.g.zF&&isFinite(r.jus)?(r.jus<r.zDreno-0.3?`<span class="pj-tag pj-ok tp-nw">por gravidade (${N(r.zDreno-r.jus,2)} m)</span>`:`<span class="pj-tag pj-wait tp-nw">precisa de bomba</span>`):"—";
+    return `<tr${v.id===S.viv?' class="on"':""}><td><b>${E(v.nome||"Viveiro "+(i+1))}</b><small>${N(r.g.L,0)} × ${N(r.g.W,0)} m · lâmina ${N(r.g.h,2)} m</small></td><td class="num">${N(r.esp/10000,3)} ha</td><td class="num">${I(r.agua)} m³</td><td class="num">${N(r.g.zF,2)} / ${N(r.g.zA,2)} / ${N(r.g.zC,2)}</td><td class="num">${I(r.corte)} m³</td><td class="num">${I(r.aterro)} m³</td><td class="num">${I(r.corte-r.aterro*fat)} m³</td><td>${dr}${r.fora>r.dentro*0.05?`<small>${N(r.fora/(r.fora+r.dentro)*100,0)}% fora do levantamento</small>`:""}</td><td><div class="pj-btns"><button type="button" class="btn${v.id===S.viv?" solid":""}" data-a="viv-sel" data-id="${v.id}">Editar</button><button type="button" class="btn" data-a="viv-dup" data-id="${v.id}">Duplicar ao lado</button><button type="button" class="btn" data-a="viv-del" data-id="${v.id}">Excluir</button></div></td></tr>`};
+  const f=(k,t,u,ph)=>`<label>${t}${u?` (${u})`:""}<input inputmode="decimal" data-vf="${k}" value="${E(sel[k]??"")}" placeholder="${E(ph??VIV0[k]??"")}"></label>`;
+  return `<section class="card wide"><div class="card-head"><h2>Projeto dos viveiros<span>Viveiros escavados desenhados sobre o terreno · corte, aterro, volume de água e custo da terraplenagem</span></h2></div><div class="pj-body">
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-novo">+ Novo viveiro</button>${S.place?`<span class="pj-tag pj-wait">Clique na planta para posicionar o viveiro</span><button type="button" class="btn" data-a="viv-place-off">Cancelar</button>`:""}</div>
+   ${vs.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>Viveiro</th><th class="num">Espelho</th><th class="num">Água</th><th class="num">Fundo / água / crista (m)</th><th class="num">Corte</th><th class="num">Aterro</th><th class="num">Saldo de terra</th><th>Drenagem</th><th></th></tr></thead><tbody>${vs.map(linha).join("")}</tbody></table></div>`:`<p class="muted">Clique em <b>Novo viveiro</b>: ele aparece no centro da planta e você pode arrastar o centro clicando no mapa, girar e mudar as medidas. A cota do fundo começa no valor que equilibra corte e aterro.</p>`}
+   ${sel?`<div class="us-abas-box"><b>${E(sel.nome||"Viveiro")} · medidas e cotas</b><div class="rp-grid">
+     <label>Nome<input data-vf="nome" value="${E(sel.nome||"")}" maxlength="30"></label>
+     ${f("L","Comprimento do espelho d'água","m")}${f("W","Largura do espelho d'água","m")}${f("h","Profundidade da água (lâmina)","m")}${f("bl","Borda livre","m")}
+     ${f("zF","Cota do fundo no centro","m","")}${f("dec","Declividade do fundo até o dreno","%")}${f("zi","Talude interno (H:1V)","")}${f("ze","Talude externo (H:1V)","")}${f("c","Largura da crista do dique","m")}
+     ${f("rot","Rotação (graus a partir do Leste)","°")}${f("E","Centro · Este","m","")}${f("N","Centro · Norte","m","")}
+    </div><div class="pj-btns"><button type="button" class="btn" data-a="viv-place">Posicionar clicando na planta</button><button type="button" class="btn" data-a="viv-eq">Equilibrar corte e aterro (achar a cota do fundo)</button><button type="button" class="btn" data-a="viv-fechar">Fechar edição</button></div>
+    <p class="muted">Referências para viveiros escavados: lâmina de 1,0–1,5 m, borda livre de 0,3–0,5 m, taludes de 1,5:1 a 3:1 (solo argiloso aceita mais inclinado; arenoso pede mais suave), crista de 3–4 m se passar veículo e fundo com 0,2–1% de queda até o dreno. O dreno fica no lado "final" do comprimento (girando o viveiro, ele muda de lado).</p></div>`:""}
+   ${vs.length?`<div class="subhead">Total dos viveiros e custo da terraplenagem</div>
+   <div class="rp-grid"><label>Preço do corte (R$/m³)<input inputmode="decimal" data-cu="corte" value="${E(cu.corte)}"></label><label>Preço do aterro compactado (R$/m³)<input inputmode="decimal" data-cu="aterro" value="${E(cu.aterro)}"></label><label>Fator de compactação (m³ de corte por m³ de aterro)<input inputmode="decimal" data-cu="fat" value="${E(cu.fat)}"></label></div>
+   <div class="us-kpis rp-k"><div><b>${N(T.esp/10000,2)} ha</b>de espelho d'água (${vs.length} viveiro${vs.length===1?"":"s"})</div><div><b>${I(T.agua)} m³</b>de água</div><div><b>${I(T.corte)} m³</b>de corte</div><div><b>${I(T.aterro)} m³</b>de aterro</div><div><b>${I(Math.abs(T.corte-T.aterro*fat))} m³</b>${T.corte-T.aterro*fat>=0?"de terra sobrando (bota-fora)":"de terra faltando (empréstimo)"}</div><div><b>${custo.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0})}</b>de terraplenagem</div></div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-calc">Enviar volumes para a Calculadora</button><span class="muted">Cria um grupo de tanques por viveiro (nome “… (lev.)”) com o volume de água; a Biomassa, o Arraçoamento e o Painel passam a usar esses volumes. O custo da terraplenagem e a área levantada entram na aba Local e viabilidade.</span></div>`:""}
+  </div></section>`}
+function enviarCalc(p){
+  if(typeof tanks==="undefined"||typeof drawTanks!=="function"){aviso("A Calculadora não está disponível nesta versão.");return}
+  const vs=(p.res&&p.res.viv)||[];if(!vs.length){aviso("Nenhum viveiro com volume calculado.");return}
+  for(let i=tanks.length-1;i>=0;i--)if(/\(lev\.\)$/.test(tanks[i].name||""))tanks.splice(i,1);
+  const nid=()=>tanks.reduce((m,t)=>Math.max(m,t.id+1),0),cor=()=>{for(let c=0;c<8;c++)if(!tanks.some(t=>t.c===c))return c;return 8};
+  for(const v of vs)tanks.push({id:nid(),c:cor(),name:v.nome.slice(0,24)+" (lev.)",q:"1",v:String(Math.round(v.agua)).replace(".",",")});
+  try{drawTanks();render();if(typeof save==="function")save()}catch(e){}
+  aviso(`${vs.length} viveiro${vs.length===1?"":"s"} enviado${vs.length===1?"":"s"} para a Calculadora (${I(vs.reduce((s,v)=>s+v.agua,0))} m³ de água). Confira a densidade de estocagem na Calculadora.`)}
+window.topoResumo=()=>{try{const s=rd(),p=(s.proj||[]).find(x=>x.id===s.cur)||(s.proj||[]).slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];if(!p)return null;
+  const cu=p.cu||{},fat=+String(cu.fat||"1,25").replace(",",".")||1.25,r=p.res||{};return {nome:p.nome,ha:p.area?p.area/10000:NaN,corte:r.corte||0,aterro:r.aterro||0,mov:(r.corte||0)+(r.aterro||0),custo:r.custo||0,agua:r.agua||0,esp:r.esp||0,n:r.n||0,precoMov:((r.custo||0)/Math.max(1,(r.corte||0)+(r.aterro||0)))}}catch(e){return null}};
 
 /* ---- telas ---- */
 function listaHTML(){
@@ -4845,6 +4929,7 @@ function analiseHTML(p){
   const tem=p.arquivos.some(f=>f.k==="pontos"&&f.pts&&f.pts.length);
   if(!tem)return `<section class="card wide"><div class="card-head"><h2>Planta, curvas de nível e volumes<span>aparece quando houver um arquivo de pontos (TXT/CSV)</span></h2></div><div class="pj-body"><p class="muted">Os arquivos de fotos, GeoTIFF, nuvem de pontos e RINEX ficam guardados na pasta do projeto. Para a planta e as curvas, descarregue o TXT/CSV de pontos exportado da coletora (ou a nuvem de pontos do drone exportada como XYZ/CSV).</p></div></section>`;
   const a=analisar(p),c=p.cfg,h=c.ref===""||c.ref==null?NaN:+c.ref,vol=isFinite(h)&&a.T.length?volPlano(a,h):null;
+  p.area=a.area;
   const cods=Object.entries(a.cods).sort((x,y)=>y[1]-x[1]),excl=new Set(c.excl||[]);
   return `<section class="card wide"><div class="card-head"><h2>Resumo do levantamento<span>${I(a.raw.length)} pontos lidos · ${I(a.vis.length)} usados na superfície${a.semZ?` · ${I(a.semZ)} sem cota`:""}</span></h2></div><div class="pj-body">
    <div class="us-kpis rp-k"><div><b>${I(a.vis.length)}</b>pontos com cota</div><div><b>${N(a.area/10000,2)} ha</b>área coberta pela superfície</div><div><b>${N(a.zmin,2)} m</b>cota mínima</div><div><b>${N(a.zmax,2)} m</b>cota máxima</div><div><b>${N(a.zmax-a.zmin,2)} m</b>desnível</div><div><b>${I(a.T.length)}</b>triângulos (MDT)</div></div>
@@ -4866,8 +4951,8 @@ function analiseHTML(p){
   <section class="card wide"><div class="card-head"><h2>Cota de referência<span>Volume de água, corte e aterro em relação a uma cota</span></h2></div><div class="pj-body">
    <div class="rp-grid"><label>Cota de referência (m)<input inputmode="decimal" data-cf="ref" value="${E(c.ref??"")}" placeholder="${N((a.zmin+a.zmax)/2,2)}"></label></div>
    ${vol?`<div class="us-kpis rp-k"><div><b>${N(vol.abaixo/10000,3)} ha</b>área abaixo da cota (inundada)</div><div><b>${I(vol.aterro)} m³</b>volume de água até a cota (aterro para nivelar)</div><div><b>${I(vol.corte)} m³</b>volume de terra acima da cota (corte)</div><div><b>${I(vol.corte-vol.aterro)} m³</b>saldo corte − aterro</div></div>
-    <p class="muted">Use para: volume de um açude ou depressão até a cota da água; ou corte e aterro para nivelar a área numa cota (platô). O cálculo usa a superfície de triângulos dentro da área levantada (método exato para a malha). O projeto de viveiros (cota de fundo, taludes e borda livre) e a ligação com a Calculadora, a Biomassa e a Viabilidade vêm na próxima etapa.</p>`:`<p class="muted">Digite uma cota para calcular a área inundada, o volume de água e o corte e aterro.</p>`}
-  </div></section>`}
+    <p class="muted">Use para: volume de um açude ou depressão até a cota da água; ou corte e aterro para nivelar a área numa cota (platô). O cálculo usa a superfície de triângulos dentro da área levantada (método exato para a malha). O projeto de viveiros (cota de fundo, taludes e borda livre) e a ligação com a Calculadora, a Biomassa e a Viabilidade estão no Projeto dos viveiros, abaixo.</p>`:`<p class="muted">Digite uma cota para calcular a área inundada, o volume de água e o corte e aterro.</p>`}
+  </div></section>`+(a.T.length?vivHTML(p,a):"")}
 function draw(){
   if(el.hidden)return;const p=P();
   el.innerHTML=listaHTML()+(p?projetoHTML(p):"");bind();if(p&&el.querySelector("#tp-map"))bindMapa(p,cache)}
@@ -4903,6 +4988,8 @@ function bind(){
   el.querySelectorAll("[data-usar]").forEach(i=>i.addEventListener("change",()=>{const f=p.arquivos.find(x=>x.p===i.dataset.usar);if(f){f.usar=i.checked;p.v++;cache=null;salvar();draw()}}));
   el.querySelectorAll("[data-cf]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.cf;p.cfg[k]=i.type==="checkbox"?i.checked:k==="ref"||k==="cmin"?String(i.value).trim().replace(",","."):+String(i.value).replace(",",".")||0;if(k!=="ref"&&k!=="tin")cache=null;salvar();draw()}));
   el.querySelectorAll("[data-cod]").forEach(i=>i.addEventListener("change",()=>{const s=new Set(p.cfg.excl||[]);i.checked?s.delete(i.dataset.cod):s.add(i.dataset.cod);p.cfg.excl=[...s];cache=null;salvar();draw()}));
+  el.querySelectorAll("[data-vf]").forEach(i=>i.addEventListener("change",()=>{const v=(p.viv||[]).find(x=>x.id===S.viv);if(!v)return;const k=i.dataset.vf;v[k]=k==="nome"?i.value.trim():String(i.value).trim().replace(",",".");salvar();draw()}));
+  el.querySelectorAll("[data-cu]").forEach(i=>i.addEventListener("change",()=>{p.cu=p.cu||{};p.cu[i.dataset.cu]=String(i.value).trim();salvar();draw()}));
   el.querySelectorAll("[data-cm]").forEach(i=>i.addEventListener("change",()=>{const f=p.arquivos.find(x=>x.p===S.col);if(!f)return;if(i.dataset.cm==="head")f.head=i.checked;else{f.map=f.map||{};f.map[i.dataset.cm]=+i.value}}));
 }
 async function acao(a,id){
@@ -4931,6 +5018,18 @@ async function acao(a,id){
   if(a==="col-fechar"){S.col=null;draw();return}
   if(a==="col-ok"){const f=p.arquivos.find(x=>x.p===id);if(!f)return;const b=await ler(p,f.p),L=linhas(await b.text()),r=extrair(L.rows,f.map,f.head);
     if(r.pts.length<3){aviso("Com essas colunas não saíram pontos válidos. Confira Este, Norte e Cota.");return}f.k="pontos";f.t="Pontos (TXT/CSV)";f.pts=r.pts.slice(0,30000);f.ruins=r.ruins;f.zona=r.zona;p.v++;cache=null;S.col=null;vb=null;salvar();aviso(`${I(f.pts.length)} pontos relidos de ${f.n}.`);draw();return}
+  if(a.startsWith("viv-")){const an=analisar(p);p.viv=p.viv||[];const v=p.viv.find(x=>x.id===id)||p.viv.find(x=>x.id===S.viv);
+    if(a==="viv-novo"){const W=Math.max(...an.X),H=Math.max(...an.Y),n={id:"v"+Date.now().toString(36),nome:"Viveiro "+(p.viv.length+1),...VIV0,E:Math.round((an.ox+W/2)*100)/100,N:Math.round((an.oy+H/2)*100)/100,zF:""};
+      const fat=+String((p.cu||{}).fat||"1,25").replace(",",".")||1.25,z=equilibrar(an,n,fat);n.zF=isFinite(z)?z:Math.round((an.zmed-1)*100)/100;p.viv.push(n);S.viv=n.id;salvar();aviso(`${n.nome} criado no centro da planta com fundo na cota ${N(n.zF,2)} m${isFinite(z)?" (corte e aterro equilibrados)":""}. Clique em “Posicionar clicando na planta” para mudar o lugar.`);draw();return}
+    if(a==="viv-sel"){S.viv=S.viv===id?null:id;draw();return}
+    if(a==="viv-fechar"){S.viv=null;S.place=null;draw();return}
+    if(a==="viv-place"&&v){S.place=v.id;draw();const m=el.querySelector("#tp-map");m&&m.scrollIntoView({block:"center",behavior:"smooth"});return}
+    if(a==="viv-place-off"){S.place=null;draw();return}
+    if(a==="viv-del"){p.viv=p.viv.filter(x=>x.id!==id);if(S.viv===id)S.viv=null;salvar();draw();return}
+    if(a==="viv-dup"&&v){const g=geo(v),d=2*g.Bi+g.c,n={...v,id:"v"+Date.now().toString(36),nome:"Viveiro "+(p.viv.length+1),E:Math.round((+v.E-Math.sin(g.r)*d)*100)/100,N:Math.round((+v.N+Math.cos(g.r)*d)*100)/100};p.viv.push(n);S.viv=n.id;salvar();aviso(`${n.nome} criado ao lado de ${v.nome}, dividindo o dique.`);draw();return}
+    if(a==="viv-eq"&&v){const fat=+String((p.cu||{}).fat||"1,25").replace(",",".")||1.25,z=equilibrar(an,v,fat);if(!isFinite(z)){aviso("Não achei uma cota que equilibre corte e aterro dentro do terreno levantado.");return}v.zF=z;salvar();aviso(`Cota do fundo de ${v.nome} ajustada para ${N(z,2)} m: o corte dá para o aterro dos diques.`);draw();return}
+    if(a==="viv-calc"){enviarCalc(p);salvar();return}
+    return}
   if(a==="dxf"||a==="csv"){const an=analisar(p),nome=slug(p.nome)+(a==="dxf"?"_curvas.dxf":"_pontos.csv");
     const data=a==="dxf"?dxf(an):"﻿Nome;Código;Este;Norte;Cota\r\n"+an.vis.map(q=>[q[0],q[1],N(q[2],3),N(q[3],3),N(q[4],3)].map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
     if(p.arm==="fs"&&raiz&&raizOk){await gravar(p,"Processados/"+nome,new Blob([data]));aviso(`${nome} salvo em ${p.pasta}/Processados.`)}
@@ -4941,7 +5040,7 @@ async function acao(a,id){
 el.addEventListener("pointermove",e=>{const t=e.target.closest("[data-tt]");if(t&&window.showTip)showTip(e.clientX,e.clientY,t.dataset.tt,t.dataset.tv);else if(window.hideTip)hideTip()});
 el.addEventListener("pointerleave",()=>{window.hideTip&&hideTip()});
 window.drawTopo=async()=>{try{const s=rd();if(s&&s.proj){S.proj=s.proj;if(s.cur!==undefined)S.cur=s.cur}}catch(e){}await carregarRaiz();draw()};
-window.topoDebug={linhas,detectar,extrair,delaunay,analisar,volPlano,ll2utm};
+window.topoDebug={linhas,detectar,extrair,delaunay,analisar,volPlano,ll2utm,calcViv,equilibrar,zTerr};
 })();
 
 </script>
