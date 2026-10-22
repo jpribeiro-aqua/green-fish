@@ -630,6 +630,9 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .rp-steps{margin:0;padding-left:20px;display:grid;gap:6px}
 .rp-esp{padding:0 16px 12px;flex-wrap:wrap}
 @media (max-width:600px){.rp-tl li{grid-template-columns:1fr;gap:2px}}
+.rp-dest{border-color:var(--accent)!important;box-shadow:0 0 0 1px var(--accent) inset}
+.rp-gen{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.rp-gen ul{margin:6px 0;padding-left:18px;display:grid;gap:4px}
 .pj-cli{margin:0 16px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .us-eqsel.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);font-weight:600}
 .pj-acts .us-abas{margin-bottom:6px;min-width:220px}
@@ -4120,6 +4123,32 @@ const SP={
  tilapia:{nome:"Tilápia",cient:"Oreochromis niloticus",tipo:"tilapia"},
  camarao:{nome:"Camarão",cient:"Penaeus (Litopenaeus) vannamei",tipo:"camarao"}
 };
+/* ---- melhoramento genético: testes genômicos da Embrapa (Plataforma AquaPlus) ---- */
+const GEN={
+ tilapia:{t:"TilaPlus",esp:"tilápia",preco:90,precoTxt:"R$ 90 por reprodutor (R$ 84 conforme o volume), segundo a Embrapa em 2022",
+  faz:["Paternidade e grau de parentesco entre matrizes e reprodutores","Identificação individual e variabilidade genética do plantel","Reconstrução do pedigree e mapa de acasalamento para formar famílias","Comparar plantéis de produtores diferentes antes de trocar ou vender matrizes"],
+  porque:"Segundo a Embrapa, a consanguinidade pode matar cerca de 25% dos alevinos e causar perdas acima de 10% na engorda.",
+  extra:"Resultado em cerca de 7 dias, com relatório simplificado (extração de DNA, genotipagem e análise incluídas)."},
+ tambaqui:{t:"TambaPlus",esp:"tambaqui",preco:60,precoTxt:"R$ 60 a R$ 80 por amostra, por análise (valores divulgados entre 2020 e 2021)",
+  faz:["Parentesco entre matrizes (TambaPlus Parentesco): orienta os acasalamentos e evita cruzar aparentados","Pureza específica: detecta introgressão de pacu ou pirapitinga (carabina) a partir de ~3%, ou seja, híbridos misturados ao plantel","Certificação genética das matrizes para a produção de alevinos"],
+  porque:"A endogamia está associada a perdas de 10% a 30% da produção. A Embrapa estimou retorno de R$ 65 a R$ 196 para cada R$ 1 investido no teste de parentesco.",
+  extra:"Resultado em cerca de 7 dias. Exemplo da Embrapa: parentesco e pureza de 100 matrizes ≈ R$ 12 mil, amortizados em ~3 anos de uso das matrizes."},
+ camarao:{t:"VannaPlus",esp:"camarão (L. vannamei)",preco:0,precoTxt:"valor sob consulta à Embrapa",
+  faz:["Paternidade, parentesco e identificação individual com painel de 96 marcadores SNP","Pedigree de camarões de várias famílias criados juntos no mesmo tanque, sem marcação física","Indica reprodutores geneticamente distantes e os cruzamentos com mais chance de sucesso"],
+  porque:"Ajuda laboratórios de larvas a controlar o plantel e evitar cruzamentos entre aparentados, que geram prole com malformações e baixo desempenho.",
+  extra:"Capacidade de processar cerca de 2.000 amostras por semana (2021)."}
+};
+function genHTML(esp,f){
+  const g=GEN[esp];if(!g)return "";
+  if(f.genN==null)f.genN=esp==="camarao"?200:100;if(f.genP==null)f.genP=g.preco||"";
+  const n=num(f.genN),pr=num(f.genP),tot=n*pr;
+  return `<section class="card wide rp-dest"><div class="card-head"><i class="n">★</i><h2>Melhoramento genético · ${g.t}<span>Embrapa · Plataforma AquaPlus · teste genômico de reprodutores de ${g.esp}</span></h2><span class="us-pro-tag on">Destaque</span></div><div class="pj-body">
+   <div class="rp-gen"><div><b>O que o ${g.t} faz</b><ul>${g.faz.map(x=>`<li>${E(x)}</li>`).join("")}</ul><p>${E(g.porque)}</p><p class="muted">${E(g.extra)}</p></div>
+    <div><b>Como usar na reprodução</b><ol class="rp-steps"><li>Identifique cada reprodutor individualmente${esp==="camarao"?" (ou registre famílias e tanques)":" (ex.: microchip/PIT tag)"}.</li><li>Colete e envie as amostras de todos os reprodutores conforme a orientação da Embrapa.</li><li>Com o laudo, forme os casais entre animais pouco aparentados${esp==="tambaqui"?" e retire do plantel os híbridos (sem pureza)":""}.</li><li>Registre o pedigree e repita o teste ao repor matrizes ou comprar reprodutores de outro produtor.</li></ol>
+    <div class="rp-grid"><label>Reprodutores a testar (nº)<input inputmode="numeric" data-f="genN" value="${E(f.genN)}"></label><label>Preço por amostra (R$)<input inputmode="decimal" data-f="genP" value="${E(f.genP)}" placeholder="consultar"></label></div>
+    ${pr>0?`<p>Custo estimado: <b>${tot.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}</b>${esp==="tambaqui"?" por análise (parentesco ou pureza)":""}.</p>`:`<p class="muted">Informe o preço por amostra para estimar o custo.</p>`}</div></div>
+   <p class="muted">Preço: ${E(g.precoTxt)}; confirme valores, tipo de amostra e envio com a Embrapa Recursos Genéticos e Biotecnologia: cenargen.negocios@embrapa.br · (61) 3448-4700.</p></div></section>`;
+}
 const ORDEM=["lambari","tambaqui","curimata","pangasius","tilapia","camarao"];
 
 /* ---- estado ---- */
@@ -4330,8 +4359,8 @@ function draw(){
   const body=sp.tipo==="ind"?htmlInd(esp):sp.tipo==="tilapia"?htmlTil():htmlCam();
   el.innerHTML=`<section class="card wide"><div class="card-head"><h2>Reprodução<span>Protocolos de indução, desova, incubação, reversão sexual e larvicultura</span></h2></div>
    <div class="pj-tools chips rp-esp" role="tablist" aria-label="Espécie">${ORDEM.map(k=>`<button type="button" class="chip${k===esp?" on":""}" data-esp="${k}" aria-pressed="${k===esp}">${E(SP[k].nome)}</button>`).join("")}</div>
-   <div class="pj-msg" id="rp-msg" role="status" aria-live="polite">${E(msg)}</div></section>`+body+
-   `<section class="card wide"><div class="card-foot">Os valores de referência vêm da literatura técnica e servem de ponto de partida: ajuste às condições do seu laboratório e à orientação do responsável técnico. Hormônios (EBHC, hCG, Ovopel®, Ovaprim®, buserelina, 17α-metiltestosterona) exigem receita e seguem as normas do MAPA. Fontes: Embrapa (Boas práticas de produção de alevinos de tambaqui, 2021; Comunicado Técnico 271, 2023); Brazilian Journal of Biology (lambari, Ovopel e buserelina); Pesquisa Agropecuária Brasileira (curimatã-pacu); FAO (Penaeus vannamei; hCG em bagres); Kannan et al. (maturação de vannamei); J. Aquat. Res. Sci. (Ovaprim em Pangasius); GIA (Guia de indução hormonal de peixes reofílicos).</div></section>`;
+   <div class="pj-msg" id="rp-msg" role="status" aria-live="polite">${E(msg)}</div></section>`+genHTML(esp,F(esp))+body+
+   `<section class="card wide"><div class="card-foot">Os valores de referência vêm da literatura técnica e servem de ponto de partida: ajuste às condições do seu laboratório e à orientação do responsável técnico. Hormônios (EBHC, hCG, Ovopel®, Ovaprim®, buserelina, 17α-metiltestosterona) exigem receita e seguem as normas do MAPA. Fontes: Embrapa (Boas práticas de produção de alevinos de tambaqui, 2021; Comunicado Técnico 271, 2023); Brazilian Journal of Biology (lambari, Ovopel e buserelina); Pesquisa Agropecuária Brasileira (curimatã-pacu); FAO (Penaeus vannamei; hCG em bagres); Kannan et al. (maturação de vannamei); J. Aquat. Res. Sci. (Ovaprim em Pangasius); GIA (Guia de indução hormonal de peixes reofílicos); Embrapa Recursos Genéticos e Biotecnologia (Plataforma AquaPlus: TilaPlus, TambaPlus e VannaPlus); curso Aprenda a reproduzir lambaris (Fábio Sússel, APTA/Abracoa).</div></section>`;
   bind();
 }
 function aviso(t){msg=t;const m=el.querySelector("#rp-msg");if(m)m.textContent=t}
