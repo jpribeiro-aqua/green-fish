@@ -616,6 +616,7 @@ body.sem-calc .summary,body.sem-calc .dock{display:none!important}
 .us-eqban>div{display:grid;gap:2px}.us-eqban .muted{font-size:12px}
 tr.us-lider>td{background:var(--accent-soft)}
 tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.pj-cli{margin:0 16px 10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
 .us-eqsel.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink);font-weight:600}
 .pj-acts .us-abas{margin-bottom:6px;min-width:220px}
 
@@ -4103,11 +4104,11 @@ const nuvem={
   async get(id,u){const m=(await this.col(u).doc(id).get()).data();if(!m)throw{code:"nao_achado"};
     let s="";for(let i=0;i<(m.np||0);i++){const p=(await this.partes(u).doc(id+"_"+i).get()).data();if(!p)throw{code:"incompleto"};s+=p.s}
     return {...m,id,dados:JSON.parse(s||"{}")}},
-  async put(id,meta,dados){const s=JSON.stringify(dados),np=Math.max(1,Math.ceil(s.length/CHUNK));
-    const old=(await this.col().doc(id).get()).data();
-    for(let i=0;i<np;i++)await this.partes().doc(id+"_"+i).set({pid:id,i,s:s.slice(i*CHUNK,(i+1)*CHUNK)});
-    for(let i=np;i<((old&&old.np)||0);i++)await this.partes().doc(id+"_"+i).delete();
-    await this.col().doc(id).set({...meta,np,bytes:s.length})},
+  async put(id,meta,dados,u){const s=JSON.stringify(dados),np=Math.max(1,Math.ceil(s.length/CHUNK));
+    const old=(await this.col(u).doc(id).get()).data();
+    for(let i=0;i<np;i++)await this.partes(u).doc(id+"_"+i).set({pid:id,i,s:s.slice(i*CHUNK,(i+1)*CHUNK)});
+    for(let i=np;i<((old&&old.np)||0);i++)await this.partes(u).doc(id+"_"+i).delete();
+    await this.col(u).doc(id).set({...meta,np,bytes:s.length})},
   async del(id){const m=(await this.col().doc(id).get()).data();
     for(let i=0;i<((m&&m.np)||0);i++)await this.partes().doc(id+"_"+i).delete();
     await this.col().doc(id).delete()}
@@ -4156,6 +4157,12 @@ async function salvar(comoNovo){
   const notas=(el.querySelector("#pj-notas").value||"").trim(),resp=(el.querySelector("#pj-resp").value||"").trim();
   await rodar(async()=>{
     const c=atual(),agora=Date.now();
+    if(c&&c.uid&&!comoNovo&&ehDono()){   // dono editando o projeto de um cliente: grava na conta do cliente
+      const meta={nome,notas,resp,criadoEm:c.criadoEm||agora,atualizadoEm:agora,resumo:resumo(),app:"ras-multitanques",versao:1,editadoPeloDono:agora};
+      await nuvem.put(c.id,meta,snapshot(),c.uid);
+      wr(CUR,{...c,nome,notas,resp});
+      if(st.todos){const t=st.todos.find(y=>y.uid===c.uid&&y.id===c.id);if(t)Object.assign(t,meta)}
+      aviso(`“${nome}” atualizado na conta de ${c.cliente||"cliente"} às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}. O cliente já vê esta versão ao abrir o projeto.`);return}
     let id=(!comoNovo&&c&&c.id&&c.modo===st.mode&&st.list.some(p=>p.id===c.id))?c.id:novoId();
     const ant=st.list.find(p=>p.id===id);
     const meta={nome,notas,resp,criadoEm:ant?ant.criadoEm:agora,atualizadoEm:agora,resumo:resumo(),app:"ras-multitanques",versao:1};
@@ -4176,10 +4183,11 @@ async function carregarTodos(){await rodar(async()=>{
   const l=await Auth.todosProjetos(),ids=[...new Set(l.map(p=>p.uid))];
   st.todos=l.sort((a,b)=>(b.atualizadoEm||0)-(a.atualizadoEm||0));
   aviso(`${st.todos.length} projeto${st.todos.length===1?"":"s"} de ${ids.length} cliente${ids.length===1?"":"s"} carregado${st.todos.length===1?"":"s"}.`)})}
-async function abrirCliente(uid,id){await rodar(async()=>{
+async function abrirCliente(uid,id,editar){await rodar(async()=>{
   const p=await nuvem.get(id,uid),x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};restaurar(p.dados||{});
-  wr(CUR,{nome:`Cópia de ${p.nome} (${x.cliente||"cliente"})`,modo:st.mode});
-  try{localStorage.setItem(FLASH,`Projeto “${p.nome}” de ${x.cliente||"cliente"} aberto como cópia em todas as abas. O original do cliente não muda; para guardar a cópia na sua conta, clique em Salvar projeto.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
+  if(editar)wr(CUR,{id,uid,cliente:x.cliente||"cliente",nome:p.nome,notas:p.notas||"",resp:p.resp||"",criadoEm:p.criadoEm,modo:st.mode});
+  else wr(CUR,{nome:`Cópia de ${p.nome} (${x.cliente||"cliente"})`,modo:st.mode});
+  try{localStorage.setItem(FLASH,editar?`Editando “${p.nome}”, projeto de ${x.cliente||"cliente"}. Faça as alterações nas abas e clique em Salvar no projeto do cliente: a versão nova aparece também no login dele.`:`Projeto “${p.nome}” de ${x.cliente||"cliente"} aberto como cópia em todas as abas. O original do cliente não muda; para guardar a cópia na sua conta, clique em Salvar projeto.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
   location.reload();
 })}
 async function exportarCliente(uid,id){await rodar(async()=>{
@@ -4192,16 +4200,16 @@ function todosHTML(){
   const T=st.todos,fl=st.buscaT.toLowerCase(),cf=st.confT;
   const lista=(T||[]).filter(p=>!fl||(p.cliente+" "+p.email+" "+p.nome+" "+(p.notas||"")+" "+((p.resumo||{}).local||"")+" "+((p.resumo||{}).esp||"")).toLowerCase().includes(fl));
   const nCli=T?new Set(T.map(p=>p.uid)).size:0;
-  return `<section class="card wide"><div class="card-head"><i class="n">4</i><h2>Projetos dos clientes<span>${T?`${T.length} projeto${T.length===1?"":"s"} de ${nCli} cliente${nCli===1?"":"s"} · só o dono do app vê`:"Só o dono do app vê · somente leitura"}</span></h2>
+  return `<section class="card wide"><div class="card-head"><i class="n">4</i><h2>Projetos dos clientes<span>${T?`${T.length} projeto${T.length===1?"":"s"} de ${nCli} cliente${nCli===1?"":"s"} · só o dono do app vê`:"Só o dono do app vê"}</span></h2>
     <div class="pj-tools">${T?`<div class="inp"><input id="pj-buscat" placeholder="Buscar por cliente, projeto, local ou espécie" value="${esc(st.buscaT)}" aria-label="Buscar projetos dos clientes"></div>`:""}<button type="button" class="btn${T?"":" solid"}" id="pj-todos">${T?"↻ Atualizar":"Carregar projetos dos clientes"}</button></div></div>
-    ${!T?`<p class="pj-body muted">Veja os projetos salvos por todas as pessoas do app. Abrir carrega uma <b>cópia</b> nas abas: o projeto do cliente nunca é alterado.</p>`:
+    ${!T?`<p class="pj-body muted">Veja os projetos salvos por todas as pessoas do app. <b>Abrir para editar</b> carrega o projeto nas abas e, ao salvar, atualiza na conta do cliente. <b>Abrir cópia</b> não altera o projeto do cliente.</p>`:
       !T.length?`<p class="pj-body muted">Nenhum cliente salvou projetos ainda.</p>`:!lista.length?`<p class="pj-body muted">Nenhum projeto corresponde à busca.</p>`:
       `<div class="scroll"><table class="pj-tab"><thead><tr><th>Cliente</th><th>Projeto</th><th>Local e sistema</th><th class="num">VPL</th><th class="num">Atualizado</th><th></th></tr></thead><tbody>${lista.map(p=>{const r=p.resumo||{},k=p.uid+"/"+p.id;
         return `<tr><td><b>${esc(p.cliente)}</b>${p.email&&p.email!==p.cliente?`<small>${esc(p.email)}</small>`:""}</td><td><b>${esc(p.nome||"Sem nome")}</b>${p.notas?`<small>${esc(p.notas.length>110?p.notas.slice(0,110)+"…":p.notas)}</small>`:""}${p.resp?`<small>Responsável: ${esc(p.resp)}</small>`:""}</td>
           <td>${esc(r.local||"—")}<small>${r.tanques!=null?`${fmt(r.tanques,0)} tanques · ${r.grupos} grupo${r.grupos===1?"":"s"}${r.vol?` · ${fmt(r.vol,0)} m³`:""}`:""}</small>${r.esp?`<small>${esc(r.esp)}</small>`:""}</td>
           <td class="num">${r.vpl!=null?`<span class="${r.vpl<0?"neg":""}">${R$(r.vpl)}</span>`:"—"}</td><td class="num">${dataBR(p.atualizadoEm)}<small>${p.bytes?tamanho(p.bytes):""}</small></td>
-          <td class="pj-acts">${cf===k?`<button type="button" class="btn solid" data-pt="open-ok" data-u="${p.uid}" data-id="${p.id}">Confirmar: abrir cópia</button><button type="button" class="btn" data-pt="cancel">Cancelar</button>`:`<button type="button" class="btn solid" data-pt="open" data-u="${p.uid}" data-id="${p.id}">Abrir cópia</button><button type="button" class="btn" data-pt="exp" data-u="${p.uid}" data-id="${p.id}">Exportar</button>`}</td></tr>`}).join("")}</tbody></table></div>`}
-    <div class="card-foot">Somente leitura: você não altera nem exclui os projetos dos clientes. Abrir uma cópia substitui o que está nas abas agora (salve antes o que quiser manter); para guardá-la, use Salvar projeto: ela vai para a sua conta.</div></section>`;
+          <td class="pj-acts">${cf===k||cf==="e:"+k?`<button type="button" class="btn solid" data-pt="${cf===k?"open-ok":"edit-ok"}" data-u="${p.uid}" data-id="${p.id}">${cf===k?"Confirmar: abrir cópia":"Confirmar: abrir para editar"}</button><button type="button" class="btn" data-pt="cancel">Cancelar</button>`:`<button type="button" class="btn solid" data-pt="edit" data-u="${p.uid}" data-id="${p.id}">Abrir para editar</button><button type="button" class="btn" data-pt="open" data-u="${p.uid}" data-id="${p.id}">Abrir cópia</button><button type="button" class="btn" data-pt="exp" data-u="${p.uid}" data-id="${p.id}">Exportar</button>`}</td></tr>`}).join("")}</tbody></table></div>`}
+    <div class="card-foot">Abrir para editar: as alterações salvas vão para a conta do cliente (se ele também estiver editando ao mesmo tempo, vale o último a salvar). Abrir cópia: o original não muda e a cópia vai para a sua conta ao salvar. Você não exclui projetos dos clientes. Abrir substitui o que está nas abas agora: salve antes o que quiser manter.</div></section>`;
 }
 async function excluir(id){if(barrar())return;await rodar(async()=>{
   const p=st.list.find(x=>x.id===id);await back().del(id);
@@ -4236,7 +4244,7 @@ async function importar(file){
 const R$=v=>"R$ "+fmt(v,0);
 function draw(){
   if(el.hidden&&st.mode!=="init"){return}
-  const c=atual(),cur=c&&c.modo===st.mode?st.list.find(p=>p.id===c.id):null;
+  const c=atual(),cli=c&&c.uid&&c.modo===st.mode&&ehDono()?c:null,cur=cli||(c&&c.modo===st.mode&&!c.uid?st.list.find(p=>p.id===c.id):null);
   const cardLogin= st.mode==="init"?`<div class="pj-body"><p class="muted">Verificando sua conta…</p></div>`:
     !logado()?Auth.loginHTML("pj"):
     `<div class="pj-body pj-user"><span class="pj-av" aria-hidden="true">${esc((st.uname||"?").trim().charAt(0).toUpperCase()||"?")}</span><div><b>${esc(st.uname||"Sua conta claude.ai")}</b><div class="muted">${st.mode==="nuvem"?(Auth.supa()?"Conta do app ("+esc(Auth.email())+"). Os projetos ficam guardados na sua conta, no celular e no computador. Só você e o dono do app (para suporte) podem vê-los.":"Entrou com a conta claude.ai e a senha do app. Os projetos ficam guardados na sua conta, só você vê."):"Usuário local deste navegador, protegido por senha. Os projetos ficam guardados só aqui; para levar a outro computador, use Exportar e Importar."}</div></div><div class="pj-btns"><button type="button" class="btn" id="pj-troca">Trocar senha</button><button type="button" class="btn" id="pj-sair">Sair</button></div></div>`;
@@ -4255,12 +4263,12 @@ function draw(){
   `<section class="card wide"><div class="card-head"><h2>Projetos<span>Salve, abra e organize os projetos feitos no app: cada um guarda todas as abas</span></h2></div>
      <div class="pj-msg${st.err?" bad":""}" id="pj-msg" role="status" aria-live="polite">${esc(st.msg)}</div>${st.mode==="nuvem"&&bloq()?`<div class="pj-gate">${esc(gate().txt)} <button type="button" class="btn" id="pj-ir-users">Abrir Usuários e acesso</button></div>`:""}</section>`+
   `<section class="card"><div class="card-head"><i class="n">1</i><h2>Login<span>${Auth.supa()?"Conta do app":st.mode==="nuvem"?"Conta claude.ai + senha do app":"Usuário e senha"}</span></h2></div>${cardLogin}</section>`+
-  `<section class="card"><div class="card-head"><i class="n">2</i><h2>Projeto atual<span>${cur?"Aberto: "+esc(cur.nome):"Ainda não salvo"}</span></h2></div>
+  `<section class="card"><div class="card-head"><i class="n">2</i><h2>Projeto atual<span>${cli?"Projeto do cliente "+esc(cli.cliente):cur?"Aberto: "+esc(cur.nome):"Ainda não salvo"}</span></h2></div>${cli?`<div class="pj-gate pj-cli"><span><b>Editando o projeto de ${esc(cli.cliente)}.</b> Salvar grava na conta do cliente: ele vê a versão nova no login dele. Salvar como novo guarda uma cópia só na sua conta.</span><button type="button" class="btn" id="pj-sair-cli">Parar de editar</button></div>`:""}
      <div class="pj-body pj-form">
        <label for="pj-nome">Nome do projeto</label><div class="inp"><input id="pj-nome" maxlength="120" placeholder="Ex.: RAS tilápia – Pinheiro" value="${esc(cur?cur.nome:(c&&c.modo===st.mode?c.nome:""))}"${dis}></div>
        <label for="pj-resp">Responsável técnico</label><div class="inp"><input id="pj-resp" maxlength="120" placeholder="Nome de quem elabora" value="${esc(cur?cur.resp||"":(st.uname||""))}"${dis}></div>
        <label for="pj-notas">Observações</label><textarea id="pj-notas" rows="3" maxlength="4000" placeholder="Cliente, objetivo, versão, cotações usadas…"${dis}>${esc(cur?cur.notas||"":"")}</textarea>
-       <div class="pj-btns"><button type="button" class="btn solid" id="pj-salvar"${dis}>${cur?"Salvar alterações":"Salvar projeto"}</button>${cur?`<button type="button" class="btn" id="pj-novo"${dis}>Salvar como novo</button>`:""}<button type="button" class="btn" id="pj-exp-atual">Exportar .json</button>
+       <div class="pj-btns"><button type="button" class="btn solid" id="pj-salvar"${dis}>${cli?"Salvar no projeto do cliente":cur?"Salvar alterações":"Salvar projeto"}</button>${cur?`<button type="button" class="btn" id="pj-novo"${dis}>Salvar como novo</button>`:""}<button type="button" class="btn" id="pj-exp-atual">Exportar .json</button>
          ${cf&&cf.t==="blank"?`<button type="button" class="btn warn" id="pj-blank-ok">Confirmar: começar do zero</button><button type="button" class="btn" data-pj="cancel">Cancelar</button>`:`<button type="button" class="btn" id="pj-blank"${dis}>Novo projeto em branco</button>`}</div>
        ${logado()?`<p class="muted">Salva a fotografia de todas as abas: Local e viabilidade, Calculadora, AquaNictemeral (unidades e leituras), Biomassa, Arraçoamento e camarão por fases.</p>`:`<p class="muted">Entre com usuário e senha (item 1) para salvar projetos.</p>`}
      </div></section>`+
@@ -4286,10 +4294,11 @@ function bind(){
   q("#pj-blank-ok")&&q("#pj-blank-ok").addEventListener("click",novoEmBranco);
   const b=q("#pj-busca");b&&b.addEventListener("input",()=>{st.filtro=b.value;const p=b.selectionStart;draw();const nb=q("#pj-busca");nb.focus();nb.setSelectionRange(p,p)});
   const imp=q("#pj-imp");imp&&imp.addEventListener("change",()=>{const f=imp.files&&imp.files[0];if(f)importar(f);imp.value=""});
+  q("#pj-sair-cli")&&q("#pj-sair-cli").addEventListener("click",()=>{localStorage.removeItem(CUR);aviso("Você parou de editar o projeto do cliente. O que está nas abas agora não está salvo em nenhum projeto.");draw();chip()});
   q("#pj-todos")&&q("#pj-todos").addEventListener("click",carregarTodos);
   const bt=q("#pj-buscat");bt&&bt.addEventListener("input",()=>{st.buscaT=bt.value;const p=bt.selectionStart;draw();const nb=q("#pj-buscat");nb.focus();nb.setSelectionRange(p,p)});
   el.querySelectorAll("[data-pt]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.pt,u=x.dataset.u,id=x.dataset.id;
-    if(a==="cancel"){st.confT=null;draw()}else if(a==="open"){st.confT=u+"/"+id;draw()}else if(a==="open-ok"){st.confT=null;abrirCliente(u,id)}else if(a==="exp")exportarCliente(u,id)}));
+    if(a==="cancel"){st.confT=null;draw()}else if(a==="open"){st.confT=u+"/"+id;draw()}else if(a==="open-ok"){st.confT=null;abrirCliente(u,id)}else if(a==="edit"){st.confT="e:"+u+"/"+id;draw()}else if(a==="edit-ok"){st.confT=null;abrirCliente(u,id,true)}else if(a==="exp")exportarCliente(u,id)}));
   el.querySelectorAll("[data-pj]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.pj,id=x.dataset.id;
     if(a==="cancel"){st.confirm=null;draw()}
     else if(a==="open"){st.confirm={t:"open",id};draw()}
@@ -4301,7 +4310,7 @@ function bind(){
 /* indicador no topo: usuário e projeto aberto */
 function chip(){
   const b=document.getElementById("proj-chip");if(!b)return;
-  const c=atual(),nome=c&&c.modo===st.mode&&logado()?c.nome:"";
+  const c=atual(),nome=c&&c.modo===st.mode&&logado()&&(!c.uid||ehDono())?c.nome+(c.uid?" (cliente "+c.cliente+")":""):"";
   const u=logado()?(st.uname||"conta claude.ai"):"";
   b.textContent=(nome?nome:"Projeto não salvo")+(u?" · "+u:" · Entrar");
   if(st.mode==="nuvem"&&bloq())b.textContent+=" · acesso bloqueado";
