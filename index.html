@@ -216,6 +216,20 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 .bar .vl{font-family:var(--f-display);font-weight:600;font-size:16px;white-space:nowrap}
 .bar .vl small{font:11px var(--f-mono);color:var(--muted);margin-left:4px}
 .bar .fill:hover,.bar .fill:focus-visible,.stack div:hover,.stack div:focus-visible{filter:brightness(1.12);outline:none}
+.rp-gantt{display:grid;gap:6px;margin-top:4px}
+.rp-gl{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr);gap:10px;align-items:center;font-size:13px}
+.rp-gl>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-gt{position:relative;height:16px;background:var(--bg);border:1px solid var(--line);border-radius:4px}
+.rp-gt i{position:absolute;top:2px;bottom:2px;border-radius:3px}
+.rp-gt i:hover,.rp-gt i:focus-visible{filter:brightness(1.12);outline:none}
+.rp-gt b{position:absolute;top:-5px;bottom:-5px;width:2px;margin-left:-1px;background:var(--ink)}
+.rp-gax{display:flex;justify-content:space-between;gap:8px;font:11px var(--f-mono);color:var(--muted);padding-left:180px}
+.rp-now{color:var(--ink)}
+.rp-gst{margin:4px 0 0;font-size:13px}
+.rp-open{margin-left:10px;font:500 12px var(--f-body)}
+[data-rp-esp]{color:var(--accent)}
+.us-kpis.rp-k{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+@media (max-width:520px){.rp-gl{grid-template-columns:1fr;gap:2px}.rp-gax{padding-left:0}}
 .subhead{font:500 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 @media (max-width:520px){.bar{grid-template-columns:minmax(0,1fr)}}
 
@@ -2195,11 +2209,11 @@ function drawDash(){
   const el=document.getElementById("view-dash");
   if(!dashState||el.hidden) return;
   const {p,r,groups,nTanks,ok}=dashState;
-  if(!ok){el.innerHTML=`<section class="card wide"><div class="note">${dashState.errs.length?`O painel aparece quando os parâmetros e os tanques estiverem válidos (${dashState.errs.length} ${dashState.errs.length===1?"campo precisa":"campos precisam"} de correção).`:"O painel aparece quando houver pelo menos um tanque com volume."} <a href="#" data-goto="calc">Abrir a calculadora</a>.</div></section>`;return}
+  if(!ok){el.innerHTML=`<section class="card wide"><div class="note">${dashState.errs.length?`O painel aparece quando os parâmetros e os tanques estiverem válidos (${dashState.errs.length} ${dashState.errs.length===1?"campo precisa":"campos precisam"} de correção).`:"O painel aparece quando houver pelo menos um tanque com volume."} <a href="#" data-goto="calc">Abrir a calculadora</a>.</div></section>`+(window.reproDashHTML&&(!window.abaPermitida||abaPermitida("repro"))?reproDashHTML():"");return}
   const all=groups.filter(g=>g.vol>0).map(withColor);
   const gs=colored(groups.filter(g=>g.vol>0));
   const share=g=>p.perEsp&&r.BM>0?(g.bm||0)/r.BM:g.vol/p.V;
-  let h=(window.localDashHTML&&(!window.abaPermitida||abaPermitida("local"))?localDashHTML():"")+(window.shrimpDashHTML?shrimpDashHTML():"");
+  let h=(window.localDashHTML&&(!window.abaPermitida||abaPermitida("local"))?localDashHTML():"")+(window.shrimpDashHTML?shrimpDashHTML():"")+(window.reproDashHTML&&(!window.abaPermitida||abaPermitida("repro"))?reproDashHTML():"");
 
   // 1. Distribuição da água (parte do todo)
   const stack=gs.map(g=>`<div style="flex:${g.vol} 1 0;background:${g.color}" ${tipAttr(g.name,`${n(g.vol,0)} m³ · ${fmt(share(g)*100,1)} % da água`)}></div>`).join("");
@@ -4456,6 +4470,119 @@ function resultadoHTML(esp,f){
   </div></section>`;
 }
 
+/* ---- painel (dashboard) de cada espécie e resumo para a aba Painel ---- */
+const tt=(t,v)=>`data-tt="${E(t)}" data-tv="${E(v)}" tabindex="0"`;
+const media=a=>{const b=a.map(num).filter(isFinite);return b.length?b.reduce((s,x)=>s+x,0)/b.length:NaN};
+const soma=a=>a.map(num).filter(isFinite).reduce((s,x)=>s+x,0);
+const dur=ms=>{const h=ms/H;return h<48?N(h,h<10?1:0)+" h":N(h/24,0)+" dias"};
+const kp=xs=>`<div class="us-kpis rp-k">${xs.map(([v,t])=>`<div><b>${v}</b>${E(t)}</div>`).join("")}</div>`;
+const dc=(t,s,b,w)=>`<section class="card${w?" wide":""}"><div class="card-head"><h2>${t}<span>${s}</span></h2></div><div class="body">${b}</div></section>`;
+function barras(rows,fmtV,cor,max){
+  const mx=max||Math.max(1e-9,...rows.map(r=>isFinite(r[1])?r[1]:0));
+  return `<div class="bars">${rows.map(([l,v,c])=>`<div class="bar"><div class="lb"><span>${E(l)}</span></div><div class="tr"><div class="fill" style="width:calc((100% - 96px) * ${(isFinite(v)&&v>0?Math.min(1,v/mx):0).toFixed(4)});background:${c||cor||"var(--accent)"}" ${tt(l,fmtV(v))}></div><span class="vl">${fmtV(v)}</span></div></div>`).join("")}</div>`;
+}
+function pilha(parts,vazio){
+  const tot=parts.reduce((s,p)=>s+p[1],0);if(!tot)return `<p class="muted">${E(vazio||"Sem dados.")}</p>`;
+  const ps=parts.filter(p=>p[1]>0);
+  return `<div class="stack" role="img" aria-label="${E(ps.map(p=>p[0]+": "+p[1]).join(", "))}">${ps.map(p=>`<div style="flex:${p[1]} 1 0;background:${p[2]}" ${tt(p[0],I(p[1])+" · "+N(p[1]/tot*100,0)+" %")}></div>`).join("")}</div><div class="legend">${ps.map(p=>`<div class="li"><i class="sw" style="background:${p[2]}"></i><span class="nm">${E(p[0])}</span><span class="v">${I(p[1])}</span><span class="pc">${N(p[1]/tot*100,0)} %</span></div>`).join("")}</div>`;
+}
+function estado(fases,agora){
+  if(!fases.length)return "";
+  const t0=Math.min(...fases.map(f=>f[1])),t1=Math.max(...fases.map(f=>f[2]));
+  if(agora<t0)return `Começa em ${dur(t0-agora)} (${hora(t0)})`;
+  if(agora>t1)return "Ciclo concluído";
+  const at=fases.filter(f=>f[1]<=agora&&f[2]>=agora).map(f=>f[0]),px=fases.filter(f=>f[1]>agora).sort((a,b)=>a[1]-b[1])[0];
+  return `Agora: ${at.join(" + ")||"intervalo"}`+(px?` · próxima etapa (${px[0]}) em ${dur(px[1]-agora)}`:"");
+}
+function linha(fases,agora){
+  if(!fases.length)return "";
+  const t0=Math.min(...fases.map(f=>f[1])),t1=Math.max(...fases.map(f=>f[2])),sp=Math.max(1,t1-t0),x=t=>(t-t0)/sp*100;
+  const now=agora>=t0&&agora<=t1,curta=sp<5*D;
+  return `<div class="rp-gantt">${fases.map(f=>`<div class="rp-gl"><span>${E(f[0])}</span><div class="rp-gt"><i style="left:${x(f[1]).toFixed(2)}%;width:max(4px,${(x(f[2])-x(f[1])).toFixed(2)}%);background:${f[3]}" ${tt(f[0],(curta?hora(f[1]):dia(f[1]))+" → "+(curta?hora(f[2]):dia(f[2])))}></i>${now?`<b style="left:${x(agora).toFixed(2)}%" title="agora"></b>`:""}</div></div>`).join("")}</div>
+   <div class="rp-gax"><span>${curta?hora(t0):dia(t0)}</span>${now?`<span class="rp-now">▲ agora</span>`:""}<span>${curta?hora(t1):dia(t1)}</span></div>
+   <p class="rp-gst"><b>${E(estado(fases,agora))}</b></p>`;
+}
+/* parâmetros e etapas de cada espécie: {kpis, fases, graf:[[título, subtítulo, html]], prot} */
+function dadosEsp(esp){
+  const sp=SP[esp],f=F(esp),o={kpis:[],fases:[],graf:[],prot:""};
+  if(sp.tipo==="ind"){
+    const p=f.p,sus=esp==="lambari"&&f.ind==="sussel";if(sus)susCalc(f);const c=calcInd(esp,f),u=p.u,dois=p.p1<100;
+    o.prot=p.n||"";
+    o.kpis=[[I(c.nf+c.nm),`reprodutores (${I(c.nf)} F + ${I(c.nm)} M)`],[N(c.kgF+c.kgM,c.kgF+c.kgM<10?2:1)+" kg",`biomassa (${N(c.kgF,1)} kg de fêmeas)`],[qtd(u,c.tot),`de hormônio${sus?"":" com "+E(f.margem)+"% de sobra"}`],[N(c.h0,0)+"–"+N(c.h1,0)+" h",`até a desova a ${N(c.T,1)} °C`],[N(c.e0,0)+"–"+N(c.e1,0)+" h",`desova → eclosão`],...(u==="mg"&&!sus?[[N(c.glan,1),`hipófises de ${E(f.mgg)} mg`]]:[])];
+    o.fases=[...(dois?[["1ª → 2ª dose",c.t0,c.tLast,"var(--c7)"]]:[["Dose única",c.t0,c.t0+H/2,"var(--c7)"]]),["Latência",c.tLast,c.des0,"var(--c4)"],["Janela de desova",c.des0,c.des1,"var(--c2)"],["Incubação",c.des0,c.des1+c.e1*H,"var(--c1)"],["Eclosão",c.des0+c.e0*H,c.des1+c.e1*H,"var(--c3)"]];
+    o.graf.push(["Hormônio por aplicação",`${E(p.n)} · total do lote`,barras([...(dois?[["1ª dose · fêmeas",c.tot1,"var(--c7)"],["2ª dose · fêmeas",c.tot2,"var(--c2)"]]:[["Dose única · fêmeas",c.tot1,"var(--c2)"]]),["Machos",c.totM,"var(--c1)"]],v=>qtd(u,v))]);
+    o.graf.push(["Doses do protocolo",`${UN[u]} · fêmeas e machos`,barras([["Dose total · fêmeas",num(p.f),"var(--c2)"],...(dois?[["1ª dose ("+N(num(p.p1),0)+"%)",c.d1,"var(--c7)"],["2ª dose",c.d2,"var(--c4)"]]:[]),["Dose · machos",c.dm,"var(--c1)"]],v=>N(v,v<1?2:1)+" "+UN[u])]);
+  }else if(sp.tipo==="tilapia"){
+    const nf=num(f.nf),rel=num(f.rel),nm=Math.ceil(nf/rel),inter=num(f.inter),ciclo=num(f.ciclo),ovC=nf*inter/ciclo*num(f.ovos),t0=new Date(f.dIni+"T08:00").getTime();
+    const pl=num(f.pl),pi=num(f.pi),pfim=num(f.pfim),dias=num(f.dias),taxa=num(f.taxa)/100,sob=num(f.sob)/100,g=Math.log(pfim/pi)/dias;let rac=0;const sem=[];
+    for(let d=0;d<dias;d++){const n=pl*(1-(1-sob)*d/dias),w=pi*Math.exp(g*d),r=n*w*taxa/1000;rac+=r;if(d%7===0)sem.push([d,r])}
+    const kgR=rac*1.1,mt=kgR*num(f.dose);o.prot=`MT ${f.dose} mg/kg · ${f.dias} dias`;
+    o.kpis=[[I(nf+nm),`reprodutores (${I(nf)} F + ${I(nm)} M)`],[I(ovC),"ovos por coleta"],[I(ovC*30/inter),"ovos por mês"],[N(kgR,2)+" kg","ração com MT"],[N(mt,0)+" mg","de 17α-MT"],[I(pl*sob),"alevinos revertidos"]];
+    o.fases=[["Coletas de ovos (6)",t0,t0+5*inter*D,"var(--c4)"],["Incubação (1ª coleta)",t0,t0+5*D,"var(--c1)"],["Reversão sexual",t0,t0+dias*D,"var(--c7)"]];
+    o.graf.push(["Ração com hormônio por dia","1º dia de cada semana da reversão",barras(sem.map(([d,r])=>["Dia "+(d+1),r*1000,"var(--c7)"]),v=>N(v,0)+" g")]);
+    o.graf.push(["Produção de ovos","estimativa por coleta e por mês",barras([["Por coleta",ovC,"var(--c4)"],["Por mês",ovC*30/inter,"var(--c2)"],["Alevinos revertidos (lote)",pl*sob,"var(--c3)"]],v=>I(v))]);
+  }else if(sp.tipo==="pirarucu"){
+    const cas=num(f.casais),ind=num(f.m2ind),vv=num(f.viveiro),y=new Date().getFullYear(),ini=new Date(y,0,1).getTime(),fim=new Date(y,5,1).getTime(),ok=vv>=2*ind;
+    const a0=Date.now()>fim?new Date(y+1,0,1).getTime():ini,a1=Date.now()>fim?new Date(y+1,5,1).getTime():fim;
+    o.prot=`${f.casais} casais · reprodução natural`;
+    o.kpis=[[I(cas*2),`reprodutores sexados (${I(cas)} F + ${I(cas)} M)`],[N(2*ind,0)+" m²","mínimo por casal"],[N(cas*vv/10000,2)+" ha","de viveiros"],[ok?"OK":"pequeno",`viveiro de ${N(vv,0)} m²`]];
+    o.fases=[["Época de reprodução",a0,a1,"var(--c2)"],["Desova e cuidado parental",a0+30*D,a1-15*D,"var(--c4)"],["Coleta de alevinos",a0+45*D,a1,"var(--c3)"]];
+    o.graf.push(["Área dos viveiros","necessária × disponível por casal",barras([["Mínimo por casal",2*ind,"var(--c4)"],["Viveiro de cada casal",vv,ok?"var(--c3)":"var(--c8)"]],v=>N(v,0)+" m²")]);
+  }else{
+    const nf=num(f.nf),nm=num(f.nm),dens=num(f.dens),abl=new Date(f.abl+"T08:00").getTime(),desN=nf*num(f.desN)/100,nau=desN*num(f.ovos)*num(f.eclP)/100;
+    const fs=[["Maturação (pós-ablação)",0,7,"var(--c7)"],["Desova e eclosão",7,8,"var(--c2)"],["Náuplio",8,10,"var(--c4)"],["Zoea",10,14,"var(--c1)"],["Mysis",14,17,"var(--c5)"],["Pós-larva até PL10–12",17,29,"var(--c3)"]];
+    o.prot=`${f.nf} fêmeas · ${f.dens}/m²`;
+    o.kpis=[[I(nf+nm),`reprodutores (${I(nf)} F + ${I(nm)} M)`],[N((nf+nm)/dens,1)+" m²","de tanque de maturação"],[N(desN,0),"desovas por noite"],[I(nau),"náuplios por noite"],[I(nau*7),"náuplios por semana"],[I(nau*num(f.sobPL)/100),"PL10–12 por noite de desova"]];
+    o.fases=fs.map(([l,a,b,c])=>[l,abl+a*D,abl+b*D,c]);
+    o.graf.push(["Dieta de maturação","kg por refeição",barras([["07:00 · poliquetas",num(f.racao)*.15,"var(--c2)"],["11:00 · lula",num(f.racao)*.10,"var(--c1)"],["16:00 · ostra/mexilhão",num(f.racao)*.10,"var(--c4)"],["22:00 · poliquetas",num(f.racao)*.60,"var(--c2)"],["02:00 · ração semiúmida",num(f.racao)*.05,"var(--c3)"]],v=>N(v,2)+" kg")]);
+    o.graf.push(["Produção por noite","da desova à pós-larva",barras([["Ovos",desN*num(f.ovos),"var(--c4)"],["Náuplios",nau,"var(--c1)"],["PL10–12",nau*num(f.sobPL)/100,"var(--c3)"]],v=>I(v))]);
+  }
+  return o;
+}
+function lotesDe(esp){const ls=S.lotes.filter(l=>l.esp===esp).slice().sort((a,b)=>(a.data||a.em)-(b.data||b.em));
+  return {ls,n:ls.length,fert:media(ls.map(l=>l.r.fert)),ecl:media(ls.map(l=>l.r.ecl)),obt:soma(ls.map(l=>l.r.larvas))}}
+const plDe=esp=>{const p=(S.pl&&S.pl[esp])||{an:[],par:[]};return {an:p.an||[],par:p.par||[]}};
+function dashEsp(esp){
+  const sp=SP[esp],d=dadosEsp(esp),L=lotesDe(esp),P=plDe(esp),at=P.an.filter(x=>x.st!=="desc"),agora=Date.now();
+  const ult=L.ls.slice(-10),nomeL=l=>l.nome+" · "+dia(l.data||l.em);
+  let h=dc(`Painel · ${E(sp.nome)}`,`${E(d.prot)} · parâmetros atuais do protocolo`,kp(d.kpis)+linha(d.fases,agora),true);
+  d.graf.forEach(([t,s,b])=>h+=dc(t,s,b));
+  h+=dc("Resultados dos lotes",L.n?`${I(L.n)} lote${L.n===1?"":"s"} registrado${L.n===1?"":"s"}${L.n>10?" · últimos 10":""}`:"Registre os lotes no fim da página",
+    L.n?kp([[I(L.n),"lotes"],[isFinite(L.fert)?N(L.fert,0)+" %":"—","fertilização média"],[isFinite(L.ecl)?N(L.ecl,0)+" %":"—","eclosão média"],[L.obt?I(L.obt):"—","larvas/alevinos/PL obtidos"]])+
+     `<div class="subhead">Fertilização (%)</div>${barras(ult.map(l=>[nomeL(l),num(l.r.fert),"var(--c1)"]),v=>isFinite(v)?N(v,0)+" %":"—","",100)}
+      <div class="subhead">Eclosão (%)</div>${barras(ult.map(l=>[nomeL(l),num(l.r.ecl),"var(--c3)"]),v=>isFinite(v)?N(v,0)+" %":"—","",100)}
+      ${ult.some(l=>num(l.r.larvas)>0)?`<div class="subhead">Obtidos (nº)</div>${barras(ult.map(l=>[nomeL(l),num(l.r.larvas),"var(--c4)"]),v=>isFinite(v)?I(v):"—")}`:""}`
+     :`<p class="muted">Quando você registrar lotes (fertilização, eclosão e obtidos), os gráficos aparecem aqui.</p>`,true);
+  const sx=k=>at.filter(x=>(x.sexo||"?")===k).length,lv=k=>at.filter(x=>(x.laudo||"—")===k).length,pm=s=>media(at.filter(x=>x.sexo===s).map(x=>x.peso));
+  h+=dc("Plantel e chipagem",at.length?`${I(at.length)} reprodutor${at.length===1?"":"es"} ativo${at.length===1?"":"s"} · ${I(at.filter(x=>x.tubo).length)} com tubo · ${I(P.par.length)} par${P.par.length===1?"":"es"} aparentado${P.par.length===1?"":"s"}`:"Nenhum reprodutor cadastrado",
+    at.length?`<div class="subhead">Sexo</div>${pilha([["Fêmeas",sx("F"),"var(--c5)"],["Machos",sx("M"),"var(--c1)"],["Não sexados",sx("?"),"var(--c-other)"]])}
+     <div class="subhead">Laudo de pureza</div>${pilha([["Puros",lv("Puro"),"var(--c3)"],["Híbridos",lv("Híbrido"),"var(--c8)"],["Sem laudo",lv("—"),"var(--c-other)"]])}
+     ${isFinite(pm("F"))||isFinite(pm("M"))?`<div class="subhead">Peso médio</div>${barras([["Fêmeas",pm("F"),"var(--c5)"],["Machos",pm("M"),"var(--c1)"]],v=>isFinite(v)?N(v,0)+" g":"—")}`:""}`
+     :`<p class="muted">Cadastre os reprodutores no módulo Plantel e chipagem para ver a composição do plantel.</p>`);
+  return h;
+}
+/* resumo para a aba Painel: todas as espécies em uso */
+function espAtivas(){return ORDEM.filter(k=>(S.f&&S.f[k])||S.lotes.some(l=>l.esp===k)||plDe(k).an.length)}
+window.reproDashHTML=function(){
+  try{const s=rd();if(s&&s.f)Object.assign(S,{...s,f:s.f,lotes:s.lotes||[],meus:s.meus||{}})}catch(e){}
+  const ks=espAtivas();
+  if(!ks.length)return `<section class="card wide"><div class="card-head"><h2>Reprodução<span>Nenhuma espécie configurada</span></h2><a href="#" class="btn" data-goto="repro" style="margin-left:auto;text-decoration:none">Abrir Reprodução</a></div><div class="note">Abra a aba Reprodução e escolha uma espécie para ver aqui os parâmetros, o cronograma, os lotes e o plantel.</div></section>`;
+  const agora=Date.now(),info=ks.map(k=>{const d=dadosEsp(k),L=lotesDe(k),at=plDe(k).an.filter(x=>x.st!=="desc");return {k,d,L,at}});
+  let h=`<section class="card wide"><div class="card-head"><h2>Reprodução · todas as espécies<span>${ks.length} espécie${ks.length===1?"":"s"} em uso · toque no nome para abrir</span></h2><a href="#" class="btn" data-goto="repro" style="margin-left:auto;text-decoration:none">Abrir Reprodução</a></div><div class="body">
+   ${kp([[I(soma(info.map(i=>i.L.n))),"lotes registrados"],[(x=>isFinite(x)?N(x,0)+" %":"—")(media(info.flatMap(i=>i.L.ls.map(l=>l.r.fert)))),"fertilização média"],[(x=>isFinite(x)?N(x,0)+" %":"—")(media(info.flatMap(i=>i.L.ls.map(l=>l.r.ecl)))),"eclosão média"],[I(soma(info.map(i=>i.at.length))),"reprodutores no plantel"]])}
+   <div class="scroll"><table class="pj-tab"><thead><tr><th>Espécie</th><th>Protocolo</th><th>Situação</th><th class="num">Lotes</th><th class="num">Fert.</th><th class="num">Eclosão</th><th class="num">Obtidos</th><th class="num">Plantel</th></tr></thead><tbody>
+   ${info.map(({k,d,L,at})=>`<tr><td><a href="#" data-rp-esp="${k}"><b>${E(SP[k].nome)}</b></a></td><td>${E(d.prot)}</td><td>${E(estado(d.fases,agora))}</td><td class="num">${I(L.n)}</td><td class="num">${isFinite(L.fert)?N(L.fert,0)+"%":"—"}</td><td class="num">${isFinite(L.ecl)?N(L.ecl,0)+"%":"—"}</td><td class="num">${L.obt?I(L.obt):"—"}</td><td class="num">${I(at.length)}</td></tr>`).join("")}</tbody></table></div>
+   ${info.some(i=>i.L.n)?`<div class="subhead">Fertilização média por espécie (%)</div>${barras(info.filter(i=>i.L.n).map(i=>[SP[i.k].nome,i.L.fert,"var(--c1)"]),v=>isFinite(v)?N(v,0)+" %":"—","",100)}<div class="subhead">Eclosão média por espécie (%)</div>${barras(info.filter(i=>i.L.n).map(i=>[SP[i.k].nome,i.L.ecl,"var(--c3)"]),v=>isFinite(v)?N(v,0)+" %":"—","",100)}`:""}
+  </div></section>`;
+  info.forEach(({k,d})=>h+=dc(`${E(SP[k].nome)}<a href="#" class="rp-open" data-rp-esp="${k}">abrir</a>`,`${E(d.prot)}`,kp(d.kpis)+linha(d.fases,agora),true));
+  return h;
+};
+document.addEventListener("click",e=>{const a=e.target.closest("[data-rp-esp]");if(!a)return;e.preventDefault();S.esp=a.dataset.rpEsp;S.cur=null;salvar();if(window.setView)setView("repro");else{draw()}window.scrollTo({top:0})});
+el.addEventListener("pointermove",e=>{const t=e.target.closest("[data-tt]");if(t&&window.showTip)showTip(e.clientX,e.clientY,t.dataset.tt,t.dataset.tv);else if(window.hideTip)hideTip()});
+el.addEventListener("pointerleave",()=>{window.hideTip&&hideTip()});
+el.addEventListener("focusin",e=>{const t=e.target.closest("[data-tt]");if(t&&window.showTip){const b=t.getBoundingClientRect();showTip(b.left+b.width/2,b.top,t.dataset.tt,t.dataset.tv)}});
+el.addEventListener("focusout",e=>{if(e.target.closest("[data-tt]")&&window.hideTip)hideTip()});
+
 /* ---- tela ---- */
 let msg="";
 function draw(){
@@ -4464,7 +4591,7 @@ function draw(){
   const body=(sp.tipo==="ind"?htmlInd(esp):sp.tipo==="tilapia"?htmlTil():sp.tipo==="pirarucu"?htmlPir():htmlCam())+plantelHTML(esp);
   el.innerHTML=`<section class="card wide"><div class="card-head"><h2>Reprodução<span>Protocolos de indução, desova, incubação, reversão sexual e larvicultura</span></h2></div>
    <div class="pj-tools chips rp-esp" role="tablist" aria-label="Espécie">${ORDEM.map(k=>`<button type="button" class="chip${k===esp?" on":""}" data-esp="${k}" aria-pressed="${k===esp}">${E(SP[k].nome)}</button>`).join("")}</div>
-   <div class="pj-msg" id="rp-msg" role="status" aria-live="polite">${E(msg)}</div></section>`+genHTML(esp,F(esp))+body+
+   <div class="pj-msg" id="rp-msg" role="status" aria-live="polite">${E(msg)}</div></section>`+dashEsp(esp)+genHTML(esp,F(esp))+body+
    `<section class="card wide"><div class="card-foot">Os valores de referência vêm da literatura técnica e servem de ponto de partida: ajuste às condições do seu laboratório e à orientação do responsável técnico. Hormônios (EBHC, hCG, Ovopel®, Ovaprim®, buserelina, 17α-metiltestosterona) exigem receita e seguem as normas do MAPA. Fontes: Embrapa (Boas práticas de produção de alevinos de tambaqui, 2021; Comunicado Técnico 271, 2023); Brazilian Journal of Biology (lambari, Ovopel e buserelina); Pesquisa Agropecuária Brasileira (curimatã-pacu); FAO (Penaeus vannamei; hCG em bagres); Kannan et al. (maturação de vannamei); J. Aquat. Res. Sci. (Ovaprim em Pangasius); GIA (Guia de indução hormonal de peixes reofílicos); Embrapa Recursos Genéticos e Biotecnologia (Plataforma AquaPlus: TilaPlus, TambaPlus, VannaPlus e ArapaimaPlus); Embrapa (Passo a passo para envio de material genético, 2022; formação de plantel e manejo de reprodutores de pirarucu); curso Aprenda a reproduzir lambaris (Fábio Sússel, APTA/Abracoa).</div></section>`;
   bind();
 }
