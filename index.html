@@ -230,6 +230,15 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 [data-rp-esp]{color:var(--accent)}
 .us-kpis.rp-k{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
 @media (max-width:520px){.rp-gl{grid-template-columns:1fr;gap:2px}.rp-gax{padding-left:0}}
+.tp-map{position:relative;height:min(68vh,560px);border:1px solid var(--line);border-radius:10px;background:var(--bg);overflow:hidden;touch-action:none}
+.tp-map svg{width:100%;height:100%;display:block;cursor:grab}
+.tp-map svg circle:hover{stroke:var(--ink);stroke-width:1px}
+.tp-zoom{position:absolute;right:8px;top:8px;display:flex;gap:4px}.tp-zoom .btn{padding:4px 10px;background:var(--surface)}
+.tp-leg{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:12px var(--f-mono);margin:8px 0}.tp-leg i{display:inline-block;width:160px;height:10px;border-radius:4px}
+.tp-chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}.tp-chk small{color:var(--muted);font:11px var(--f-mono)}
+.rp-grid .tp-chk{align-self:end;padding-bottom:10px}
+.tp-cods{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0 4px}
+table.tp-prev td{font:11px var(--f-mono);padding:3px 6px}
 .subhead{font:500 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
 @media (max-width:520px){.bar{grid-template-columns:minmax(0,1fr)}}
 
@@ -688,6 +697,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
     <button type="button" class="tab" role="tab" id="tab-racao" aria-controls="view-racao" data-view="racao">Arraçoamento</button>
     <button type="button" class="tab" role="tab" id="tab-dash" aria-controls="view-dash" data-view="dash">Painel</button>
     <button type="button" class="tab" role="tab" id="tab-repro" aria-controls="view-repro" data-view="repro">Reprodução</button>
+    <button type="button" class="tab" role="tab" id="tab-topo" aria-controls="view-topo" data-view="topo">Levantamentos e projetos</button>
     <button type="button" class="tab" role="tab" id="tab-proj" aria-controls="view-proj" data-view="proj">Projetos</button>
     <button type="button" class="tab" role="tab" id="tab-users" aria-controls="view-users" data-view="users">Usuários e acesso</button>
     <span class="sp"></span>
@@ -698,6 +708,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   <div class="dash" id="view-dash" role="tabpanel" aria-labelledby="tab-dash"></div>
   <div class="dash" id="view-local" role="tabpanel" aria-labelledby="tab-local" hidden></div>
   <div class="dash" id="view-repro" role="tabpanel" aria-labelledby="tab-repro" hidden></div>
+  <div class="dash" id="view-topo" role="tabpanel" aria-labelledby="tab-topo" hidden></div>
   <div class="dash" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden></div>
   <div class="dash" id="view-users" role="tabpanel" aria-labelledby="tab-users" hidden></div>
 
@@ -2812,7 +2823,7 @@ function drawPlan(){
 }
 
 /* ---------- Abas ---------- */
-const VIEWS=["local","calc","aqua","bio","racao","dash","repro","proj","users"];
+const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","proj","users"];
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
@@ -2823,6 +2834,7 @@ function setView(v){
   feedEl.hidden=v!=="racao";if(v==="racao")drawFeedDash();
   document.getElementById("view-local").hidden=v!=="local";if(v==="local"&&window.drawLocal)drawLocal();
   document.getElementById("view-repro").hidden=v!=="repro";if(v==="repro"&&window.drawRepro)drawRepro();
+  document.getElementById("view-topo").hidden=v!=="topo";if(v==="topo"&&window.drawTopo)drawTopo();
   document.getElementById("view-proj").hidden=v!=="proj";if(v==="proj"&&window.drawProj)drawProj();
   document.getElementById("view-users").hidden=v!=="users";if(v==="users"&&window.drawUsers)drawUsers();
 }
@@ -4631,6 +4643,309 @@ window.drawRepro=()=>{try{const s=rd();if(s&&s.f){Object.assign(S,{...s,f:s.f,lo
 
 </script>
 <script>
+/* ---------- Levantamento: dados brutos de RTK, drone e outros equipamentos, com pasta própria por projeto ---------- */
+(function(){
+const el=document.getElementById("view-topo");if(!el)return;
+const TK="ras-multitanques-v1-topo";          // metadados e pontos entram na fotografia dos Projetos
+const rd=()=>{try{return JSON.parse(localStorage.getItem(TK))||{}}catch(e){return {}}};
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const N=(v,d=1)=>isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const I=v=>isFinite(v)?Math.round(v).toLocaleString("pt-BR"):"—";
+const numBR=s=>{if(s==null)return NaN;s=String(s).trim();if(!s||!/^[-+]?[\d.,]+([eE][-+]?\d+)?$/.test(s))return NaN;
+  if(s.includes(",")&&s.includes("."))s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,"");else s=s.replace(",",".");return parseFloat(s)};
+const tam=s=>s<1024?s+" B":s<1048576?N(s/1024,0)+" KB":s<1073741824?N(s/1048576,1)+" MB":N(s/1073741824,2)+" GB";
+const dataBR=t=>t?new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"—";
+const slug=s=>String(s||"projeto").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w-]+/g,"_").replace(/^_+|_+$/g,"").slice(0,40)||"projeto";
+const S=rd();S.proj=S.proj||[];
+let msg="",busy=false,raiz=null,raizOk=false,conf=null,cache=null,vb=null;
+const salvar=()=>{try{localStorage.setItem(TK,JSON.stringify(S));return true}catch(e){aviso("O navegador ficou sem espaço para guardar tantos pontos. Desmarque arquivos de pontos que não vai usar.");return false}};
+const P=()=>S.proj.find(p=>p.id===S.cur)||null;
+
+/* ---- armazenamento dos arquivos: pasta no computador (Chrome/Edge) ou banco do navegador ---- */
+const idb=(()=>{let o;const open=()=>o=o||new Promise((res,rej)=>{const r=indexedDB.open("greenfish-levantamento",1);r.onupgradeneeded=()=>{r.result.createObjectStore("arq");r.result.createObjectStore("cfg")};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+  const tx=async(st,mode,fn)=>{const db=await open();return new Promise((res,rej)=>{const t=db.transaction(st,mode),q=fn(t.objectStore(st));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error);t.onabort=()=>rej(t.error)})};
+  return {get:(s,k)=>tx(s,"readonly",x=>x.get(k)),put:(s,k,v)=>tx(s,"readwrite",x=>x.put(v,k)),del:(s,k)=>tx(s,"readwrite",x=>x.delete(k)),keys:s=>tx(s,"readonly",x=>x.getAllKeys())}})();
+const temFS=typeof window.showDirectoryPicker==="function";
+async function carregarRaiz(){if(!temFS)return;try{raiz=await idb.get("cfg","raiz");raizOk=!!raiz&&(await raiz.queryPermission({mode:"readwrite"}))==="granted"}catch(e){raiz=null;raizOk=false}}
+async function pastaProj(p,sub,criar=true){let d=await raiz.getDirectoryHandle(p.pasta,{create:criar});if(sub)for(const s of sub.split("/").filter(Boolean))d=await d.getDirectoryHandle(s,{create:criar});return d}
+const modoFS=p=>p.arm==="fs"&&raiz&&raizOk;
+async function gravar(p,caminho,blob){
+  if(p.arm==="fs"){if(!raiz||!raizOk)throw new Error("A pasta do computador não está conectada. Clique em Reconectar pasta.");
+    const partes=caminho.split("/"),nome=partes.pop(),d=await pastaProj(p,partes.join("/"));const fh=await d.getFileHandle(nome,{create:true});const w=await fh.createWritable();await w.write(blob);await w.close()}
+  else await idb.put("arq",p.id+"/"+caminho,blob)}
+async function ler(p,caminho){
+  if(p.arm==="fs"){if(!raiz||!raizOk)throw new Error("Reconecte a pasta do computador para abrir os arquivos.");const partes=caminho.split("/"),nome=partes.pop(),d=await pastaProj(p,partes.join("/"),false);return (await d.getFileHandle(nome)).getFile()}
+  const b=await idb.get("arq",p.id+"/"+caminho);if(!b)throw new Error("Arquivo não encontrado neste navegador.");return b}
+async function apagar(p,caminho){
+  if(p.arm==="fs"){const partes=caminho.split("/"),nome=partes.pop(),d=await pastaProj(p,partes.join("/"),false);await d.removeEntry(nome)}else await idb.del("arq",p.id+"/"+caminho)}
+
+/* ---- tipos de arquivo ---- */
+const TIPOS=[[/\.(txt|csv|xyz|pts|prn)$/i,"pontos","Pontos (TXT/CSV)","RTK"],[/\.(\d\d[onglp]|obs|rnx|nav)$/i,"rinex","RINEX","RTK"],[/\.(hcn|gns|t0[1-4]|sbf|ubx|cnb|rtcm3?|ubx|dat|raw|bin)$/i,"bruto","Bruto GNSS","RTK"],
+  [/\.(dxf|dwg)$/i,"cad","Desenho CAD","RTK"],[/\.(kml|kmz|shp|shx|dbf|prj|geojson)$/i,"sig","SIG / KML","RTK"],[/\.(jpe?g|dng|png)$/i,"foto","Foto","Drone"],[/\.(tiff?|tfw)$/i,"tif","Imagem / MDT (GeoTIFF)","Drone"],
+  [/\.(las|laz|ply|e57)$/i,"nuvem","Nuvem de pontos","Drone"],[/\.(mrk|srt|log)$/i,"log","Log de voo / PPK","Drone"],[/\.(pdf|docx?|xlsx?)$/i,"doc","Documento","Outros"]];
+const tipoDe=n=>{for(const [re,k,t,s] of TIPOS)if(re.test(n))return {k,t,sub:s};return {k:"outro",t:"Outro",sub:"Outros"}};
+
+/* ---- leitura de pontos (TXT/CSV de coletora, Geoffice, drone) ---- */
+function ll2utm(lat,lon){const a=6378137,f=1/298.257222101,k0=0.9996,e2=f*(2-f),ep2=e2/(1-e2),z=Math.floor((lon+180)/6)+1,l0=((z-1)*6-177)*Math.PI/180,p=lat*Math.PI/180,l=lon*Math.PI/180;
+  const s=Math.sin(p),c=Math.cos(p),t=Math.tan(p),Nn=a/Math.sqrt(1-e2*s*s),T=t*t,C=ep2*c*c,A=c*(l-l0);
+  const M=a*((1-e2/4-3*e2*e2/64-5*e2**3/256)*p-(3*e2/8+3*e2*e2/32+45*e2**3/1024)*Math.sin(2*p)+(15*e2*e2/256+45*e2**3/1024)*Math.sin(4*p)-(35*e2**3/3072)*Math.sin(6*p));
+  const x=k0*Nn*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*ep2)*A**5/120)+5e5;let y=k0*(M+Nn*t*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*ep2)*A**6/720));if(lat<0)y+=1e7;return [x,y,z,lat<0?"S":"N"]}
+function linhas(txt){
+  const ls=txt.replace(/^﻿/,"").split(/\r?\n/).map(s=>s.trim()).filter(s=>s&&!/^(#|\/\/)/.test(s));
+  const amostra=ls.slice(0,40),cand=["\t",";",","];let dl=null,best=0;
+  for(const d of cand){const k=amostra.map(s=>s.split(d).length);const ok=k.filter(x=>x>=3&&x===k[k.length-1]).length;if(ok>best){best=ok;dl=d}}
+  if(best<amostra.length*0.6)dl=null;
+  return {dl,rows:ls.map(s=>(dl?s.split(dl):s.split(/\s+/)).map(c=>c.trim().replace(/^"|"$/g,"")))}}
+function detectar(rows){
+  const head=rows[0]&&rows[0].some(c=>/[a-z]/i.test(c))&&rows[0].filter(c=>isFinite(numBR(c))).length<2?rows[0]:null,dados=head?rows.slice(1):rows;
+  const nc=Math.max(0,...dados.slice(0,200).map(r=>r.length)),st=[];
+  for(let j=0;j<nc;j++){const v=dados.slice(0,500).map(r=>numBR(r[j])).filter(isFinite);st[j]={n:v.length,min:Math.min(...v),max:Math.max(...v),int:v.every(x=>Number.isInteger(x))}}
+  const tot=Math.min(dados.length,500),num=j=>st[j]&&st[j].n>=tot*0.8,m={nome:-1,cod:-1,N:-1,E:-1,Z:-1,lat:-1,lon:-1};
+  if(head)head.forEach((h,j)=>{const x=String(h).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\(.*?\)/g,"").replace(/[^a-z]/g,"");
+    if(m.N<0&&["n","norte","north","northing","y","coordn","coordenadan"].includes(x))m.N=j;else if(m.E<0&&["e","este","leste","east","easting","x","coorde","coordenadae"].includes(x))m.E=j;
+    else if(m.Z<0&&["z","cota","h","alt","altitude","elev","elevacao","elevation","altura","cotam"].includes(x))m.Z=j;else if(m.lat<0&&/^lat/.test(x))m.lat=j;else if(m.lon<0&&/^(lon|lng)/.test(x))m.lon=j;
+    else if(m.nome<0&&["nome","ponto","pt","pto","id","name","point","numero","n0"].includes(x))m.nome=j;else if(m.cod<0&&/(cod|desc|obs|code)/.test(x))m.cod=j});
+  const usados=()=>Object.values(m).filter(x=>x>=0);
+  if(m.N<0&&m.E<0&&m.lat<0){
+    for(let j=0;j<nc;j++)if(num(j)&&!usados().includes(j)){const s=st[j];if(m.N<0&&s.min>=1e6&&s.max<=1e7)m.N=j;else if(m.E<0&&s.min>=1.6e5&&s.max<=8.4e5)m.E=j}
+    if(m.N<0&&m.E>=0){for(let j=0;j<nc;j++)if(j!==m.E&&num(j)&&!usados().includes(j)&&st[j].min>=0&&st[j].max<1e6&&st[j].max>1000){m.N=j;break}}
+    if(m.N<0||m.E<0){m.N=m.E=-1;for(let j=0;j<nc;j++)if(num(j)&&!st[j].int){const s=st[j];if(m.lat<0&&s.min>=-60&&s.max<=15&&s.max-s.min<5)m.lat=j;else if(m.lon<0&&s.min>=-80&&s.max<=-25&&s.max-s.min<5)m.lon=j}}}
+  if(m.Z<0){const pos=Math.max(m.N,m.E,m.lat,m.lon);for(const j of [pos+1,...Array.from({length:nc},(_,i)=>i)])if(j<nc&&num(j)&&!usados().includes(j)&&Math.abs(st[j].max)<9000&&!(st[j].int&&j===0)){m.Z=j;break}}
+  if(m.nome<0){for(let j=0;j<nc;j++)if(!usados().includes(j)){m.nome=j;break}}
+  if(m.cod<0){for(let j=0;j<nc;j++)if(!usados().includes(j)&&!num(j)){m.cod=j;break}}
+  return {m,head:!!head,nc}}
+function extrair(rows,m,head){
+  const pts=[],ds=head?rows.slice(1):rows;let ruins=0,zona=null;
+  for(const r of ds){let x,y;
+    if(m.lat>=0&&m.lon>=0){const la=numBR(r[m.lat]),lo=numBR(r[m.lon]);if(!isFinite(la)||!isFinite(lo)){ruins++;continue}const u=ll2utm(la,lo);x=u[0];y=u[1];zona=zona||u[2]+u[3]}
+    else{x=numBR(r[m.E]);y=numBR(r[m.N])}
+    const z=m.Z>=0?numBR(r[m.Z]):NaN;if(!isFinite(x)||!isFinite(y)){ruins++;continue}
+    pts.push([String(m.nome>=0?r[m.nome]||"":pts.length+1).slice(0,24),String(m.cod>=0?r[m.cod]||"":"").slice(0,30),Math.round(x*1000)/1000,Math.round(y*1000)/1000,isFinite(z)?Math.round(z*1000)/1000:null])}
+  return {pts,ruins,zona}}
+
+/* ---- análise: TIN (Delaunay), curvas de nível e volumes ---- */
+function delaunay(X,Y){
+  const n=X.length;if(n<3)return [];
+  let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;for(let i=0;i<n;i++){x0=Math.min(x0,X[i]);x1=Math.max(x1,X[i]);y0=Math.min(y0,Y[i]);y1=Math.max(y1,Y[i])}
+  const d=Math.max(x1-x0,y1-y0,1)*30,mx=(x0+x1)/2,my=(y0+y1)/2,px=[...X,mx-d,mx,mx+d],py=[...Y,my-d,my+d,my-d];
+  const mk=(a,b,c)=>{const ax=px[a],ay=py[a],bx=px[b],by=py[b],cx=px[c],cy=py[c],D=2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
+    if(Math.abs(D)<1e-12)return null;const a2=ax*ax+ay*ay,b2=bx*bx+by*by,c2=cx*cx+cy*cy,ux=(a2*(by-cy)+b2*(cy-ay)+c2*(ay-by))/D,uy=(a2*(cx-bx)+b2*(ax-cx)+c2*(bx-ax))/D;return [a,b,c,ux,uy,(ax-ux)**2+(ay-uy)**2]};
+  let T=[mk(n,n+1,n+2)];const ord=[...Array(n).keys()].sort((a,b)=>X[a]-X[b]);
+  for(const i of ord){const x=px[i],y=py[i],ok=[],ed=new Map();
+    for(const t of T){const dx=x-t[3];if(dx>0&&dx*dx>t[5]){ok.push(t);continue}if(dx*dx+(y-t[4])**2<t[5]){for(const [a,b] of [[t[0],t[1]],[t[1],t[2]],[t[2],t[0]]]){const k=a<b?a+"_"+b:b+"_"+a;ed.set(k,ed.has(k)?null:[a,b])}}else ok.push(t)}
+    T=ok;for(const e of ed.values())if(e){const t=mk(e[0],e[1],i);if(t)T.push(t)}}
+  return T.filter(t=>t[0]<n&&t[1]<n&&t[2]<n).map(t=>[t[0],t[1],t[2]])}
+function analisar(p){
+  const cfg=p.cfg,excl=new Set(cfg.excl||[]),cmin=cfg.cmin===""||cfg.cmin==null?NaN:+cfg.cmin,raw=[];
+  for(const f of p.arquivos)if(f.k==="pontos"&&f.usar!==false&&f.pts)for(const q of f.pts)raw.push(q);
+  const cods={};for(const q of raw){const c=(q[1]||"(sem código)").toUpperCase();cods[c]=(cods[c]||0)+1}
+  const vis=raw.filter(q=>!excl.has((q[1]||"(sem código)").toUpperCase())&&q[4]!=null&&isFinite(q[4])&&!(isFinite(cmin)&&q[4]<cmin));
+  const semZ=raw.filter(q=>q[4]==null||!isFinite(q[4])).length;
+  const key=JSON.stringify([p.id,p.v,cfg]);if(cache&&cache.key===key)return cache;
+  // remove duplicados em planta (mesmo ponto a 1 cm)
+  const seen=new Map();for(const q of vis){const k=Math.round(q[2]*100)+"_"+Math.round(q[3]*100);if(!seen.has(k))seen.set(k,q)}
+  let pts=[...seen.values()];const MAXT=4500;let amostrado=false;
+  if(pts.length>MAXT){amostrado=true;const st=Math.ceil(pts.length/MAXT);pts=pts.filter((_,i)=>i%st===0)}
+  const ox=Math.min(...pts.map(q=>q[2])),oy=Math.min(...pts.map(q=>q[3])),X=pts.map(q=>q[2]-ox),Y=pts.map(q=>q[3]-oy),Z=pts.map(q=>q[4]);
+  let T=pts.length>=3?delaunay(X,Y):[];const dmax=+cfg.dmax||150,L=(a,b)=>Math.hypot(X[a]-X[b],Y[a]-Y[b]);
+  T=T.filter(t=>L(t[0],t[1])<=dmax&&L(t[1],t[2])<=dmax&&L(t[2],t[0])<=dmax);
+  let area=0;for(const t of T)area+=Math.abs((X[t[1]]-X[t[0]])*(Y[t[2]]-Y[t[0]])-(X[t[2]]-X[t[0]])*(Y[t[1]]-Y[t[0]]))/2;
+  const zs=vis.map(q=>q[4]),zmin=Math.min(...zs),zmax=Math.max(...zs),zmed=zs.reduce((s,x)=>s+x,0)/(zs.length||1);
+  const amp=zmax-zmin,passo=+cfg.int>0?+cfg.int:(amp<=0?1:[0.1,0.2,0.25,0.5,1,2,5,10,20,50].find(s=>amp/s<=25)||100);
+  cache={key,raw,vis,cods,semZ,pts,X,Y,Z,ox,oy,T,area,zmin,zmax,zmed,passo,amostrado,curvas:curvas(T,X,Y,Z,passo,zmin,zmax)};return cache}
+function curvas(T,X,Y,Z,passo,zmin,zmax){
+  const out=[];if(!T.length||!(passo>0))return out;const l0=Math.ceil(zmin/passo)*passo;if((zmax-l0)/passo>400)return out;
+  for(let l=l0;l<=zmax+1e-9;l+=passo){const lv=Math.round(l*1000)/1000,segs=[];
+    for(const t of T){const pts=[];for(const [a,b] of [[t[0],t[1]],[t[1],t[2]],[t[2],t[0]]]){let za=Z[a]-lv,zb=Z[b]-lv;if(za===0)za=1e-9;if(zb===0)zb=1e-9;if(za*zb<0){const k=za/(za-zb);pts.push([a<b?a+"_"+b:b+"_"+a,X[a]+(X[b]-X[a])*k,Y[a]+(Y[b]-Y[a])*k])}}if(pts.length===2)segs.push(pts)}
+    // junta segmentos em polilinhas
+    const ad=new Map();segs.forEach((s,i)=>{for(const e of s){if(!ad.has(e[0]))ad.set(e[0],[]);ad.get(e[0]).push(i)}});const usado=new Uint8Array(segs.length);
+    for(let i=0;i<segs.length;i++){if(usado[i])continue;usado[i]=1;let line=[segs[i][0],segs[i][1]];
+      for(const dir of [1,0]){let fim=dir?line[line.length-1]:line[0];for(;;){const nx=(ad.get(fim[0])||[]).find(j=>!usado[j]);if(nx==null)break;usado[nx]=1;const s=segs[nx],o=s[0][0]===fim[0]?s[1]:s[0];if(dir)line.push(o);else line.unshift(o);fim=o}}
+      out.push({z:lv,p:line.map(q=>[q[1],q[2]])})}}
+  return out}
+function volPlano(a,h){let corte=0,aterro=0,abaixo=0;
+  for(const t of a.T){const x=t.map(i=>a.X[i]),y=t.map(i=>a.Y[i]),d=t.map(i=>a.Z[i]-h),A=Math.abs((x[1]-x[0])*(y[2]-y[0])-(x[2]-x[0])*(y[1]-y[0]))/2,V=A*(d[0]+d[1]+d[2])/3;
+    if(d.every(v=>v>=0))corte+=V;else if(d.every(v=>v<=0)){aterro-=V;abaixo+=A}
+    else{const pos=d.filter(v=>v>0).length,i=d.findIndex(v=>pos===1?v>0:v<=0),j=(i+1)%3,k=(i+2)%3,tj=d[i]/(d[i]-d[j]),tk=d[i]/(d[i]-d[k]),As=A*tj*tk,Vs=As*d[i]/3,Vr=V-Vs;
+      if(d[i]>0){corte+=Vs;aterro-=Vr;abaixo+=A-As}else{aterro-=Vs;corte+=Vr;abaixo+=As}}}
+  return {corte,aterro,abaixo}}
+
+/* ---- cores por cota ---- */
+const RAMPA=[[42,120,214],[27,175,122],[237,161,0],[227,73,72]];
+const cor=t=>{t=Math.max(0,Math.min(1,isFinite(t)?t:0))*(RAMPA.length-1);const i=Math.min(RAMPA.length-2,Math.floor(t)),f=t-i,a=RAMPA[i],b=RAMPA[i+1];return `rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*f)).join(",")})`};
+
+/* ---- desenho do mapa (SVG em coordenadas do terreno, com zoom e arraste) ---- */
+function mapaSVG(a,p){
+  if(!a.pts.length)return `<p class="muted">Nenhum ponto com cota para desenhar.</p>`;
+  const W=Math.max(...a.X)||1,H=Math.max(...a.Y)||1,pad=Math.max(W,H)*0.04;
+  const v=vb&&vb.id===p.id?vb:(vb={id:p.id,x:-pad,y:-pad,w:W+2*pad,h:H+2*pad});
+  const fy=y=>(H-y).toFixed(2),s=Math.max(v.w,v.h)/600,cfg=p.cfg,rng=a.zmax-a.zmin||1;
+  const tri=cfg.tin?`<path d="${a.T.map(t=>`M${a.X[t[0]].toFixed(2)} ${fy(a.Y[t[0]])}L${a.X[t[1]].toFixed(2)} ${fy(a.Y[t[1]])}L${a.X[t[2]].toFixed(2)} ${fy(a.Y[t[2]])}Z`).join("")}" fill="none" stroke="var(--line)" stroke-width="${(s*0.8).toFixed(3)}"/>`:"";
+  const mest=Math.max(1,+cfg.mestra||5),pm=a.passo*mest;
+  const cv=a.curvas.map(c=>{const m=Math.abs(c.z/pm-Math.round(c.z/pm))<1e-6;return `<path d="${c.p.map((q,i)=>(i?"L":"M")+q[0].toFixed(2)+" "+fy(q[1])).join("")}" fill="none" stroke="${m?"var(--ink)":"var(--muted)"}" stroke-opacity="${m?0.85:0.55}" stroke-width="${(s*(m?1.6:0.8)).toFixed(3)}" ${m?`data-tt="Curva mestra" data-tv="${N(c.z,2)} m"`:`data-tt="Curva" data-tv="${N(c.z,2)} m"`}/>`}).join("");
+  const rot=a.curvas.filter(c=>Math.abs(c.z/pm-Math.round(c.z/pm))<1e-6&&c.p.length>3).map(c=>{const q=c.p[Math.floor(c.p.length/2)];return `<text x="${q[0].toFixed(2)}" y="${fy(q[1])}" font-size="${(s*11).toFixed(2)}" text-anchor="middle" fill="var(--ink)" stroke="var(--surface)" stroke-width="${(s*3).toFixed(2)}" paint-order="stroke">${N(c.z,a.passo<1?1:0)}</text>`}).join("");
+  const maxP=3500,st=Math.ceil(a.pts.length/maxP);
+  const pts=a.pts.map((q,i)=>i%st?"":`<circle cx="${a.X[i].toFixed(2)}" cy="${fy(a.Y[i])}" r="${(s*3).toFixed(2)}" fill="${cor((q[4]-a.zmin)/rng)}" data-tt="${E(q[0]+(q[1]?" · "+q[1]:""))}" data-tv="${N(q[4],3)} m · E ${N(q[2],3)} · N ${N(q[3],3)}"/>`).join("");
+  return `<div class="tp-map" id="tp-map"><svg viewBox="${v.x} ${v.y} ${v.w} ${v.h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Planta do levantamento com ${a.pts.length} pontos e curvas de nível a cada ${N(a.passo,2)} m">${tri}${cv}${pts}${rot}</svg>
+    <div class="tp-zoom"><button type="button" class="btn" data-z="in" aria-label="Aproximar">+</button><button type="button" class="btn" data-z="out" aria-label="Afastar">−</button><button type="button" class="btn" data-z="fit">Ajustar</button></div></div>
+   <div class="tp-leg"><span>${N(a.zmin,2)} m</span><i style="background:linear-gradient(90deg,${[0,.33,.66,1].map(cor).join(",")})"></i><span>${N(a.zmax,2)} m</span><span class="muted">Norte para cima · arraste para mover · ${st>1?`mostrando 1 a cada ${st} pontos`:"todos os pontos"}</span></div>`}
+function bindMapa(p,a){
+  const box=el.querySelector("#tp-map");if(!box)return;const svg=box.querySelector("svg");
+  const set=()=>svg.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  const zoom=(f,cx,cy)=>{const nw=vb.w*f,nh=vb.h*f;vb.x=cx-(cx-vb.x)*f;vb.y=cy-(cy-vb.y)*f;vb.w=nw;vb.h=nh;set()};
+  box.querySelectorAll("[data-z]").forEach(b=>b.addEventListener("click",()=>{const z=b.dataset.z;if(z==="fit"){vb=null;draw();return}zoom(z==="in"?0.6:1/0.6,vb.x+vb.w/2,vb.y+vb.h/2)}));
+  const pt=e=>{const r=svg.getBoundingClientRect(),k=Math.max(vb.w/r.width,vb.h/r.height),ox=(r.width*k-vb.w)/2,oy=(r.height*k-vb.h)/2;return [vb.x-ox+(e.clientX-r.left)*k,vb.y-oy+(e.clientY-r.top)*k,k]};
+  svg.addEventListener("wheel",e=>{e.preventDefault();const [x,y]=pt(e);zoom(e.deltaY<0?0.85:1/0.85,x,y)},{passive:false});
+  let drag=null;svg.addEventListener("pointerdown",e=>{if(e.target.closest("[data-tt]"))return;drag=[e.clientX,e.clientY,vb.x,vb.y,pt(e)[2]];svg.setPointerCapture(e.pointerId)});
+  svg.addEventListener("pointermove",e=>{if(!drag)return;vb.x=drag[2]-(e.clientX-drag[0])*drag[4];vb.y=drag[3]-(e.clientY-drag[1])*drag[4];set()});
+  svg.addEventListener("pointerup",()=>drag=null);svg.addEventListener("pointercancel",()=>drag=null)}
+
+/* ---- exportação ---- */
+async function baixar(nome,data,mime){
+  const dl=window.claude&&claude.use?await claude.use("downloads").catch(()=>null):null;
+  if(dl){try{await dl.save({filename:nome,data});return true}catch(e){return false}}
+  const l=document.createElement("a");l.href=URL.createObjectURL(new Blob([data],{type:mime}));l.download=nome;document.body.appendChild(l);l.click();setTimeout(()=>{URL.revokeObjectURL(l.href);l.remove()},800);return true}
+function dxf(a){
+  const o=["0","SECTION","2","ENTITIES"],put=(...x)=>o.push(...x.map(String));const pm=a.passo*Math.max(1,+P().cfg.mestra||5);
+  for(const q of a.vis)put("0","POINT","8","PONTOS_TOPO","10",q[2].toFixed(3),"20",q[3].toFixed(3),"30",q[4].toFixed(3));
+  for(const c of a.curvas){const m=Math.abs(c.z/pm-Math.round(c.z/pm))<1e-6;put("0","POLYLINE","8",m?"CURVA_MESTRA":"CURVA_SECUNDARIA","66","1","10","0","20","0","30",c.z.toFixed(3),"70","0");
+    for(const q of c.p)put("0","VERTEX","8",m?"CURVA_MESTRA":"CURVA_SECUNDARIA","10",(q[0]+a.ox).toFixed(3),"20",(q[1]+a.oy).toFixed(3),"30",c.z.toFixed(3));put("0","SEQEND")}
+  put("0","ENDSEC","0","EOF");return o.join("\r\n")}
+
+/* ---- telas ---- */
+function listaHTML(){
+  const ps=S.proj.slice().sort((a,b)=>(b.em||0)-(a.em||0));
+  return `<section class="card wide"><div class="card-head"><h2>Levantamentos e projetos<span>Dados brutos de RTK, drone e outros equipamentos · uma pasta para cada projeto</span></h2></div><div class="pj-body">
+   <div class="pj-msg" id="tp-msg" role="status" aria-live="polite">${E(msg)}</div>
+   <div class="us-abas-box"><b>Onde os arquivos ficam guardados</b>${temFS?(raiz?`<span>Pasta no computador: <b>${E(raiz.name)}</b> ${raizOk?`<span class="pj-tag pj-ok">conectada</span>`:`<span class="pj-tag pj-wait">precisa reconectar</span>`}</span>`:`<span class="muted">Escolha uma pasta do computador (ex.: Documentos/Green Fish Levantamentos). O app cria dentro dela uma pasta para cada projeto, com as subpastas RTK, Drone, Outros e Processados.</span>`)
+     +`<div class="pj-btns">${raiz&&!raizOk?`<button type="button" class="btn solid" data-a="reconectar">Reconectar pasta</button>`:""}<button type="button" class="btn${raiz?"":" solid"}" data-a="raiz">${raiz?"Trocar pasta":"Escolher pasta no computador"}</button></div>`
+     :`<span class="muted">Este navegador não deixa o app criar pastas no computador (só Chrome e Edge no computador permitem). Os arquivos ficam guardados neste navegador, separados por projeto, e você pode baixá-los quando quiser.</span>`}</div>
+   <form class="rp-grid" id="tp-novo"><label>Nome do novo levantamento<input name="nome" maxlength="60" placeholder="ex.: Fazenda Boa Vista – viveiros" required></label><label>Cliente / local<input name="local" maxlength="60" placeholder="ex.: Pinheiro – MA"></label><label>Data do campo<input type="date" name="data" value="${new Date().toISOString().slice(0,10)}"></label><label>&nbsp;<button type="submit" class="btn solid">Criar projeto e pasta</button></label></form>
+   ${ps.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>Projeto</th><th>Pasta</th><th class="num">Arquivos</th><th class="num">Pontos</th><th>Atualizado</th><th></th></tr></thead><tbody>${ps.map(p=>{const n=p.arquivos.reduce((s,f)=>s+(f.pts&&f.usar!==false?f.pts.length:0),0);return `<tr${p.id===S.cur?' class="on"':""}><td><b>${E(p.nome)}</b><small>${E([p.local,p.data&&new Date(p.data+"T12:00").toLocaleDateString("pt-BR")].filter(Boolean).join(" · "))}</small></td><td>${p.arm==="fs"?`💻 ${E((raiz?raiz.name+"/":"")+p.pasta)}`:`🌐 neste navegador`}</td><td class="num">${I(p.arquivos.length)}</td><td class="num">${I(n)}</td><td>${dataBR(p.em)}</td><td><div class="pj-btns"><button type="button" class="btn${p.id===S.cur?"":" solid"}" data-a="abrir" data-id="${p.id}">${p.id===S.cur?"Aberto":"Abrir"}</button>${conf&&conf.id===p.id?`<button type="button" class="btn warn" data-a="excluir-ok" data-id="${p.id}">Excluir do app</button>${p.arm==="fs"?`<button type="button" class="btn warn" data-a="excluir-tudo" data-id="${p.id}">Excluir também a pasta</button>`:""}<button type="button" class="btn" data-a="excluir-nao">Cancelar</button>`:`<button type="button" class="btn" data-a="excluir" data-id="${p.id}">Excluir</button>`}</div></td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted">Nenhum levantamento ainda. Crie um projeto acima: ele ganha uma pasta própria para receber os arquivos do RTK, do drone e dos outros equipamentos.</p>`}
+  </div></section>`}
+function projetoHTML(p){
+  const porSub={};for(const f of p.arquivos)(porSub[f.sub]=porSub[f.sub]||[]).push(f);
+  const tot=p.arquivos.reduce((s,f)=>s+(f.s||0),0);
+  return `<section class="card wide"><div class="card-head"><h2>${E(p.nome)}<span>${p.arm==="fs"?`Pasta: ${E((raiz?raiz.name:"…")+"/"+p.pasta)}`:"Arquivos guardados neste navegador"} · ${I(p.arquivos.length)} arquivo${p.arquivos.length===1?"":"s"} · ${tam(tot)}</span></h2></div><div class="pj-body">
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="descarregar"${busy?" disabled":""}>⇩ Descarregar do equipamento</button><button type="button" class="btn" data-a="arquivos"${busy?" disabled":""}>Adicionar arquivos</button><button type="button" class="btn" data-a="fechar">Fechar projeto</button></div>
+   <details class="us-det"><summary>Como descarregar os dados de cada equipamento</summary><ol class="rp-steps">
+    <li><b>Coletora do RTK (ComNav, CHC, Emlid, etc.):</b> exporte o levantamento em TXT ou CSV (nome, código, N, E, cota) e, se for fazer PPP, o arquivo bruto/RINEX da base. Ligue a coletora no computador pelo cabo USB, escolha "Transferência de arquivos" no aviso da coletora e clique em <b>Descarregar do equipamento</b>: selecione a pasta da obra (normalmente em Armazenamento interno/SurveyMaster ou 7Star).</li>
+    <li><b>Receptor (base/rover):</b> ligue o receptor pelo cabo USB; ele aparece como um disco. Selecione a pasta com os arquivos brutos do dia.</li>
+    <li><b>Drone (DJI e outros):</b> tire o cartão de memória e coloque no leitor do computador, ou ligue o controle. Selecione a pasta DCIM do voo: fotos, arquivos .MRK/.OBS (PPK) e, se já processou, o ortomosaico, o MDT (GeoTIFF) ou a nuvem de pontos (LAS).</li>
+    <li>O app copia tudo para a pasta deste projeto, separado em <b>RTK</b>, <b>Drone</b> e <b>Outros</b>, e não copia de novo o que já estiver lá. Os arquivos TXT/CSV de pontos são lidos na hora e viram planta, curvas de nível e volumes.</li>
+    <li>No celular, use <b>Adicionar arquivos</b> e escolha os arquivos no app Arquivos/Drive.</li></ol></details>
+   ${p.arquivos.length?Object.entries(porSub).map(([sub,fs])=>`<div class="subhead">${E(sub)} · ${fs.length} arquivo${fs.length===1?"":"s"}</div><div class="scroll"><table class="pj-tab"><thead><tr><th>Arquivo</th><th>Tipo</th><th class="num">Tamanho</th><th>Origem</th><th></th></tr></thead><tbody>${fs.slice(0,300).map(f=>`<tr><td><b>${E(f.n)}</b>${f.pts?`<small>${I(f.pts.length)} pontos${f.zona?" · UTM "+E(f.zona):""}${f.ruins?` · ${I(f.ruins)} linhas ignoradas`:""}</small>`:""}</td><td>${E(f.t)}</td><td class="num">${tam(f.s||0)}</td><td>${E(f.o||"")}<small>${dataBR(f.m)}</small></td><td><div class="pj-btns">${f.k==="pontos"?`<label class="tp-chk"><input type="checkbox" data-usar="${E(f.p)}"${f.usar!==false?" checked":""}> usar</label><button type="button" class="btn" data-a="colunas" data-id="${E(f.p)}">Colunas</button>`:""}<button type="button" class="btn" data-a="baixar" data-id="${E(f.p)}">Baixar</button><button type="button" class="btn" data-a="remover" data-id="${E(f.p)}">Remover</button></div></td></tr>${S.col===f.p?`<tr><td colspan="5">${colunasHTML(f)}</td></tr>`:""}`).join("")}${fs.length>300?`<tr><td colspan="5" class="muted">… e mais ${fs.length-300} arquivos</td></tr>`:""}</tbody></table></div>`).join(""):`<p class="muted">A pasta do projeto está vazia. Ligue o equipamento no computador e clique em <b>Descarregar do equipamento</b>.</p>`}
+  </div></section>`+analiseHTML(p)}
+function colunasHTML(f){
+  const m=f.map||{},cols=f.prev&&f.prev[0]?f.prev[0].length:6,opt=k=>`<select class="lv-sel" data-cm="${k}"><option value="-1">—</option>${Array.from({length:cols},(_,j)=>`<option value="${j}"${m[k]===j?" selected":""}>Coluna ${j+1}</option>`).join("")}</select>`;
+  return `<div class="us-abas-box"><b>Colunas do arquivo ${E(f.n)}</b>${f.prev?`<div class="scroll"><table class="pj-tab tp-prev"><tbody>${f.prev.map(r=>`<tr>${r.map(c=>`<td>${E(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:""}
+   <div class="rp-grid">${[["nome","Nome do ponto"],["cod","Código / descrição"],["E","Este (E / X)"],["N","Norte (N / Y)"],["Z","Cota (Z)"],["lat","Latitude (se for geográfica)"],["lon","Longitude"]].map(([k,t])=>`<label>${t}${opt(k)}</label>`).join("")}<label class="tp-chk"><input type="checkbox" data-cm="head"${f.head?" checked":""}> 1ª linha é cabeçalho</label></div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="col-ok" data-id="${E(f.p)}">Reler com estas colunas</button><button type="button" class="btn" data-a="col-fechar">Fechar</button></div></div>`}
+function analiseHTML(p){
+  const tem=p.arquivos.some(f=>f.k==="pontos"&&f.pts&&f.pts.length);
+  if(!tem)return `<section class="card wide"><div class="card-head"><h2>Planta, curvas de nível e volumes<span>aparece quando houver um arquivo de pontos (TXT/CSV)</span></h2></div><div class="pj-body"><p class="muted">Os arquivos de fotos, GeoTIFF, nuvem de pontos e RINEX ficam guardados na pasta do projeto. Para a planta e as curvas, descarregue o TXT/CSV de pontos exportado da coletora (ou a nuvem de pontos do drone exportada como XYZ/CSV).</p></div></section>`;
+  const a=analisar(p),c=p.cfg,h=c.ref===""||c.ref==null?NaN:+c.ref,vol=isFinite(h)&&a.T.length?volPlano(a,h):null;
+  const cods=Object.entries(a.cods).sort((x,y)=>y[1]-x[1]),excl=new Set(c.excl||[]);
+  return `<section class="card wide"><div class="card-head"><h2>Resumo do levantamento<span>${I(a.raw.length)} pontos lidos · ${I(a.vis.length)} usados na superfície${a.semZ?` · ${I(a.semZ)} sem cota`:""}</span></h2></div><div class="pj-body">
+   <div class="us-kpis rp-k"><div><b>${I(a.vis.length)}</b>pontos com cota</div><div><b>${N(a.area/10000,2)} ha</b>área coberta pela superfície</div><div><b>${N(a.zmin,2)} m</b>cota mínima</div><div><b>${N(a.zmax,2)} m</b>cota máxima</div><div><b>${N(a.zmax-a.zmin,2)} m</b>desnível</div><div><b>${I(a.T.length)}</b>triângulos (MDT)</div></div>
+   <div class="rp-grid">
+    <label>Desconsiderar cotas abaixo de (m)<input inputmode="decimal" data-cf="cmin" value="${E(c.cmin??"")}" placeholder="ex.: 1 (tira cota zero)"></label>
+    <label>Lado máximo do triângulo (m)<input inputmode="decimal" data-cf="dmax" value="${E(c.dmax)}"></label>
+    <label>Intervalo das curvas (m)<select class="lv-sel" data-cf="int"><option value="0"${!+c.int?" selected":""}>Automático (${N(a.passo,2)} m)</option>${[0.1,0.2,0.25,0.5,1,2,5].map(v=>`<option value="${v}"${+c.int===v?" selected":""}>${N(v,2)} m</option>`).join("")}</select></label>
+    <label>Curva mestra a cada<select class="lv-sel" data-cf="mestra">${[4,5,10].map(v=>`<option value="${v}"${+c.mestra===v?" selected":""}>${v} curvas</option>`).join("")}</select></label>
+    <label class="tp-chk"><input type="checkbox" data-cf="tin"${c.tin?" checked":""}> Mostrar triângulos</label>
+   </div>
+   <div class="subhead">Códigos do levantamento (desmarque o que não é terreno: estaca, topo de muro, árvore…)</div>
+   <div class="tp-cods">${cods.map(([k,n])=>`<label class="tp-chk"><input type="checkbox" data-cod="${E(k)}"${excl.has(k)?"":" checked"}> ${E(k)} <small>${I(n)}</small></label>`).join("")}</div>
+   ${a.amostrado?`<p class="us-pag-alert wait">Levantamento grande: a superfície usa ${I(a.pts.length)} pontos distribuídos (1 a cada ${Math.ceil(a.vis.length/a.pts.length)}). Os totais de pontos e cotas usam todos.</p>`:""}
+  </div></section>
+  <section class="card wide"><div class="card-head"><h2>Planta e curvas de nível<span>curvas a cada ${N(a.passo,2)} m · mestras a cada ${N(a.passo*Math.max(1,+c.mestra||5),2)} m</span></h2></div><div class="pj-body">
+   ${mapaSVG(a,p)}
+   <div class="pj-btns"><button type="button" class="btn" data-a="dxf">Baixar curvas e pontos (DXF)</button><button type="button" class="btn" data-a="csv">Baixar pontos usados (CSV)</button>${p.arm==="fs"?`<span class="muted">Também ficam salvos em ${E(p.pasta)}/Processados.</span>`:""}</div>
+  </div></section>
+  <section class="card wide"><div class="card-head"><h2>Cota de referência<span>Volume de água, corte e aterro em relação a uma cota</span></h2></div><div class="pj-body">
+   <div class="rp-grid"><label>Cota de referência (m)<input inputmode="decimal" data-cf="ref" value="${E(c.ref??"")}" placeholder="${N((a.zmin+a.zmax)/2,2)}"></label></div>
+   ${vol?`<div class="us-kpis rp-k"><div><b>${N(vol.abaixo/10000,3)} ha</b>área abaixo da cota (inundada)</div><div><b>${I(vol.aterro)} m³</b>volume de água até a cota (aterro para nivelar)</div><div><b>${I(vol.corte)} m³</b>volume de terra acima da cota (corte)</div><div><b>${I(vol.corte-vol.aterro)} m³</b>saldo corte − aterro</div></div>
+    <p class="muted">Use para: volume de um açude ou depressão até a cota da água; ou corte e aterro para nivelar a área numa cota (platô). O cálculo usa a superfície de triângulos dentro da área levantada (método exato para a malha). O projeto de viveiros (cota de fundo, taludes e borda livre) e a ligação com a Calculadora, a Biomassa e a Viabilidade vêm na próxima etapa.</p>`:`<p class="muted">Digite uma cota para calcular a área inundada, o volume de água e o corte e aterro.</p>`}
+  </div></section>`}
+function draw(){
+  if(el.hidden)return;const p=P();
+  el.innerHTML=listaHTML()+(p?projetoHTML(p):"");bind();if(p&&el.querySelector("#tp-map"))bindMapa(p,cache)}
+function aviso(t){msg=t;const m=el.querySelector("#tp-msg");if(m)m.textContent=t}
+
+/* ---- importação ---- */
+async function* percorrer(dir,base,prof){if(prof>6)return;for await(const [n,h] of dir.entries()){if(n.startsWith(".")||/^(System Volume Information|\$RECYCLE\.BIN)$/i.test(n))continue;if(h.kind==="file")yield [base+n,h];else yield* percorrer(h,base+n+"/",prof+1)}}
+async function importar(p,itens,origem){
+  busy=true;draw();let novos=0,iguais=0,erros=0,lidos=0;const t0=Date.now();
+  try{for(const [rel,fonte] of itens){lidos++;if(lidos%10===0)aviso(`Copiando… ${lidos}/${itens.length} arquivos`);
+      try{const file=fonte.getFile?await fonte.getFile():fonte,nome=rel.split("/").pop(),tp=tipoDe(nome);
+        const sub=tp.sub+(rel.includes("/")?"/"+rel.split("/").slice(0,-1).map(slug).join("/"):""),cam=sub+"/"+nome;
+        if(p.arquivos.some(f=>f.p===cam&&f.s===file.size)){iguais++;continue}
+        await gravar(p,cam,file);
+        const f={p:cam,n:nome,k:tp.k,t:tp.t,sub:tp.sub,s:file.size,m:file.lastModified||Date.now(),o:origem,em:Date.now()};
+        if(tp.k==="pontos"&&file.size<40e6){const txt=await file.text(),L=linhas(txt);const d=detectar(L.rows);const r=extrair(L.rows,d.m,d.head);
+          f.prev=L.rows.slice(0,4).map(x=>x.slice(0,9).map(c=>String(c).slice(0,18)));f.map=d.m;f.head=d.head;
+          if(r.pts.length>=3){f.pts=r.pts.slice(0,30000);f.ruins=r.ruins;f.zona=r.zona;if(r.pts.length>30000)f.ruins+=r.pts.length-30000}else{f.k="outro";f.t="Texto (sem pontos reconhecidos)"}}
+        const i=p.arquivos.findIndex(x=>x.p===cam);if(i>=0)p.arquivos[i]=f;else p.arquivos.push(f);novos++}catch(e){erros++;console.warn(e)}}
+    p.em=Date.now();p.v=(p.v||0)+1;cache=null;vb=null;salvar();
+    aviso(`${novos} arquivo${novos===1?"":"s"} copiado${novos===1?"":"s"} para ${p.arm==="fs"?"a pasta "+p.pasta:"o projeto"}${iguais?` · ${iguais} já estava${iguais===1?"":"m"} lá`:""}${erros?` · ${erros} com erro`:""} (${N((Date.now()-t0)/1000,1)} s).`)}
+  finally{busy=false;draw()}}
+function escolherArquivos(pasta){return new Promise(res=>{const i=document.createElement("input");i.type="file";i.multiple=true;if(pasta){i.webkitdirectory=true}i.style.display="none";document.body.appendChild(i);
+  i.addEventListener("change",()=>{res([...i.files].map(f=>[f.webkitRelativePath?f.webkitRelativePath.split("/").slice(1).join("/")||f.name:f.name,f]));i.remove()});i.addEventListener("cancel",()=>{res([]);i.remove()});i.click()})}
+
+/* ---- ações ---- */
+function bind(){
+  const p=P();
+  const fn=el.querySelector("#tp-novo");fn&&fn.addEventListener("submit",async e=>{e.preventDefault();const fd=new FormData(fn),nome=String(fd.get("nome")||"").trim();if(!nome)return;
+    const id="t"+Date.now().toString(36),q={id,nome,local:String(fd.get("local")||"").trim(),data:fd.get("data"),pasta:slug(nome)+"_"+id.slice(-4),arm:raiz&&raizOk?"fs":"idb",arquivos:[],cfg:{cmin:"",dmax:150,int:0,mestra:5,tin:false,excl:[],ref:""},em:Date.now(),v:0};
+    try{if(q.arm==="fs")for(const s of ["RTK","Drone","Outros","Processados"])await pastaProj(q,s);S.proj.push(q);S.cur=id;vb=null;cache=null;salvar();msg=`Projeto “${nome}” criado${q.arm==="fs"?` com a pasta ${raiz.name}/${q.pasta} (subpastas RTK, Drone, Outros e Processados)`:" (arquivos guardados neste navegador)"}. Agora ligue o equipamento e clique em Descarregar do equipamento.`}catch(x){msg="Não consegui criar a pasta: "+x.message}draw()});
+  el.querySelectorAll("[data-a]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.a,b.dataset.id)));
+  el.querySelectorAll("[data-usar]").forEach(i=>i.addEventListener("change",()=>{const f=p.arquivos.find(x=>x.p===i.dataset.usar);if(f){f.usar=i.checked;p.v++;cache=null;salvar();draw()}}));
+  el.querySelectorAll("[data-cf]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.cf;p.cfg[k]=i.type==="checkbox"?i.checked:k==="ref"||k==="cmin"?String(i.value).trim().replace(",","."):+String(i.value).replace(",",".")||0;if(k!=="ref"&&k!=="tin")cache=null;salvar();draw()}));
+  el.querySelectorAll("[data-cod]").forEach(i=>i.addEventListener("change",()=>{const s=new Set(p.cfg.excl||[]);i.checked?s.delete(i.dataset.cod):s.add(i.dataset.cod);p.cfg.excl=[...s];cache=null;salvar();draw()}));
+  el.querySelectorAll("[data-cm]").forEach(i=>i.addEventListener("change",()=>{const f=p.arquivos.find(x=>x.p===S.col);if(!f)return;if(i.dataset.cm==="head")f.head=i.checked;else{f.map=f.map||{};f.map[i.dataset.cm]=+i.value}}));
+}
+async function acao(a,id){
+  const p=P();
+  try{
+  if(a==="raiz"){if(window.top!==window){aviso("Para criar pastas no computador, abra o app pelo link do GitHub (jpribeiro-aqua.github.io/green-fish) no Chrome ou Edge. Aqui os arquivos ficam guardados no navegador.");return}const h=await window.showDirectoryPicker({id:"greenfish-levantamentos",mode:"readwrite",startIn:"documents"});await idb.put("cfg","raiz",h);raiz=h;raizOk=true;aviso(`Pasta ${h.name} escolhida. Os próximos projetos criam a pasta deles dentro dela.`);draw();return}
+  if(a==="reconectar"){raizOk=(await raiz.requestPermission({mode:"readwrite"}))==="granted";draw();return}
+  if(a==="abrir"){S.cur=id;vb=null;cache=null;S.col=null;salvar();msg="";draw();window.scrollTo({top:0});return}
+  if(a==="fechar"){S.cur=null;salvar();draw();return}
+  if(a==="excluir"){conf={id};draw();return}
+  if(a==="excluir-nao"){conf=null;draw();return}
+  if(a==="excluir-ok"||a==="excluir-tudo"){const q=S.proj.find(x=>x.id===id);if(!q)return;
+    if(q.arm==="idb")for(const f of q.arquivos)await idb.del("arq",q.id+"/"+f.p).catch(()=>{});
+    if(a==="excluir-tudo"&&q.arm==="fs"&&raiz&&raizOk)await raiz.removeEntry(q.pasta,{recursive:true}).catch(()=>{});
+    S.proj=S.proj.filter(x=>x.id!==id);if(S.cur===id)S.cur=null;conf=null;salvar();aviso(a==="excluir-tudo"?`Projeto e pasta ${q.pasta} excluídos.`:q.arm==="fs"?`Projeto excluído do app. A pasta ${q.pasta} continua no computador.`:"Projeto e arquivos excluídos.");draw();return}
+  if(!p)return;
+  if((a==="descarregar"||a==="arquivos")&&p.arm==="fs"&&!(raiz&&raizOk)){if(raiz){raizOk=(await raiz.requestPermission({mode:"readwrite"}))==="granted"}if(!raizOk){aviso("Reconecte a pasta do computador para copiar os arquivos.");draw();return}}
+  if(a==="descarregar"){
+    if(temFS){let d;try{d=await window.showDirectoryPicker({id:"greenfish-equipamento",mode:"read"})}catch(e){if(e&&e.name==="AbortError")return;d=null}if(d){aviso("Lendo a pasta do equipamento…");const it=[];for await(const x of percorrer(d,"",0)){it.push(x);if(it.length>=5000)break}
+      if(!it.length){aviso("A pasta escolhida está vazia.");return}await importar(p,it,d.name);return}}
+    const it=await escolherArquivos(true);if(it.length)await importar(p,it,"pasta");return}
+  if(a==="arquivos"){const it=await escolherArquivos(false);if(it.length)await importar(p,it,"arquivos");return}
+  if(a==="remover"){const f=p.arquivos.find(x=>x.p===id);if(!f)return;await apagar(p,f.p).catch(()=>{});p.arquivos=p.arquivos.filter(x=>x!==f);p.v++;cache=null;salvar();aviso(`${f.n} removido do projeto.`);draw();return}
+  if(a==="baixar"){const f=p.arquivos.find(x=>x.p===id);if(!f)return;const b=await ler(p,f.p);await baixar(f.n,b,b.type||"application/octet-stream");return}
+  if(a==="colunas"){S.col=S.col===id?null:id;draw();return}
+  if(a==="col-fechar"){S.col=null;draw();return}
+  if(a==="col-ok"){const f=p.arquivos.find(x=>x.p===id);if(!f)return;const b=await ler(p,f.p),L=linhas(await b.text()),r=extrair(L.rows,f.map,f.head);
+    if(r.pts.length<3){aviso("Com essas colunas não saíram pontos válidos. Confira Este, Norte e Cota.");return}f.k="pontos";f.t="Pontos (TXT/CSV)";f.pts=r.pts.slice(0,30000);f.ruins=r.ruins;f.zona=r.zona;p.v++;cache=null;S.col=null;vb=null;salvar();aviso(`${I(f.pts.length)} pontos relidos de ${f.n}.`);draw();return}
+  if(a==="dxf"||a==="csv"){const an=analisar(p),nome=slug(p.nome)+(a==="dxf"?"_curvas.dxf":"_pontos.csv");
+    const data=a==="dxf"?dxf(an):"﻿Nome;Código;Este;Norte;Cota\r\n"+an.vis.map(q=>[q[0],q[1],N(q[2],3),N(q[3],3),N(q[4],3)].map(x=>`"${String(x).replace(/"/g,'""')}"`).join(";")).join("\r\n");
+    if(p.arm==="fs"&&raiz&&raizOk){await gravar(p,"Processados/"+nome,new Blob([data]));aviso(`${nome} salvo em ${p.pasta}/Processados.`)}
+    await baixar(nome,data,a==="dxf"?"application/dxf":"text/csv");return}
+  }catch(e){if(e&&e.name==="AbortError")return;aviso("Erro: "+(e&&e.message||e));busy=false;draw()}
+}
+
+el.addEventListener("pointermove",e=>{const t=e.target.closest("[data-tt]");if(t&&window.showTip)showTip(e.clientX,e.clientY,t.dataset.tt,t.dataset.tv);else if(window.hideTip)hideTip()});
+el.addEventListener("pointerleave",()=>{window.hideTip&&hideTip()});
+window.drawTopo=async()=>{try{const s=rd();if(s&&s.proj){S.proj=s.proj;if(s.cur!==undefined)S.cur=s.cur}}catch(e){}await carregarRaiz();draw()};
+window.topoDebug={linhas,detectar,extrair,delaunay,analisar,volPlano,ll2utm};
+})();
+
+</script>
+<script>
 /* ---------- Projetos e login de usuário ---------- */
 (function(){
 const el=document.getElementById("view-proj");if(!el)return;
@@ -4934,7 +5249,7 @@ const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?
 const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
 const SIT={ativo:["Ativo","ok"],pendente:["Aguardando aprovação","wait"],suspenso:["Suspenso","bad"],cancelado:["Cancelado pelo administrador","bad"],cancelada:["Inscrição cancelada pelo usuário","off"],sem:["Sem inscrição","off"]};
-const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"]];
+const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"],["topo","Levantamentos e projetos","Levantamentos"]];
 const SO_ADMIN=["local","calc"];          // Local e viabilidade e Calculadora: só administrador (versão avançada)
 const ABAS_USU=ABAS.filter(a=>!SO_ADMIN.includes(a[0]));
 const LPLANO=PK+"-planos";
@@ -5399,6 +5714,7 @@ const ICO={
   mais:'<path d="M4 7h16M4 12h16M4 17h16"/>',
   bio:'<path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1"/>',
   racao:'<path d="M5 9h14l-1.5 11h-11z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/>',
+  topo:'<path d="M3 19l5-8 4 5 3-4 6 7z"/><path d="M6 8c2-2 4-2 6 0s4 2 6 0"/>',
   repro:'<ellipse cx="12" cy="13" rx="6" ry="7.5"/><circle cx="12" cy="11" r="2"/><path d="M9.5 16.5c1.4 1 3.6 1 5 0"/>',
   proj:'<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>',
   users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/>',
@@ -5406,7 +5722,7 @@ const ICO={
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 const MAIN=[["local","Local"],["calc","Calcular"],["aqua","Água"],["dash","Painel"]];
-const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["proj","Projetos"],["users","Usuários e acesso"]];
+const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
 nav.innerHTML=MAIN.map(([v,t])=>`<button type="button" data-bv="${v}">${svg(v)}<span>${t}</span></button>`).join("")+`<button type="button" data-bv="mais" aria-haspopup="dialog" aria-expanded="false">${svg("mais")}<span>Mais</span></button>`;
