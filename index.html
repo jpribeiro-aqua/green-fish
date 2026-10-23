@@ -617,6 +617,11 @@ body.sem-calc .summary,body.sem-calc .dock{display:none!important}
 .us-abas{display:flex;flex-wrap:wrap;gap:6px 14px;white-space:normal;text-align:left}
 .us-abas label{display:inline-flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
 .us-abas input{accent-color:var(--accent)}
+.am-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px 14px;max-height:280px;overflow:auto;padding:4px 2px}
+.am-p small{display:block;color:var(--muted);font-size:12px}
+.rp-grid label.am-lib{display:flex;flex-direction:row;gap:8px;align-items:center;align-self:end;padding-bottom:6px}
+#am-busca{text-align:left;font-family:inherit}
+#am-emails{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
 .us-acts{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;justify-content:flex-end}
 .us-menu{position:relative}.us-menu>summary{list-style:none;cursor:pointer;white-space:nowrap}.us-menu>summary::-webkit-details-marker{display:none}
 .us-menu>summary.us-alerta{border-color:var(--warn);color:var(--warn)}.us-menu>summary.us-alerta::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:middle}
@@ -3988,6 +3993,7 @@ const Auth={
   async nomeEquipe(c){try{const {data}=await A.sb.rpc("ras_nome_equipe",{codigo:c});return data||""}catch(e){return ""}},
   async minhaCota(){const {data,error}=await A.sb.rpc("ras_minha_cota");if(error)throw supaErr(error);const r=(data||[])[0]||{};return {limite:r.limite||0,usados:r.usados||0}},
   async definirLimite(id,n){const {error}=await A.sb.rpc("ras_definir_limite",{alvo:id,novo:n});if(error)throw {msg:/dono/i.test(error.message)?"Só o dono do app define a cota.":"Não foi possível salvar a cota: "+error.message}},
+  async aceitarConvite(){const {data,error}=await A.sb.rpc("ras_aceitar_convite");if(error)throw {msg:error.message};return data||null},
   async excluirInscricao(id){const {data,error}=await A.sb.rpc("ras_excluir_inscricao",{pessoa:id});if(error)throw {msg:/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe.":/administrador/i.test(error.message)?"Para excluir um administrador, remova primeiro o papel de administrador.":"Não foi possível excluir a inscrição: "+error.message};return data},
   async aprovar(id){const {data,error}=await A.sb.rpc("ras_aprovar",{alvo:id});if(error)throw {msg:/Mensalidade/i.test(error.message)?"Sua mensalidade está em atraso: regularize o pagamento para voltar a liberar logins.":/Cota/i.test(error.message)?"Sua cota de logins acabou. Peça ao dono do app para aumentá-la.":/Bloqueado/i.test(error.message)?"Esta pessoa foi bloqueada pelo dono do app.":/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe: só o dono do app pode liberá-la.":/inscri/i.test(error.message)?"Esta pessoa não tem inscrição ativa.":"Não foi possível liberar: "+error.message};return data},
   async todosProjetos(){const {data,error}=await A.sb.from("ras_docs").select("path,data").like("col","data/users/%/perfil/projetos").limit(2000);if(error)throw supaErr(error);
@@ -5375,7 +5381,7 @@ const abasFormAdm=(key,sel)=>`<div class="us-abas" data-abas="${esc(key)}" role=
 const abasAdm=ac=>ac&&Array.isArray(ac.abasAdmin)?ac.abasAdmin:null;   // null = todas as abas
 const abasTxtAdm=l=>!l?"Todas":l.length?ABAS.filter(a=>l.includes(a[0])).map(a=>a[2]).join(", "):"Nenhuma (só Projetos e Usuários e acesso)";
 const lerAbas=key=>[...el.querySelectorAll(`.us-abas[data-abas="${CSS.escape(key)}"] input:checked`)].map(i=>i.value);
-const st={prazos:{},meuPrazo:null,planos:null,minhaAss:null,meuAviso:null,minhaSit:"isento",ass:{},avisos:{},equipesAbas:{},equipeCod:"",equipeNome:"",filtroEq:"",minhaCota:{limite:0,usados:0},cfgAcesso:{},adminCelular:false,admins:new Map(),padrao:PADRAO0,mode:"init",db:null,usr:null,uid:null,owner:false,modo:"livre",minha:null,meuAcesso:null,lista:[],nomes:{},comSenha:new Set(),busy:false,msg:"",err:false,confirm:null,filtro:"todos",apagar:false,ident:""};
+const st={convites:{},addEq:"",addBusca:"",prazos:{},meuPrazo:null,planos:null,minhaAss:null,meuAviso:null,minhaSit:"isento",ass:{},avisos:{},equipesAbas:{},equipeCod:"",equipeNome:"",filtroEq:"",minhaCota:{limite:0,usados:0},cfgAcesso:{},adminCelular:false,admins:new Map(),padrao:PADRAO0,mode:"init",db:null,usr:null,uid:null,owner:false,modo:"livre",minha:null,meuAcesso:null,lista:[],nomes:{},comSenha:new Set(),busy:false,msg:"",err:false,confirm:null,filtro:"todos",apagar:false,ident:""};
 
 /* ---- planos mensais e cobrança (só no modo conta do app / Supabase) ---- */
 const PLANOS0={ativa:false,carencia:5,basico:{nome:"Básico",preco:19.9,descricao:"Versão básica: abas liberadas por padrão e projetos salvos na nuvem"},avancado:{nome:"Avançado + administrador",preco:49.9,descricao:"Versão avançada: todas as abas e login de administrador para liberar a sua equipe"},pix:"",instrucoes:""};
@@ -5460,6 +5466,9 @@ async function carregar(){
   try{const c=(await db.doc("config/abas").get()).data();st.padrao=c&&Array.isArray(c.padrao)?c.padrao:PADRAO0}catch(e){}
   try{st.minha=(await db.doc("inscricoes/"+st.uid).get()).data()||null}catch(e){st.minha=null}
   try{st.meuAcesso=(await db.doc("acessos/"+st.uid).get()).data()||null}catch(e){st.meuAcesso=null}
+  if(Auth.supa()&&Auth.ok()&&!Auth.dono()){try{const c=await Auth.aceitarConvite();if(c){try{st.minha=(await db.doc("inscricoes/"+st.uid).get()).data()||st.minha;st.meuAcesso=(await db.doc("acessos/"+st.uid).get()).data()||st.meuAcesso}catch(e){}
+    let ne="";if(c.equipe){try{ne=await Auth.nomeEquipe(c.equipe)}catch(e){}try{localStorage.setItem(EQK,c.equipe)}catch(e){}}
+    st.msg=`O dono do app adicionou você${c.equipe?` à equipe de ${ne||"um administrador"}`:""}${c.liberar?" e o seu acesso já está liberado":"; o acesso será liberado pelo administrador"}.`;st.err=false}}catch(e){}}
   if(st.minha&&st.minha.ident)st.ident=st.minha.ident;
   if(Auth.supa()){
     try{const c=(await db.doc("config/planos").get()).data();st.planos=c?{...PLANOS0,...c,basico:{...PLANOS0.basico,...(c.basico||{})},avancado:{...PLANOS0.avancado,...(c.avancado||{})}}:{...PLANOS0}}catch(e){st.planos={...PLANOS0}}
@@ -5479,7 +5488,8 @@ async function carregarLista(){
     if(!Auth.dono()){try{st.minhaCota=await Auth.minhaCota()}catch(e){st.minhaCota={limite:0,usados:0}}}}
   if(Auth.supa()&&Auth.dono()){try{const [qs,qv]=await Promise.all([db.collection("assinaturas").limit(500).get(),db.collection("avisos").limit(500).get()]);
     st.ass={};qs.docs.forEach(d=>st.ass[d.id]=d.data());st.avisos={};qv.docs.forEach(d=>st.avisos[d.id]=d.data())}catch(e){st.ass={};st.avisos={}}
-    try{const qp=await db.collection("prazos").limit(500).get();st.prazos={};qp.docs.forEach(d=>st.prazos[d.id]=d.data())}catch(e){st.prazos={}}}
+    try{const qp=await db.collection("prazos").limit(500).get();st.prazos={};qp.docs.forEach(d=>st.prazos[d.id]=d.data())}catch(e){st.prazos={}}
+    try{const qc=await db.collection("convites").limit(500).get();st.convites={};qc.docs.forEach(d=>st.convites[d.id]=d.data())}catch(e){st.convites={}}}
   st.lista=qi.docs.filter(d=>d.id!==st.uid).map(d=>({id:d.id,insc:d.data(),ac:ac[d.id]||null})).sort((a,b)=>(b.insc.em||0)-(a.insc.em||0));
   try{const ids=[...new Set([...st.lista.map(x=>x.id),...st.admins.keys()])];st.nomes=ids.length?await st.usr.profiles(ids):{}}catch(e){st.nomes={}}
 }
@@ -5575,7 +5585,7 @@ function painelRestrito(){
   const c=st.minhaCota,rest=Math.max(0,c.limite-c.usados);
   const rows=st.lista.map(x=>({...x,s:situacao(x.insc,x.ac,st.modo)}));
   const pend=rows.filter(x=>x.s==="pendente"),lib=rows.filter(x=>x.ac&&x.ac.por===st.uid);
-  const eqRows=[...pend,...lib.filter(x=>!pend.includes(x))];
+  const meuCod=(st.uid||"").slice(0,8),eqRows=[...pend,...rows.filter(x=>!pend.includes(x)&&x.s!=="cancelada"&&((x.insc||{}).equipe===meuCod||lib.includes(x)))];
   const nome=x=>(st.nomes[x.id]&&st.nomes[x.id].name)||x.insc.ident||"Pessoa sem nome visível";
   const cod=(st.uid||"").slice(0,8),link=linkApp()+"?equipe="+cod;
   return `<section class="card wide"><div class="card-head"><i class="n">2</i><h2>Liberar logins da sua equipe<span>Administrador · cota definida pelo dono do app</span></h2><span class="us-pro-tag us-cota-tag">${rest} de ${c.limite} disponíveis</span></div>
@@ -5588,6 +5598,20 @@ function painelRestrito(){
      return `<tr${cf?' class="us-aberta"':""}><td><b>${esc(nome(x))}</b>${x.insc.ident&&nome(x)!==x.insc.ident?`<small>${esc(x.insc.ident)}</small>`:""}</td><td>${badge(x.s)}${x.ac&&x.ac.por===st.uid?`<small>liberado por você</small>`:""}</td><td class="num">${dataBR(x.insc.em)}</td><td class="pj-acts"><div class="us-acts">${x.s==="pendente"?`<button type="button" class="btn solid" data-us="aprovar" data-id="${x.id}"${rest?"":" disabled"}>Liberar login</button>`:""}${cf?`<button type="button" class="btn" data-us="x">Fechar</button>`:`<button type="button" class="btn warn" data-us="ask-excluir" data-id="${x.id}">Excluir inscrição</button>`}</div></td></tr>${cf?`<tr class="us-sub"><td colspan="4"><p class="us-exc">Excluir a inscrição de <b>${esc(nome(x))}</b>: ela sai da sua equipe e perde o acesso${x.ac&&x.ac.por===st.uid?" (a vaga volta para a sua cota)":""}. Os projetos dela continuam guardados; se quiser voltar, ela se inscreve de novo pelo link.</p><div class="pj-btns"><button type="button" class="btn warn" data-us="excluir" data-id="${x.id}">Confirmar exclusão da inscrição</button><button type="button" class="btn" data-us="x">Voltar</button></div></td></tr>`:""}`}).join("")}</tbody></table></div>`}
    </section>`;
 }
+function addMembrosHTML(rows,admOpts,eqDe){
+  const eq=st.addEq&&admOpts.some(o=>o[0]===st.addEq)?st.addEq:admOpts[0][0];st.addEq=eq;
+  const nmEq=(admOpts.find(o=>o[0]===eq)||[])[1]||"",cand=rows.filter(x=>!st.admins.has(x.id)&&x.s!=="cancelada"&&(x.insc||{}).equipe!==eq),conv=Object.entries(st.convites||{}),q=(st.addBusca||"").toLowerCase();
+  return `<section class="card wide" id="am-card"><div class="card-head"><i class="n">+</i><h2>Adicionar membros às equipes<span>Direto, sem link nem código · só o dono</span></h2></div><div class="pj-body">
+   <div class="rp-grid"><label>Equipe<select class="lv-sel" id="am-eq">${admOpts.map(([c,n])=>`<option value="${c}"${c===eq?" selected":""}>Equipe de ${esc(n)}</option>`).join("")}</select></label>
+    <label class="us-chk am-lib"><input type="checkbox" id="am-lib"${st.addLib===false?"":" checked"}> <span><b>Liberar o acesso agora</b><br><span class="muted">sem esperar aprovação e sem gastar a cota do administrador</span></span></label></div>
+   <div class="us-abas-box"><b>Pessoas que já têm conta</b>${cand.length?`<div class="inp"><input id="am-busca" placeholder="Buscar por nome ou identificação" value="${esc(st.addBusca||"")}" aria-label="Buscar pessoa"></div>
+    <div class="am-lista">${cand.map(x=>{const e=eqDe(x),b=(nomeDe(x)+" "+(x.insc.ident||"")).toLowerCase();return `<label class="us-chk am-p" data-busca="${esc(b)}"${q&&!b.includes(q)?" hidden":""}><input type="checkbox" data-am="${x.id}"> <span><b>${esc(nomeDe(x))}</b><small>${SIT[x.s]?SIT[x.s][0]:""}${e?` · hoje na equipe de ${esc(e.nome||e.c)}`:" · sem equipe"}</small></span></label>`}).join("")}</div>
+    <div class="pj-btns"><button type="button" class="btn solid" data-us="am-add">Adicionar selecionados à equipe de ${esc(nmEq)}</button></div>`:`<span class="muted">Todas as pessoas inscritas já estão nesta equipe.</span>`}</div>
+   <div class="us-abas-box"><b>Quem ainda não tem conta · pré-cadastro por e-mail</b><span class="muted">Digite um ou mais e-mails. Quando a pessoa criar a conta no app com esse e-mail, ela entra direto na equipe${st.addLib===false?"":" e já com o acesso liberado"}. Se a pessoa já tiver conta, vale na próxima vez que ela abrir o app.</span>
+    <textarea id="am-emails" rows="2" placeholder="maria@exemplo.com, joao@exemplo.com" aria-label="E-mails para pré-cadastro"></textarea>
+    <div class="pj-btns"><button type="button" class="btn solid" data-us="am-conv">Pré-cadastrar na equipe de ${esc(nmEq)}</button></div>
+    ${conv.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>E-mail</th><th>Equipe</th><th>Acesso ao entrar</th><th>Desde</th><th></th></tr></thead><tbody>${conv.map(([em,c])=>`<tr><td><b>${esc(em)}</b></td><td>${esc(((admOpts.find(o=>o[0]===c.equipe)||[])[1])||c.equipe||"—")}</td><td>${c.liberar?`<span class="us-st ok">liberado</span>`:`<span class="us-st wait">aguarda aprovação</span>`}</td><td>${dia(c.em)}</td><td><button type="button" class="btn" data-us="am-conv-del" data-id="${esc(em)}">Remover</button></td></tr>`).join("")}</tbody></table></div>`:""}</div>
+  </div></section>`}
 const menuAcoes=arr=>{const l=arr.filter(Boolean);if(!l.length)return `<span class="muted">Cancelada pela própria pessoa</span>`;
   const pri=l.filter(b=>/data-us="ativo"/.test(b)),resto=l.filter(b=>!pri.includes(b)),alerta=resto.some(b=>/class="btn solid/.test(b)&&/data-us="ask-(prazo|cob)"/.test(b));
   return `<div class="us-acts">${pri.join("")}${resto.length?`<details class="us-menu"><summary class="btn${alerta?" us-alerta":""}">Ações ▾</summary><div class="us-menu-l">${resto.join("")}</div></details>`:""}</div>`};
@@ -5704,7 +5728,7 @@ function draw(){
       const eqInfo=(()=>{if(!st.filtroEq)return "";if(st.filtroEq==="-")return `<div class="us-eqban"><b>Sem equipe</b><span class="muted">Pessoas que se inscreveram sem link ou código de equipe: só você (dono) libera.</span></div>`;
         const aid=[...st.admins.keys()].find(i=>i.slice(0,8)===st.filtroEq),a=aid?st.admins.get(aid):null,nmA=aid?((st.nomes[aid]&&st.nomes[aid].name)||"Administrador"):"código "+st.filtroEq;
         const mem=rows.filter(x=>(eqDe(x)||{}).c===st.filtroEq),at=mem.filter(x=>x.s==="ativo").length,pe=mem.filter(x=>x.s==="pendente").length;
-        return `<div class="us-eqban"><div><b>Equipe de ${esc(nmA)}</b><span class="muted">Código ${esc(st.filtroEq)} · ${mem.length} membro${mem.length===1?"":"s"} (${at} ativo${at===1?"":"s"}, ${pe} aguardando)${a?` · cota: ${a.usados} de ${a.limite} logins`:""} · abas da equipe: ${esc(abasTxt(eqAbas(st.filtroEq)||st.padrao))}</span>${mem.length?"":`<span>Ninguém entrou nesta equipe ainda. Envie o link de convite para os colaboradores.</span>`}</div>${aid?`<button type="button" class="btn solid" data-us="copiar-link" data-id="${aid}">Copiar link da equipe</button>`:""}</div>`})();
+        return `<div class="us-eqban"><div><b>Equipe de ${esc(nmA)}</b><span class="muted">Código ${esc(st.filtroEq)} · ${mem.length} membro${mem.length===1?"":"s"} (${at} ativo${at===1?"":"s"}, ${pe} aguardando)${a?` · cota: ${a.usados} de ${a.limite} logins`:""} · abas da equipe: ${esc(abasTxt(eqAbas(st.filtroEq)||st.padrao))}</span>${mem.length?"":`<span>Ninguém entrou nesta equipe ainda. Envie o link de convite para os colaboradores.</span>`}</div>${aid?`<div class="pj-btns"><button type="button" class="btn solid" data-us="am-ir" data-id="${st.filtroEq}">Adicionar membros</button><button type="button" class="btn" data-us="copiar-link" data-id="${aid}">Copiar link da equipe</button></div>`:""}</div>`})();
       const admOpts=[...st.admins.entries()].filter(([i,a])=>!a.dono).map(([i])=>[i.slice(0,8),(st.nomes[i]&&st.nomes[i].name)||"Administrador"]);
       h+=`<section class="card"><div class="card-head"><i class="n">2</i><h2>Regras de acesso<span>Só o dono do app altera</span></h2></div><div class="pj-body">
         <div class="us-modo" role="radiogroup" aria-label="Modo de inscrição">
@@ -5717,6 +5741,7 @@ function draw(){
         <p class="muted">${Auth.supa()?"Qualquer pessoa com o endereço do app pode criar uma conta. Com aprovação, só quem você aprovar consegue salvar projetos.":"Quem pode abrir o link do app é definido no menu Compartilhar do claude.ai. Esta aba controla o que cada pessoa pode fazer dentro do app."}</p></div></section>`;
       if(Auth.supa()&&Auth.dono()&&!Auth.basica())h+=planosHTML(rows);
       const cobOn=cobAtiva()&&Auth.dono();
+      if(Auth.supa()&&Auth.dono()&&admOpts.length)h+=addMembrosHTML(rows,admOpts,eqDe);
       h+=`<section class="card wide"><div class="card-head"><i class="n">3</i><h2>Pessoas inscritas<span>${rows.length} inscriç${rows.length===1?"ão":"ões"}</span></h2>
         <div class="pj-tools chips">${[["todos","Todos"],["pendente","Aguardando"],["ativo","Ativos"],["suspenso","Suspensos"],["cancel","Cancelados"],...(cobOn?[["pag","Pagamento pendente"]]:[])].map(([k,t])=>`<button type="button" class="chip${st.filtro===k?" on":""}" data-filtro="${k}" aria-pressed="${st.filtro===k}">${t}</button>`).join("")}${Auth.supa()&&admOpts.length?`<select class="lv-sel us-eqsel${st.filtroEq?" on":""}" id="us-filtroeq" aria-label="Filtrar por equipe"><option value="">Todas as equipes</option><option value="-"${st.filtroEq==="-"?" selected":""}>Sem equipe</option>${admOpts.map(([c,n])=>`<option value="${c}"${st.filtroEq===c?" selected":""}>Equipe de ${esc(n)}</option>`).join("")}</select>`:""}</div></div>
         ${!rows.length?`<p class="pj-body muted">Ninguém se inscreveu ainda. Quando alguém com acesso ao link criar a senha e clicar em Inscrever-me, a pessoa aparece aqui.</p>`:!vis.length?`${eqInfo}<p class="pj-body muted">Ninguém nesta situação.</p>`:
@@ -5772,6 +5797,9 @@ function bind(){
   q("#us-sair")&&q("#us-sair").addEventListener("click",()=>{Auth.logout();aviso("Você saiu.")});
   q("#us-admsair")&&q("#us-admsair").addEventListener("click",()=>{Auth.admSair();aviso("Você saiu do modo administrador.")});
   q("#us-insc")&&q("#us-insc").addEventListener("click",inscrever);
+  q("#am-eq")&&q("#am-eq").addEventListener("change",e=>{st.addEq=e.target.value;draw()});
+  q("#am-lib")&&q("#am-lib").addEventListener("change",e=>{st.addLib=e.target.checked;draw()});
+  q("#am-busca")&&q("#am-busca").addEventListener("input",e=>{st.addBusca=e.target.value;const t=st.addBusca.toLowerCase();el.querySelectorAll(".am-p").forEach(l=>l.hidden=!!t&&!l.dataset.busca.includes(t))});
   q("#us-verif")&&q("#us-verif").addEventListener("click",()=>rodar(async()=>{await carregar();aviso(bloqueado()?"Ainda aguardando a liberação do administrador.":"Acesso liberado! As abas já estão disponíveis.")}));
   q("#us-ident")&&q("#us-ident").addEventListener("input",e=>{st.ident=e.target.value});
   q("#us-cancel")&&q("#us-cancel").addEventListener("click",()=>{st.confirm={t:"cancel-me"};st.apagar=false;draw();const i=q("#us-cpw");i&&i.focus()});
@@ -5820,6 +5848,19 @@ function bind(){
     else if(a==="cob-liberar")salvarAss(id,{override:"liberado"},"Liberado manualmente: a pessoa usa o app mesmo com a mensalidade vencida, até você voltar ao automático.");
     else if(a==="cob-cancelar")salvarAss(id,{override:"cancelado"},"Cancelado manualmente: a pessoa fica bloqueada mesmo com a mensalidade em dia, até você liberar ou voltar ao automático.");
     else if(a==="cob-auto")salvarAss(id,{override:null},"De volta ao automático: o sistema decide pelo vencimento e pela carência.");
+    else if(a==="am-ir"){st.addEq=id;st.filtro="todos";draw();const c=el.querySelector("#am-card");c&&c.scrollIntoView({block:"start",behavior:"smooth"})}
+    else if(a==="am-add"){const ids=[...el.querySelectorAll("[data-am]:checked")].map(i=>i.dataset.am),lib=!!(el.querySelector("#am-lib")||{}).checked,eq=st.addEq;
+      if(!ids.length){aviso("Marque as pessoas que vão entrar na equipe.",true);return}
+      rodar(async()=>{let n=0,l=0;for(const id of ids){const x=st.lista.find(y=>y.id===id);if(!x)continue;const ni={...(x.insc||{}),equipe:eq};await st.db.doc("inscricoes/"+id).set(ni);x.insc=ni;n++;
+          if(lib&&situacao(x.insc,x.ac,st.modo)!=="ativo"){const na={...(x.ac||{}),status:"ativo",em:Date.now(),por:st.uid};await st.db.doc("acessos/"+id).set(na);x.ac=na;l++;
+            if(cobAtiva()&&!st.ass[id]){const as={plano:planoAvancado(na)?"avancado":"basico",vencimento:Date.now(),criada:Date.now()};await st.db.doc("assinaturas/"+id).set(as);st.ass[id]=as}}}
+        const nm=((Object.entries(st.nomes).find(([i])=>i.slice(0,8)===eq)||[])[1]||{}).name||"administrador";
+        aviso(`${n} pessoa${n===1?"":"s"} adicionada${n===1?"":"s"} à equipe de ${nm}${l?` · ${l} com acesso liberado agora`:""}.`)})}
+    else if(a==="am-conv"){const lib=!!(el.querySelector("#am-lib")||{}).checked,eq=st.addEq,txt=String(val("am-emails")||"").toLowerCase(),ems=[...new Set(txt.split(/[\s,;]+/).filter(e=>/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(e)))];
+      if(!ems.length){aviso("Digite pelo menos um e-mail válido.",true);return}
+      rodar(async()=>{for(const em of ems){const c={equipe:eq,liberar:lib,por:st.uid,em:Date.now()};await st.db.doc("convites/"+em).set(c);st.convites[em]=c}
+        aviso(`${ems.length} e-mail${ems.length===1?"":"s"} pré-cadastrado${ems.length===1?"":"s"}: ao criar a conta, a pessoa entra direto na equipe${lib?" com o acesso liberado":""}.`)})}
+    else if(a==="am-conv-del")rodar(async()=>{await st.db.doc("convites/"+id).delete();delete st.convites[id];aviso(`Pré-cadastro de ${id} removido.`)});
     else if(a==="excluir"){st.confirm=null;rodar(async()=>{const x=st.lista.find(y=>y.id===id),nm=x?nomeDe(x):"Pessoa";await Auth.excluirInscricao(id);await carregar();aviso(`Inscrição de ${nm} excluída. Os projetos dela continuam guardados na conta.`)})}
     else if(a==="aprovar")rodar(async()=>{const r=await Auth.aprovar(id);await carregar();aviso(r==="ja_ativo"?"Esta pessoa já estava liberada.":"Login liberado.")});
     else if(a==="cota-ok"){const v=parseInt((el.querySelector("#us-cota-"+CSS.escape(id))||{}).value,10);if(!(v>=0)){aviso("Digite um número inteiro (0 ou mais).",true);return}st.confirm=null;rodar(async()=>{await Auth.definirLimite(id,v);await carregarLista();aviso(`Cota salva: esse administrador pode liberar até ${v} login${v===1?"":"s"}.`)})}
