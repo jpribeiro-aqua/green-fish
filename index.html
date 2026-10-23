@@ -624,6 +624,7 @@ td>.us-papel{display:table;margin-top:4px}
 .us-papeis{margin-top:10px}.us-ptab td{font-size:13px;vertical-align:top}.us-ptab td:first-child{font-weight:600}
 .am-lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:4px 14px;max-height:280px;overflow:auto;padding:4px 2px}
 .am-p small{display:block;color:var(--muted);font-size:12px}
+.am-p.am-in{background:var(--accent-soft);border-radius:8px;padding:2px 6px}
 .rp-grid label.am-lib{display:flex;flex-direction:row;gap:8px;align-items:center;align-self:end;padding-bottom:6px}
 #am-busca{text-align:left;font-family:inherit}
 #am-emails{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);resize:vertical}
@@ -5620,18 +5621,23 @@ function painelRestrito(){
    </section>`;
 }
 function addMembrosHTML(rows,admOpts,eqDe){
-  const eq=st.addEq&&admOpts.some(o=>o[0]===st.addEq)?st.addEq:admOpts[0][0];st.addEq=eq;
-  const nmEq=(admOpts.find(o=>o[0]===eq)||[])[1]||"",cand=rows.filter(x=>!st.admins.has(x.id)&&x.s!=="cancelada"&&(x.insc||{}).equipe!==eq),conv=Object.entries(st.convites||{}),q=(st.addBusca||"").toLowerCase();
-  return `<section class="card wide" id="am-card"><div class="card-head"><i class="n">+</i><h2>Adicionar membros às equipes<span>Direto, sem link nem código · só o dono</span></h2></div><div class="pj-body">
-   <div class="rp-grid"><label>Equipe<select class="lv-sel" id="am-eq">${admOpts.map(([c,n])=>`<option value="${c}"${c===eq?" selected":""}>Equipe de ${esc(n)}</option>`).join("")}</select></label>
-    <label class="us-chk am-lib"><input type="checkbox" id="am-lib"${st.addLib===false?"":" checked"}> <span><b>Liberar o acesso agora</b><br><span class="muted">sem esperar aprovação e sem gastar a cota do administrador</span></span></label></div>
-   <div class="us-abas-box"><b>Pessoas que já têm conta</b>${cand.length?`<div class="inp"><input id="am-busca" placeholder="Buscar por nome ou identificação" value="${esc(st.addBusca||"")}" aria-label="Buscar pessoa"></div>
-    <div class="am-lista">${cand.map(x=>{const e=eqDe(x),b=(nomeDe(x)+" "+(x.insc.ident||"")).toLowerCase();return `<label class="us-chk am-p" data-busca="${esc(b)}"${q&&!b.includes(q)?" hidden":""}><input type="checkbox" data-am="${x.id}"> <span><b>${esc(nomeDe(x))}</b><small>${SIT[x.s]?SIT[x.s][0]:""}${e?` · hoje na equipe de ${esc(e.nome||e.c)}`:" · sem equipe"}</small></span></label>`}).join("")}</div>
-    <div class="pj-btns"><button type="button" class="btn solid" data-us="am-add">Adicionar selecionados à equipe de ${esc(nmEq)}</button></div>`:`<span class="muted">Todas as pessoas inscritas já estão nesta equipe.</span>`}</div>
-   <div class="us-abas-box"><b>Quem ainda não tem conta · pré-cadastro por e-mail</b><span class="muted">Digite um ou mais e-mails. Quando a pessoa criar a conta no app com esse e-mail, ela entra direto na equipe${st.addLib===false?"":" e já com o acesso liberado"}. Se a pessoa já tiver conta, vale na próxima vez que ela abrir o app.</span>
+  const NOVA="__nova__",eq=st.addEq===NOVA||admOpts.some(o=>o[0]===st.addEq)?st.addEq:(admOpts[0]?admOpts[0][0]:NOVA);st.addEq=eq;const nova=eq===NOVA;
+  const nmEq=nova?"":((admOpts.find(o=>o[0]===eq)||[])[1]||""),q=(st.addBusca||"").toLowerCase(),conv=Object.entries(st.convites||{});
+  const pessoas=rows.filter(x=>!st.admins.has(x.id)&&x.s!=="cancelada"&&x.id!==st.addAdm);
+  const candAdm=rows.filter(x=>!st.admins.has(x.id)&&x.s!=="cancelada");
+  const naEq=x=>!nova&&(x.insc||{}).equipe===eq,nIn=pessoas.filter(naEq).length;
+  return `<section class="card wide" id="am-card"><div class="card-head"><i class="n">+</i><h2>Montar equipes<span>Qualquer pessoa inscrita, direto, sem link nem código · só o dono</span></h2></div><div class="pj-body">
+   <div class="rp-grid"><label>Equipe<select class="lv-sel" id="am-eq">${admOpts.map(([c,n])=>`<option value="${c}"${c===eq?" selected":""}>Equipe de ${esc(n)}</option>`).join("")}<option value="${NOVA}"${nova?" selected":""}>＋ Nova equipe…</option></select></label>
+    ${nova?`<label>Administrador da nova equipe<select class="lv-sel" id="am-adm"><option value="">Escolha uma pessoa inscrita</option>${candAdm.map(x=>`<option value="${x.id}"${x.id===st.addAdm?" selected":""}>${esc(nomeDe(x))}${x.insc.ident&&nomeDe(x)!==x.insc.ident?" · "+esc(x.insc.ident):""}</option>`).join("")}</select></label>`:""}
+    <label class="us-chk am-lib"><input type="checkbox" id="am-lib"${st.addLib===false?"":" checked"}> <span><b>Liberar o acesso de quem entrar</b><br><span class="muted">sem esperar aprovação e sem gastar a cota do administrador</span></span></label></div>
+   <div class="us-abas-box"><b>${nova?"Membros da nova equipe":`Membros da equipe de ${esc(nmEq)}`} <span class="muted am-cont">(${nIn} marcado${nIn===1?"":"s"})</span></b><span class="muted">Marque quem fica na equipe e desmarque quem sai. Aparecem todas as pessoas inscritas (menos administradores): quem está em outra equipe muda para esta.</span>
+    ${pessoas.length?`<div class="inp"><input id="am-busca" placeholder="Buscar por nome ou identificação" value="${esc(st.addBusca||"")}" aria-label="Buscar pessoa"></div>
+    <div class="am-lista">${pessoas.map(x=>{const e=eqDe(x),b=(nomeDe(x)+" "+(x.insc.ident||"")).toLowerCase(),dentro=naEq(x);return `<label class="us-chk am-p${dentro?" am-in":""}" data-busca="${esc(b)}"${q&&!b.includes(q)?" hidden":""}><input type="checkbox" data-am="${x.id}"${dentro?" checked":""}> <span><b>${esc(nomeDe(x))}</b><small>${SIT[x.s]?SIT[x.s][0]:""}${dentro?" · nesta equipe":e?` · hoje na equipe de ${esc(e.nome||e.c)}`:" · sem equipe"}</small></span></label>`}).join("")}</div>`:`<span class="muted">Ninguém inscrito ainda.</span>`}
+    <div class="pj-btns"><button type="button" class="btn solid" data-us="${nova?"am-criar":"am-salvar"}">${nova?"Criar equipe":`Salvar equipe de ${esc(nmEq)}`}</button></div></div>
+   ${nova?"":`<div class="us-abas-box"><b>Quem ainda não tem conta · pré-cadastro por e-mail</b><span class="muted">Digite um ou mais e-mails. Quando a pessoa criar a conta no app com esse e-mail, ela entra direto na equipe de ${esc(nmEq)}${st.addLib===false?"":" e já com o acesso liberado"}. Se a pessoa já tiver conta, vale na próxima vez que ela abrir o app.</span>
     <textarea id="am-emails" rows="2" placeholder="maria@exemplo.com, joao@exemplo.com" aria-label="E-mails para pré-cadastro"></textarea>
-    <div class="pj-btns"><button type="button" class="btn solid" data-us="am-conv">Pré-cadastrar na equipe de ${esc(nmEq)}</button></div>
-    ${conv.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>E-mail</th><th>Equipe</th><th>Acesso ao entrar</th><th>Desde</th><th></th></tr></thead><tbody>${conv.map(([em,c])=>`<tr><td><b>${esc(em)}</b></td><td>${esc(((admOpts.find(o=>o[0]===c.equipe)||[])[1])||c.equipe||"—")}</td><td>${c.liberar?`<span class="us-st ok">liberado</span>`:`<span class="us-st wait">aguarda aprovação</span>`}</td><td>${dia(c.em)}</td><td><button type="button" class="btn" data-us="am-conv-del" data-id="${esc(em)}">Remover</button></td></tr>`).join("")}</tbody></table></div>`:""}</div>
+    <div class="pj-btns"><button type="button" class="btn solid" data-us="am-conv">Pré-cadastrar na equipe de ${esc(nmEq)}</button></div></div>`}
+    ${conv.length?`<div class="us-abas-box"><b>Pré-cadastros aguardando a pessoa criar a conta</b><div class="scroll"><table class="pj-tab"><thead><tr><th>E-mail</th><th>Equipe</th><th>Acesso ao entrar</th><th>Desde</th><th></th></tr></thead><tbody>${conv.map(([em,c])=>`<tr><td><b>${esc(em)}</b></td><td>${esc(((admOpts.find(o=>o[0]===c.equipe)||[])[1])||c.equipe||"—")}</td><td>${c.liberar?`<span class="us-st ok">liberado</span>`:`<span class="us-st wait">aguarda aprovação</span>`}</td><td>${dia(c.em)}</td><td><button type="button" class="btn" data-us="am-conv-del" data-id="${esc(em)}">Remover</button></td></tr>`).join("")}</tbody></table></div></div>`:""}
   </div></section>`}
 /* ---- papéis: dono, administrador (de uma equipe) e membro ---- */
 const papelDe=x=>{const a=st.admins.get(x.id);if(a)return a.dono?"dono":"adm";return "membro"};
@@ -5642,7 +5648,7 @@ const papeisHTML=adm=>`<details class="us-det us-papeis"><summary>Quem faz o qu�
   ["Escolher as abas","todos","membros da equipe dele, só entre as abas da equipe","—"],
   ["Prazo de uso","todos","membros da equipe dele (não muda prazo posto pelo dono)","—"],
   ["Excluir inscrição","todos, menos administradores","membros da equipe dele","a própria (Cancelar minha inscrição)"],
-  ["Adicionar pessoas às equipes sem link","sim","não (usa o link de convite)","—"],
+  ["Montar equipes com qualquer pessoa inscrita, sem link","sim","não (usa o link de convite)","—"],
   ["Versão avançada, cobrança, cotas, abas da equipe e administradores","sim","não","não"],
   ["Usar o app e salvar os próprios projetos","sim","sim","sim, nas abas liberadas"]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}</tbody></table></div></details>`;
 const menuAcoes=arr=>{const l=arr.filter(Boolean);if(!l.length)return `<span class="muted">Cancelada pela própria pessoa</span>`;
@@ -5775,7 +5781,7 @@ function draw(){
         <p class="muted">${Auth.supa()?"Qualquer pessoa com o endereço do app pode criar uma conta. Com aprovação, só quem você aprovar consegue salvar projetos.":"Quem pode abrir o link do app é definido no menu Compartilhar do claude.ai. Esta aba controla o que cada pessoa pode fazer dentro do app."}</p>${Auth.supa()?papeisHTML(false):""}</div></section>`;
       if(Auth.supa()&&Auth.dono()&&!Auth.basica())h+=planosHTML(rows);
       const cobOn=cobAtiva()&&Auth.dono();
-      if(Auth.supa()&&Auth.dono()&&admOpts.length)h+=addMembrosHTML(rows,admOpts,eqDe);
+      if(Auth.supa()&&Auth.dono())h+=addMembrosHTML(rows,admOpts,eqDe);
       h+=`<section class="card wide"><div class="card-head"><i class="n">3</i><h2>Pessoas inscritas<span>${rows.length} inscriç${rows.length===1?"ão":"ões"}</span></h2>
         <div class="pj-tools chips">${[["todos","Todos"],["pendente","Aguardando"],["ativo","Ativos"],["suspenso","Suspensos"],["cancel","Cancelados"],...(cobOn?[["pag","Pagamento pendente"]]:[])].map(([k,t])=>`<button type="button" class="chip${st.filtro===k?" on":""}" data-filtro="${k}" aria-pressed="${st.filtro===k}">${t}</button>`).join("")}${Auth.supa()&&admOpts.length?`<select class="lv-sel us-eqsel${st.filtroEq?" on":""}" id="us-filtroeq" aria-label="Filtrar por equipe"><option value="">Todas as equipes</option><option value="-"${st.filtroEq==="-"?" selected":""}>Sem equipe</option>${admOpts.map(([c,n])=>`<option value="${c}"${st.filtroEq===c?" selected":""}>Equipe de ${esc(n)}</option>`).join("")}</select>`:""}</div></div>
         ${!rows.length?`<p class="pj-body muted">Ninguém se inscreveu ainda. Quando alguém com acesso ao link criar a senha e clicar em Inscrever-me, a pessoa aparece aqui.</p>`:!vis.length?`${eqInfo}<p class="pj-body muted">Ninguém nesta situação.</p>`:
@@ -5832,6 +5838,8 @@ function bind(){
   q("#us-admsair")&&q("#us-admsair").addEventListener("click",()=>{Auth.admSair();aviso("Você saiu do modo administrador.")});
   q("#us-insc")&&q("#us-insc").addEventListener("click",inscrever);
   q("#am-eq")&&q("#am-eq").addEventListener("change",e=>{st.addEq=e.target.value;draw()});
+  q("#am-adm")&&q("#am-adm").addEventListener("change",e=>{st.addAdm=e.target.value;draw()});
+  el.querySelectorAll("[data-am]").forEach(i=>i.addEventListener("change",()=>{const n=el.querySelectorAll("[data-am]:checked").length,c=el.querySelector(".am-cont");if(c)c.textContent=`(${n} marcado${n===1?"":"s"})`}));
   q("#am-lib")&&q("#am-lib").addEventListener("change",e=>{st.addLib=e.target.checked;draw()});
   q("#am-busca")&&q("#am-busca").addEventListener("input",e=>{st.addBusca=e.target.value;const t=st.addBusca.toLowerCase();el.querySelectorAll(".am-p").forEach(l=>l.hidden=!!t&&!l.dataset.busca.includes(t))});
   q("#us-verif")&&q("#us-verif").addEventListener("click",()=>rodar(async()=>{await carregar();aviso(bloqueado()?"Ainda aguardando a liberação do administrador.":"Acesso liberado! As abas já estão disponíveis.")}));
@@ -5885,13 +5893,20 @@ function bind(){
     else if(a==="adm-suspender"){st.confirm=null;rodar(async()=>{await Auth.admStatus(id,"suspenso");await carregar();aviso("Membro suspenso: ele não usa o app até você reativar.")})}
     else if(a==="adm-abas-ok"||a==="adm-abas-eq"){const l=a==="adm-abas-ok"?lerAbas("m:"+id):null;st.confirm=null;rodar(async()=>{await Auth.admAbas(id,l);await carregar();aviso(l?`Abas do membro: ${abasTxt(l)}. Vale no próximo acesso dele.`:"O membro volta a usar as abas da equipe.")})}
     else if(a==="am-ir"){st.addEq=id;st.filtro="todos";draw();const c=el.querySelector("#am-card");c&&c.scrollIntoView({block:"start",behavior:"smooth"})}
-    else if(a==="am-add"){const ids=[...el.querySelectorAll("[data-am]:checked")].map(i=>i.dataset.am),lib=!!(el.querySelector("#am-lib")||{}).checked,eq=st.addEq;
-      if(!ids.length){aviso("Marque as pessoas que vão entrar na equipe.",true);return}
-      rodar(async()=>{let n=0,l=0;for(const id of ids){const x=st.lista.find(y=>y.id===id);if(!x)continue;const ni={...(x.insc||{}),equipe:eq};await st.db.doc("inscricoes/"+id).set(ni);x.insc=ni;n++;
-          if(lib&&situacao(x.insc,x.ac,st.modo)!=="ativo"){const na={...(x.ac||{}),status:"ativo",em:Date.now(),por:st.uid};await st.db.doc("acessos/"+id).set(na);x.ac=na;l++;
-            if(cobAtiva()&&!st.ass[id]){const as={plano:planoAvancado(na)?"avancado":"basico",vencimento:Date.now(),criada:Date.now()};await st.db.doc("assinaturas/"+id).set(as);st.ass[id]=as}}}
-        const nm=((Object.entries(st.nomes).find(([i])=>i.slice(0,8)===eq)||[])[1]||{}).name||"administrador";
-        aviso(`${n} pessoa${n===1?"":"s"} adicionada${n===1?"":"s"} à equipe de ${nm}${l?` · ${l} com acesso liberado agora`:""}.`)})}
+    else if(a==="am-salvar"||a==="am-criar"){const lib=!!(el.querySelector("#am-lib")||{}).checked,marc=new Set([...el.querySelectorAll("[data-am]:checked")].map(i=>i.dataset.am)),vis=[...el.querySelectorAll("[data-am]")].map(i=>i.dataset.am);
+      const admId=a==="am-criar"?val("am-adm"):null;if(a==="am-criar"&&!admId){aviso("Escolha quem vai ser o administrador da nova equipe.",true);return}
+      rodar(async()=>{let eq=st.addEq;
+        if(admId){await Auth.definirAdmin(admId,true);eq=admId.slice(0,8);const xa=st.lista.find(y=>y.id===admId);if(xa){if((xa.insc||{}).equipe){const ni={...xa.insc};delete ni.equipe;await st.db.doc("inscricoes/"+admId).set(ni);xa.insc=ni}
+          if(situacao(xa.insc,xa.ac,st.modo)!=="ativo"){const na={...(xa.ac||{}),status:"ativo",em:Date.now(),por:st.uid};await st.db.doc("acessos/"+admId).set(na);xa.ac=na}}}
+        let ent=0,sai=0,l=0;
+        for(const id of vis){const x=st.lista.find(y=>y.id===id);if(!x||id===admId)continue;const dentro=(x.insc||{}).equipe===eq,quer=marc.has(id);
+          if(quer&&!dentro){const ni={...(x.insc||{}),equipe:eq};await st.db.doc("inscricoes/"+id).set(ni);x.insc=ni;ent++;
+            if(lib&&situacao(x.insc,x.ac,st.modo)!=="ativo"&&!(x.ac&&x.ac.status==="cancelado")){const na={...(x.ac||{}),status:"ativo",em:Date.now(),por:st.uid};delete na.suspensoPorDono;await st.db.doc("acessos/"+id).set(na);x.ac=na;l++;
+              if(cobAtiva()&&!st.ass[id]){const as={plano:planoAvancado(na)?"avancado":"basico",vencimento:Date.now(),criada:Date.now()};await st.db.doc("assinaturas/"+id).set(as);st.ass[id]=as}}}
+          else if(!quer&&dentro){const ni={...(x.insc||{})};delete ni.equipe;await st.db.doc("inscricoes/"+id).set(ni);x.insc=ni;sai++}}
+        if(admId){await carregarLista();st.addEq=eq;st.addAdm=""}
+        const nm=((st.nomes[[...st.admins.keys()].find(i=>i.slice(0,8)===eq)]||{}).name)||"administrador";
+        aviso(`${admId?`Equipe de ${nm} criada. `:`Equipe de ${nm} salva: `}${ent} entr${ent===1?"ou":"aram"}${sai?`, ${sai} sa${sai===1?"iu":"íram"}`:""}${l?` · ${l} com acesso liberado agora`:""}.`)})}
     else if(a==="am-conv"){const lib=!!(el.querySelector("#am-lib")||{}).checked,eq=st.addEq,txt=String(val("am-emails")||"").toLowerCase(),ems=[...new Set(txt.split(/[\s,;]+/).filter(e=>/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(e)))];
       if(!ems.length){aviso("Digite pelo menos um e-mail válido.",true);return}
       rodar(async()=>{for(const em of ems){const c={equipe:eq,liberar:lib,por:st.uid,em:Date.now()};await st.db.doc("convites/"+em).set(c);st.convites[em]=c}
