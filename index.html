@@ -690,7 +690,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-pro-list{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:grid;gap:4px}
 .us-pro p{margin:0}
 /* Aba em evidência no Painel */
-.foco-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.foco-bar{display:grid;gap:8px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .foco-bar .fb-t{font-size:14px;color:var(--ink)}.foco-bar .fb-b{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
 .foco-bar .chips{display:flex;flex-wrap:wrap;gap:6px}
 .fc-kpis{display:grid;align-items:start;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:12px}
@@ -700,6 +700,10 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .fc-tab td small{display:block;color:var(--muted);font-size:12px}.fc-tab td .us-st{font-size:11px}
 .fc-tab a{color:var(--ink);text-decoration:none}.fc-tab a:hover b{color:var(--accent);text-decoration:underline}
 @media (max-width:640px){.foco-bar .fb-b{margin-left:0}.fc-tab td[data-l]{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}.fc-tab td[data-l]::before{content:attr(data-l);color:var(--muted);font-size:12px}.fc-tab td[data-l] small{display:inline;margin-left:4px}}
+.foco-bar .fb-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.foco-bar .ctx{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}.foco-bar .ctx b{color:var(--ink);font-weight:600}
+.foco-bar .ctx-corr{font-size:13px;color:var(--ink);border-top:1px dashed var(--line);padding-top:8px}.foco-bar .ctx-corr small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.foco-bar .ctx-corr a{color:var(--accent);font-weight:600}
 
 .us-autor,.pj-tab td small.us-autor{display:block;color:var(--accent);font-size:12px}.us-autor b,.pj-tab td .us-autor b{font:inherit;font-weight:700;color:inherit;display:inline}
 .us-email{display:block;color:var(--muted);font:12px var(--f-mono);word-break:break-all}
@@ -1040,6 +1044,8 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 @media (max-width: 960px) { .cols, .cols2 { grid-template-columns: minmax(0, 1fr); } .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .unit { grid-template-columns: minmax(0, 1fr); } .summary { grid-template-columns: minmax(0, 1fr); } .amps { grid-template-columns: minmax(0, 1fr); } .sbar { grid-template-columns: minmax(0, 1fr); } .tab { padding-inline: 10px; } }
 @media (prefers-reduced-motion: no-preference) { .tile, .chip, .ucard { transition: border-color .15s; } }
+  td.orig { font-size: .78rem; color: var(--ink-2); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td.orig small { display: block; color: var(--ink-3); }
 &lt;/style&gt;
 
 &lt;div class=&quot;topbar&quot;&gt;&lt;div class=&quot;topbar-in&quot;&gt;
@@ -1830,10 +1836,12 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   let delArmed = false;
   function renderTable() {
     const u = UA(), L = L_U(); const cols = COLS.filter((p) =&gt; L.some((l) =&gt; typeof l[p] === &quot;number&quot;));
-    const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Hora&lt;/th&gt;${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;th&gt;Situação&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;`;
+    const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Hora&lt;/th&gt;${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;th&gt;Situação&lt;/th&gt;&lt;th&gt;Origem · projeto&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;`;
+    const ICOO = { manual: &quot;✍️&quot;, arquivo: &quot;📄&quot;, colado: &quot;📋&quot;, link: &quot;🔗&quot;, webhook: &quot;🤖&quot;, importado: &quot;📥&quot;, exemplo: &quot;🧪&quot; };
+    const orig = (l) =&gt; { const t = fonteDe(l); return `&lt;td class=&quot;orig&quot; title=&quot;${escO((ORIG[t] || t) + (l.origemNome ? &quot;: &quot; + l.origemNome : &quot;&quot;) + (l.pnome ? &quot; · projeto &quot; + l.pnome : &quot;&quot;))}&quot;&gt;${ICOO[t] || &quot;&quot;} ${escO(t === &quot;arquivo&quot; &amp;&amp; l.origemNome ? l.origemNome : ORIG[t] || t)}&lt;small&gt;${l.pnome ? escO(l.pnome) : &quot;sem projeto&quot;}&lt;/small&gt;&lt;/td&gt;`; };
     const body = L.map((l) =&gt; { const w = pior(avaliar(l, u).map((x) =&gt; x.st));
       return `&lt;tr data-id=&quot;${l.id}&quot; class=&quot;click${sel === l.id ? &quot; sel&quot; : &quot;&quot;}&quot; tabindex=&quot;0&quot;&gt;&lt;td class=&quot;mono&quot;&gt;${l.hora}&lt;/td&gt;${cols.map((p) =&gt; { const v = l[p]; if (typeof v !== &quot;number&quot;) return &#x27;&lt;td class=&quot;v&quot;&gt;—&lt;/td&gt;&#x27;;
-        const st = cls(u, p, v); return `&lt;td class=&quot;v&quot;&gt;&lt;span class=&quot;c-${st}&quot; title=&quot;${STLBL[st]}&quot;&gt;${fmt(v, DEC[p])}&lt;/span&gt;&lt;/td&gt;`; }).join(&quot;&quot;)}&lt;td&gt;${pill(w)}&lt;/td&gt;&lt;/tr&gt;`; }).join(&quot;&quot;);
+        const st = cls(u, p, v); return `&lt;td class=&quot;v&quot;&gt;&lt;span class=&quot;c-${st}&quot; title=&quot;${STLBL[st]}&quot;&gt;${fmt(v, DEC[p])}&lt;/span&gt;&lt;/td&gt;`; }).join(&quot;&quot;)}&lt;td&gt;${pill(w)}&lt;/td&gt;${orig(l)}&lt;/tr&gt;`; }).join(&quot;&quot;);
     $(&quot;tbl&quot;).innerHTML = L.length ? head + `&lt;tbody&gt;${body}&lt;/tbody&gt;` : &#x27;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;padding:14px&quot;&gt;Sem leituras neste dia.&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&#x27;;
     $(&quot;tbl&quot;).querySelectorAll(&quot;tbody tr.click&quot;).forEach((tr) =&gt; { const go = () =&gt; { sel = tr.dataset.id; renderUnidade(false); }; tr.addEventListener(&quot;click&quot;, go); tr.addEventListener(&quot;keydown&quot;, (e) =&gt; { if (e.key === &quot;Enter&quot;) go(); }); });
     $(&quot;b-del&quot;).textContent = &quot;Excluir leitura selecionada&quot;; delArmed = false; limpaRotulo();
@@ -1998,7 +2006,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     for (const l of S.leituras) { const k = chaveOrig(l), t = fonteDe(l); (o[k] = o[k] || { key: k, tipo: t, rotulo: ORIG[t] || t, nome: l.origemNome || &quot;&quot;, n: 0 }).n++;
       const pk = l.pid || &quot;__sem&quot;; (pj[pk] = pj[pk] || { pid: pk, pnome: l.pid ? l.pnome || &quot;Projeto&quot; : &quot;Sem projeto&quot;, n: 0 }).n++; }
     const ord = Object.keys(ORIG);
-    return { origens: Object.values(o).sort((a, b) =&gt; ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || &quot;&quot;, fProj: S.fProj || &quot;&quot;, total: S.leituras.length, visiveis: LT().length }; };
+    return { origens: Object.values(o).sort((a, b) =&gt; ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || &quot;&quot;, fProj: S.fProj || &quot;&quot;, total: S.leituras.length, visiveis: LT().length, ras: !!S.ras }; };
   window.aquaFiltroOrigem = (fo, fp) =&gt; { S.fOrig = fo || &quot;&quot;; S.fProj = fp || &quot;&quot;; diaPainel = null; sel = null;
     const ds = LT().map((l) =&gt; l.data).sort(); if (ds.length &amp;&amp; !ds.includes(S.dia)) S.dia = ds[ds.length - 1];
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
@@ -2406,12 +2414,36 @@ function topoDashHTML(){
       ["Corte",f0(Math.round(T.corte||0))+" m³",""],["Aterro",f0(Math.round(T.aterro||0))+" m³",""],["Terraplenagem",T.custo?brl(T.custo):"—",T.mov?f0(Math.round(T.mov))+" m³ movimentados":""]])}</div></section>`}
 
 /* barra "em evidência": no Painel escolhe a aba; nas outras abas põe a aba atual em evidência */
-function drawFocoBar(v){const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";
-  if(v==="dash"){b.hidden=false;b.innerHTML=`<span class="fb-t">📌 Em evidência no Painel</span><div class="chips">${[["","Todas as abas"],...opts].map(([a,t])=>`<button type="button" class="chip${foco===a?" on":""}" data-foco="${a}" aria-pressed="${foco===a}">${esc(t)}</button>`).join("")}</div>`;return}
+/* contexto do processamento: projeto aberto, origem dos dados do AquaNictemeral, aba em evidência e abas correlacionadas */
+const CORR={
+  local:{de:["calc","topo"],para:["dash"],txt:"o investimento e o fluxo de caixa usam os tanques da Calculadora e a área e a terraplenagem do Levantamento"},
+  calc:{de:["topo"],para:["local","aqua","bio","racao","dash"],txt:"os grupos de tanques (inclusive os viveiros vindos do Levantamento) são a base das outras abas"},
+  aqua:{de:["calc","bio"],para:["dash"],txt:"cada grupo da Calculadora vira uma unidade (volume e ração de projeto) e a espécie vem do lote da Biomassa"},
+  bio:{de:["calc"],para:["racao","aqua","dash"],txt:"um lote por grupo de tanques; peso e número de animais definem a biomassa e a ração"},
+  racao:{de:["bio","calc"],para:["dash"],txt:"a ração, os tratos e as compras saem dos lotes da Biomassa"},
+  repro:{de:[],para:["dash"],txt:"reprodutores e lotes de reprodução, independentes das outras abas"},
+  topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"}};
+const NOMES={dash:"Painel",...Object.fromEntries(FOCOS)};
+function ctxOrigem(){try{const w=aquaFrame.contentWindow,O=w&&w.aquaOrigens&&w.aquaOrigens();if(!O)return {txt:"AquaNictemeral ainda não aberto",ras:null};
+  const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥",exemplo:"🧪"};
+  const c=O.origens.find(o=>o.key===O.fOrig),tp=!c&&O.fOrig?O.origens.find(o=>o.tipo===O.fOrig):null,p=O.projetos.find(x=>x.pid===O.fProj);
+  const tipos=[...new Set(O.origens.map(o=>(ICO[o.tipo]||"")+" "+o.rotulo))];
+  const txt=O.fOrig||O.fProj?"só "+[c?(ICO[c.tipo]||"")+" "+c.rotulo+(c.nome?": "+c.nome:""):tp?(ICO[tp.tipo]||"")+" "+tp.rotulo:"",p?"projeto "+p.pnome:""].filter(Boolean).join(" · ")+` (${O.visiveis} de ${O.total} leituras)`
+    :`todas (${O.total} leitura${O.total===1?"":"s"}${tipos.length?": "+tipos.join(", "):""})`;
+  return {txt,ras:O.ras}}catch(e){return {txt:"—",ras:null}}}
+function ctxHTML(v){const pa=window.projAtual?window.projAtual():null,og=ctxOrigem(),lk=a=>`<a href="#" data-goto="${a}">${esc(NOMES[a]||a)}</a>`;
+  let corr="";
+  if(v==="dash"){const vis=FOCOS.filter(([a])=>focoVe(a)).map(([a])=>a);corr=`🔗 No Painel agora: ${vis.map(lk).join(", ")||"nenhuma aba"}${foco?" (aba em evidência)":""}`}
+  else if(CORR[v]){const c=CORR[v],de=c.de.filter(focoPode),para=c.para.filter(a=>a==="dash"||focoPode(a));
+    corr=`🔗 ${de.length?`Recebe de ${de.map(lk).join(" e ")} → `:""}<b>${esc(NOMES[v])}</b>${para.length?` → alimenta ${para.map(lk).join(", ")}`:""}<small>${esc(c.txt)}${v==="aqua"&&og.ras===false?" · agora as unidades não estão vinculadas à Calculadora":""}</small>`}
+  return `<div class="ctx"><span>📁 Projeto: <b>${pa?esc(pa.nome):"não salvo"}</b></span><span>🗂 Origem dos dados (AquaNictemeral): <b>${esc(og.txt)}</b></span><span>📌 Painel: <b>${foco?esc(focoNome(foco)):"todas as abas"}</b></span></div>${corr?`<div class="ctx-corr">${corr}</div>`:""}`}
+let focoView="dash";window.focoRefresh=()=>{const t=document.querySelector('.tab[aria-selected="true"]');drawFocoBar(t?t.dataset.view:focoView)};
+function drawFocoBar(v){const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";focoView=v;const cx=ctxHTML(v);
+  if(v==="dash"){b.hidden=false;b.innerHTML=cx+`<div class="fb-row"><span class="fb-t">📌 Em evidência no Painel</span><div class="chips">${[["","Todas as abas"],...opts].map(([a,t])=>`<button type="button" class="chip${foco===a?" on":""}" data-foco="${a}" aria-pressed="${foco===a}">${esc(t)}</button>`).join("")}</div></div>`;return}
   const it=opts.find(x=>x[0]===v);if(!it){b.hidden=true;b.innerHTML="";return}
-  b.hidden=false;b.innerHTML=foco===v
+  b.hidden=false;b.innerHTML=cx+`<div class="fb-row">`+(foco===v
     ?`<span class="fb-t">📌 <b>${esc(it[1])}</b> está em evidência: o Painel mostra só os dados desta aba.</span><div class="fb-b"><button type="button" class="btn" data-goto="dash">Ver no Painel</button><button type="button" class="btn" data-foco="">Mostrar todas</button></div>`
-    :`<span class="fb-t">${foco?`O Painel está mostrando só <b>${esc(focoNome(foco))}</b>.`:"O Painel mostra todas as abas."}</span><div class="fb-b"><button type="button" class="btn solid" data-foco="${v}" data-ir="1">📌 Pôr ${esc(it[1])} em evidência</button></div>`}
+    :`<span class="fb-t">${foco?`O Painel está mostrando só <b>${esc(focoNome(foco))}</b>.`:"O Painel mostra todas as abas."}</span><div class="fb-b"><button type="button" class="btn solid" data-foco="${v}" data-ir="1">📌 Pôr ${esc(it[1])} em evidência</button></div>`)+`</div>`}
 document.addEventListener("click",e=>{const f=e.target.closest("[data-foco]");if(f){e.preventDefault();setFoco(f.dataset.foco);if(f.dataset.ir)setView("dash");return}
   const u=e.target.closest("[data-aqua-u]");if(u){e.preventDefault();setView("aqua");const go=()=>{try{const w=aquaFrame.contentWindow;if(w&&w.aquaAbrir){w.aquaAbrir(u.dataset.aquaU,u.dataset.dia);return true}}catch(er){}return false};
     if(!go()){let k=0;const t=setInterval(()=>{if(go()||++k>20)clearInterval(t)},250)}}});
@@ -5520,6 +5552,7 @@ function bind(){
 }
 /* indicador no topo: usuário e projeto aberto */
 function chip(){
+  setTimeout(()=>{try{window.focoRefresh&&focoRefresh()}catch(e){}},0);
   const b=document.getElementById("proj-chip");if(!b)return;
   const c=atual(),nome=c&&c.modo===st.mode&&logado()&&(!c.uid||ehDono())?c.nome+(c.uid?" (cliente "+c.cliente+")":""):"";
   const u=logado()?(st.uname||"conta claude.ai"):"";
@@ -6432,7 +6465,7 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
   const aplicar=(fo,fp)=>{try{frame().contentWindow.aquaFiltroOrigem(fo,fp)}catch(e){}drawOrig()};
   boxO.querySelectorAll("[data-ao]").forEach(b=>b.addEventListener("click",()=>aplicar(O.fOrig===b.dataset.ao?"":b.dataset.ao,O.fProj)));
   const so=boxO.querySelector("#ao-orig"),sp=boxO.querySelector("#ao-proj");so&&so.addEventListener("change",()=>aplicar(so.value,O.fProj));sp&&sp.addEventListener("change",()=>aplicar(O.fOrig,sp.value));
-  const lp=boxO.querySelector("[data-ao-limpa]");lp&&lp.addEventListener("click",()=>aplicar("",""))}
+  const lp=boxO.querySelector("[data-ao-limpa]");lp&&lp.addEventListener("click",()=>aplicar("",""));try{window.focoRefresh&&focoRefresh()}catch(e){}}
 let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(drawOrig,80)};
 window.drawAquaPlug=()=>{drawOrig();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
 window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora,lerArquivo};
