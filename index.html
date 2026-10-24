@@ -1926,11 +1926,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   // --------------------------------------------------- plugin de automação (página-mãe): unidades e importação de leituras
   window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id }));
   window.aquaImport = (lista, op) =&gt; {
-    op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [] };
+    op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
     const PS = ORDEM.concat([&quot;od_saturacao&quot;, &quot;nh3&quot;]), dias = new Set(), uns = new Set();
     const porNome = (v) =&gt; { if (v == null || v === &quot;&quot;) return null; const s = String(v).trim().toLowerCase(); return S.unidades.find((u) =&gt; String(u.id).toLowerCase() === s || String(u.nome || &quot;&quot;).trim().toLowerCase() === s) || null; };
     for (const it of Array.isArray(lista) ? lista : []) {
-      const u = porNome(it.unidade) || uniById(op.destino);
+      let u = porNome(it.unidade);
+      if (!u &amp;&amp; op.criar &amp;&amp; it.unidade) { const tpl = uniById(op.destino) || {};
+        u = { id: &quot;u&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nome: String(it.unidade).slice(0, 60), especie: op.especie || (tpl.sistemaRAS ? (tpl.especies || [])[0] : tpl.especie) || &quot;tilapia&quot;, sistema: &quot;semi-intensivo&quot;, volume_m3: 1000, racao_kg_dia: 10, importada: true };
+        S.unidades.push(u); r.criadas.push(u.nome); }
+      if (!u) u = uniById(op.destino);
       if (!u || !/^\d{4}-\d{2}-\d{2}$/.test(it.data || &quot;&quot;) || !/^\d{2}:\d{2}$/.test(it.hora || &quot;&quot;)) { r.ignoradas++; continue; }
       const prof = it.profundidade || &quot;superfície&quot;, vals = {};
       for (const p of PS) { const v = typeof it[p] === &quot;number&quot; ? it[p] : Number(String(it[p] == null ? &quot;&quot; : it[p]).replace(&quot;,&quot;, &quot;.&quot;)); if (it[p] !== undefined &amp;&amp; it[p] !== &quot;&quot; &amp;&amp; Number.isFinite(v)) vals[p] = v; }
@@ -1945,7 +1949,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       if (S.exemplo) { S.leituras = S.leituras.filter((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) || !uns.has(l.unidade)); }
       uns.forEach((id) =&gt; { const u = uniById(id); if (u) u.exemplo = false; });
       if (S.exemplo &amp;&amp; !S.leituras.some((l) =&gt; String(l.id).startsWith(&quot;e&quot;))) S.exemplo = false;
-      S.dia = r.dias[r.dias.length - 1]; if (uns.size === 1) S.ativa = [...uns][0];
+      S.dia = r.dias[r.dias.length - 1]; if (uns.size === 1) S.ativa = [...uns][0]; else if (r.criadas.length) S.ativa = [...uns][0];
       diaPainel = null; sel = null; salvar(); renderRodape();
       if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade();
     }
@@ -6071,8 +6075,16 @@ const ALVOS=[["dt","Data e hora",["datahora","datetime","timestamp","createdat",
   ["clorofila_a","Clorofila-a",["clorofila","clorofilaa","chlorophyll","chla"]],["sst","Sólidos suspensos (SST)",["sst","tss","solidos","solidossuspensos"]],
   ["ss_imhoff","Sólidos sedimentáveis (Imhoff)",["imhoff","ssimhoff","sedimentaveis"]],["vibrio","Vibrio",["vibrio"]]];
 const NUM=ALVOS.filter(a=>!["dt","data","hora","unidade","profundidade"].includes(a[0])).map(a=>a[0]);
-function autoMap(cols){const m={},usados=new Set();
-  for(const [k,,syn] of ALVOS)for(const c of cols){const n=norm(c);if(usados.has(c))continue;if(syn.includes(n)||(k!=="t"&&syn.some(s=>s.length>3&&n.startsWith(s)))){m[c]=k;usados.add(c);break}}
+const soHora=v=>/^\s*\d{1,2}[:h]\d{2}(:\d{2})?\s*$/.test(String(v==null?"":v));
+function autoMap(cols,rows){const m={},usados=new Set(),am=(rows||[]).slice(0,30),vals=c=>am.map(r=>r[c]).filter(v=>v!==""&&v!=null);
+  /* regras antes dos sinônimos: OD em %, "hora (ordem)" não é horário, coluna de horário só com hh:mm vira Hora */
+  for(const c of cols){const raw=String(c).toLowerCase(),n=norm(c);
+    if(/%|sat/.test(raw)&&/^(od|o2|do|oxigenio)/.test(n)){m[c]="od_saturacao";usados.add(c)}
+    else if(/ordem|indice|índice|seq|n[ºo°]\b/.test(raw)){usados.add(c)}
+    else if(/^(hora|horario|time|hour)/.test(n)&&vals(c).length&&vals(c).every(soHora)&&!Object.values(m).includes("hora")){m[c]="hora";usados.add(c)}}
+  for(const [k,,syn] of ALVOS){if(Object.values(m).includes(k))continue;for(const c of cols){const n=norm(c);if(usados.has(c))continue;if(syn.includes(n)||(k!=="t"&&syn.some(s=>s.length>3&&n.startsWith(s)))){m[c]=k;usados.add(c);break}}}
+  /* várias colunas de local (viveiro + ponto, tanque + sonda) formam o nome da unidade */
+  for(const c of cols)if(!usados.has(c)&&/^(viveiro|ponto|tanque|pond|tank|estacao|local)/.test(norm(c))&&Object.values(m).includes("unidade")){m[c]="unidade";usados.add(c)}
   if(!Object.values(m).includes("dt")&&!Object.values(m).includes("data")){const c=cols.find(c=>!m[c]&&/date|data|time|created/i.test(c));if(c)m[c]="dt"}
   return m}
 
@@ -6098,18 +6110,18 @@ function dataHora(v){if(v==null||v==="")return null;if(v instanceof Date)return 
   const d=new Date(s);return isNaN(d)?null:d}
 const isoD=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 function normalizar(rows,map,agrupar){
-  const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const out=[];let ruins=0;
+  const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const uCols=Object.keys(map).filter(c=>map[c]==="unidade");const out=[];let ruins=0;
   for(const r of rows){let d=null,hora=null,data=null;
-    if(inv.dt)d=dataHora(r[inv.dt]);
+    if(inv.dt){if(soHora(r[inv.dt])&&inv.data&&!inv.hora){d=dataHora(r[inv.data]);if(d){const hm=String(r[inv.dt]).match(/(\d{1,2})[:h](\d{2})/);d.setHours(+hm[1],+hm[2])}}else d=dataHora(r[inv.dt])}
     if(!d&&inv.data){d=dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm){d.setHours(+hm[1],+(hm[2]||0))}}}
     if(d){data=isoD(d);hora=pad(d.getHours())+":"+pad(d.getMinutes())}
-    const o={data,hora};if(inv.unidade&&r[inv.unidade]!=null&&r[inv.unidade]!=="")o.unidade=String(r[inv.unidade]).trim();
+    const o={data,hora};const un=uCols.map(c=>{const v=r[c];if(v==null||v==="")return "";const t=String(typeof v==="number"?+v.toFixed(3):v).trim();return t.length<=3?c.replace(/\s*\(.*?\)/g,"").trim()+" "+t:t}).filter(Boolean).join(" · ");if(un)o.unidade=un;
     if(inv.profundidade&&r[inv.profundidade])o.profundidade=/fun|bot|deep/i.test(r[inv.profundidade])?"fundo":"superfície";
     let n=0;for(const p of NUM)if(inv[p]){const v=numBR(r[inv[p]]);if(Number.isFinite(v)){o[p]=Math.round(v*1000)/1000;n++}}
     if(!data||!n){ruins++;continue}out.push(o)}
   if(!agrupar)return {lista:out,ruins};
-  const g=new Map();for(const o of out){const h=o.hora.slice(0,2)+":00",k=[o.unidade||"",o.data,h,o.profundidade||""].join("|");if(!g.has(k))g.set(k,{base:{...o,hora:h},soma:{},n:{}});const e=g.get(k);for(const p of NUM)if(typeof o[p]==="number"){e.soma[p]=(e.soma[p]||0)+o[p];e.n[p]=(e.n[p]||0)+1}}
-  const lista=[...g.values()].map(e=>{const o={...e.base};for(const p of NUM)if(e.n[p])o[p]=Math.round(e.soma[p]/e.n[p]*100)/100;else delete o[p];return o});
+  const g=new Map();for(const o of out){const h=o.hora.slice(0,2)+":00",k=[o.unidade||"",o.data,h,o.profundidade||""].join("|");if(!g.has(k))g.set(k,{base:{...o,hora:h},orig:o.hora,c:0,soma:{},n:{}});const e=g.get(k);e.c++;for(const p of NUM)if(typeof o[p]==="number"){e.soma[p]=(e.soma[p]||0)+o[p];e.n[p]=(e.n[p]||0)+1}}
+  const lista=[...g.values()].map(e=>{const o={...e.base};if(e.c===1)o.hora=e.orig;for(const p of NUM)if(e.n[p])o[p]=Math.round(e.soma[p]/e.n[p]*100)/100;else delete o[p];return o});
   return {lista,ruins,brutas:out.length}}
 
 /* arquivos: CSV/TXT/JSON (UTF-8 ou Windows-1252, como o Excel salva) e planilhas Excel/LibreOffice (.xlsx, .xls, .ods) */
@@ -6121,15 +6133,59 @@ async function lerPlanilha(f){const X=await carregaXLSX();const wb=X.read(new Ui
     for(let r=rg.s.r;r<=rg.e.r;r++){const lin=[];for(let c=rg.s.c;c<=rg.e.c;c++){const cel=ws[X.utils.encode_cell({r,c})];let v="";
       if(cel){if(cel.t==="n"&&cel.z&&X.SSF.is_date(cel.z))v=fmt(cel.v);else if(cel.t==="d")v=cel.v;else v=cel.v}lin.push(v)}
       if(lin.some(x=>x!==""&&x!=null))M.push(lin)}
-    if(M.length<2)continue;const h=M[0].map((c,i)=>String(c||"").trim()||("col"+(i+1)));if(h.filter(Boolean).length<2)continue;
-    return M.slice(1).map(l=>Object.fromEntries(h.map((c,i)=>[c,l[i]])))}
+    const t=tabelaDe(M);if(t)return t}
   throw new Error("A planilha não tem uma tabela com nomes de colunas na primeira linha (data, hora, OD, temperatura…).")}
-async function lerArquivo(f){const n=(f.name||"").toLowerCase();
+/* leitor de planilhas do Apple Numbers (.numbers): zip + IWA (snappy + protobuf), só valores das células */
+async function lerNumbers(buf){
+  const u=new Uint8Array(buf),dv=new DataView(buf);
+  let e=u.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error("zip");
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const arq={};
+  for(let k=0;k<n;k++){const met=dv.getUint16(p+10,true),csz=dv.getUint32(p+20,true),fl=dv.getUint16(p+28,true),ex=dv.getUint16(p+30,true),cm=dv.getUint16(p+32,true),loc=dv.getUint32(p+42,true);
+    const nome=new TextDecoder().decode(u.subarray(p+46,p+46+fl));p+=46+fl+ex+cm;
+    if(!/\.iwa$/.test(nome))continue;const lo=loc+30+dv.getUint16(loc+26,true)+dv.getUint16(loc+28,true);let d=u.subarray(lo,lo+csz);
+    if(met===8){d=new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer())}else if(met!==0)continue;arq[nome]=d}
+  const snappy=b=>{let i=0,n=0,s=0,c;do{c=b[i++];n+=(c&127)*2**s;s+=7}while(c>127);const o=new Uint8Array(n);let j=0;
+    while(i<b.length){const t=b[i++],k=t&3;if(k===0){let l=t>>2;if(l>=60){const nb=l-59;l=0;for(let q=0;q<nb;q++)l|=b[i+q]<<(8*q);i+=nb}l++;o.set(b.subarray(i,i+l),j);i+=l;j+=l}
+      else{let l,off;if(k===1){l=((t>>2)&7)+4;off=((t>>5)<<8)|b[i++]}else if(k===2){l=(t>>2)+1;off=b[i]|(b[i+1]<<8);i+=2}else{l=(t>>2)+1;off=(b[i]|(b[i+1]<<8)|(b[i+2]<<16))+b[i+3]*16777216;i+=4}
+        for(let q=0;q<l;q++){o[j]=o[j-off];j++}}}return o.subarray(0,j)};
+  const iwa=d=>{const parts=[];let i=0,tot=0;while(i+4<=d.length){const ln=d[i+1]|(d[i+2]<<8)|(d[i+3]<<16);const x=snappy(d.subarray(i+4,i+4+ln));parts.push(x);tot+=x.length;i+=4+ln}
+    const o=new Uint8Array(tot);let j=0;for(const x of parts){o.set(x,j);j+=x.length}return o};
+  const vi=(b,i)=>{let n=0,s=0,c;do{c=b[i++];n+=(c&127)*2**s;s+=7}while(c>127);return [n,i]};
+  const campos=b=>{const r=[];let i=0;while(i<b.length){let k;[k,i]=vi(b,i);const f=Math.floor(k/8),w=k&7;let v;
+    if(w===0)[v,i]=vi(b,i);else if(w===1){v=b.subarray(i,i+8);i+=8}else if(w===2){let l;[l,i]=vi(b,i);v=b.subarray(i,i+l);i+=l}else if(w===5){v=b.subarray(i,i+4);i+=4}else throw new Error("pb");r.push([f,v])}return r};
+  const todos=(c,n)=>c.filter(x=>x[0]===n).map(x=>x[1]),um=(c,n,d)=>{const x=c.find(y=>y[0]===n);return x?x[1]:d};
+  const obj={};for(const nome in arq){try{const s=iwa(arq[nome]);let i=0;while(i<s.length){let l;[l,i]=vi(s,i);const info=campos(s.subarray(i,i+l));i+=l;const id=um(info,1);
+    for(const mi of todos(info,2)){const m=campos(mi),ml=um(m,3,0);(obj[id]=obj[id]||[]).push([um(m,1),s.subarray(i,i+ml)]);i+=ml}}}catch(err){}}
+  const ref=b=>um(campos(b),1),td=new TextDecoder();
+  const tabStr=id=>{const o={};for(const [,msg] of obj[id]||[])for(const en of todos(campos(msg),3)){const ef=campos(en),s=um(ef,3);if(s!==undefined)o[um(ef,1)]=td.decode(s)}return o};
+  const d128=b=>{const ex=(((b[15]&127)<<7)|(b[14]>>1))-0x1820;let m=0n;m=BigInt(b[14]&1);for(let k=13;k>=0;k--)m=m*256n+BigInt(b[k]);let v=Number(m)*Math.pow(10,ex);return b[15]&128?-v:v};
+  const celula=(b,dv2,st)=>{if(b.length<12)return null;const t=b[1],fl=dv2.getUint32(8,true);let o=12,dec=null,dbl=null,sec=null,sid=null;
+    if(fl&1){dec=d128(b.subarray(o,o+16));o+=16}if(fl&2){dbl=dv2.getFloat64(o,true);o+=8}if(fl&4){sec=dv2.getFloat64(o,true);o+=8}if(fl&8){sid=dv2.getInt32(o,true);o+=4}
+    if(t===0)return null;if(t===2||t===10||t===7)return dec!==null?dec:dbl;if(t===3)return st[sid]!==undefined?st[sid]:"";
+    if(t===5){if(sec===null)return null;const d=new Date(Date.UTC(2001,0,1)+sec*1000);const pd=x=>String(x).padStart(2,"0");return pd(d.getUTCDate())+"/"+pd(d.getUTCMonth()+1)+"/"+d.getUTCFullYear()+(d.getUTCHours()||d.getUTCMinutes()?" "+pd(d.getUTCHours())+":"+pd(d.getUTCMinutes()):"")}
+    if(t===6)return !!dbl;return dec!==null?dec:dbl};
+  const tabelas=[];
+  for(const id in obj)for(const [tp,msg] of obj[id]){if(tp!==6001)continue;const f=campos(msg),nr=um(f,6,0),nc=um(f,7,0),ds=campos(um(f,4)),st=tabStr(ref(um(ds,4)));
+    const g=Array.from({length:nr},()=>Array(nc).fill(null));
+    for(const t of todos(campos(um(ds,3)),1)){const tf=campos(t),tid=um(tf,1,0);for(const [,tm] of obj[ref(um(tf,2))]||[])for(const ri of todos(campos(tm),5)){const rf=campos(ri),row=tid*256+um(rf,1,0),b=um(rf,6),of=um(rf,7),wide=um(rf,8,0);
+      if(!b||!of||row>=nr)continue;const odv=new DataView(of.buffer,of.byteOffset,of.byteLength);for(let c=0;c<Math.min(nc,of.length/2);c++){const x=odv.getInt16(c*2,true);if(x<0)continue;const pp=wide?x*4:x,cb=b.subarray(pp);
+        g[row][c]=celula(cb,new DataView(cb.buffer,cb.byteOffset,cb.byteLength),st)}}}
+    tabelas.push({nome:td.decode(um(f,8)||new Uint8Array()),linhas:g})}
+  return tabelas}
+
+/* acha a linha de cabeçalho (pula títulos acima da tabela) e monta as linhas */
+function tabelaDe(M){M=M.filter(l=>l.some(x=>x!==""&&x!=null));const hi=M.findIndex(l=>l.filter(x=>typeof x==="string"&&x.trim()).length>=3);if(hi<0||M.length-hi<2)return null;
+  const h=M[hi].map((c,i)=>String(c==null?"":c).trim()||("col"+(i+1)));return M.slice(hi+1).map(l=>Object.fromEntries(h.map((c,i)=>[c,l[i]==null?"":l[i]])))}
+async function lerNumbersArq(f){let ts;try{ts=await lerNumbers(await f.arrayBuffer())}catch(e){ts=[]}
+  let melhor=null,nota=-1;for(const t of ts){const rows=tabelaDe(t.linhas);if(!rows||!rows.length)continue;const cols=Object.keys(rows[0]),m=autoMap(cols,rows),k=Object.values(m).filter(v=>NUM.includes(v)).length,tem=Object.values(m).some(v=>v==="dt"||v==="data");
+    const sc=(tem?1000:0)+k*100+rows.length;if(sc>nota){nota=sc;melhor=rows}}
+  if(!melhor)throw new Error("Não consegui ler essa planilha do Numbers. No Numbers, use Arquivo › Exportar para › Excel (ou CSV) e importe o arquivo exportado.");return melhor}
+async function lerArquivo(f){const n=(f.name||"").toLowerCase();if(/\.numbers$/.test(n))return lerNumbersArq(f);
   if(/\.(xlsx|xlsm|xls|ods)$/.test(n)||/spreadsheet|excel/.test(f.type||""))return lerPlanilha(f);
   if(/\.(pdf|docx?|jpe?g|png|heic)$/.test(n))throw new Error("Esse tipo de arquivo não tem a tabela de leituras. Use CSV, TXT, JSON ou planilha do Excel (.xlsx).");
   const buf=await f.arrayBuffer();let t=new TextDecoder("utf-8").decode(buf);if(t.includes("\uFFFD")){try{t=new TextDecoder("windows-1252").decode(buf)}catch(e){}}
   return lerTexto(t)}
-const ACEITA=".csv,.txt,.tsv,.json,.xlsx,.xlsm,.xls,.ods,text/csv,text/plain,text/comma-separated-values,text/tab-separated-values,application/json,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet";
+const ACEITA=".numbers,.csv,.txt,.tsv,.json,.xlsx,.xlsm,.xls,.ods,text/csv,text/plain,text/comma-separated-values,text/tab-separated-values,application/json,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet";
 
 /* ponte com o AquaNictemeral (iframe) */
 const frame=()=>document.getElementById("aqua-frame");
@@ -6137,15 +6193,16 @@ async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="
   for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function")return w}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
 function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
 async function importar(lista,origem){const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu. Abra a aba e tente de novo.");
-  const r=w.aquaImport(lista,{destino:C.destino,origem});
+  const sal=lista.map(o=>o.salinidade).filter(v=>typeof v==="number"),esp=sal.length&&sal.reduce((a,b)=>a+b,0)/sal.length>5?"camarao":undefined;
+  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp});
   C.log.unshift({em:Date.now(),origem,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias});C.log=C.log.slice(0,12);salvar();return r}
-const resumo=(r,brutas)=>`${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem unidade ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
+const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} unidade${r.criadas.length===1?" criada":"s criadas"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem unidade ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
 
 /* link (Google Planilhas publicada, ThingSpeak, servidor do sensor): busca agora e, se marcado, a cada N minutos */
 async function buscarLink(silencioso){if(!C.url)throw new Error("Cole o link dos dados.");
   const r=await fetch(C.url+(C.url.includes("?")?"&":"?")+"_t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("O link respondeu com erro "+r.status+".");
   const rows=lerTexto(await r.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];
-  if(!Object.keys(C.map).length||!cols.some(c=>C.map[c]))C.map=autoMap(cols);
+  if(!Object.keys(C.map).length||!cols.some(c=>C.map[c]))C.map=autoMap(cols,rows);
   const n=normalizar(rows,C.map,C.agrupar);if(!n.lista.length)throw new Error("O link não trouxe leituras com data e valores reconhecidos. Confira as colunas.");
   const res=await importar(n.lista,"link");C.ultimaBusca=Date.now();salvar();if(!silencioso){dados={rows,cols,origem:"link"};}return resumo(res,n.brutas)}
 function agendar(){clearInterval(timer);timer=null;if(C.auto&&C.url&&C.min>0)timer=setInterval(()=>{buscarLink(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()})},C.min*60000)}
@@ -6153,7 +6210,7 @@ function agendar(){clearInterval(timer);timer=null;if(C.auto&&C.url&&C.min>0)tim
 /* webhook: automações (Make, Zapier, n8n, Node-RED, ESP32) enviam para o Supabase com a chave da conta; o app recolhe */
 async function recolher(silencioso){if(!(window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok()&&Auth.aquaReceber))return null;
   const itens=await Auth.aquaReceber();if(!itens||!itens.length){if(!silencioso)msg="Nenhuma leitura nova chegou pelo webhook.";return null}
-  const cols=[...new Set(itens.flatMap(o=>Object.keys(o)).filter(k=>k!=="_recebido"))],map={...autoMap(cols)};
+  const cols=[...new Set(itens.flatMap(o=>Object.keys(o)).filter(k=>k!=="_recebido"))],map={...autoMap(cols,itens)};
   for(const c of cols)if(["data","hora","unidade","profundidade",...NUM].includes(c))map[c]=c;if(cols.includes("data_hora"))map.data_hora="dt";
   const n=normalizar(itens,map,C.agrupar);const r=await importar(n.lista,"webhook");return "Webhook: "+resumo(r,n.brutas)}
 function agendarHook(){clearInterval(timerHook);timerHook=null;if(C.webhook)timerHook=setInterval(()=>{recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{})},60000)}
@@ -6164,7 +6221,7 @@ function mapaHTML(){if(!dados)return "";const n=normalizar(dados.rows,C.map,C.ag
   return `<div class="ap-box"><b>Colunas encontradas · ${dados.rows.length} linha${dados.rows.length===1?"":"s"}</b>
    <div class="ap-cols">${dados.cols.map(c=>`<label><span title="${E(c)}">${E(c)}</span><select class="lv-sel" data-ap-col="${E(c)}"><option value="">ignorar</option>${ALVOS.map(([k,t])=>`<option value="${k}"${C.map[c]===k?" selected":""}>${t}</option>`).join("")}</select></label>`).join("")}</div>
    ${n.lista.length?`<div class="scroll"><table class="pj-tab ap-prev"><thead><tr><th>Data</th><th>Hora</th>${temU?"<th>Unidade</th>":""}${NUM.filter(p=>n.lista.some(o=>typeof o[p]==="number")).map(p=>`<th class="num">${E((ALVOS.find(a=>a[0]===p)||[])[1]||p)}</th>`).join("")}</tr></thead><tbody>${n.lista.slice(0,6).map(o=>`<tr><td>${o.data.split("-").reverse().join("/")}</td><td>${o.hora}</td>${temU?`<td>${E(o.unidade||"—")}</td>`:""}${NUM.filter(p=>n.lista.some(x=>typeof x[p]==="number")).map(p=>`<td class="num">${typeof o[p]==="number"?String(o[p]).replace(".",","):"—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-    <p class="muted">${n.lista.length} leitura${n.lista.length===1?"":"s"} prontas${n.brutas&&n.brutas!==n.lista.length?` (de ${n.brutas} medições, juntadas por hora)`:""}${n.ruins?` · ${n.ruins} linha${n.ruins===1?"":"s"} sem data ou sem valores`:""}.${temU?" A coluna de unidade é usada quando o nome bate com uma unidade do AquaNictemeral; as outras vão para a unidade de destino.":""}</p>
+    <p class="muted">${n.lista.length} leitura${n.lista.length===1?"":"s"} prontas${n.brutas&&n.brutas!==n.lista.length?` (de ${n.brutas} medições, juntadas por hora)`:""}${n.ruins?` · ${n.ruins} linha${n.ruins===1?"":"s"} sem data ou sem valores`:""}.${temU?" "+(C.criar!==false?"Cada nome da coluna de unidade vira uma unidade do AquaNictemeral (as que ainda não existem são criadas).":"A coluna de unidade é usada quando o nome bate com uma unidade do AquaNictemeral; as outras vão para a unidade de destino."):""}</p>
     <div class="pj-btns"><button type="button" class="btn solid" data-ap="importar"${busy?" disabled":""}>Importar ${n.lista.length} leitura${n.lista.length===1?"":"s"}</button><button type="button" class="btn" data-ap="limpar">Descartar</button></div>`
    :`<p class="us-pag-alert wait">Nenhuma leitura reconhecida ainda: diga qual coluna tem a <b>data e hora</b> (ou a data e a hora separadas) e pelo menos um parâmetro.</p>`}</div>`}
 function hookHTML(){const sup=window.Auth&&Auth.supa&&Auth.supa(),log=sup&&Auth.ok();const cfg=window.RAS_CONFIG||{};
@@ -6191,8 +6248,9 @@ function draw(){
    <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
    <div class="pj-tools chips">${[["arquivo","Arquivo"],["colar","Colar dados"],["link","Link (atualiza sozinho)"],["webhook","Webhook (automação envia)"]].map(([k,t])=>`<button type="button" class="chip${C.fonte===k?" on":""}" data-ap-fonte="${k}" aria-pressed="${C.fonte===k}">${t}</button>`).join("")}</div>
    <div class="rp-grid"><label>Unidade de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
+    <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="criar"${C.criar!==false?" checked":""}> <span><b>Criar as unidades que não existem</b><br><span class="muted">pelo nome da coluna de unidade (ex.: Viveiro 1 · Ponto A)</span></span></label>
     <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="agrupar"${C.agrupar?" checked":""}> <span><b>Juntar as medições da mesma hora</b><br><span class="muted">média por hora, para sondas que medem a cada poucos minutos</span></span></label></div>
-   ${C.fonte==="arquivo"?`<p class="muted">Planilha do Excel (.xlsx, .xls), LibreOffice (.ods), CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
+   ${C.fonte==="arquivo"?`<p class="muted">Planilha do Excel (.xlsx, .xls), Numbers (.numbers), LibreOffice (.ods), CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
     :C.fonte==="colar"?`<textarea class="ap-txt" id="ap-txt" rows="5" placeholder="data;hora;OD;temperatura;pH&#10;24/10/2026;06:00;4,8;27,9;7,2"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-ap="ler">Ler dados</button></div>`
     :C.fonte==="link"?`<div class="rp-grid"><label class="ap-url">Link dos dados (CSV ou JSON)<input data-ap-cfg="url" value="${E(C.url)}" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv"></label>
        <label>Buscar sozinho<select class="lv-sel" data-ap-cfg="min">${[5,15,30,60,180].map(m=>`<option value="${m}"${+C.min===m?" selected":""}>a cada ${m<60?m+" min":m/60+" h"}</option>`).join("")}</select></label>
@@ -6215,8 +6273,8 @@ async function rodar(fn){if(busy)return;busy=true;draw();try{msg=await fn()||msg
 function acao(a,b){
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=ACEITA;i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
     i.addEventListener("change",()=>{const f=i.files[0];i.remove();if(!f)return;
-    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols);salvar();dados={rows,cols,origem:"arquivo "+f.name};return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
-  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols);salvar();dados={rows,cols,origem:"colado"};return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
+    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"arquivo "+f.name};return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"colado"};return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
   if(a==="importar"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar);const r=await importar(n.lista,dados.origem);dados=null;return "Importado: "+resumo(r,n.brutas)});return}
   if(a==="limpar"){dados=null;msg="";draw();return}
   if(a==="buscar"){rodar(()=>buscarLink(false).then(t=>"Link: "+t));return}
