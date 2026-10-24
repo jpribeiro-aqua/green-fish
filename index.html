@@ -713,7 +713,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-cota .inp:has(input[id^="us-nome-"]){width:100%;max-width:440px}.us-cota input[id^="us-nome-"],#us-meunome{width:100%;text-align:left;font-family:var(--f-body)}
 /* AquaNictemeral · plugin de automação */
 #aqua-plug{margin-bottom:12px}
-#aqua-orig{margin-bottom:12px}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
+#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.bi-lbl{font-size:13px;font-weight:600;margin:6px 0 2px}.bi-h{margin:14px 0 6px;font-size:15px}.bi-met{font-size:12px;margin-top:4px}.bi-bad{color:var(--bad,#b4532a);font-weight:600}.bi-ok{color:var(--good,#2e7d4f);font-weight:600}.bi-tipos{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));font-size:13px}.bi-tipos>li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px}.bi-cad{width:auto;padding:3px 6px;font-size:12px}.bi-tab td.num{text-align:right}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
 .ao-card>summary h2::before{content:"▸ ";color:var(--accent)}.ao-card[open]>summary h2::before{content:"▾ "}.ao-card .pj-body{display:grid;gap:12px}
 .ao-res{margin:0;font-size:15px}.ao-chips .chip b{margin-left:4px;color:var(--ink)}.ao-bar{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.ao-t{font-weight:600}
 .ap-card>summary{list-style:none;cursor:pointer}.ap-card>summary::-webkit-details-marker{display:none}
@@ -837,6 +837,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   <div id="view-aqua" role="tabpanel" aria-labelledby="tab-aqua" hidden>
     <div id="aqua-orig"></div>
     <div id="aqua-cad"></div>
+    <div id="aqua-bio"></div>
     <div id="aqua-plug"></div>
     <iframe id="aqua-frame" title="AquaNictemeral: monitoramento nictemeral da água" loading="eager" data-srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;pt-BR&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap&quot;&gt;&lt;script&gt;window.AQUA_KEY=&quot;aquanictemeral.ras.v1&quot;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;title&gt;AquaNictemeral&lt;/title&gt;
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
@@ -2401,7 +2402,7 @@ function aquaDashHTML(){
   const graves=com.filter(u=>u.st==="critico"||u.st==="letal"),odm=com.filter(u=>typeof u.odMin==="number").sort((a,b)=>a.odMin-b.odMin)[0];
   const ult=com.map(u=>u.dia).sort().pop(),ex=com.some(u=>u.exemplo);
   const k=fcK([["Unidades com leituras",f0(com.length),`de ${f0(R.length)} unidades`],["Em situação grave",f0(graves.length),graves.length?graves.map(u=>esc(u.nome)).join(", "):"nenhuma",graves.length?"bad":"ok"],
-    ["Menor OD",odm?nu(odm.odMin,1)+" mg/L":"—",odm?`${esc(odm.nome)} · ${dBR(odm.dia)} ${odm.odMinHora||""}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"bad":""],["Última leitura",dBR(ult),ex?"inclui dados de exemplo":""],...(()=>{const c=window.aquaCadResumo&&aquaCadResumo();return c&&c.total?[["Cadência",c.atrasadas.length?f0(c.atrasadas.length)+" atrasada"+(c.atrasadas.length===1?"":"s"):"em dia",c.atrasadas.length?c.atrasadas.map(esc).join(", "):`${f0(c.emDia)} origem${c.emDia===1?"":"s"} contínua${c.emDia===1?"":"s"}`,c.atrasadas.length?"bad":"ok"]]:[]})()]);
+    ["Menor OD",odm?nu(odm.odMin,1)+" mg/L":"—",odm?`${esc(odm.nome)} · ${dBR(odm.dia)} ${odm.odMinHora||""}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"bad":""],["Última leitura",dBR(ult),ex?"inclui dados de exemplo":""],...(()=>{const c=window.aquaCadResumo&&aquaCadResumo();return c&&c.total?[["Cadência",c.atrasadas.length?f0(c.atrasadas.length)+" atrasada"+(c.atrasadas.length===1?"":"s"):"em dia",c.atrasadas.length?c.atrasadas.map(esc).join(", "):`${f0(c.emDia)} origem${c.emDia===1?"":"s"} contínua${c.emDia===1?"":"s"}`,c.atrasadas.length?"bad":"ok"]]:[]})(),...(()=>{let b=[];try{b=window.bioDashResumo?bioDashResumo():[]}catch(e){}if(!b.length)return [];const hj=new Date();hj.setHours(0,0,0,0);const at=b.filter(x=>x.prox&&x.prox<hj),u=b.slice().sort((x,y)=>y.data<x.data?-1:1)[0];return [["Biometria",at.length?f0(at.length)+" atrasada"+(at.length===1?"":"s"):nu(u.pm,u.pm<10?2:1)+" g",at.length?at.map(x=>esc(x.nome)).join(", "):`${esc(u.nome)} · ${dBR(u.data)}${u.gpd!=null?" · GPD "+nu(u.gpd,2)+" g/dia":""}`,at.length?"bad":""]]})()]);
   const linhas=com.slice().sort((a,b)=>({letal:0,critico:1,alerta:2,ideal:3}[a.st]??4)-({letal:0,critico:1,alerta:2,ideal:3}[b.st]??4)).map(u=>`<tr><td><a href="#" data-aqua-u="${esc(u.id)}" data-dia="${esc(u.dia)}"><b>${esc(u.nome)}</b></a><small>${dBR(u.dia)} · ${f0(u.n)} leitura${u.n===1?"":"s"}${u.dias>1?` · ${f0(u.dias)} dias`:""}</small></td>
     <td class="num" data-l="OD mín.">${nu(u.odMin,1)}<small>${u.odMinHora||""} ${tag(u.odMinSt)}</small></td><td class="num" data-l="OD previsto 06:00">${nu(u.odPrev,1)}<small>${tag(u.odPrevSt)}</small></td><td class="num" data-l="Temp. (°C)">${nu(u.temp,1)}</td><td class="num" data-l="pH">${nu(u.ph,2)}</td><td class="num" data-l="ΔpH 24 h">${nu(u.dph,2)}</td><td class="num" data-l="NH₃ (mg/L)">${nu(u.nh3,3)}<small>${tag(u.nh3St)}</small></td><td data-l="Situação">${tag(u.st)}</td></tr>`).join("");
   return `<section class="card wide">${fcHead("AquaNictemeral",`Qualidade da água · último dia com leituras de cada unidade${ex?" · dados de exemplo":""}`,"aqua","Abrir AquaNictemeral")}<div class="pj-body">${k}
@@ -6393,10 +6394,14 @@ function agendar(){clearInterval(timer);timer=null;if(C.auto&&C.url&&C.min>0)tim
 
 /* webhook: automações (Make, Zapier, n8n, Node-RED, ESP32) enviam para o Supabase com a chave da conta; o app recolhe */
 async function recolher(silencioso){if(!(window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok()&&Auth.aquaReceber))return null;
-  const itens=await Auth.aquaReceber();if(!itens||!itens.length){if(!silencioso)msg="Nenhuma leitura nova chegou pelo webhook.";return null}
+  let itens=await Auth.aquaReceber();if(!itens||!itens.length){if(!silencioso)msg="Nenhuma leitura nova chegou pelo webhook.";return null}
+  /* biometrias que chegam pela mesma automação vão para o sistema de Biometria */
+  const ehBio=o=>/^biom/i.test(String(o.tipo||""))||(["peso","peso_medio","peso_total","comprimento"].some(k=>k in o)&&!NUM.some(p=>p in o));
+  const bio=itens.filter(ehBio);let tb="";if(bio.length&&window.bioReceber){try{tb=await window.bioReceber(bio)}catch(e){}}itens=itens.filter(o=>!ehBio(o));
+  if(!itens.length)return tb||null;
   const cols=[...new Set(itens.flatMap(o=>Object.keys(o)).filter(k=>k!=="_recebido"))],map={...autoMap(cols,itens)};
   for(const c of cols)if(["data","hora","unidade","profundidade",...NUM].includes(c))map[c]=c;if(cols.includes("data_hora"))map.data_hora="dt";
-  const n=normalizar(itens,map,C.agrupar);const r=await importar(n.lista,"webhook");return "Webhook: "+resumo(r,n.brutas)}
+  const n=normalizar(itens,map,C.agrupar);const r=await importar(n.lista,"webhook");return "Webhook: "+resumo(r,n.brutas)+(tb?" "+tb:"")}
 let hookUlt=0;
 function agendarHook(){clearInterval(timerHook);timerHook=null;if(C.webhook)timerHook=setInterval(()=>{hookUlt=Date.now();recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{})},Math.max(15,+C.hookSeg||60)*1000)}
 
@@ -6561,9 +6566,167 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
   const so=boxO.querySelector("#ao-orig"),sp=boxO.querySelector("#ao-proj");so&&so.addEventListener("change",()=>aplicar(so.value,O.fProj));sp&&sp.addEventListener("change",()=>aplicar(O.fOrig,sp.value));
   const lp=boxO.querySelector("[data-ao-limpa]");lp&&lp.addEventListener("click",()=>aplicar("",""));try{window.focoRefresh&&focoRefresh()}catch(e){}}
 let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(()=>{drawOrig();drawCad();const hw=box.querySelector("#ap-histw");if(hw&&(C.log||[]).length&&!busy){const op=(hw.querySelector("details")||{}).open;hw.innerHTML=histHTML(C.log);const dd=hw.querySelector("details");if(dd&&op===false)dd.open=false;hw.querySelectorAll("[data-ap]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.ap,b)))}},80)};
-window.drawAquaPlug=()=>{drawOrig();drawCad();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
+window.drawAquaPlug=()=>{drawOrig();drawCad();if(window.drawAquaBio)drawAquaBio();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
 window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora,lerArquivo};
+window.aquaPlugUtil={lerArquivo,lerTexto,dataHora,numBR,norm,pronto,unidades,E,ACEITA,soHora};
 agendar();agendarHook();draw();
+})();
+
+</script>
+<script>
+/* ---------- AquaNictemeral · Biometria: amostras de peso e comprimento por unidade, de várias origens (formulário, arquivo, colar, link, automação) ---------- */
+(function(){
+const box=document.getElementById("aqua-bio");if(!box)return;
+const U=window.aquaPlugUtil||{},E=U.E||(s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])));
+const K="ras-multitanques-v1-biometria";
+const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}};
+const B=Object.assign({amostras:[],cad:{},fonte:"form",modo:"ind",metodo:"tarrafa",url:"",auto:false,min:60,map:{}},rd());
+const salvar=()=>{try{localStorage.setItem(K,JSON.stringify(B))}catch(e){}};
+let aberto=false,msg="",busy=false,dados=null,conf=null,timer=null,unidade="",dataB="",horaB="";
+const pad=n=>String(n).padStart(2,"0"),hojeS=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
+const num=s=>U.numBR?U.numBR(s):parseFloat(String(s).replace(",","."));
+const f=(v,k)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:k,maximumFractionDigits:k}):"—";
+const dBR=s=>s?s.split("-").reverse().join("/"):"—";
+
+/* tipos de biometria usados em aquicultura (pesquisa: Embrapa, The Fish Site, Global Seafood Alliance) */
+const MET=[["tarrafa","Tarrafa / puçá (amostra manual)","Captura de uma amostra em vários pontos do viveiro ou tanque e pesagem (individual ou em grupo). Barata e precisa se a amostra for grande e bem distribuída, mas estressa os animais."],
+  ["ictiometro","Ictiômetro / paquímetro + balança","Comprimento total (cm) e peso individual (g) de cada animal. Permite a relação peso-comprimento (P = a·C^b) e o fator de condição."],
+  ["lote","Pesagem em lote (contagem + peso total)","Pesa um volume de animais e conta uma parte, ou todos: peso médio = peso total ÷ número. Comum na transferência do berçário para a engorda."],
+  ["bandeja","Bandeja de alimentação (camarão)","Animais recolhidos nas bandejas de ração, pesados e medidos. Ajuda a acompanhar consumo e tamanho, com precisão limitada."],
+  ["visao","Visão computacional (câmera / contador com IA)","Câmeras e inteligência artificial contam e medem uma amostra (tamanho e peso). Inclui os contadores de pós-larvas e aplicativos de celular."],
+  ["moldura","Moldura ou câmera submersa (biomass frame / estéreo)","Os peixes passam por uma moldura com sensores ou na frente de câmeras estéreo; o peso é estimado pelo tamanho, sem tirar da água."],
+  ["acustica","Acústica (sonar / ecossonda)","Estima tamanho e biomassa dentro do viveiro, inclusive em água turva ou escura. Equipamento e processamento caros."],
+  ["resistividade","Contador por resistividade","Conta automaticamente os animais que passam por um canal ou tubulação (fixo). Pode errar com vários animais juntos."],
+  ["despesca","Despesca (conferência)","Peso real na despesca parcial ou final, para conferir e calibrar as estimativas anteriores."],
+  ["outro","Outro método",""]];
+const metNome=k=>(MET.find(m=>m[0]===k)||[,k||"—"])[1];
+const ORIGB={form:"✍️ Formulário",arquivo:"📄 Arquivo",colado:"📋 Colado",link:"🔗 Link",webhook:"🤖 Automação"};
+
+/* unidades do AquaNictemeral e ligação com os lotes da aba Biomassa */
+const unis=()=>{try{return (U.unidades?U.unidades():[]).filter(u=>u.id!=="ras-sistema")}catch(e){return []}};
+const modelo=uid=>{try{const fm=typeof feedModels==="function"?feedModels()||[]:[];return fm.find(m=>"ras-"+m.t.id===uid)||null}catch(e){return null}};
+
+/* estatística de uma amostra */
+function stats(a){const ind=a.ind||[];let N=0,sp=0,sp2=0,np=0,sc=0,nc=0;const ks=[],pares=[];
+  for(const x of ind){const n=x.n||1;if(typeof x.p==="number"){np+=n;sp+=x.p*n;sp2+=x.p*x.p*n}if(typeof x.c==="number"){nc+=n;sc+=x.c*n}N+=n;
+    if(typeof x.p==="number"&&typeof x.c==="number"&&x.c>0){ks.push(100*x.p/Math.pow(x.c,3));if(n===1)pares.push([Math.log(x.c),Math.log(x.p)])}}
+  let pm=np?sp/np:null,sd=np>1?Math.sqrt(Math.max(0,(sp2-np*pm*pm)/(np-1))):null;
+  if(a.loteN>0&&a.loteKg>0){N=a.loteN;pm=a.loteKg*1000/a.loteN;sd=null}
+  let ab=null;if(pares.length>=5){const n=pares.length,mx=pares.reduce((s,q)=>s+q[0],0)/n,my=pares.reduce((s,q)=>s+q[1],0)/n;let sxy=0,sxx=0;pares.forEach(([x,y])=>{sxy+=(x-mx)*(y-my);sxx+=(x-mx)**2});if(sxx>0){const b=sxy/sxx;ab={a:Math.exp(my-b*mx),b}}}
+  return {N,pm,sd,cv:pm&&sd!=null?sd/pm*100:null,cm:nc?sc/nc:null,k:ks.length?ks.reduce((s,v)=>s+v,0)/ks.length:null,ab}}
+const ordem=(x,y)=>(x.data+(x.hora||"")).localeCompare(y.data+(y.hora||""));
+function resumoUni(uid){const L=B.amostras.filter(a=>a.unidade===uid).sort(ordem);if(!L.length)return null;const u=L[L.length-1],s=stats(u),ant=L.length>1?L[L.length-2]:null,sa=ant?stats(ant):null;
+  const dias=ant?(new Date(u.data)-new Date(ant.data))/864e5:0,gpd=sa&&dias>0&&s.pm!=null&&sa.pm!=null?(s.pm-sa.pm)/dias:null;
+  const m=modelo(uid);let esp=null,pop=null;if(m&&m.ok){const v=m.at(new Date(u.data+"T12:00").getTime());if(v.on){esp=v.w;pop=v.n}}
+  const cad=+B.cad[uid]||0,prox=cad?new Date(new Date(u.data+"T12:00").getTime()+cad*864e5):null;
+  return {u,s,n:L.length,gpd,esp,dif:esp&&s.pm?(s.pm/esp-1)*100:null,bio:pop&&s.pm?pop*s.pm/1000:null,pop,cad,prox}}
+
+/* entrada de dados: linhas (planilha, colado, link, automação) → amostras agrupadas por unidade + data + método */
+const ALV=[["unidade","Unidade / tanque",["unidade","tanque","viveiro","unit","tank","pond","local","ponto"]],["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora"]],["data","Data",["data","date","dia"]],["hora","Hora",["hora","time","hour"]],
+  ["peso","Peso (g)",["peso","pesog","weight","pesoindividual","pesomedio","pesomediog","pm","w","massa"]],["comprimento","Comprimento (cm)",["comprimento","comp","length","comprimentocm","ct","comprimentototal","tamanho","cm"]],
+  ["n","Quantidade de animais",["n","quantidade","qtd","numero","contagem","count","animais","individuos"]],["peso_total","Peso total do lote (kg)",["pesototal","pesototalkg","biomassa","totalkg","pesolote"]],["metodo","Método",["metodo","method","tipo","equipamento","fonte"]]];
+const norm=U.norm||(s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\(.*?\)/g,"").replace(/[^a-z0-9]/g,""));
+function autoMapB(cols){const m={},us=new Set();for(const [k,,syn] of ALV)for(const c of cols){if(us.has(c))continue;const n=norm(c);if(syn.includes(n)||syn.some(s=>s.length>3&&n.startsWith(s))){m[c]=k;us.add(c);break}}return m}
+function metodoDe(v){const n=norm(v);if(!n)return null;const a=MET.find(([k,t])=>n.includes(norm(k))||norm(t).startsWith(n));if(a)return a[0];
+  if(/camera|^ia$|intelig|xpert|visao|vision|^app/.test(n))return "visao";if(/sonar|acust|eco/.test(n))return "acustica";if(/frame|moldura|vaki|estereo/.test(n))return "moldura";if(/bandeja|tray/.test(n))return "bandeja";return "outro"}
+function linhasParaAmostras(rows,map,origem){const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const g=new Map();let ruins=0;
+  for(const r of rows){let d=null;if(inv.dt)d=U.dataHora(r[inv.dt]);if(!d&&inv.data){d=U.dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm)d.setHours(+hm[1],+(hm[2]||0))}}
+    const p=inv.peso?num(r[inv.peso]):NaN,c=inv.comprimento?num(r[inv.comprimento]):NaN,n=inv.n?num(r[inv.n]):NaN,pt=inv.peso_total?num(r[inv.peso_total]):NaN;
+    if(!d||!(isFinite(p)||isFinite(c)||(isFinite(pt)&&isFinite(n)))){ruins++;continue}
+    const data=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),hora=d.getHours()||d.getMinutes()?pad(d.getHours())+":"+pad(d.getMinutes()):"";
+    const un=inv.unidade?String(r[inv.unidade]||"").trim():"",met=(inv.metodo&&metodoDe(r[inv.metodo]))||B.metodo,k=[un,data,met].join("|");
+    if(!g.has(k))g.set(k,{un,data,hora,metodo:met,ind:[],loteN:0,loteKg:0});const e=g.get(k);
+    if(isFinite(pt)&&isFinite(n)&&n>0){e.loteN+=n;e.loteKg+=pt}else e.ind.push({p:isFinite(p)?Math.round(p*1000)/1000:undefined,c:isFinite(c)?Math.round(c*100)/100:undefined,n:isFinite(n)&&n>0?n:1})}
+  return {amostras:[...g.values()],ruins}}
+function guardar(lista,origem){const us=unis(),pa=window.projAtual?window.projAtual():null;let novas=0,sem=0;
+  for(const a of lista){const s=a.un?String(a.un).toLowerCase():"",u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s)||us.find(x=>x.id===unidade)||us[0];if(!u){sem++;continue}
+    B.amostras.push({id:"b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),unidade:u.id,unome:u.nome,data:a.data,hora:a.hora,metodo:a.metodo||B.metodo,origem,ind:a.ind||[],loteN:a.loteN||0,loteKg:a.loteKg||0,obs:a.obs||"",rec:Date.now(),...(pa?{pid:pa.id,pnome:pa.nome}:{})});novas++}
+  salvar();try{window.focoRefresh&&focoRefresh()}catch(e){}return {novas,sem}}
+const res=(r,o)=>`${r.novas} biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"}${r.sem?` · ${r.sem} sem unidade`:""} (${ORIGB[o.tipo]||o.tipo}${o.nome?": "+o.nome:""}).`;
+async function lerArqB(fl){const rows=await U.lerArquivo(fl);return rows}
+async function buscarLinkB(sil){if(!B.url)throw new Error("Cole o link dos dados de biometria.");const r=await fetch(B.url+(B.url.includes("?")?"&":"?")+"_t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("O link respondeu com erro "+r.status+".");
+  const rows=U.lerTexto(await r.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!Object.keys(B.map).length||!cols.some(c=>B.map[c]))B.map=autoMapB(cols);
+  if(!sil){dados={rows,cols,origem:{tipo:"link",nome:B.url}};return `${rows.length} linhas lidas do link. Confira as colunas e salve.`}
+  const ja=new Set(B.amostras.filter(a=>a.origem&&a.origem.tipo==="link").map(a=>a.unidade+"|"+a.data+"|"+a.metodo)),L=linhasParaAmostras(rows,B.map).amostras.filter(a=>!ja.has([(unis().find(x=>x.nome===a.un)||{}).id,a.data,a.metodo].join("|")));
+  return L.length?res(guardar(L,{tipo:"link",nome:B.url}),{tipo:"link",nome:B.url}):"Link sem biometrias novas."}
+function agendar(){clearInterval(timer);timer=null;if(B.auto&&B.url)timer=setInterval(()=>buscarLinkB(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()}),Math.max(1,+B.min||60)*60000)}
+/* automação: o plugin entrega aqui os itens do webhook que são biometria */
+window.bioReceber=async itens=>{const cols=[...new Set(itens.flatMap(o=>Object.keys(o)))],map=autoMapB(cols);for(const c of cols){if(c==="data_hora")map[c]="dt";if(["unidade","data","hora","peso","comprimento","n","peso_total","metodo"].includes(c))map[c]=c;if(c==="peso_medio")map[c]="peso";if(c==="quantidade")map[c]="n";if(c==="tipo")delete map[c]}
+  const L=linhasParaAmostras(itens,map).amostras;if(!L.length)return "";const r=guardar(L,{tipo:"webhook",nome:""});draw();return "Biometria pela automação: "+res(r,{tipo:"webhook"})};
+
+/* ---- tela ---- */
+function formHTML(){const us=unis();if(!unidade||!us.some(u=>u.id===unidade))unidade=(us[0]||{}).id||"";if(!dataB)dataB=hojeS();
+  return `<div class="rp-grid"><label>Unidade<select class="lv-sel" id="bi-un">${us.map(u=>`<option value="${E(u.id)}"${u.id===unidade?" selected":""}>${E(u.nome)}</option>`).join("")||`<option value="">(abra o AquaNictemeral)</option>`}</select></label>
+    <label>Data<div class="inp"><input type="date" id="bi-data" value="${dataB}"></div></label><label>Hora<div class="inp"><input type="time" id="bi-hora" value="${horaB}"></div></label></div>
+   <div class="pj-tools chips">${[["ind","Animais individuais"],["lote","Pesagem em lote"]].map(([k,t])=>`<button type="button" class="chip${B.modo===k?" on":""}" data-bi-modo="${k}">${t}</button>`).join("")}</div>
+   ${B.modo==="lote"?`<div class="rp-grid"><label>Animais contados<div class="inp"><input id="bi-ln" inputmode="numeric" placeholder="ex.: 250"></div></label><label>Peso total (kg)<div class="inp"><input id="bi-lk" inputmode="decimal" placeholder="ex.: 3,75"></div></label></div>`
+    :`<label class="bi-lbl">Um animal por linha: <b>peso (g)</b> e, se tiver, <b>comprimento (cm)</b>, separados por espaço ou ponto e vírgula<textarea class="ap-txt" id="bi-ind" rows="6" placeholder="152,4  21,3&#10;148,0  20,9&#10;160,2  21,8"></textarea></label>`}
+   <label class="bi-lbl">Observação<div class="inp"><input id="bi-obs" maxlength="120" placeholder="ex.: 3 pontos do viveiro, tarrafa de 2 m"></div></label>
+   <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-form"${busy?" disabled":""}>Salvar biometria</button></div>`}
+function mapaHTML(){if(!dados)return "";const L=linhasParaAmostras(dados.rows,B.map);
+  return `<div class="ap-box"><b>Colunas encontradas · ${dados.rows.length} linhas</b><div class="ap-cols">${dados.cols.map(c=>`<label><span title="${E(c)}">${E(c)}</span><select class="lv-sel" data-bi-col="${E(c)}"><option value="">ignorar</option>${ALV.map(([k,t])=>`<option value="${k}"${B.map[c]===k?" selected":""}>${t}</option>`).join("")}</select></label>`).join("")}</div>
+   <p class="muted">${L.amostras.length} biometria${L.amostras.length===1?"":"s"} (agrupadas por unidade, data e método)${L.ruins?` · ${L.ruins} linha${L.ruins===1?"":"s"} sem data ou sem peso/comprimento`:""}. ${L.amostras.slice(0,4).map(a=>{const s=stats(a);return `${E(a.un||"unidade escolhida")} ${dBR(a.data)}: ${s.N} animais, ${f(s.pm,1)} g`}).join(" · ")}</p>
+   <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-dados"${L.amostras.length?"":" disabled"}>Salvar ${L.amostras.length} biometria${L.amostras.length===1?"":"s"}</button><button type="button" class="btn" data-bi="descartar">Descartar</button></div></div>`}
+function fonteHTML(){
+  if(B.fonte==="form")return formHTML();
+  if(B.fonte==="arquivo")return `<p class="muted">Planilha (.xlsx, .numbers, .ods), CSV ou JSON com uma linha por animal (peso e comprimento) ou por lote (quantidade e peso total). Colunas: unidade, data (e hora), peso (g), comprimento (cm), quantidade, peso total (kg), método.</p><div class="pj-btns"><button type="button" class="btn solid" data-bi="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>${mapaHTML()}`;
+  if(B.fonte==="colado")return `<textarea class="ap-txt" id="bi-txt" rows="5" placeholder="unidade;data;peso;comprimento&#10;Viveiro 1 · Ponto A;24/10/2026;12,4;10,8"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-bi="ler">Ler dados</button></div>${mapaHTML()}`;
+  if(B.fonte==="link")return `<div class="rp-grid"><label class="ap-url">Link (CSV ou JSON)<input data-bi-cfg="url" value="${E(B.url)}" placeholder="planilha publicada, app da câmera, servidor do contador…"></label><label>Buscar sozinho<select class="lv-sel" data-bi-cfg="min">${[[15,"a cada 15 min"],[60,"a cada 1 h"],[360,"a cada 6 h"],[1440,"1 vez por dia"]].map(([v,t])=>`<option value="${v}"${+B.min===v?" selected":""}>${t}</option>`).join("")}</select></label><label class="us-chk ap-chk"><input type="checkbox" data-bi-cfg="auto"${B.auto?" checked":""}> <span><b>Ligado</b><br><span class="muted">só traz biometrias novas</span></span></label></div><div class="pj-btns"><button type="button" class="btn solid" data-bi="buscar"${busy?" disabled":""}>Buscar agora</button></div>${mapaHTML()}`;
+  const cfg=window.RAS_CONFIG||{};return `<p>Câmeras com IA, contadores, molduras submersas, sonar ou uma automação (Make, Zapier, n8n, Node-RED, ESP32 com balança) enviam a biometria para o <b>mesmo endereço do webhook</b> do 🔌 Conectar automação. Basta incluir <code>"tipo": "biometria"</code> em cada item:</p>
+   <code class="ap-code">${E(JSON.stringify({chave:"SUA_CHAVE",leituras:[{tipo:"biometria",unidade:"Viveiro 1 · Ponto A",data_hora:"2026-10-24 08:00",peso:12.4,comprimento:10.8,metodo:"camera"},{tipo:"biometria",unidade:"Grupo A",data:"2026-10-24",quantidade:250,peso_total:3.75,metodo:"lote"}]},null,1))}</code>
+   <span class="muted">Endereço: ${E((cfg.supabaseUrl||"")+"/rest/v1/rpc/ras_aqua_ingest")} · gere ou copie a chave no Webhook do 🔌 Conectar automação. Campos: unidade, data_hora (ou data e hora), peso (g), comprimento (cm), quantidade, peso_total (kg), metodo. As biometrias entram aqui quando o app recolhe o webhook.</span>`}
+function resumoHTML(){const us=unis();const linhas=us.map(u=>({u,r:resumoUni(u.id)})).filter(x=>x.r);
+  if(!linhas.length)return `<p class="muted">Nenhuma biometria ainda.</p>`;
+  return `<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Unidade</th><th>Última biometria</th><th class="num">Animais</th><th class="num">Peso médio</th><th class="num">CV</th><th class="num">Compr.</th><th class="num">K</th><th class="num">Ganho/dia</th><th>Modelo da Biomassa</th><th>Próxima biometria</th></tr></thead><tbody>${linhas.map(({u,r})=>{const s=r.s,late=r.prox&&r.prox<new Date();
+    return `<tr><td><b>${E(u.nome)}</b><small>${r.n} biometria${r.n===1?"":"s"}</small></td><td>${dBR(r.u.data)}${r.u.hora?" "+r.u.hora:""}<small>${E(metNome(r.u.metodo))} · ${ORIGB[(r.u.origem||{}).tipo]||""}</small></td>
+     <td class="num" data-l="Animais">${s.N}</td><td class="num" data-l="Peso médio">${f(s.pm,s.pm<10?2:1)} g${s.sd!=null?`<small>± ${f(s.sd,1)}</small>`:""}</td><td class="num" data-l="CV">${s.cv!=null?f(s.cv,0)+" %":"—"}${s.cv!=null?`<small>${s.cv<=20?"uniforme":s.cv<=30?"média":"desuniforme"}</small>`:""}</td>
+     <td class="num" data-l="Compr.">${s.cm!=null?f(s.cm,1)+" cm":"—"}</td><td class="num" data-l="K">${s.k!=null?f(s.k,2):"—"}${s.ab?`<small>b = ${f(s.ab.b,2)}</small>`:""}</td><td class="num" data-l="Ganho/dia">${r.gpd!=null?f(r.gpd,2)+" g":"—"}</td>
+     <td data-l="Modelo">${r.esp?`esperado ${f(r.esp,r.esp<10?2:0)} g<small class="${Math.abs(r.dif)>15?"bi-bad":""}">${r.dif>=0?"+":""}${f(r.dif,0)} % · biomassa ≈ ${f(r.bio,0)} kg</small>`:`<small>sem lote ligado</small>`}</td>
+     <td data-l="Próxima"><select class="lv-sel bi-cad" data-bi-cad="${E(u.id)}">${[[0,"sem cadência"],[7,"a cada 7 dias"],[10,"a cada 10 dias"],[14,"a cada 14 dias"],[15,"a cada 15 dias"],[30,"a cada 30 dias"]].map(([v,t])=>`<option value="${v}"${r.cad===v?" selected":""}>${t}</option>`).join("")}</select>${r.prox?`<small class="${late?"bi-bad":""}">${late?"atrasada desde ":"em "}${r.prox.toLocaleDateString("pt-BR")}</small>`:""}</td></tr>`}).join("")}</tbody></table></div>
+   <p class="muted"><b>CV</b> = coeficiente de variação do peso (até 20 %: lote uniforme). <b>K</b> = fator de condição de Fulton (100 × peso ÷ comprimento³); <b>b</b> = expoente da relação peso-comprimento (≈ 3: crescimento isométrico), calculado com 5 ou mais animais medidos. <b>Modelo da Biomassa</b> compara o peso medido com o peso esperado pelo lote da aba Biomassa naquela data.</p>`}
+function histHTML(){const L=B.amostras.slice().sort(ordem).reverse();if(!L.length)return "";
+  return `<details class="us-det"><summary>Todas as biometrias (${L.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Unidade</th><th>Método · origem</th><th class="num">Animais</th><th class="num">Peso médio</th><th></th></tr></thead><tbody>${L.map(a=>{const s=stats(a),c=conf===a.id;
+    return `<tr><td>${dBR(a.data)} ${a.hora||""}<small>${a.pnome?E(a.pnome):"sem projeto"}</small></td><td>${E(a.unome||a.unidade)}</td><td>${E(metNome(a.metodo))}<small>${ORIGB[(a.origem||{}).tipo]||""}${a.origem&&a.origem.nome?": "+E(a.origem.nome):""}${a.obs?" · "+E(a.obs):""}</small></td><td class="num">${s.N}</td><td class="num">${f(s.pm,s.pm<10?2:1)} g</td>
+     <td class="pj-acts">${c?`<button type="button" class="btn warn" data-bi="del-ok" data-id="${a.id}">Confirmar</button><button type="button" class="btn" data-bi="del-nao">Voltar</button>`:`<button type="button" class="btn ap-x" data-bi="del" data-id="${a.id}">🗑 Excluir</button>`}</td></tr>`}).join("")}</tbody></table></div></details>`}
+function draw(){const late=unis().map(u=>resumoUni(u.id)).filter(r=>r&&r.prox&&r.prox<new Date()).length,tot=B.amostras.length;
+  box.innerHTML=`<details class="card wide ap-card bi-card"${aberto?" open":""}><summary class="card-head"><h2>📏 Biometria<span>Peso e comprimento dos animais · ${tot} biometria${tot===1?"":"s"}${late?` · ${late} atrasada${late===1?"":"s"}`:""} · formulário, arquivo, colar, link ou automação</span></h2></summary><div class="pj-body">
+   <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
+   <div class="pj-tools chips">${Object.entries(ORIGB).map(([k,t])=>`<button type="button" class="chip${B.fonte===k?" on":""}" data-bi-fonte="${k}">${t}</button>`).join("")}</div>
+   <div class="rp-grid"><label>Método da biometria<select class="lv-sel" data-bi-cfg="metodo">${MET.map(([k,t])=>`<option value="${k}"${B.metodo===k?" selected":""}>${t}</option>`).join("")}</select></label></div>
+   <p class="muted bi-met">${E((MET.find(m=>m[0]===B.metodo)||[])[2]||"")}</p>
+   ${fonteHTML()}
+   <h3 class="bi-h">Situação por unidade</h3>${resumoHTML()}${histHTML()}
+   <details class="us-det"><summary>Tipos de biometria em aquicultura</summary><ul class="bi-tipos">${MET.filter(m=>m[2]).map(m=>`<li><b>${m[1]}:</b> ${m[2]}</li>`).join("")}</ul></details>
+  </div></details>`;bind()}
+function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
+  box.querySelectorAll("[data-bi-fonte]").forEach(b=>b.addEventListener("click",()=>{B.fonte=b.dataset.biFonte;dados=null;msg="";salvar();draw()}));
+  box.querySelectorAll("[data-bi-modo]").forEach(b=>b.addEventListener("click",()=>{B.modo=b.dataset.biModo;salvar();draw()}));
+  box.querySelectorAll("[data-bi-cfg]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.biCfg;B[k]=i.type==="checkbox"?i.checked:k==="min"?+i.value:i.value.trim();salvar();if(k==="auto"||k==="min"||k==="url")agendar();draw()}));
+  box.querySelectorAll("[data-bi-col]").forEach(s=>s.addEventListener("change",()=>{B.map[s.dataset.biCol]=s.value;salvar();draw()}));
+  box.querySelectorAll("[data-bi-cad]").forEach(s=>s.addEventListener("change",()=>{B.cad[s.dataset.biCad]=+s.value;salvar();draw()}));
+  const un=q("#bi-un");un&&un.addEventListener("change",()=>{unidade=un.value});const dt=q("#bi-data");dt&&dt.addEventListener("change",()=>{dataB=dt.value});const hr=q("#bi-hora");hr&&hr.addEventListener("change",()=>{horaB=hr.value});
+  box.querySelectorAll("[data-bi]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.bi,b)))}
+async function rodar(fn){if(busy)return;busy=true;try{msg=await fn()||msg}catch(e){msg="Erro: "+(e&&(e.message||e.msg)||e)}finally{busy=false;draw()}}
+function acao(a,b){
+  if(a==="salvar-form"){const ob=(box.querySelector("#bi-obs")||{}).value||"";rodar(async()=>{if(!unidade)throw new Error("Escolha a unidade.");if(!dataB)throw new Error("Informe a data.");
+    let am={un:"",data:dataB,hora:horaB||"",metodo:B.metodo,ind:[],loteN:0,loteKg:0,obs:ob.trim()};const us=unis(),u=us.find(x=>x.id===unidade);am.un=u?u.nome:"";
+    if(B.modo==="lote"){const n=num((box.querySelector("#bi-ln")||{}).value),kg=num((box.querySelector("#bi-lk")||{}).value);if(!(n>0&&kg>0))throw new Error("Informe quantos animais foram contados e o peso total em kg.");am.loteN=Math.round(n);am.loteKg=kg}
+    else{const t=(box.querySelector("#bi-ind")||{}).value||"";for(const l of t.split(/\n/)){const v=l.trim().split(/[\s;\t]+/).filter(Boolean).map(num);if(!v.length||!isFinite(v[0]))continue;am.ind.push({p:v[0],c:isFinite(v[1])?v[1]:undefined,n:1})}
+      if(!am.ind.length)throw new Error("Digite pelo menos um peso (um animal por linha).")}
+    const r=guardar([am],{tipo:"form",nome:""});const s=stats(am);return `Biometria salva: ${am.un}, ${s.N} animais, peso médio ${f(s.pm,1)} g${s.cv!=null?`, CV ${f(s.cv,0)} %`:""}.`});return}
+  if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=U.ACEITA||"";i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
+    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await lerArqB(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
+  if(a==="salvar-dados"){rodar(async()=>{const L=linhasParaAmostras(dados.rows,B.map).amostras,o=dados.origem;const r=guardar(L,o);dados=null;return res(r,o)});return}
+  if(a==="descartar"){dados=null;msg="";draw();return}
+  if(a==="buscar"){rodar(()=>buscarLinkB(false));return}
+  if(a==="del"){conf=b.dataset.id;draw();return}if(a==="del-nao"){conf=null;draw();return}
+  if(a==="del-ok"){B.amostras=B.amostras.filter(x=>x.id!==b.dataset.id);conf=null;salvar();msg="Biometria excluída.";draw();return}
+}
+/* resumo para o Painel (AquaNictemeral em evidência) */
+window.bioDashResumo=()=>unis().map(u=>({u,r:resumoUni(u.id)})).filter(x=>x.r).map(({u,r})=>({nome:u.nome,data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
+window.drawAquaBio=()=>draw();window.bioDebug={stats,linhasParaAmostras,autoMapB,B};
+agendar();draw();
 })();
 
 </script>
@@ -6625,7 +6788,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v48";
+  const APP_VERSAO="ras-v49";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
