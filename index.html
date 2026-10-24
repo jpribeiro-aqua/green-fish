@@ -689,6 +689,8 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-pro-tag{margin-left:auto;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:2px 8px}
 .us-pro-list{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:grid;gap:4px}
 .us-pro p{margin:0}
+.ver-aviso{position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:90;display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:calc(100% - 32px);font-size:14px}
+.app-ver{font:11px var(--f-mono);color:var(--muted);margin-left:8px;align-self:center}
 /* Aba em evidência no Painel */
 .foco-bar{display:grid;gap:8px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .foco-bar .fb-t{font-size:14px;color:var(--ink)}.foco-bar .fb-b{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
@@ -6559,7 +6561,22 @@ let framed=true;try{framed=window.self!==window.top}catch(e){}
 const hospedado=!framed&&(location.protocol==="https:"||location.hostname==="localhost");
 if(hospedado){
   if(!document.querySelector('link[rel="manifest"]')){const l=document.createElement("link");l.rel="manifest";l.href="manifest.webmanifest";document.head.appendChild(l)}
-  if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+  /* atualização automática: quando uma versão nova é publicada, o app baixa e recarrega sozinho */
+  if("serviceWorker" in navigator){const tinha=!!navigator.serviceWorker.controller;let recarregou=false;
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{if(!tinha||recarregou)return;recarregou=true;
+      if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
+    window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
+      const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
+  const APP_VERSAO="ras-v46";
+  function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
+    b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
+    b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
+      try{const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.update().catch(()=>{})))}catch(e){}
+      try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
+      location.replace(location.pathname+"?v="+Date.now()+location.hash)})}
+  async function confereVersao(){if(/^__/.test(APP_VERSAO))return;try{const t=await (await fetch("sw.js?v="+Date.now(),{cache:"no-store"})).text(),m=t.match(/VERSAO\s*=\s*"([^"]+)"/);
+    if(m&&m[1]!==APP_VERSAO)avisoVersao(m[1])}catch(e){}}
+  window.addEventListener("load",()=>{setTimeout(confereVersao,4000);const pb=document.querySelector(".proj-bar");if(pb&&!/^__/.test(APP_VERSAO)){const v=document.createElement("span");v.className="app-ver";v.textContent="versão "+APP_VERSAO.replace("ras-","");v.title="Versão do app instalada neste aparelho";pb.appendChild(v)}});
 }
 /* botão "Instalar app" (Android/Chrome); no iPhone a instalação é pelo menu Compartilhar do Safari */
 let pedido=null;const inst=document.createElement("button");inst.type="button";inst.className="btn solid inst-btn";inst.hidden=true;inst.textContent="Instalar app";
