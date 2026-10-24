@@ -5553,7 +5553,8 @@ async function carregarLista(){
   if(Auth.supa()&&Auth.dono()){try{const [qs,qv]=await Promise.all([db.collection("assinaturas").limit(500).get(),db.collection("avisos").limit(500).get()]);
     st.ass={};qs.docs.forEach(d=>st.ass[d.id]=d.data());st.avisos={};qv.docs.forEach(d=>st.avisos[d.id]=d.data())}catch(e){st.ass={};st.avisos={}}
     try{const qp=await db.collection("prazos").limit(500).get();st.prazos={};qp.docs.forEach(d=>st.prazos[d.id]=d.data())}catch(e){st.prazos={}}
-    try{const qc=await db.collection("convites").limit(500).get();st.convites={};qc.docs.forEach(d=>st.convites[d.id]=d.data())}catch(e){st.convites={}}}
+    try{const qc=await db.collection("convites").limit(500).get();st.convites={};qc.docs.forEach(d=>st.convites[d.id]=d.data())}catch(e){st.convites={}}
+    try{const qf=await db.collection("perfis").limit(1000).get();st.contas={};qf.docs.forEach(d=>st.contas[d.id]=d.data())}catch(e){st.contas={}}}
   st.lista=qi.docs.filter(d=>d.id!==st.uid).map(d=>({id:d.id,insc:d.data(),ac:ac[d.id]||null})).sort((a,b)=>(b.insc.em||0)-(a.insc.em||0));
   try{const ids=[...new Set([...st.lista.map(x=>x.id),...st.admins.keys()])];st.nomes=ids.length?await st.usr.profiles(ids):{}}catch(e){st.nomes={}}
 }
@@ -5693,6 +5694,19 @@ function addMembrosHTML(rows,admOpts,eqDe){
     <textarea id="am-emails" rows="2" placeholder="maria@exemplo.com, joao@exemplo.com" aria-label="E-mails para pré-cadastro"></textarea>
     <div class="pj-btns"><button type="button" class="btn solid" data-us="am-conv">Pré-cadastrar na equipe de ${esc(nmEq)}</button></div></div>`}
     ${conv.length?`<div class="us-abas-box"><b>Pré-cadastros aguardando a pessoa criar a conta</b><div class="scroll"><table class="pj-tab"><thead><tr><th>E-mail</th><th>Equipe</th><th>Acesso ao entrar</th><th>Desde</th><th></th></tr></thead><tbody>${conv.map(([em,c])=>`<tr><td><b>${esc(em)}</b></td><td>${esc(((admOpts.find(o=>o[0]===c.equipe)||[])[1])||c.equipe||"—")}</td><td>${c.liberar?`<span class="us-st ok">liberado</span>`:`<span class="us-st wait">aguarda aprovação</span>`}</td><td>${dia(c.em)}</td><td><button type="button" class="btn" data-us="am-conv-del" data-id="${esc(em)}">Remover</button></td></tr>`).join("")}</tbody></table></div></div>`:""}
+  </div></section>`}
+/* ---- contas sem inscrição: quem criou a conta mas não está na lista (inscrição excluída ou nunca feita) · só o dono ---- */
+function semInscHTML(admOpts){
+  const temI=new Set(st.lista.map(x=>x.id)),l=Object.entries(st.contas||{}).filter(([id])=>id!==st.uid&&!temI.has(id)&&!(st.admins.get(id)||{}).dono)
+    .map(([id,p])=>({id,p,adm:st.admins.has(id)})).sort((a,b)=>(b.p.em||0)-(a.p.em||0));
+  if(!l.length)return "";
+  const nm=x=>x.p.nome&&x.p.nome!==x.p.email?x.p.nome:(x.p.email||"Conta sem nome");
+  return `<section class="card wide" id="si-card"><div class="card-head"><i class="n">!</i><h2>Contas sem inscrição<span>${l.length} pessoa${l.length===1?"":"s"} com conta no app que não aparece${l.length===1?"":"m"} em Pessoas inscritas · só o dono</span></h2></div><div class="pj-body">
+   <p class="muted">São contas cuja inscrição foi excluída ou que nunca se inscreveram. Coloque numa equipe (a inscrição é recriada) ou torne a pessoa administradora de uma equipe própria.</p>
+   <label class="us-chk"><input type="checkbox" id="si-lib"${st.siLib===false?"":" checked"}> <span><b>Liberar o acesso na hora</b><br><span class="muted">sem esperar aprovação e sem gastar a cota do administrador</span></span></label>
+   <div class="scroll"><table class="pj-tab us-tab"><thead><tr><th>Pessoa</th><th>Conta criada</th><th>Colocar na equipe</th><th></th></tr></thead><tbody>${l.map(x=>`<tr><td><b>${esc(nm(x))}</b>${x.p.email&&nm(x)!==x.p.email?`<small class="us-email">${esc(x.p.email)}</small>`:""}${x.adm?`<span class="us-papel adm">Administrador · equipe ${x.id.slice(0,8)} · sem inscrição</span>`:""}</td><td><small>${x.p.em?dia(x.p.em):"—"}</small></td>
+     <td>${x.adm?`<span class="muted">já é administrador</span>`:`<select class="lv-sel" id="si-eq-${x.id}" aria-label="Equipe"><option value="">Sem equipe</option>${admOpts.map(([c,n])=>`<option value="${c}">Equipe de ${esc(n)}</option>`).join("")}</select>`}</td>
+     <td class="pj-acts"><div class="us-acts"><button type="button" class="btn solid" data-us="si-insc" data-id="${x.id}">${x.adm?"Recriar inscrição":"Inscrever"}</button>${x.adm?"":`<button type="button" class="btn" data-us="si-adm" data-id="${x.id}">Tornar administrador</button>`}</div></td></tr>`).join("")}</tbody></table></div>
   </div></section>`}
 /* ---- papéis: dono, administrador (de uma equipe) e membro ---- */
 const papelDe=x=>{const a=st.admins.get(x.id);if(a)return a.dono?"dono":"adm";return "membro"};
@@ -5844,7 +5858,7 @@ function draw(){
         <p class="muted">${Auth.supa()?"Qualquer pessoa com o endereço do app pode criar uma conta. Com aprovação, só quem você aprovar consegue salvar projetos.":"Quem pode abrir o link do app é definido no menu Compartilhar do claude.ai. Esta aba controla o que cada pessoa pode fazer dentro do app."}</p>${Auth.supa()?papeisHTML(false):""}</div></section>`;
       if(Auth.supa()&&Auth.dono()&&!Auth.basica())h+=planosHTML(rows);
       const cobOn=cobAtiva()&&Auth.dono();
-      if(Auth.supa()&&Auth.dono())h+=addMembrosHTML(rows,admOpts,eqDe);
+      if(Auth.supa()&&Auth.dono())h+=addMembrosHTML(rows,admOpts,eqDe)+semInscHTML(admOpts);
       h+=`<section class="card wide"><div class="card-head"><i class="n">3</i><h2>Pessoas inscritas<span>${rows.length} inscriç${rows.length===1?"ão":"ões"}</span></h2>
         <div class="pj-tools chips">${[["todos","Todos"],["pendente","Aguardando"],["ativo","Ativos"],["suspenso","Suspensos"],["cancel","Cancelados"],...(cobOn?[["pag","Pagamento pendente"]]:[])].map(([k,t])=>`<button type="button" class="chip${st.filtro===k?" on":""}" data-filtro="${k}" aria-pressed="${st.filtro===k}">${t}</button>`).join("")}${Auth.supa()&&admOpts.length?`<select class="lv-sel us-eqsel${st.filtroEq?" on":""}" id="us-filtroeq" aria-label="Filtrar por equipe"><option value="">Todas as equipes</option><option value="-"${st.filtroEq==="-"?" selected":""}>Sem equipe</option>${admOpts.map(([c,n])=>`<option value="${c}"${st.filtroEq===c?" selected":""}>Equipe de ${esc(n)}</option>`).join("")}</select>`:""}</div></div>
         ${!rows.length?`<p class="pj-body muted">Ninguém se inscreveu ainda. Quando alguém com acesso ao link criar a senha e clicar em Inscrever-me, a pessoa aparece aqui.</p>`:!vis.length?`${eqInfo}<p class="pj-body muted">Ninguém nesta situação.</p>`:
@@ -5931,6 +5945,13 @@ function bind(){
   el.querySelectorAll("[data-us]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.us,id=b.dataset.id;
     if(a==="x"){st.confirm=null;draw()}
     else if(a.indexOf("ask-")===0){st.confirm={t:a.slice(4),id};draw()}
+    else if(a==="si-insc"||a==="si-adm"){const lib=!!(el.querySelector("#si-lib")||{}).checked,eq=a==="si-insc"?val("si-eq-"+id):"",p=(st.contas||{})[id]||{};st.siLib=lib;
+      rodar(async()=>{const ehAdm=a==="si-adm"||st.admins.has(id);if(a==="si-adm")await Auth.definirAdmin(id,true);
+        const ni={em:Date.now(),atualizadoEm:Date.now(),status:"ativa"};if(eq&&!ehAdm)ni.equipe=eq;await st.db.doc("inscricoes/"+id).set(ni);
+        if(lib||ehAdm){const ac0=((await st.db.doc("acessos/"+id).get()).data())||{};if(ac0.status!=="ativo"){const na={...ac0,status:"ativo",em:Date.now(),por:st.uid};delete na.suspensoPorDono;await st.db.doc("acessos/"+id).set(na)}
+          if(!ehAdm&&cobAtiva()&&!st.ass[id]){const as={plano:"basico",vencimento:Date.now(),criada:Date.now()};await st.db.doc("assinaturas/"+id).set(as);st.ass[id]=as}}
+        await carregarLista();const nm=p.nome&&p.nome!==p.email?p.nome:(p.email||"A pessoa");
+        aviso(a==="si-adm"?`${nm} agora é administrador(a), com equipe própria (código ${id.slice(0,8)}). Defina a cota de logins em Pessoas inscritas.`:`${nm} voltou para Pessoas inscritas${eq&&!ehAdm?" na equipe escolhida":""}${lib||ehAdm?", com o acesso liberado":""}.`)})}
     else if(a==="nome-ok"){const v=val("us-nome-"+id);rodar(async()=>{const n=await Auth.definirNome(id,v);st.nomes[id]={...(st.nomes[id]||{id}),name:n};st.confirm=null;aviso(`Nome salvo: ${n}${/\.$/.test(n)?"":"."}`)})}
     else if(a==="meu-nome"){const v=val("us-meunome");rodar(async()=>{const n=await Auth.definirNome(null,v);if(st.uid)st.nomes[st.uid]={...(st.nomes[st.uid]||{id:st.uid}),name:n};aviso(`Seu nome agora é ${n}${/\.$/.test(n)?"":"."}`)})}
     else if(a==="senha"){st.confirm=null;redefinirNuvem(id)}
