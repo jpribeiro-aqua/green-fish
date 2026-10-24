@@ -713,7 +713,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-cota .inp:has(input[id^="us-nome-"]){width:100%;max-width:440px}.us-cota input[id^="us-nome-"],#us-meunome{width:100%;text-align:left;font-family:var(--f-body)}
 /* AquaNictemeral · plugin de automação */
 #aqua-plug{margin-bottom:12px}
-#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.bi-lbl{font-size:13px;font-weight:600;margin:6px 0 2px}.bi-h{margin:14px 0 6px;font-size:15px}.bi-met{font-size:12px;margin-top:4px}.bi-bad{color:var(--bad,#b4532a);font-weight:600}.bi-ok{color:var(--good,#2e7d4f);font-weight:600}.bi-tipos{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));font-size:13px}.bi-tipos>li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px}.bi-cad{width:auto;padding:3px 6px;font-size:12px}.bi-tab td.num{text-align:right}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
+#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}.bi-kpis>div{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}.bi-kpis b{font:600 16px var(--f-mono,monospace)}.bi-kpis span{font-size:12px;color:var(--muted)}.bi-pop{max-width:110px;margin-left:auto}.bi-pop input{text-align:right}.bi-ft{margin-bottom:4px}.bi-lbl{font-size:13px;font-weight:600;margin:6px 0 2px}.bi-h{margin:14px 0 6px;font-size:15px}.bi-met{font-size:12px;margin-top:4px}.bi-bad{color:var(--bad,#b4532a);font-weight:600}.bi-ok{color:var(--good,#2e7d4f);font-weight:600}.bi-tipos{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));font-size:13px}.bi-tipos>li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px}.bi-cad{width:auto;padding:3px 6px;font-size:12px}.bi-tab td.num{text-align:right}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
 .ao-card>summary h2::before{content:"▸ ";color:var(--accent)}.ao-card[open]>summary h2::before{content:"▾ "}.ao-card .pj-body{display:grid;gap:12px}
 .ao-res{margin:0;font-size:15px}.ao-chips .chip b{margin-left:4px;color:var(--ink)}.ao-bar{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.ao-t{font-weight:600}
 .ap-card>summary{list-style:none;cursor:pointer}.ap-card>summary::-webkit-details-marker{display:none}
@@ -1964,7 +1964,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   let rz; window.addEventListener(&quot;resize&quot;, () =&gt; { clearTimeout(rz); rz = setTimeout(() =&gt; (aba === &quot;painel&quot; ? renderPainel() : renderCharts()), 140); });
 
   // --------------------------------------------------- plugin de automação (página-mãe): unidades e importação de leituras
-  window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id }));
+  window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null }));
   window.aquaImport = (lista, op) =&gt; {
     op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
     const PS = ORDEM.concat([&quot;od_saturacao&quot;, &quot;nh3&quot;]), dias = new Set(), uns = new Set();
@@ -5388,7 +5388,7 @@ async function recarregar(){
   if(!logado()){st.list=[];draw();return}
   try{st.list=(await back().list()).sort((a,b)=>(b.atualizadoEm||0)-(a.atualizadoEm||0))}
   catch(e){st.list=[];aviso(erroTxt(e),true)}
-  draw();chip();
+  draw();chip();try{window.drawAquaBio&&drawAquaBio()}catch(e){}
 }
 async function rodar(fn){if(st.busy)return;st.busy=true;el.classList.add("busy");
   try{await fn()}catch(e){aviso(erroTxt(e),true)}
@@ -5579,6 +5579,7 @@ function chip(){
 
 window.drawProj=()=>{st.confirm=null;draw()};
 window.projChip=chip;
+window.projLista=()=>st.list.map(p=>({id:p.id,nome:p.nome,resumo:p.resumo||{}}));
 window.projAtual=()=>{const c=atual();return c&&c.id&&c.modo===st.mode?{id:c.id,nome:c.nome||"Projeto"}:null};
 window.projApi={list:()=>back().list(),del:id=>back().del(id),reload:recarregar,
   relogin(){recarregar()}};
@@ -6515,7 +6516,8 @@ function cadTexto(o){const e=cadEstado(o),agora=Date.now();
   if(e.prox>agora){const s=Math.round((e.prox-agora)/1000);return `próxima esperada em ${s<3600?Math.floor(s/60)+":"+String(s%60).padStart(2,"0"):dur(s/60)}`}
   return e.st==="ok"?`dentro da tolerância (+${dur(e.atraso-e.c)})`:`atrasada há ${dur(e.atraso-e.c)}`}
 function cadLista(){try{const w=frame().contentWindow;return w&&w.aquaCadencia?w.aquaCadencia():null}catch(e){return null}}
-window.aquaCadResumo=()=>{const L=cadLista();if(!L)return null;const es=L.map(o=>({o,e:cadEstado(o)})).filter(x=>x.e.st!=="lote");return {emDia:es.filter(x=>x.e.st==="ok").length,atrasadas:es.filter(x=>x.e.st==="atrasada"||x.e.st==="sem").map(x=>x.o.nome||x.o.rotulo),total:es.length}};
+window.aquaCadResumo=()=>{const L=cadLista();if(!L)return null;const es=L.map(o=>({o,e:cadEstado(o)})).filter(x=>x.e.st!=="lote");let b={emDia:0,atrasadas:[],total:0};try{if(window.bioCadResumo)b=bioCadResumo()}catch(e){}
+  return {emDia:es.filter(x=>x.e.st==="ok").length+b.emDia,atrasadas:es.filter(x=>x.e.st==="atrasada"||x.e.st==="sem").map(x=>x.o.nome||x.o.rotulo).concat(b.atrasadas),total:es.length+b.total}};
 function drawCad(){if(!boxC)return;const L=cadLista();if(!L){boxC.innerHTML="";return}
   const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥"},R=window.aquaCadResumo()||{emDia:0,atrasadas:[],total:0};
   const lin=[...L];const temHook=C.webhook&&!L.some(o=>o.tipo==="webhook"),temLink=C.auto&&C.url&&!L.some(o=>o.tipo==="link"&&o.nome===C.url);
@@ -6523,22 +6525,24 @@ function drawCad(){if(!boxC)return;const L=cadLista();if(!L){boxC.innerHTML="";r
   if(temLink)lin.push({key:"link|"+C.url,tipo:"link",rotulo:"Link",nome:C.url,n:0,hoje:0,ult:"",rec:0,med:null,unidades:[]});
   const fD=s=>{const d=tsD(s);return d?d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):"—"};
   const sum=R.total?`${R.emDia} em dia${R.atrasadas.length?` · ${R.atrasadas.length} atrasada${R.atrasadas.length===1?"":"s"}`:""}`:"nenhuma origem contínua";
-  boxC.innerHTML=`<details class="card wide ao-card cad-card${R.atrasadas.length?" cad-late":""}"${cadAberto?" open":""}><summary class="card-head"><h2>⏱ Cadência em tempo real<span>${E(sum)} · atualiza a cada segundo</span></h2></summary><div class="pj-body">
+  boxC.innerHTML=`<details class="card wide ao-card cad-card${R.atrasadas.length?" cad-late":""}"${cadAberto?" open":""}><summary class="card-head"><h2>⏱ Cadência em tempo real<span>leituras e biometria · ${E(sum)} · atualiza a cada segundo</span></h2></summary><div class="pj-body">
    <div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Origem</th><th>Cadência esperada</th><th>Última leitura</th><th>Situação agora</th><th class="num">Hoje</th></tr></thead><tbody>${lin.map((o,i)=>{const e=cadEstado(o),esp=e.c?Math.floor(((Date.now()-new Date().setHours(0,0,0,0))/60000)/e.c)+1:null;
      const tag=e.st==="ok"?`<span class="us-st ok">em dia</span>`:e.st==="atrasada"?`<span class="us-st bad">atrasada</span>`:e.st==="sem"?`<span class="us-st wait">sem leitura</span>`:`<span class="us-st">lote</span>`;
      const extra=o.tipo==="webhook"?`<label class="cad-sub">recolher a cada <select class="lv-sel" data-cad-hook="1">${[[15,"15 s"],[30,"30 s"],[60,"1 min"],[300,"5 min"],[900,"15 min"]].map(([v,t])=>`<option value="${v}"${(+C.hookSeg||60)===v?" selected":""}>${t}</option>`).join("")}</select>${C.webhook?"":" (ligue o recolhimento automático no Webhook)"}</label>`:o.tipo==="link"&&o.nome===C.url?`<small>${C.auto?`busca automática a cada ${C.min<60?C.min+" min":C.min/60+" h"}`:"busca automática desligada"}</small>`:"";
      return `<tr><td><b>${ICO[o.tipo]||""} ${E(o.nome?(o.nome.length>40?o.nome.slice(0,37)+"…":o.nome):o.rotulo)}</b><small>${o.nome?E(o.rotulo)+" · ":""}${o.unidades.length} unidade${o.unidades.length===1?"":"s"}${o.med?` · intervalo típico ${dur(o.med)}`:""}</small>${extra}</td>
       <td><select class="lv-sel" data-cad="${E(o.key)}" data-tipo="${E(o.tipo)}" data-nome="${E(o.nome)}" aria-label="Cadência esperada">${CAD_OPT.map(([v,t])=>`<option value="${v}"${e.c===v?" selected":""}>${t}</option>`).join("")}</select></td>
       <td>${fD(o.ult)}${o.rec?`<small>chegou ${new Date(o.rec).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</small>`:""}</td>
-      <td>${tag}<small data-cad-t="${i}">${E(cadTexto(o))}</small></td><td class="num">${f0c(o.hoje)}${esp&&e.st!=="lote"?`<small>de ${esp} esperadas</small>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhuma leitura ainda.</td></tr>`}</tbody></table></div>
+      <td>${tag}<small data-cad-t="${i}">${E(cadTexto(o))}</small></td><td class="num">${f0c(o.hoje)}${esp&&e.st!=="lote"?`<small>de ${esp} esperadas</small>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhuma leitura ainda.</td></tr>`}</tbody></table></div>${(()=>{try{return window.bioCadHTML?bioCadHTML():""}catch(e){return ""}})()}
    <p class="muted">Para cada origem, escolha de quanto em quanto tempo as leituras devem chegar. O app compara com a hora da última leitura, conta as leituras de hoje contra as esperadas e marca <b>atrasada</b> quando passa 25% da cadência sem leitura nova. Na automação (webhook) você também escolhe de quanto em quanto tempo o app recolhe o que chegou; no link, a cadência é a frequência da busca automática. Arquivos e dados colados entram em lote: mostram o intervalo típico entre as leituras.</p></div></details>`;
   const d=boxC.querySelector("details");d.addEventListener("toggle",()=>{cadAberto=d.open});
   boxC.querySelectorAll("[data-cad]").forEach(sel=>sel.addEventListener("change",()=>{const v=+sel.value;C.cad=C.cad||{};C.cad[sel.dataset.cad]=v;
     if(sel.dataset.tipo==="link"&&sel.dataset.nome===C.url&&v>0){C.min=v;C.auto=true;agendar()}
     if(sel.dataset.tipo==="webhook"&&v>0&&v<(+C.hookSeg||60)/60){C.hookSeg=Math.max(15,v*60);agendarHook()}salvar();drawCad();try{window.focoRefresh&&focoRefresh()}catch(e){}}));
   const hk=boxC.querySelector("[data-cad-hook]");hk&&hk.addEventListener("change",()=>{C.hookSeg=+hk.value;salvar();agendarHook();drawCad()});
+  try{window.bioCadBind&&bioCadBind(boxC)}catch(e){}
   clearInterval(cadTick);cadTick=setInterval(()=>{if(!document.body.contains(boxC)||document.hidden)return;let mud=false;
     boxC.querySelectorAll("[data-cad-t]").forEach(el=>{const o=lin[+el.dataset.cadT];if(!o)return;const st=cadEstado(o).st,t=cadTexto(o);if(el.textContent!==t)el.textContent=t;if(el.dataset.st&&el.dataset.st!==st)mud=true;el.dataset.st=st});
+    try{if(window.bioCadTick&&bioCadTick(boxC))mud=true}catch(e){}
     if(mud)drawCad()},1000)}
 const f0c=v=>Number(v||0).toLocaleString("pt-BR");
 /* ---- origem dos dados: projeto aberto e por onde as leituras entraram; escolhe o que o AquaNictemeral processa ---- */
@@ -6574,19 +6578,34 @@ agendar();agendarHook();draw();
 
 </script>
 <script>
-/* ---------- AquaNictemeral · Biometria: amostras de peso e comprimento por unidade, de várias origens (formulário, arquivo, colar, link, automação) ---------- */
+/* ---------- AquaNictemeral · Biometria por projeto: amostras de peso e comprimento por tanque ou viveiro, de várias origens (formulário, arquivo, colar, link, automação), com projeção de crescimento ---------- */
 (function(){
 const box=document.getElementById("aqua-bio");if(!box)return;
 const U=window.aquaPlugUtil||{},E=U.E||(s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])));
-const K="ras-multitanques-v1-biometria";
-const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}};
-const B=Object.assign({amostras:[],cad:{},fonte:"form",modo:"ind",metodo:"tarrafa",url:"",auto:false,min:60,map:{}},rd());
-const salvar=()=>{try{localStorage.setItem(K,JSON.stringify(B))}catch(e){}};
-let aberto=false,msg="",busy=false,dados=null,conf=null,timer=null,unidade="",dataB="",horaB="";
+const K="ras-multitanques-v1-biometria";   // cópia do projeto aberto (vai junto quando o projeto é salvo)
+const KG="greenfish-biometria-v1";          // todas as biometrias de todos os projetos (fica neste aparelho)
+const rdk=k=>{try{return JSON.parse(localStorage.getItem(k))||null}catch(e){return null}};
+const pa0=()=>{try{return window.projAtual?window.projAtual():null}catch(e){return null}};
+const curPid=()=>{const p=pa0();return p?p.id:"_local"},curNome=()=>{const p=pa0();return p?p.nome:"Projeto não salvo"};
+const B=Object.assign({amostras:[],cad:{},fonte:"form",modo:"ind",metodo:"tarrafa",url:"",auto:false,min:60,map:{},proj:null,unisP:{},tipoU:{},alvo:{},pop:{},del:[],ftipo:"todas"},rdk(KG)||{});
+(function migrar(){const old=rdk(K);if(!old)return;const cp=curPid(),del=new Set(B.del||[]),por=new Map(B.amostras.map(a=>[a.id,a])),primeira=!rdk(KG);
+  for(const a of old.amostras||[]){if(del.has(a.id))continue;const g=por.get(a.id);
+    if(g){if(!g.pid&&cp!=="_local"){g.pid=cp;g.pnome=curNome()}continue}
+    if(!a.pid&&cp!=="_local"){a.pid=cp;a.pnome=curNome()}B.amostras.push(a);por.set(a.id,a)}
+  if(primeira)for(const k of ["fonte","modo","metodo","url","auto","min","map"])if(old[k]!=null)B[k]=old[k];
+  for(const u in old.cad||{}){const k=u.includes("|")?u:cp+"|"+u;if(B.cad[k]==null)B.cad[k]=old.cad[u]}
+  for(const p in old.unisP||{}){const L=(B.unisP[p]=B.unisP[p]||[]);for(const u of old.unisP[p]||[])if(!L.some(x=>x.id===u.id))L.push(u)}
+  for(const o of ["tipoU","alvo","pop"])for(const k in old[o]||{})if(B[o][k]==null)B[o][k]=old[o][k]})();
+const salvar=()=>{try{localStorage.setItem(KG,JSON.stringify(B))}catch(e){}
+  try{const cp=curPid(),pre=cp+"|",so=o=>{const r={};for(const k in o||{})if(k.startsWith(pre))r[k]=o[k];return r};
+    localStorage.setItem(K,JSON.stringify({v:2,amostras:B.amostras.filter(a=>(a.pid||"_local")===cp),cad:so(B.cad),tipoU:so(B.tipoU),pop:so(B.pop),alvo:B.alvo[cp]!=null?{[cp]:B.alvo[cp]}:{},unisP:{[cp]:B.unisP[cp]||[]},
+      fonte:B.fonte,modo:B.modo,metodo:B.metodo,url:B.url,auto:B.auto,min:B.min,map:B.map}))}catch(e){}};
+let aberto=false,msg="",busy=false,dados=null,conf=null,timer=null,unidade="",numU="",novaNome="",novaTipo="tanque",dataB="",horaB="",projAnt=null,cadR=[],escNova=false;
 const pad=n=>String(n).padStart(2,"0"),hojeS=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 const num=s=>U.numBR?U.numBR(s):parseFloat(String(s).replace(",","."));
 const f=(v,k)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:k,maximumFractionDigits:k}):"—";
-const dBR=s=>s?s.split("-").reverse().join("/"):"—";
+const dBR=s=>s?s.split("-").reverse().join("/"):"—",dCurta=ms=>new Date(ms).toLocaleDateString("pt-BR");
+const cap=s=>s?String(s).charAt(0).toUpperCase()+String(s).slice(1):"";
 
 /* tipos de biometria usados em aquicultura (pesquisa: Embrapa, The Fish Site, Global Seafood Alliance) */
 const MET=[["tarrafa","Tarrafa / puçá (amostra manual)","Captura de uma amostra em vários pontos do viveiro ou tanque e pesagem (individual ou em grupo). Barata e precisa se a amostra for grande e bem distribuída, mas estressa os animais."],
@@ -6602,131 +6621,247 @@ const MET=[["tarrafa","Tarrafa / puçá (amostra manual)","Captura de uma amostr
 const metNome=k=>(MET.find(m=>m[0]===k)||[,k||"—"])[1];
 const ORIGB={form:"✍️ Formulário",arquivo:"📄 Arquivo",colado:"📋 Colado",link:"🔗 Link",webhook:"🤖 Automação"};
 
-/* unidades do AquaNictemeral e ligação com os lotes da aba Biomassa */
-const unis=()=>{try{return (U.unidades?U.unidades():[]).filter(u=>u.id!=="ras-sistema")}catch(e){return []}};
-const modelo=uid=>{try{const fm=typeof feedModels==="function"?feedModels()||[]:[];return fm.find(m=>"ras-"+m.t.id===uid)||null}catch(e){return null}};
+/* ---- projetos: o aberto, os salvos na conta e os que já têm biometrias ---- */
+function projs(){const cp=curPid(),L=[{id:cp,nome:curNome(),aberto:true}],vis=new Set([cp]);
+  try{for(const p of (window.projLista?window.projLista():[]))if(p&&p.id&&!vis.has(p.id)){L.push({id:p.id,nome:p.nome||"Projeto",resumo:p.resumo||{}});vis.add(p.id)}}catch(e){}
+  for(const a of B.amostras){const k=a.pid||"_local";if(!vis.has(k)){L.push({id:k,nome:k==="_local"?"Sem projeto":(a.pnome||"Projeto")});vis.add(k)}}
+  return L}
+const projSel=()=>{if(B.proj==="*")return "*";const L=projs();return B.proj&&L.some(p=>p.id===B.proj)?B.proj:curPid()};
+const projImp=()=>{const p=projSel();return p==="*"?curPid():p};
+const pNome=p=>p==="*"?"Todos os projetos":(projs().find(x=>x.id===p)||{}).nome||"Projeto";
+const daP=(a,p)=>p==="*"||(a.pid||"_local")===p;
+function projDe(v){const s=String(v||"").trim().toLowerCase();if(!s)return null;const x=projs().find(p=>p.id.toLowerCase()===s||String(p.nome).trim().toLowerCase()===s);return x?x.id:null}
 
-/* estatística de uma amostra */
+/* ---- unidades: tanques e viveiros do projeto ---- */
+const unis=()=>{try{return (U.unidades?U.unidades():[]).filter(u=>u.id!=="ras-sistema")}catch(e){return []}};
+const TIPO={tanque:"🟦 Tanque",viveiro:"🟫 Viveiro"};
+function detectTipo(u){const n=String(u.nome||"");if(/tanque escavado|escavad/i.test(n))return "viveiro";if(/viveir|pond|a[cç]ude|barrag|represa|lago/i.test(n))return "viveiro";
+  if(u.ras||/tanque|tank|caixa|raceway|gaiola|grupo|ber[cç]|incub|calha|ras/i.test(n))return "tanque";if(/^(extensivo|semi-intensivo|intensivo)$/.test(u.sistema||""))return "viveiro";return "tanque"}
+function rasInfo(id){try{if(typeof tanks==="undefined")return null;const t=tanks.find(x=>"ras-"+x.id===id);if(!t)return null;let esp="";try{const s=lotOf(t).sp;esp=SPECIES[s]?SPECIES[s].name||s:s}catch(e){}
+  return {q:parseInt(t.q)||1,v:parseFloat(String(t.v).replace(",","."))||0,esp}}catch(e){return null}}
+const uk=(p,id)=>p+"|"+id;
+function uniP(p){if(p==="*")return projs().flatMap(x=>uniP(x.id).map(u=>({...u,p:x.id})));const m=new Map(),add=u=>{if(u&&u.id&&!m.has(u.id))m.set(u.id,u)};
+  if(p===curPid())for(const u of unis())add({...u});
+  for(const u of B.unisP[p]||[])add({...u});
+  for(const a of B.amostras)if((a.pid||"_local")===p)add({id:a.unidade,nome:a.unome||a.unidade,tipo:a.utipo});
+  return [...m.values()].map(u=>{const r=String(u.id).startsWith("ras-")?rasInfo(u.id):null,tipo=B.tipoU[uk(p,u.id)]||u.tipo||detectTipo({...u,ras:u.ras||!!r});
+    const info=r?`${r.q} tanque${r.q===1?"":"s"}${r.v?" × "+f(r.v,r.v<10?1:0)+" m³":""}${r.esp?" · "+r.esp:""}`:[u.volume?f(+u.volume,0)+" m³":"",cap(u.especie)].filter(Boolean).join(" · ");
+    return {...u,p,tipo,info,q:r?r.q:0}})}
+function novaUnidade(p,nome,tipo){nome=String(nome||"").trim().slice(0,60);if(!nome)return null;const ja=uniP(p).find(x=>String(x.nome).trim().toLowerCase()===nome.toLowerCase());if(ja)return ja;
+  const u={id:"bu-"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome,tipo:tipo||detectTipo({nome})};(B.unisP[p]=B.unisP[p]||[]).push(u);B.tipoU[uk(p,u.id)]=u.tipo;return {...u,p}}
+function unidadeEscolhida(p){if(unidade==="__nova"){const u=novaUnidade(p,novaNome,novaTipo);if(u){unidade=u.id;novaNome="";escNova=false}return u}return uniP(p).find(u=>u.id===unidade)||null}
+
+/* ---- estatística de uma amostra ---- */
 function stats(a){const ind=a.ind||[];let N=0,sp=0,sp2=0,np=0,sc=0,nc=0;const ks=[],pares=[];
   for(const x of ind){const n=x.n||1;if(typeof x.p==="number"){np+=n;sp+=x.p*n;sp2+=x.p*x.p*n}if(typeof x.c==="number"){nc+=n;sc+=x.c*n}N+=n;
     if(typeof x.p==="number"&&typeof x.c==="number"&&x.c>0){ks.push(100*x.p/Math.pow(x.c,3));if(n===1)pares.push([Math.log(x.c),Math.log(x.p)])}}
   let pm=np?sp/np:null,sd=np>1?Math.sqrt(Math.max(0,(sp2-np*pm*pm)/(np-1))):null;
   if(a.loteN>0&&a.loteKg>0){N=a.loteN;pm=a.loteKg*1000/a.loteN;sd=null}
-  let ab=null;if(pares.length>=5){const n=pares.length,mx=pares.reduce((s,q)=>s+q[0],0)/n,my=pares.reduce((s,q)=>s+q[1],0)/n;let sxy=0,sxx=0;pares.forEach(([x,y])=>{sxy+=(x-mx)*(y-my);sxx+=(x-mx)**2});if(sxx>0){const b=sxy/sxx;ab={a:Math.exp(my-b*mx),b}}}
+  const ab=pares.length>=5?regPL(pares):null;
   return {N,pm,sd,cv:pm&&sd!=null?sd/pm*100:null,cm:nc?sc/nc:null,k:ks.length?ks.reduce((s,v)=>s+v,0)/ks.length:null,ab}}
+function reg(x,y){const n=x.length,mx=x.reduce((s,v)=>s+v,0)/n,my=y.reduce((s,v)=>s+v,0)/n;let sxy=0,sxx=0,syy=0;for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sxx+=(x[i]-mx)**2;syy+=(y[i]-my)**2}
+  const b=sxx?sxy/sxx:0;return {a:my-b*mx,b,r2:sxx&&syy?sxy*sxy/(sxx*syy):1}}
+function regPL(pares){const r=reg(pares.map(q=>q[0]),pares.map(q=>q[1]));return {a:Math.exp(r.a),b:r.b,r2:r.r2,n:pares.length}}
+const tsA=a=>new Date(a.data+"T"+(a.hora||"12:00")).getTime();
 const ordem=(x,y)=>(x.data+(x.hora||"")).localeCompare(y.data+(y.hora||""));
-function resumoUni(uid){const L=B.amostras.filter(a=>a.unidade===uid).sort(ordem);if(!L.length)return null;const u=L[L.length-1],s=stats(u),ant=L.length>1?L[L.length-2]:null,sa=ant?stats(ant):null;
+const amostrasU=(p,uid)=>B.amostras.filter(a=>(a.pid||"_local")===p&&a.unidade===uid).sort(ordem);
+const modelo=uid=>{try{const fm=typeof feedModels==="function"?feedModels()||[]:[];return fm.find(m=>"ras-"+m.t.id===uid)||null}catch(e){return null}};
+function resumoUni(p,uid){const L=amostrasU(p,uid);if(!L.length)return null;const u=L[L.length-1],s=stats(u),ant=L.length>1?L[L.length-2]:null,sa=ant?stats(ant):null;
   const dias=ant?(new Date(u.data)-new Date(ant.data))/864e5:0,gpd=sa&&dias>0&&s.pm!=null&&sa.pm!=null?(s.pm-sa.pm)/dias:null;
-  const m=modelo(uid);let esp=null,pop=null;if(m&&m.ok){const v=m.at(new Date(u.data+"T12:00").getTime());if(v.on){esp=v.w;pop=v.n}}
-  const cad=+B.cad[uid]||0,prox=cad?new Date(new Date(u.data+"T12:00").getTime()+cad*864e5):null;
+  let esp=null,pop=null;if(p===curPid()){const m=modelo(uid);if(m&&m.ok){const v=m.at(new Date(u.data+"T12:00").getTime());if(v.on){esp=v.w;pop=v.n}}}
+  const cad=+B.cad[uk(p,uid)]||0,prox=cad?new Date(tsA(u)+cad*864e5):null;
   return {u,s,n:L.length,gpd,esp,dif:esp&&s.pm?(s.pm/esp-1)*100:null,bio:pop&&s.pm?pop*s.pm/1000:null,pop,cad,prox}}
 
-/* entrada de dados: linhas (planilha, colado, link, automação) → amostras agrupadas por unidade + data + método */
-const ALV=[["unidade","Unidade / tanque",["unidade","tanque","viveiro","unit","tank","pond","local","ponto"]],["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora"]],["data","Data",["data","date","dia"]],["hora","Hora",["hora","time","hour"]],
+/* ---- projeção: curva de crescimento ajustada às biometrias da unidade no projeto ---- */
+function projecao(p,uid){const byD=new Map();
+  for(const a of amostrasU(p,uid)){const s=stats(a);if(!(s.pm>0))continue;const w=s.N||1,e=byD.get(a.data)||{sw:0,n:0};e.sw+=s.pm*w;e.n+=w;byD.set(a.data,e)}
+  const pts=[...byD].map(([d,e])=>[new Date(d+"T12:00").getTime()/864e5,e.sw/e.n]).sort((x,y)=>x[0]-y[0]);if(pts.length<2)return null;
+  const t0=pts[0][0],X=pts.map(q=>q[0]-t0),Y=pts.map(q=>q[1]),li=reg(X,Y),ex=reg(X,Y.map(Math.log)),wl=Y[Y.length-1],dl=pts[pts.length-1][0]*864e5;
+  const g=li.b,s=ex.b,pL=d=>Math.max(0,wl+g*d),pE=d=>wl*Math.exp(s*d),rg=d=>{const a=pL(d),b=pE(d);return [Math.min(a,b),Math.max(a,b)]};
+  const alvo=+B.alvo[p]||0,dA=alvo>wl?[g>0?(alvo-wl)/g:null,s>0?Math.log(alvo/wl)/s:null].filter(v=>v!=null&&isFinite(v)):[];
+  const r=resumoUni(p,uid),pop=+B.pop[uk(p,uid)]||(r&&r.pop)||0;
+  return {n:pts.length,dias:X[X.length-1],gpd:g,sgr:s*100,r2l:li.r2,r2e:ex.r2,melhor:pts.length>=3?(ex.r2>li.r2?"exponencial":"linear"):"",wl,dl,w15:rg(15),w30:rg(30),
+    dAlvo:dA.length?[Math.min(...dA),Math.max(...dA)]:null,alvo,pop,bioAgora:pop?pop*wl/1000:null,bioAlvo:pop&&alvo?pop*alvo/1000:null}}
+function plProjeto(p){const pares=[];let ks=[];for(const a of B.amostras)if(daP(a,p))for(const x of a.ind||[])if(typeof x.p==="number"&&typeof x.c==="number"&&x.c>0&&x.p>0){if((x.n||1)===1)pares.push([Math.log(x.c),Math.log(x.p)]);ks.push(100*x.p/Math.pow(x.c,3))}
+  return {pl:pares.length>=5?regPL(pares):null,k:ks.length?ks.reduce((s,v)=>s+v,0)/ks.length:null,nk:ks.length}}
+
+/* ---- entrada de dados: linhas (planilha, colado, link, automação) → amostras agrupadas por projeto + unidade + data + método ---- */
+const ALV=[["unidade","Unidade (tanque ou viveiro)",["unidade","tanque","viveiro","unit","tank","pond","local","ponto"]],["projeto","Projeto",["projeto","project","fazenda","cliente"]],["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora"]],["data","Data",["data","date","dia"]],["hora","Hora",["hora","time","hour"]],
   ["peso","Peso (g)",["peso","pesog","weight","pesoindividual","pesomedio","pesomediog","pm","w","massa"]],["comprimento","Comprimento (cm)",["comprimento","comp","length","comprimentocm","ct","comprimentototal","tamanho","cm"]],
   ["n","Quantidade de animais",["n","quantidade","qtd","numero","contagem","count","animais","individuos"]],["peso_total","Peso total do lote (kg)",["pesototal","pesototalkg","biomassa","totalkg","pesolote"]],["metodo","Método",["metodo","method","tipo","equipamento","fonte"]]];
 const norm=U.norm||(s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\(.*?\)/g,"").replace(/[^a-z0-9]/g,""));
 function autoMapB(cols){const m={},us=new Set();for(const [k,,syn] of ALV)for(const c of cols){if(us.has(c))continue;const n=norm(c);if(syn.includes(n)||syn.some(s=>s.length>3&&n.startsWith(s))){m[c]=k;us.add(c);break}}return m}
 function metodoDe(v){const n=norm(v);if(!n)return null;const a=MET.find(([k,t])=>n.includes(norm(k))||norm(t).startsWith(n));if(a)return a[0];
   if(/camera|^ia$|intelig|xpert|visao|vision|^app/.test(n))return "visao";if(/sonar|acust|eco/.test(n))return "acustica";if(/frame|moldura|vaki|estereo/.test(n))return "moldura";if(/bandeja|tray/.test(n))return "bandeja";return "outro"}
-function linhasParaAmostras(rows,map,origem){const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const g=new Map();let ruins=0;
+function linhasParaAmostras(rows,map){const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const g=new Map();let ruins=0;
   for(const r of rows){let d=null;if(inv.dt)d=U.dataHora(r[inv.dt]);if(!d&&inv.data){d=U.dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm)d.setHours(+hm[1],+(hm[2]||0))}}
     const p=inv.peso?num(r[inv.peso]):NaN,c=inv.comprimento?num(r[inv.comprimento]):NaN,n=inv.n?num(r[inv.n]):NaN,pt=inv.peso_total?num(r[inv.peso_total]):NaN;
     if(!d||!(isFinite(p)||isFinite(c)||(isFinite(pt)&&isFinite(n)))){ruins++;continue}
     const data=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),hora=d.getHours()||d.getMinutes()?pad(d.getHours())+":"+pad(d.getMinutes()):"";
-    const un=inv.unidade?String(r[inv.unidade]||"").trim():"",met=(inv.metodo&&metodoDe(r[inv.metodo]))||B.metodo,k=[un,data,met].join("|");
-    if(!g.has(k))g.set(k,{un,data,hora,metodo:met,ind:[],loteN:0,loteKg:0});const e=g.get(k);
+    const un=inv.unidade?String(r[inv.unidade]||"").trim():"",pj=inv.projeto?String(r[inv.projeto]||"").trim():"",met=(inv.metodo&&metodoDe(r[inv.metodo]))||B.metodo,k=[pj,un,data,met].join("|");
+    if(!g.has(k))g.set(k,{un,proj:pj,data,hora,metodo:met,ind:[],loteN:0,loteKg:0});const e=g.get(k);
     if(isFinite(pt)&&isFinite(n)&&n>0){e.loteN+=n;e.loteKg+=pt}else e.ind.push({p:isFinite(p)?Math.round(p*1000)/1000:undefined,c:isFinite(c)?Math.round(c*100)/100:undefined,n:isFinite(n)&&n>0?n:1})}
   return {amostras:[...g.values()],ruins}}
-function guardar(lista,origem){const us=unis(),pa=window.projAtual?window.projAtual():null;let novas=0,sem=0;
-  for(const a of lista){const s=a.un?String(a.un).toLowerCase():"",u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s)||us.find(x=>x.id===unidade)||us[0];if(!u){sem++;continue}
-    B.amostras.push({id:"b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),unidade:u.id,unome:u.nome,data:a.data,hora:a.hora,metodo:a.metodo||B.metodo,origem,ind:a.ind||[],loteN:a.loteN||0,loteKg:a.loteKg||0,obs:a.obs||"",rec:Date.now(),...(pa?{pid:pa.id,pnome:pa.nome}:{})});novas++}
-  salvar();try{window.focoRefresh&&focoRefresh()}catch(e){}return {novas,sem}}
-const res=(r,o)=>`${r.novas} biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"}${r.sem?` · ${r.sem} sem unidade`:""} (${ORIGB[o.tipo]||o.tipo}${o.nome?": "+o.nome:""}).`;
-async function lerArqB(fl){const rows=await U.lerArquivo(fl);return rows}
+function guardar(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
+  for(const a of lista){const p=(a.proj&&projDe(a.proj))||base,us=uniP(p);let u=a.uid?us.find(x=>x.id===a.uid):null;
+    if(!u&&a.un){const s=String(a.un).trim().toLowerCase();u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s);if(!u){u=novaUnidade(p,a.un);if(u)criadas.push(u.nome)}}
+    if(!u&&p===base){if(padrao===undefined)padrao=unidadeEscolhida(p);u=padrao}
+    if(!u){sem++;continue}
+    B.amostras.push({id:"b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),unidade:u.id,unome:u.nome,utipo:u.tipo||detectTipo(u),num:a.num||"",data:a.data,hora:a.hora,metodo:a.metodo||B.metodo,origem,ind:a.ind||[],loteN:a.loteN||0,loteKg:a.loteKg||0,obs:a.obs||"",rec:Date.now(),...(p!=="_local"?{pid:p,pnome:pNome(p)}:{})});novas++}
+  salvar();outros();return {novas,sem,criadas,p:base}}
+function outros(){try{window.focoRefresh&&focoRefresh()}catch(e){}try{window.drawAquaOrig&&drawAquaOrig()}catch(e){}}
+const res=(r,o)=>`${r.novas} biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"} no projeto ${pNome(r.p)}${r.criadas.length?` · unidade${r.criadas.length===1?"":"s"} nova${r.criadas.length===1?"":"s"}: ${r.criadas.join(", ")}`:""}${r.sem?` · ${r.sem} sem unidade`:""} (${ORIGB[o.tipo]||o.tipo}${o.nome?": "+o.nome:""}).`;
 async function buscarLinkB(sil){if(!B.url)throw new Error("Cole o link dos dados de biometria.");const r=await fetch(B.url+(B.url.includes("?")?"&":"?")+"_t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("O link respondeu com erro "+r.status+".");
   const rows=U.lerTexto(await r.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!Object.keys(B.map).length||!cols.some(c=>B.map[c]))B.map=autoMapB(cols);
   if(!sil){dados={rows,cols,origem:{tipo:"link",nome:B.url}};return `${rows.length} linhas lidas do link. Confira as colunas e salve.`}
-  const ja=new Set(B.amostras.filter(a=>a.origem&&a.origem.tipo==="link").map(a=>a.unidade+"|"+a.data+"|"+a.metodo)),L=linhasParaAmostras(rows,B.map).amostras.filter(a=>!ja.has([(unis().find(x=>x.nome===a.un)||{}).id,a.data,a.metodo].join("|")));
+  const p=projImp(),ja=new Set(B.amostras.filter(a=>a.origem&&a.origem.tipo==="link").map(a=>(a.pid||"_local")+"|"+a.unome+"|"+a.data+"|"+a.metodo)),
+    L=linhasParaAmostras(rows,B.map).amostras.filter(a=>!ja.has([(a.proj&&projDe(a.proj))||p,a.un||(uniP(p).find(x=>x.id===unidade)||{}).nome,a.data,a.metodo].join("|")));
   return L.length?res(guardar(L,{tipo:"link",nome:B.url}),{tipo:"link",nome:B.url}):"Link sem biometrias novas."}
 function agendar(){clearInterval(timer);timer=null;if(B.auto&&B.url)timer=setInterval(()=>buscarLinkB(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()}),Math.max(1,+B.min||60)*60000)}
-/* automação: o plugin entrega aqui os itens do webhook que são biometria */
-window.bioReceber=async itens=>{const cols=[...new Set(itens.flatMap(o=>Object.keys(o)))],map=autoMapB(cols);for(const c of cols){if(c==="data_hora")map[c]="dt";if(["unidade","data","hora","peso","comprimento","n","peso_total","metodo"].includes(c))map[c]=c;if(c==="peso_medio")map[c]="peso";if(c==="quantidade")map[c]="n";if(c==="tipo")delete map[c]}
+/* automação: o plugin entrega aqui os itens do webhook que são biometria (vão para o projeto escolhido, ou para o "projeto" informado no item) */
+window.bioReceber=async itens=>{const cols=[...new Set(itens.flatMap(o=>Object.keys(o)))],map=autoMapB(cols);for(const c of cols){if(c==="data_hora")map[c]="dt";if(["unidade","projeto","data","hora","peso","comprimento","n","peso_total","metodo"].includes(c))map[c]=c;if(c==="peso_medio")map[c]="peso";if(c==="quantidade")map[c]="n";if(c==="tipo")delete map[c]}
   const L=linhasParaAmostras(itens,map).amostras;if(!L.length)return "";const r=guardar(L,{tipo:"webhook",nome:""});draw();return "Biometria pela automação: "+res(r,{tipo:"webhook"})};
 
 /* ---- tela ---- */
-function formHTML(){const us=unis();if(!unidade||!us.some(u=>u.id===unidade))unidade=(us[0]||{}).id||"";if(!dataB)dataB=hojeS();
-  return `<div class="rp-grid"><label>Unidade<select class="lv-sel" id="bi-un">${us.map(u=>`<option value="${E(u.id)}"${u.id===unidade?" selected":""}>${E(u.nome)}</option>`).join("")||`<option value="">(abra o AquaNictemeral)</option>`}</select></label>
-    <label>Data<div class="inp"><input type="date" id="bi-data" value="${dataB}"></div></label><label>Hora<div class="inp"><input type="time" id="bi-hora" value="${horaB}"></div></label></div>
+function uniHTML(p,rot){const us=uniP(p),ft=B.ftipo||"todas",vis=us.filter(u=>ft==="todas"||u.tipo===ft);
+  if((unidade==="__nova"&&!escNova)||(unidade!=="__nova"&&!vis.some(u=>u.id===unidade)))unidade=vis.length?vis[0].id:"__nova";
+  const nT=us.filter(u=>u.tipo==="tanque").length,nV=us.length-nT,sel=us.find(u=>u.id===unidade);
+  const grp=t=>{const g=vis.filter(u=>u.tipo===t);return g.length?`<optgroup label="${TIPO[t]}s">${g.map(u=>`<option value="${E(u.id)}"${u.id===unidade?" selected":""}>${E(u.nome)}${u.info?" — "+E(u.info):""}</option>`).join("")}</optgroup>`:""};
+  return `<div class="pj-tools chips bi-ft">${[["todas",`Todas (${us.length})`],["tanque",`🟦 Tanques (${nT})`],["viveiro",`🟫 Viveiros (${nV})`]].map(([k,t])=>`<button type="button" class="chip${ft===k?" on":""}" data-bi-ft="${k}">${t}</button>`).join("")}</div>
+   <div class="rp-grid"><label>${rot}<select class="lv-sel" id="bi-un">${grp("tanque")}${grp("viveiro")}<option value="__nova"${unidade==="__nova"?" selected":""}>➕ Nova unidade (tanque ou viveiro)…</option></select></label>
+   ${unidade==="__nova"?`<label>Tipo<select class="lv-sel" id="bi-nt"><option value="tanque"${novaTipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${novaTipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></label><label>Identificação<div class="inp"><input id="bi-nn" maxlength="60" value="${E(novaNome)}" placeholder="ex.: Viveiro 3 ou Tanque T-07"></div></label>`
+    :sel?`<label>${sel.tipo==="viveiro"?"Viveiro":"Tanque"} nº (opcional)${sel.q>1?`<select class="lv-sel" id="bi-num"><option value="">todos do grupo</option>${Array.from({length:sel.q},(_,i)=>`<option value="${sel.tipo==="viveiro"?"V":"T"}${i+1}"${numU===(sel.tipo==="viveiro"?"V":"T")+(i+1)?" selected":""}>${sel.tipo==="viveiro"?"V":"T"}${i+1}</option>`).join("")}</select>`:`<div class="inp"><input id="bi-num" maxlength="20" value="${E(numU)}" placeholder="ex.: 3, T-07, P2"></div>`}</label>`:""}</div>
+   ${sel?`<p class="muted bi-met">${TIPO[sel.tipo]} · ${E(sel.nome)}${sel.info?" · "+E(sel.info):""}${p===curPid()&&unis().some(u=>u.id===sel.id)?" · unidade do AquaNictemeral deste projeto":" · unidade cadastrada na biometria"}</p>`:us.length?"":`<p class="muted">Este projeto ainda não tem tanques nem viveiros cadastrados: crie em “Nova unidade”.</p>`}`}
+function formHTML(p){if(!dataB)dataB=hojeS();
+  return `${uniHTML(p,"Tanque ou viveiro")}<div class="rp-grid"><label>Data<div class="inp"><input type="date" id="bi-data" value="${dataB}"></div></label><label>Hora<div class="inp"><input type="time" id="bi-hora" value="${horaB}"></div></label></div>
    <div class="pj-tools chips">${[["ind","Animais individuais"],["lote","Pesagem em lote"]].map(([k,t])=>`<button type="button" class="chip${B.modo===k?" on":""}" data-bi-modo="${k}">${t}</button>`).join("")}</div>
    ${B.modo==="lote"?`<div class="rp-grid"><label>Animais contados<div class="inp"><input id="bi-ln" inputmode="numeric" placeholder="ex.: 250"></div></label><label>Peso total (kg)<div class="inp"><input id="bi-lk" inputmode="decimal" placeholder="ex.: 3,75"></div></label></div>`
     :`<label class="bi-lbl">Um animal por linha: <b>peso (g)</b> e, se tiver, <b>comprimento (cm)</b>, separados por espaço ou ponto e vírgula<textarea class="ap-txt" id="bi-ind" rows="6" placeholder="152,4  21,3&#10;148,0  20,9&#10;160,2  21,8"></textarea></label>`}
    <label class="bi-lbl">Observação<div class="inp"><input id="bi-obs" maxlength="120" placeholder="ex.: 3 pontos do viveiro, tarrafa de 2 m"></div></label>
-   <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-form"${busy?" disabled":""}>Salvar biometria</button></div>`}
-function mapaHTML(){if(!dados)return "";const L=linhasParaAmostras(dados.rows,B.map);
+   <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-form"${busy?" disabled":""}>Salvar biometria em ${E(pNome(p))}</button></div>`}
+function mapaHTML(p){if(!dados)return "";const L=linhasParaAmostras(dados.rows,B.map);
   return `<div class="ap-box"><b>Colunas encontradas · ${dados.rows.length} linhas</b><div class="ap-cols">${dados.cols.map(c=>`<label><span title="${E(c)}">${E(c)}</span><select class="lv-sel" data-bi-col="${E(c)}"><option value="">ignorar</option>${ALV.map(([k,t])=>`<option value="${k}"${B.map[c]===k?" selected":""}>${t}</option>`).join("")}</select></label>`).join("")}</div>
    <p class="muted">${L.amostras.length} biometria${L.amostras.length===1?"":"s"} (agrupadas por unidade, data e método)${L.ruins?` · ${L.ruins} linha${L.ruins===1?"":"s"} sem data ou sem peso/comprimento`:""}. ${L.amostras.slice(0,4).map(a=>{const s=stats(a);return `${E(a.un||"unidade escolhida")} ${dBR(a.data)}: ${s.N} animais, ${f(s.pm,1)} g`}).join(" · ")}</p>
+   <p class="muted">Vão para o projeto <b>${E(pNome(p))}</b>${Object.values(B.map).includes("projeto")?" (ou para o projeto da coluna Projeto, quando ele existir)":""}. Unidades do arquivo que o projeto ainda não tem são criadas como tanque ou viveiro pelo nome; linhas sem unidade vão para a unidade escolhida acima.</p>
    <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-dados"${L.amostras.length?"":" disabled"}>Salvar ${L.amostras.length} biometria${L.amostras.length===1?"":"s"}</button><button type="button" class="btn" data-bi="descartar">Descartar</button></div></div>`}
-function fonteHTML(){
-  if(B.fonte==="form")return formHTML();
-  if(B.fonte==="arquivo")return `<p class="muted">Planilha (.xlsx, .numbers, .ods), CSV ou JSON com uma linha por animal (peso e comprimento) ou por lote (quantidade e peso total). Colunas: unidade, data (e hora), peso (g), comprimento (cm), quantidade, peso total (kg), método.</p><div class="pj-btns"><button type="button" class="btn solid" data-bi="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>${mapaHTML()}`;
-  if(B.fonte==="colado")return `<textarea class="ap-txt" id="bi-txt" rows="5" placeholder="unidade;data;peso;comprimento&#10;Viveiro 1 · Ponto A;24/10/2026;12,4;10,8"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-bi="ler">Ler dados</button></div>${mapaHTML()}`;
-  if(B.fonte==="link")return `<div class="rp-grid"><label class="ap-url">Link (CSV ou JSON)<input data-bi-cfg="url" value="${E(B.url)}" placeholder="planilha publicada, app da câmera, servidor do contador…"></label><label>Buscar sozinho<select class="lv-sel" data-bi-cfg="min">${[[15,"a cada 15 min"],[60,"a cada 1 h"],[360,"a cada 6 h"],[1440,"1 vez por dia"]].map(([v,t])=>`<option value="${v}"${+B.min===v?" selected":""}>${t}</option>`).join("")}</select></label><label class="us-chk ap-chk"><input type="checkbox" data-bi-cfg="auto"${B.auto?" checked":""}> <span><b>Ligado</b><br><span class="muted">só traz biometrias novas</span></span></label></div><div class="pj-btns"><button type="button" class="btn solid" data-bi="buscar"${busy?" disabled":""}>Buscar agora</button></div>${mapaHTML()}`;
-  const cfg=window.RAS_CONFIG||{};return `<p>Câmeras com IA, contadores, molduras submersas, sonar ou uma automação (Make, Zapier, n8n, Node-RED, ESP32 com balança) enviam a biometria para o <b>mesmo endereço do webhook</b> do 🔌 Conectar automação. Basta incluir <code>"tipo": "biometria"</code> em cada item:</p>
-   <code class="ap-code">${E(JSON.stringify({chave:"SUA_CHAVE",leituras:[{tipo:"biometria",unidade:"Viveiro 1 · Ponto A",data_hora:"2026-10-24 08:00",peso:12.4,comprimento:10.8,metodo:"camera"},{tipo:"biometria",unidade:"Grupo A",data:"2026-10-24",quantidade:250,peso_total:3.75,metodo:"lote"}]},null,1))}</code>
-   <span class="muted">Endereço: ${E((cfg.supabaseUrl||"")+"/rest/v1/rpc/ras_aqua_ingest")} · gere ou copie a chave no Webhook do 🔌 Conectar automação. Campos: unidade, data_hora (ou data e hora), peso (g), comprimento (cm), quantidade, peso_total (kg), metodo. As biometrias entram aqui quando o app recolhe o webhook.</span>`}
-function resumoHTML(){const us=unis();const linhas=us.map(u=>({u,r:resumoUni(u.id)})).filter(x=>x.r);
-  if(!linhas.length)return `<p class="muted">Nenhuma biometria ainda.</p>`;
-  return `<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Unidade</th><th>Última biometria</th><th class="num">Animais</th><th class="num">Peso médio</th><th class="num">CV</th><th class="num">Compr.</th><th class="num">K</th><th class="num">Ganho/dia</th><th>Modelo da Biomassa</th><th>Próxima biometria</th></tr></thead><tbody>${linhas.map(({u,r})=>{const s=r.s,late=r.prox&&r.prox<new Date();
-    return `<tr><td><b>${E(u.nome)}</b><small>${r.n} biometria${r.n===1?"":"s"}</small></td><td>${dBR(r.u.data)}${r.u.hora?" "+r.u.hora:""}<small>${E(metNome(r.u.metodo))} · ${ORIGB[(r.u.origem||{}).tipo]||""}</small></td>
+function fonteHTML(p){
+  if(B.fonte==="form")return formHTML(p);
+  const un=uniHTML(p,"Unidade padrão (linhas sem unidade)");
+  if(B.fonte==="arquivo")return `${un}<p class="muted">Planilha (.xlsx, .numbers, .ods), CSV ou JSON com uma linha por animal (peso e comprimento) ou por lote (quantidade e peso total). Colunas: unidade, projeto, data (e hora), peso (g), comprimento (cm), quantidade, peso total (kg), método.</p><div class="pj-btns"><button type="button" class="btn solid" data-bi="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>${mapaHTML(p)}`;
+  if(B.fonte==="colado")return `${un}<textarea class="ap-txt" id="bi-txt" rows="5" placeholder="unidade;data;peso;comprimento&#10;Viveiro 1;24/10/2026;12,4;10,8"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-bi="ler">Ler dados</button></div>${mapaHTML(p)}`;
+  if(B.fonte==="link")return `${un}<div class="rp-grid"><label class="ap-url">Link (CSV ou JSON)<input data-bi-cfg="url" value="${E(B.url)}" placeholder="planilha publicada, app da câmera, servidor do contador…"></label><label>Buscar sozinho<select class="lv-sel" data-bi-cfg="min">${[[15,"a cada 15 min"],[60,"a cada 1 h"],[360,"a cada 6 h"],[1440,"1 vez por dia"]].map(([v,t])=>`<option value="${v}"${+B.min===v?" selected":""}>${t}</option>`).join("")}</select></label><label class="us-chk ap-chk"><input type="checkbox" data-bi-cfg="auto"${B.auto?" checked":""}> <span><b>Ligado</b><br><span class="muted">só traz biometrias novas</span></span></label></div><div class="pj-btns"><button type="button" class="btn solid" data-bi="buscar"${busy?" disabled":""}>Buscar agora</button></div>${mapaHTML(p)}`;
+  const cfg=window.RAS_CONFIG||{};return `${un}<p>Câmeras com IA, contadores, molduras submersas, sonar ou uma automação (Make, Zapier, n8n, Node-RED, ESP32 com balança) enviam a biometria para o <b>mesmo endereço do webhook</b> do 🔌 Conectar automação. Basta incluir <code>"tipo": "biometria"</code> em cada item. Sem o campo <code>projeto</code>, a biometria entra em <b>${E(pNome(p))}</b>:</p>
+   <code class="ap-code">${E(JSON.stringify({chave:"SUA_CHAVE",leituras:[{tipo:"biometria",projeto:p==="_local"?"Nome do projeto":pNome(p),unidade:"Viveiro 1",data_hora:"2026-10-24 08:00",peso:12.4,comprimento:10.8,metodo:"camera"},{tipo:"biometria",unidade:"Tanque T-07",data:"2026-10-24",quantidade:250,peso_total:3.75,metodo:"lote"}]},null,1))}</code>
+   <span class="muted">Endereço: ${E((cfg.supabaseUrl||"")+"/rest/v1/rpc/ras_aqua_ingest")} · gere ou copie a chave no Webhook do 🔌 Conectar automação. Campos: projeto, unidade, data_hora (ou data e hora), peso (g), comprimento (cm), quantidade, peso_total (kg), metodo. A chegada aparece em tempo real no ⏱ Cadência.</span>`}
+const CADS=[[0,"sem cadência"],[7,"a cada 7 dias"],[10,"a cada 10 dias"],[14,"a cada 14 dias"],[15,"a cada 15 dias"],[21,"a cada 21 dias"],[30,"a cada 30 dias"]];
+const cadSel=(k,v,attr)=>`<select class="lv-sel bi-cad" ${attr}="${E(k)}" aria-label="Cadência da biometria">${CADS.map(([d,t])=>`<option value="${d}"${v===d?" selected":""}>${t}</option>`).join("")}</select>`;
+function linhasResumo(p){const ps=p==="*"?projs().map(x=>x.id):[p],L=[];for(const pp of ps)for(const u of uniP(pp)){const r=resumoUni(pp,u.id);if(r)L.push({p:pp,u,r})}return L}
+function resumoHTML(p){const linhas=linhasResumo(p);
+  if(!linhas.length)return `<p class="muted">Nenhuma biometria ${p==="*"?"ainda":"neste projeto ainda"}.</p>`;
+  return `<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Unidade</th><th>Última biometria</th><th class="num">Animais</th><th class="num">Peso médio</th><th class="num">CV</th><th class="num">Compr.</th><th class="num">K</th><th class="num">Ganho/dia</th><th>Modelo da Biomassa</th><th>Próxima biometria</th></tr></thead><tbody>${linhas.map(({p:pp,u,r})=>{const s=r.s,late=r.prox&&r.prox<new Date();
+    return `<tr><td><b>${E(u.nome)}</b><small>${TIPO[u.tipo]}${r.u.num?" · "+E(r.u.num):""} · ${r.n} biometria${r.n===1?"":"s"}${p==="*"?" · "+E(pNome(pp)):""}</small></td><td>${dBR(r.u.data)}${r.u.hora?" "+r.u.hora:""}<small>${E(metNome(r.u.metodo))} · ${ORIGB[(r.u.origem||{}).tipo]||""}</small></td>
      <td class="num" data-l="Animais">${s.N}</td><td class="num" data-l="Peso médio">${f(s.pm,s.pm<10?2:1)} g${s.sd!=null?`<small>± ${f(s.sd,1)}</small>`:""}</td><td class="num" data-l="CV">${s.cv!=null?f(s.cv,0)+" %":"—"}${s.cv!=null?`<small>${s.cv<=20?"uniforme":s.cv<=30?"média":"desuniforme"}</small>`:""}</td>
      <td class="num" data-l="Compr.">${s.cm!=null?f(s.cm,1)+" cm":"—"}</td><td class="num" data-l="K">${s.k!=null?f(s.k,2):"—"}${s.ab?`<small>b = ${f(s.ab.b,2)}</small>`:""}</td><td class="num" data-l="Ganho/dia">${r.gpd!=null?f(r.gpd,2)+" g":"—"}</td>
-     <td data-l="Modelo">${r.esp?`esperado ${f(r.esp,r.esp<10?2:0)} g<small class="${Math.abs(r.dif)>15?"bi-bad":""}">${r.dif>=0?"+":""}${f(r.dif,0)} % · biomassa ≈ ${f(r.bio,0)} kg</small>`:`<small>sem lote ligado</small>`}</td>
-     <td data-l="Próxima"><select class="lv-sel bi-cad" data-bi-cad="${E(u.id)}">${[[0,"sem cadência"],[7,"a cada 7 dias"],[10,"a cada 10 dias"],[14,"a cada 14 dias"],[15,"a cada 15 dias"],[30,"a cada 30 dias"]].map(([v,t])=>`<option value="${v}"${r.cad===v?" selected":""}>${t}</option>`).join("")}</select>${r.prox?`<small class="${late?"bi-bad":""}">${late?"atrasada desde ":"em "}${r.prox.toLocaleDateString("pt-BR")}</small>`:""}</td></tr>`}).join("")}</tbody></table></div>
-   <p class="muted"><b>CV</b> = coeficiente de variação do peso (até 20 %: lote uniforme). <b>K</b> = fator de condição de Fulton (100 × peso ÷ comprimento³); <b>b</b> = expoente da relação peso-comprimento (≈ 3: crescimento isométrico), calculado com 5 ou mais animais medidos. <b>Modelo da Biomassa</b> compara o peso medido com o peso esperado pelo lote da aba Biomassa naquela data.</p>`}
-function histHTML(){const L=B.amostras.slice().sort(ordem).reverse();if(!L.length)return "";
-  return `<details class="us-det"><summary>Todas as biometrias (${L.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Unidade</th><th>Método · origem</th><th class="num">Animais</th><th class="num">Peso médio</th><th></th></tr></thead><tbody>${L.map(a=>{const s=stats(a),c=conf===a.id;
-    return `<tr><td>${dBR(a.data)} ${a.hora||""}<small>${a.pnome?E(a.pnome):"sem projeto"}</small></td><td>${E(a.unome||a.unidade)}</td><td>${E(metNome(a.metodo))}<small>${ORIGB[(a.origem||{}).tipo]||""}${a.origem&&a.origem.nome?": "+E(a.origem.nome):""}${a.obs?" · "+E(a.obs):""}</small></td><td class="num">${s.N}</td><td class="num">${f(s.pm,s.pm<10?2:1)} g</td>
+     <td data-l="Modelo">${r.esp?`esperado ${f(r.esp,r.esp<10?2:0)} g<small class="${Math.abs(r.dif)>15?"bi-bad":""}">${r.dif>=0?"+":""}${f(r.dif,0)} % · biomassa ≈ ${f(r.bio,0)} kg</small>`:`<small>${pp===curPid()?"sem lote ligado":"abra o projeto para comparar"}</small>`}</td>
+     <td data-l="Próxima">${cadSel(uk(pp,u.id),r.cad,"data-bi-cad")}${r.prox?`<small class="${late?"bi-bad":""}">${late?"atrasada desde ":"em "}${r.prox.toLocaleDateString("pt-BR")}</small>`:""}</td></tr>`}).join("")}</tbody></table></div>
+   <p class="muted"><b>CV</b> = coeficiente de variação do peso (até 20 %: lote uniforme). <b>K</b> = fator de condição de Fulton (100 × peso ÷ comprimento³); <b>b</b> = expoente da relação peso-comprimento (≈ 3: crescimento isométrico), calculado com 5 ou mais animais medidos. <b>Modelo da Biomassa</b> compara o peso medido com o peso esperado pelo lote da aba Biomassa naquela data (só no projeto aberto).</p>`}
+function projHTML(p){if(p==="*")return "";const us=uniP(p),L=us.map(u=>({u,j:projecao(p,u.id)})).filter(x=>x.j),pl=plProjeto(p),am=B.amostras.filter(a=>daP(a,p));
+  const nT=us.filter(u=>u.tipo==="tanque").length,ult=us.map(u=>resumoUni(p,u.id)).filter(Boolean),pmP=ult.reduce((s,r)=>s+(r.s.pm||0)*(r.s.N||1),0)/Math.max(1,ult.reduce((s,r)=>s+(r.s.pm?r.s.N||1:0),0));
+  const gpdM=L.length?L.reduce((s,x)=>s+x.j.gpd,0)/L.length:null,bioT=L.reduce((s,x)=>s+(x.j.bioAgora||0),0);
+  return `<h3 class="bi-h">📈 Correlação e projeção · ${E(pNome(p))}</h3>
+   <div class="bi-kpis"><div><b>${am.length}</b><span>biometria${am.length===1?"":"s"}</span></div><div><b>${us.length}</b><span>${nT} tanque${nT===1?"":"s"} · ${us.length-nT} viveiro${us.length-nT===1?"":"s"}</span></div><div><b>${ult.length?f(pmP,pmP<10?2:1)+" g":"—"}</b><span>peso médio atual (ponderado)</span></div><div><b>${gpdM!=null?f(gpdM,2)+" g":"—"}</b><span>ganho médio por dia</span></div>${bioT?`<div><b>${f(bioT,0)} kg</b><span>biomassa estimada</span></div>`:""}${pl.pl?`<div><b>P = ${f(pl.pl.a,4)}·C<sup>${f(pl.pl.b,2)}</sup></b><span>relação peso-comprimento do projeto (${pl.pl.n} animais, R² ${f(pl.pl.r2,2)})</span></div>`:pl.k!=null?`<div><b>K ${f(pl.k,2)}</b><span>fator de condição médio (${pl.nk} animais)</span></div>`:""}</div>
+   <div class="rp-grid"><label>Peso de abate / meta (g)<div class="inp"><input id="bi-alvo" inputmode="decimal" value="${B.alvo[p]?String(B.alvo[p]).replace(".",","):""}" placeholder="ex.: 800"></div></label></div>
+   ${L.length?`<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Unidade</th><th class="num">Ganho/dia</th><th class="num">Cresc. específico</th><th class="num">Em 15 dias</th><th class="num">Em 30 dias</th><th>Meta</th><th class="num">Animais</th><th class="num">Biomassa</th></tr></thead><tbody>${L.map(({u,j})=>{const rg=w=>w[1]-w[0]<0.05*w[1]?f((w[0]+w[1])/2,1)+" g":f(w[0],0)+"–"+f(w[1],0)+" g";
+     return `<tr><td><b>${E(u.nome)}</b><small>${TIPO[u.tipo]} · ${j.n} datas em ${f(j.dias,0)} dias${j.melhor?" · melhor ajuste "+j.melhor:""}</small></td><td class="num">${f(j.gpd,2)} g<small>R² ${f(j.r2l,2)}</small></td><td class="num">${f(j.sgr,2)} %/dia<small>R² ${f(j.r2e,2)}</small></td><td class="num">${rg(j.w15)}</td><td class="num">${rg(j.w30)}</td>
+      <td>${!j.alvo?`<small>informe a meta</small>`:j.wl>=j.alvo?`<span class="bi-ok">atingida</span>`:j.dAlvo?`${dCurta(Date.now()>j.dl?j.dl+j.dAlvo[0]*864e5:j.dl+j.dAlvo[0]*864e5)}${j.dAlvo[1]-j.dAlvo[0]>1?" a "+dCurta(j.dl+j.dAlvo[1]*864e5):""}<small>${f(j.dAlvo[0],0)}${j.dAlvo[1]-j.dAlvo[0]>1?"–"+f(j.dAlvo[1],0):""} dias após a última biometria</small>`:`<small class="bi-bad">sem crescimento</small>`}</td>
+      <td class="num"><div class="inp bi-pop"><input data-bi-pop="${E(uk(p,u.id))}" inputmode="numeric" value="${B.pop[uk(p,u.id)]||""}" placeholder="${j.pop?f(j.pop,0):"nº"}"></div></td><td class="num">${j.bioAgora?f(j.bioAgora,0)+" kg":"—"}${j.bioAlvo?`<small>${f(j.bioAlvo,0)} kg na meta</small>`:""}</td></tr>`}).join("")}</tbody></table></div>
+   <p class="muted">A projeção usa só as biometrias deste projeto e desta unidade: <b>ganho por dia</b> (reta) e <b>crescimento específico</b> (curva exponencial, SGR = 100 × ln(P2/P1) ÷ dias), a partir do último peso medido. O intervalo vai do modelo mais conservador ao mais otimista; com 3 ou mais datas o app mostra qual ajusta melhor (R²). Quanto mais biometrias no projeto, mais precisa a projeção. A biomassa usa o nº de animais informado ou o do lote da aba Biomassa.</p>`
+    :`<p class="muted">A projeção aparece quando uma unidade tiver biometrias em 2 datas diferentes.</p>`}
+   <details class="us-det"><summary>Tanques e viveiros do projeto (${us.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Unidade</th><th>Tipo</th><th>Identificação</th><th class="num">Biometrias</th></tr></thead><tbody>${us.map(u=>`<tr><td><b>${E(u.nome)}</b></td><td><select class="lv-sel bi-cad" data-bi-tipo="${E(uk(p,u.id))}"><option value="tanque"${u.tipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${u.tipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></td><td>${E(u.info||"—")}<small>${p===curPid()&&unis().some(x=>x.id===u.id)?"do AquaNictemeral":"cadastrada na biometria"}</small></td><td class="num">${amostrasU(p,u.id).length}</td></tr>`).join("")}</tbody></table></div></details>`}
+function histHTML(p){const L=B.amostras.filter(a=>daP(a,p)).sort(ordem).reverse();if(!L.length)return "";
+  return `<details class="us-det"><summary>Todas as biometrias${p==="*"?"":" do projeto"} (${L.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Unidade</th><th>Método · origem</th><th class="num">Animais</th><th class="num">Peso médio</th><th></th></tr></thead><tbody>${L.map(a=>{const s=stats(a),c=conf===a.id;
+    return `<tr><td>${dBR(a.data)} ${a.hora||""}<small>${a.pid?E(a.pnome||pNome(a.pid)):"sem projeto"}</small></td><td>${E(a.unome||a.unidade)}<small>${TIPO[a.utipo]||""}${a.num?" · "+E(a.num):""}</small></td><td>${E(metNome(a.metodo))}<small>${ORIGB[(a.origem||{}).tipo]||""}${a.origem&&a.origem.nome?": "+E(a.origem.nome):""}${a.obs?" · "+E(a.obs):""}</small></td><td class="num">${s.N}</td><td class="num">${f(s.pm,s.pm<10?2:1)} g</td>
      <td class="pj-acts">${c?`<button type="button" class="btn warn" data-bi="del-ok" data-id="${a.id}">Confirmar</button><button type="button" class="btn" data-bi="del-nao">Voltar</button>`:`<button type="button" class="btn ap-x" data-bi="del" data-id="${a.id}">🗑 Excluir</button>`}</td></tr>`}).join("")}</tbody></table></div></details>`}
-function draw(){const late=unis().map(u=>resumoUni(u.id)).filter(r=>r&&r.prox&&r.prox<new Date()).length,tot=B.amostras.length;
-  box.innerHTML=`<details class="card wide ap-card bi-card"${aberto?" open":""}><summary class="card-head"><h2>📏 Biometria<span>Peso e comprimento dos animais · ${tot} biometria${tot===1?"":"s"}${late?` · ${late} atrasada${late===1?"":"s"}`:""} · formulário, arquivo, colar, link ou automação</span></h2></summary><div class="pj-body">
+let desenhando=false;
+function draw(){if(desenhando){setTimeout(draw,0);return}desenhando=true;try{desenha()}finally{desenhando=false}}
+function desenha(){const p=projSel(),cp=curPid();if(projAnt!==p){projAnt=p;unidade="";numU="";dados=null;escNova=false}
+  const late=linhasResumo(p).filter(x=>x.r.prox&&x.r.prox<new Date()).length,tot=B.amostras.filter(a=>daP(a,p)).length,PL=projs(),cnt=id=>B.amostras.filter(a=>(a.pid||"_local")===id).length,semP=cnt("_local");
+  box.innerHTML=`<details class="card wide ap-card bi-card"${aberto?" open":""}><summary class="card-head"><h2>📏 Biometria<span>${E(pNome(p))} · ${tot} biometria${tot===1?"":"s"}${late?` · ${late} atrasada${late===1?"":"s"}`:""} · formulário, arquivo, colar, link ou automação</span></h2></summary><div class="pj-body">
    <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
-   <div class="pj-tools chips">${Object.entries(ORIGB).map(([k,t])=>`<button type="button" class="chip${B.fonte===k?" on":""}" data-bi-fonte="${k}">${t}</button>`).join("")}</div>
-   <div class="rp-grid"><label>Método da biometria<select class="lv-sel" data-bi-cfg="metodo">${MET.map(([k,t])=>`<option value="${k}"${B.metodo===k?" selected":""}>${t}</option>`).join("")}</select></label></div>
-   <p class="muted bi-met">${E((MET.find(m=>m[0]===B.metodo)||[])[2]||"")}</p>
-   ${fonteHTML()}
-   <h3 class="bi-h">Situação por unidade</h3>${resumoHTML()}${histHTML()}
+   <div class="rp-grid"><label>Projeto em evidência<select class="lv-sel" id="bi-proj">${PL.map(x=>`<option value="${E(x.id)}"${x.id===p?" selected":""}>${x.aberto?"📂 ":""}${E(x.nome)}${x.aberto?" (aberto)":""} · ${cnt(x.id)}</option>`).join("")}<option value="*"${p==="*"?" selected":""}>Todos os projetos (só consulta) · ${B.amostras.length}</option></select></label>
+    <label>Método da biometria<select class="lv-sel" data-bi-cfg="metodo">${MET.map(([k,t])=>`<option value="${k}"${B.metodo===k?" selected":""}>${t}</option>`).join("")}</select></label></div>
+   <p class="muted bi-met">${p==="*"?"Mostrando as biometrias de todos os projetos. Para importar, escolha um projeto.":p===cp?`As biometrias que você importar agora ficam identificadas com <b>${E(pNome(p))}</b>, correlacionadas com o AquaNictemeral, a cadência e o lote da aba Biomassa deste projeto.`:`As biometrias que você importar agora ficam identificadas com <b>${E(pNome(p))}</b> (projeto não aberto: ficam guardadas neste aparelho; a comparação com a aba Biomassa aparece quando ele for aberto).`} ${E((MET.find(m=>m[0]===B.metodo)||[])[2]||"")}</p>
+   ${semP&&p!=="*"&&p!=="_local"?`<div class="pj-btns"><button type="button" class="btn" data-bi="atribuir">Identificar ${semP} biometria${semP===1?"":"s"} sem projeto como ${E(pNome(p))}</button></div>`:""}
+   ${p==="*"?"":`<div class="pj-tools chips">${Object.entries(ORIGB).map(([k,t])=>`<button type="button" class="chip${B.fonte===k?" on":""}" data-bi-fonte="${k}">${t}</button>`).join("")}</div>${fonteHTML(p)}`}
+   <h3 class="bi-h">Situação por unidade</h3>${resumoHTML(p)}${projHTML(p)}${histHTML(p)}
    <details class="us-det"><summary>Tipos de biometria em aquicultura</summary><ul class="bi-tipos">${MET.filter(m=>m[2]).map(m=>`<li><b>${m[1]}:</b> ${m[2]}</li>`).join("")}</ul></details>
   </div></details>`;bind()}
-function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
+function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card"),p=projSel();d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
+  const pj=q("#bi-proj");pj&&pj.addEventListener("change",()=>{B.proj=pj.value===curPid()?null:pj.value;msg="";salvar();draw();outros()});
   box.querySelectorAll("[data-bi-fonte]").forEach(b=>b.addEventListener("click",()=>{B.fonte=b.dataset.biFonte;dados=null;msg="";salvar();draw()}));
   box.querySelectorAll("[data-bi-modo]").forEach(b=>b.addEventListener("click",()=>{B.modo=b.dataset.biModo;salvar();draw()}));
+  box.querySelectorAll("[data-bi-ft]").forEach(b=>b.addEventListener("click",()=>{B.ftipo=b.dataset.biFt;salvar();draw()}));
   box.querySelectorAll("[data-bi-cfg]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.biCfg;B[k]=i.type==="checkbox"?i.checked:k==="min"?+i.value:i.value.trim();salvar();if(k==="auto"||k==="min"||k==="url")agendar();draw()}));
   box.querySelectorAll("[data-bi-col]").forEach(s=>s.addEventListener("change",()=>{B.map[s.dataset.biCol]=s.value;salvar();draw()}));
-  box.querySelectorAll("[data-bi-cad]").forEach(s=>s.addEventListener("change",()=>{B.cad[s.dataset.biCad]=+s.value;salvar();draw()}));
-  const un=q("#bi-un");un&&un.addEventListener("change",()=>{unidade=un.value});const dt=q("#bi-data");dt&&dt.addEventListener("change",()=>{dataB=dt.value});const hr=q("#bi-hora");hr&&hr.addEventListener("change",()=>{horaB=hr.value});
+  box.querySelectorAll("[data-bi-cad]").forEach(s=>s.addEventListener("change",()=>{B.cad[s.dataset.biCad]=+s.value;salvar();draw();outros()}));
+  box.querySelectorAll("[data-bi-tipo]").forEach(s=>s.addEventListener("change",()=>{B.tipoU[s.dataset.biTipo]=s.value;salvar();draw();outros()}));
+  box.querySelectorAll("[data-bi-pop]").forEach(i=>i.addEventListener("change",()=>{const v=Math.round(num(i.value));if(v>0)B.pop[i.dataset.biPop]=v;else delete B.pop[i.dataset.biPop];salvar();draw();outros()}));
+  const al=q("#bi-alvo");al&&al.addEventListener("change",()=>{const v=num(al.value);if(v>0)B.alvo[p]=v;else delete B.alvo[p];salvar();draw()});
+  const un=q("#bi-un");un&&un.addEventListener("change",()=>{unidade=un.value;escNova=unidade==="__nova";numU="";draw()});
+  const nn=q("#bi-nn");nn&&nn.addEventListener("input",()=>{novaNome=nn.value});const nt=q("#bi-nt");nt&&nt.addEventListener("change",()=>{novaTipo=nt.value});
+  const nu=q("#bi-num");nu&&nu.addEventListener(nu.tagName==="SELECT"?"change":"input",()=>{numU=nu.value.trim()});
+  const dt=q("#bi-data");dt&&dt.addEventListener("change",()=>{dataB=dt.value});const hr=q("#bi-hora");hr&&hr.addEventListener("change",()=>{horaB=hr.value});
   box.querySelectorAll("[data-bi]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.bi,b)))}
 async function rodar(fn){if(busy)return;busy=true;try{msg=await fn()||msg}catch(e){msg="Erro: "+(e&&(e.message||e.msg)||e)}finally{busy=false;draw()}}
-function acao(a,b){
-  if(a==="salvar-form"){const ob=(box.querySelector("#bi-obs")||{}).value||"";rodar(async()=>{if(!unidade)throw new Error("Escolha a unidade.");if(!dataB)throw new Error("Informe a data.");
-    let am={un:"",data:dataB,hora:horaB||"",metodo:B.metodo,ind:[],loteN:0,loteKg:0,obs:ob.trim()};const us=unis(),u=us.find(x=>x.id===unidade);am.un=u?u.nome:"";
+function acao(a,b){const p=projImp();
+  if(a==="salvar-form"){const ob=(box.querySelector("#bi-obs")||{}).value||"";rodar(async()=>{if(unidade==="__nova"&&!novaNome.trim())throw new Error("Dê uma identificação para o novo tanque ou viveiro.");
+    const u=unidadeEscolhida(p);if(!u)throw new Error("Escolha o tanque ou viveiro.");if(!dataB)throw new Error("Informe a data.");
+    const am={uid:u.id,num:numU,data:dataB,hora:horaB||"",metodo:B.metodo,ind:[],loteN:0,loteKg:0,obs:ob.trim()};
     if(B.modo==="lote"){const n=num((box.querySelector("#bi-ln")||{}).value),kg=num((box.querySelector("#bi-lk")||{}).value);if(!(n>0&&kg>0))throw new Error("Informe quantos animais foram contados e o peso total em kg.");am.loteN=Math.round(n);am.loteKg=kg}
     else{const t=(box.querySelector("#bi-ind")||{}).value||"";for(const l of t.split(/\n/)){const v=l.trim().split(/[\s;\t]+/).filter(Boolean).map(num);if(!v.length||!isFinite(v[0]))continue;am.ind.push({p:v[0],c:isFinite(v[1])?v[1]:undefined,n:1})}
       if(!am.ind.length)throw new Error("Digite pelo menos um peso (um animal por linha).")}
-    const r=guardar([am],{tipo:"form",nome:""});const s=stats(am);return `Biometria salva: ${am.un}, ${s.N} animais, peso médio ${f(s.pm,1)} g${s.cv!=null?`, CV ${f(s.cv,0)} %`:""}.`});return}
+    guardar([am],{tipo:"form",nome:""},p);const s=stats(am);return `Biometria salva em ${pNome(p)}: ${TIPO[u.tipo]} ${u.nome}${numU?" ("+numU+")":""}, ${s.N} animais, peso médio ${f(s.pm,1)} g${s.cv!=null?`, CV ${f(s.cv,0)} %`:""}.`});return}
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=U.ACEITA||"";i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
-    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await lerArqB(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
+    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await U.lerArquivo(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
   if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
-  if(a==="salvar-dados"){rodar(async()=>{const L=linhasParaAmostras(dados.rows,B.map).amostras,o=dados.origem;const r=guardar(L,o);dados=null;return res(r,o)});return}
+  if(a==="salvar-dados"){rodar(async()=>{if(unidade==="__nova"&&!novaNome.trim()&&linhasParaAmostras(dados.rows,B.map).amostras.some(x=>!x.un))throw new Error("Dê uma identificação para o novo tanque ou viveiro (usado nas linhas sem unidade).");
+    const L=linhasParaAmostras(dados.rows,B.map).amostras.map(x=>x.un?x:{...x,num:numU}),o=dados.origem;const r=guardar(L,o,p);dados=null;return res(r,o)});return}
   if(a==="descartar"){dados=null;msg="";draw();return}
   if(a==="buscar"){rodar(()=>buscarLinkB(false));return}
+  if(a==="atribuir"){let n=0;for(const x of B.amostras)if(!x.pid){x.pid=p;x.pnome=pNome(p);n++}for(const k in B.cad)if(k.startsWith("_local|")&&B.cad[p+k.slice(6)]==null)B.cad[p+k.slice(6)]=B.cad[k];
+    if(B.unisP._local){const L=(B.unisP[p]=B.unisP[p]||[]);for(const u of B.unisP._local)if(!L.some(x=>x.id===u.id))L.push(u)}salvar();msg=`${n} biometria${n===1?"":"s"} identificada${n===1?"":"s"} como ${pNome(p)}.`;draw();outros();return}
   if(a==="del"){conf=b.dataset.id;draw();return}if(a==="del-nao"){conf=null;draw();return}
-  if(a==="del-ok"){B.amostras=B.amostras.filter(x=>x.id!==b.dataset.id);conf=null;salvar();msg="Biometria excluída.";draw();return}
+  if(a==="del-ok"){B.amostras=B.amostras.filter(x=>x.id!==b.dataset.id);B.del=(B.del||[]).concat(b.dataset.id).slice(-2000);conf=null;salvar();msg="Biometria excluída.";draw();outros();return}
 }
-/* resumo para o Painel (AquaNictemeral em evidência) */
-window.bioDashResumo=()=>unis().map(u=>({u,r:resumoUni(u.id)})).filter(x=>x.r).map(({u,r})=>({nome:u.nome,data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
-window.drawAquaBio=()=>draw();window.bioDebug={stats,linhasParaAmostras,autoMapB,B};
-agendar();draw();
+
+/* ---- cadência em tempo real (usada pelo card ⏱ Cadência do Conectar automação) ---- */
+function cadRows(){const p=projSel(),ps=p==="*"?projs().map(x=>x.id):[p],R=[];
+  for(const pp of ps)for(const u of uniP(pp)){const r=resumoUni(pp,u.id),c=+B.cad[uk(pp,u.id)]||0;if(!r&&!c)continue;
+    R.push({p:pp,uid:u.id,nome:u.nome,tipo:u.tipo,c,r,last:r?tsA(r.u):null,prox:c&&r?tsA(r.u)+c*864e5:null})}return R}
+const estado=x=>!x.c?"livre":!x.r?"sem":Date.now()<=x.prox?"ok":"atrasada";
+function durS(s){s=Math.max(0,Math.floor(s));const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),ss=s%60;return (d?d+" d ":"")+pad(h)+":"+pad(m)+":"+pad(ss)}
+function durC(ms){const m=Math.max(0,Math.round(ms/60000));if(m<60)return m+" min";const h=Math.floor(m/60);if(h<48)return h+" h";return Math.floor(h/24)+" dias"}
+function cadTxt(x){const st=estado(x);if(st==="livre")return x.r?`última há ${durC(Date.now()-x.last)} · escolha a cadência`:"";if(st==="sem")return "aguardando a primeira biometria";
+  return st==="ok"?`próxima em ${durS((x.prox-Date.now())/1000)}`:`atrasada há ${durS((Date.now()-x.prox)/1000)}`}
+window.bioCadHTML=()=>{cadR=cadRows();const p=projSel();if(!cadR.length&&!B.amostras.length)return "";
+  const hook=B.amostras.filter(a=>daP(a,p)&&a.origem&&a.origem.tipo==="webhook"),ultH=hook.reduce((m,a)=>Math.max(m,a.rec||0),0),hoje=new Date().setHours(0,0,0,0);
+  const tag=st=>st==="ok"?`<span class="us-st ok">em dia</span>`:st==="atrasada"?`<span class="us-st bad">atrasada</span>`:st==="sem"?`<span class="us-st wait">sem biometria</span>`:`<span class="us-st">livre</span>`;
+  return `<h3 class="bi-h">📏 Biometria · ${E(pNome(p))}</h3>
+   <p class="cad-sub">🤖 Automação: ${hook.length} biometria${hook.length===1?"":"s"} recebida${hook.length===1?"":"s"}${ultH?` · última chegou há <b data-bio-rec="${ultH}">${durC(Date.now()-ultH)}</b> · ${hook.filter(a=>a.rec>=hoje).length} hoje`:" · nenhuma ainda (mande com \"tipo\": \"biometria\")"}</p>
+   <div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Tanque ou viveiro</th><th>Cadência da biometria</th><th>Última biometria</th><th>Situação agora</th></tr></thead><tbody>${cadR.map((x,i)=>{const st=estado(x);
+     return `<tr><td><b>${E(x.nome)}</b><small>${TIPO[x.tipo]}${p==="*"?" · "+E(pNome(x.p)):""}${x.r?` · ${x.r.n} biometria${x.r.n===1?"":"s"}`:""}</small></td><td>${cadSel(uk(x.p,x.uid),x.c,"data-bio-cad")}</td>
+      <td>${x.r?`${dBR(x.r.u.data)}${x.r.u.hora?" "+x.r.u.hora:""}<small>${ORIGB[(x.r.u.origem||{}).tipo]||""} · ${f(x.r.s.pm,x.r.s.pm<10?2:1)} g${x.r.u.rec?` · chegou ${new Date(x.r.u.rec).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""}</small>`:"—"}</td>
+      <td>${tag(st)}<small data-bio-t="${i}" data-st="${st}">${E(cadTxt(x))}</small></td></tr>`}).join("")||`<tr><td colspan="4" class="muted">Nenhuma biometria neste projeto.</td></tr>`}</tbody></table></div>
+   <p class="muted">Escolha de quantos em quantos dias cada tanque ou viveiro deve ter biometria. A contagem regressiva corre em tempo real; passou do prazo, fica <b>atrasada</b>. Biometrias que chegam pela automação aparecem aqui assim que o app recolhe o webhook.</p>`};
+window.bioCadBind=el=>{el.querySelectorAll("[data-bio-cad]").forEach(s=>s.addEventListener("change",()=>{B.cad[s.dataset.bioCad]=+s.value;salvar();draw();outros()}))};
+window.bioCadTick=el=>{let mud=false;el.querySelectorAll("[data-bio-t]").forEach(x=>{const r=cadR[+x.dataset.bioT];if(!r)return;const st=estado(r),t=cadTxt(r);if(x.textContent!==t)x.textContent=t;if(x.dataset.st!==st)mud=true;x.dataset.st=st});
+  el.querySelectorAll("[data-bio-rec]").forEach(x=>{const t=durC(Date.now()-(+x.dataset.bioRec));if(x.textContent!==t)x.textContent=t});return mud};
+window.bioCadResumo=()=>{const R=cadRows().filter(x=>x.c);return {emDia:R.filter(x=>estado(x)==="ok").length,atrasadas:R.filter(x=>estado(x)!=="ok").map(x=>"Biometria "+x.nome),total:R.length}};
+
+/* resumo para o Painel (projeto em evidência) */
+window.bioDashResumo=()=>linhasResumo(projSel()).map(({p,u,r})=>({nome:u.nome,tipo:u.tipo,projeto:pNome(p),data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
+window.drawAquaBio=()=>draw();window.bioDebug={stats,linhasParaAmostras,autoMapB,B,projecao,uniP,projs,cadRows};
+salvar();agendar();draw();
 })();
 
 </script>
@@ -6788,7 +6923,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v49";
+  const APP_VERSAO="ras-v50";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
