@@ -713,7 +713,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-cota .inp:has(input[id^="us-nome-"]){width:100%;max-width:440px}.us-cota input[id^="us-nome-"],#us-meunome{width:100%;text-align:left;font-family:var(--f-body)}
 /* AquaNictemeral · plugin de automação */
 #aqua-plug{margin-bottom:12px}
-#aqua-orig{margin-bottom:12px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
+#aqua-orig{margin-bottom:12px}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
 .ao-card>summary h2::before{content:"▸ ";color:var(--accent)}.ao-card[open]>summary h2::before{content:"▾ "}.ao-card .pj-body{display:grid;gap:12px}
 .ao-res{margin:0;font-size:15px}.ao-chips .chip b{margin-left:4px;color:var(--ink)}.ao-bar{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.ao-t{font-weight:600}
 .ap-card>summary{list-style:none;cursor:pointer}.ap-card>summary::-webkit-details-marker{display:none}
@@ -836,6 +836,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 
   <div id="view-aqua" role="tabpanel" aria-labelledby="tab-aqua" hidden>
     <div id="aqua-orig"></div>
+    <div id="aqua-cad"></div>
     <div id="aqua-plug"></div>
     <iframe id="aqua-frame" title="AquaNictemeral: monitoramento nictemeral da água" loading="eager" data-srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;pt-BR&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap&quot;&gt;&lt;script&gt;window.AQUA_KEY=&quot;aquanictemeral.ras.v1&quot;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;title&gt;AquaNictemeral&lt;/title&gt;
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
@@ -1747,7 +1748,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   }
   function lerForm() {
     const u = UA(); const hora = $(&quot;f-hora&quot;).value; if (!/^\d{2}:\d{2}$/.test(hora)) return { erro: &quot;Informe a hora da leitura (ex.: 06:00).&quot; };
-    const l = { id: &quot;l&quot; + Date.now(), unidade: u.id, data: S.dia || hoje(), hora, profundidade: $(&quot;f-prof&quot;).value, origem: &quot;manual&quot;, ...projAt() }; let n = 0;
+    const l = { id: &quot;l&quot; + Date.now(), unidade: u.id, data: S.dia || hoje(), hora, profundidade: $(&quot;f-prof&quot;).value, origem: &quot;manual&quot;, ...projAt(), rec: Date.now() }; let n = 0;
     for (const [, ps] of camposU(u)) for (const p of ps) { const raw = $(&quot;f-&quot; + p).value.trim().replace(&quot;,&quot;, &quot;.&quot;); if (raw === &quot;&quot;) continue; const v = Number(raw); if (!Number.isFinite(v)) return { erro: `Valor inválido em ${curto[p]}.` }; l[p] = v; n++; }
     if (!n) return { erro: &quot;Preencha pelo menos um parâmetro.&quot; };
     if (l.ph !== undefined &amp;&amp; (l.ph &lt; 0 || l.ph &gt; 14)) return { erro: &quot;pH deve ficar entre 0 e 14.&quot; };
@@ -1978,7 +1979,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       for (const p of PS) { const v = typeof it[p] === &quot;number&quot; ? it[p] : Number(String(it[p] == null ? &quot;&quot; : it[p]).replace(&quot;,&quot;, &quot;.&quot;)); if (it[p] !== undefined &amp;&amp; it[p] !== &quot;&quot; &amp;&amp; Number.isFinite(v)) vals[p] = v; }
       if (!Object.keys(vals).length) { r.ignoradas++; continue; }
       const ix = S.leituras.findIndex((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) &amp;&amp; l.unidade === u.id &amp;&amp; l.data === it.data &amp;&amp; l.hora === it.hora &amp;&amp; (l.profundidade || &quot;superfície&quot;) === prof);
-      const og = { origem: op.tipo || &quot;arquivo&quot;, ...(op.nome ? { origemNome: String(op.nome).slice(0, 120) } : {}), ...projAt() };
+      const og = { origem: op.tipo || &quot;arquivo&quot;, ...(op.nome ? { origemNome: String(op.nome).slice(0, 120) } : {}), ...projAt(), rec: Date.now() };
       if (ix &gt;= 0) { Object.assign(S.leituras[ix], vals, og); r.atualizadas++; }
       else { S.leituras.push({ id: &quot;i&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), unidade: u.id, data: it.data, hora: it.hora, profundidade: prof, ...vals, ...og }); r.novas++; }
       dias.add(it.data); uns.add(u.id);
@@ -2012,6 +2013,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return { origens: Object.values(o).sort((a, b) =&gt; ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || &quot;&quot;, fProj: S.fProj || &quot;&quot;, total: S.leituras.length, visiveis: LT().length, ras: !!S.ras }; };
   window.aquaApagarOrigem = (k) =&gt; { const antes = S.leituras.length; S.leituras = S.leituras.filter((l) =&gt; chaveOrig(l) !== k); const n = antes - S.leituras.length;
     if (S.fOrig === k) S.fOrig = &quot;&quot;; diaPainel = null; sel = null; salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return n; };
+  // cadência: para cada origem, última leitura, chegada, leituras de hoje e intervalo típico entre leituras (por unidade)
+  window.aquaCadencia = () =&gt; { const hj = hoje(), g = {};
+    for (const l of S.leituras) { const t = fonteDe(l); if (t === &quot;exemplo&quot;) continue; const k = chaveOrig(l);
+      const e = (g[k] = g[k] || { key: k, tipo: t, rotulo: ORIG[t] || t, nome: l.origemNome || &quot;&quot;, n: 0, hoje: 0, ult: &quot;&quot;, rec: 0, por: {} });
+      const ts = l.data + &quot;T&quot; + l.hora; e.n++; if (l.data === hj) e.hoje++; if (ts &gt; e.ult) e.ult = ts; if ((l.rec || 0) &gt; e.rec) e.rec = l.rec; (e.por[l.unidade] = e.por[l.unidade] || []).push(ts); }
+    return Object.values(g).map((e) =&gt; { const dif = [], us = [];
+      for (const u in e.por) { const a = e.por[u].sort(); us.push({ nome: (uniById(u) || {}).nome || u, ult: a[a.length - 1], n: a.length, hoje: a.filter((x) =&gt; x.startsWith(hj)).length });
+        for (let i = Math.max(1, a.length - 40); i &lt; a.length; i++) { const d = (new Date(a[i]) - new Date(a[i - 1])) / 60000; if (d &gt; 0 &amp;&amp; d &lt; 2880) dif.push(d); } }
+      dif.sort((x, y) =&gt; x - y); const r = { ...e, med: dif.length ? dif[Math.floor(dif.length / 2)] : null, unidades: us }; delete r.por; return r; }); };
   window.aquaFiltroOrigem = (fo, fp) =&gt; { S.fOrig = fo || &quot;&quot;; S.fProj = fp || &quot;&quot;; diaPainel = null; sel = null;
     const ds = LT().map((l) =&gt; l.data).sort(); if (ds.length &amp;&amp; !ds.includes(S.dia)) S.dia = ds[ds.length - 1];
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
@@ -2391,7 +2401,7 @@ function aquaDashHTML(){
   const graves=com.filter(u=>u.st==="critico"||u.st==="letal"),odm=com.filter(u=>typeof u.odMin==="number").sort((a,b)=>a.odMin-b.odMin)[0];
   const ult=com.map(u=>u.dia).sort().pop(),ex=com.some(u=>u.exemplo);
   const k=fcK([["Unidades com leituras",f0(com.length),`de ${f0(R.length)} unidades`],["Em situação grave",f0(graves.length),graves.length?graves.map(u=>esc(u.nome)).join(", "):"nenhuma",graves.length?"bad":"ok"],
-    ["Menor OD",odm?nu(odm.odMin,1)+" mg/L":"—",odm?`${esc(odm.nome)} · ${dBR(odm.dia)} ${odm.odMinHora||""}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"bad":""],["Última leitura",dBR(ult),ex?"inclui dados de exemplo":""]]);
+    ["Menor OD",odm?nu(odm.odMin,1)+" mg/L":"—",odm?`${esc(odm.nome)} · ${dBR(odm.dia)} ${odm.odMinHora||""}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"bad":""],["Última leitura",dBR(ult),ex?"inclui dados de exemplo":""],...(()=>{const c=window.aquaCadResumo&&aquaCadResumo();return c&&c.total?[["Cadência",c.atrasadas.length?f0(c.atrasadas.length)+" atrasada"+(c.atrasadas.length===1?"":"s"):"em dia",c.atrasadas.length?c.atrasadas.map(esc).join(", "):`${f0(c.emDia)} origem${c.emDia===1?"":"s"} contínua${c.emDia===1?"":"s"}`,c.atrasadas.length?"bad":"ok"]]:[]})()]);
   const linhas=com.slice().sort((a,b)=>({letal:0,critico:1,alerta:2,ideal:3}[a.st]??4)-({letal:0,critico:1,alerta:2,ideal:3}[b.st]??4)).map(u=>`<tr><td><a href="#" data-aqua-u="${esc(u.id)}" data-dia="${esc(u.dia)}"><b>${esc(u.nome)}</b></a><small>${dBR(u.dia)} · ${f0(u.n)} leitura${u.n===1?"":"s"}${u.dias>1?` · ${f0(u.dias)} dias`:""}</small></td>
     <td class="num" data-l="OD mín.">${nu(u.odMin,1)}<small>${u.odMinHora||""} ${tag(u.odMinSt)}</small></td><td class="num" data-l="OD previsto 06:00">${nu(u.odPrev,1)}<small>${tag(u.odPrevSt)}</small></td><td class="num" data-l="Temp. (°C)">${nu(u.temp,1)}</td><td class="num" data-l="pH">${nu(u.ph,2)}</td><td class="num" data-l="ΔpH 24 h">${nu(u.dph,2)}</td><td class="num" data-l="NH₃ (mg/L)">${nu(u.nh3,3)}<small>${tag(u.nh3St)}</small></td><td data-l="Situação">${tag(u.st)}</td></tr>`).join("");
   return `<section class="card wide">${fcHead("AquaNictemeral",`Qualidade da água · último dia com leituras de cada unidade${ex?" · dados de exemplo":""}`,"aqua","Abrir AquaNictemeral")}<div class="pj-body">${k}
@@ -6387,7 +6397,8 @@ async function recolher(silencioso){if(!(window.Auth&&Auth.supa&&Auth.supa()&&Au
   const cols=[...new Set(itens.flatMap(o=>Object.keys(o)).filter(k=>k!=="_recebido"))],map={...autoMap(cols,itens)};
   for(const c of cols)if(["data","hora","unidade","profundidade",...NUM].includes(c))map[c]=c;if(cols.includes("data_hora"))map.data_hora="dt";
   const n=normalizar(itens,map,C.agrupar);const r=await importar(n.lista,"webhook");return "Webhook: "+resumo(r,n.brutas)}
-function agendarHook(){clearInterval(timerHook);timerHook=null;if(C.webhook)timerHook=setInterval(()=>{recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{})},60000)}
+let hookUlt=0;
+function agendarHook(){clearInterval(timerHook);timerHook=null;if(C.webhook)timerHook=setInterval(()=>{hookUlt=Date.now();recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{})},Math.max(15,+C.hookSeg||60)*1000)}
 
 /* ---- tela ---- */
 function mapaHTML(){if(!dados)return "";const n=normalizar(dados.rows,C.map,C.agrupar),us=unidades();
@@ -6427,7 +6438,7 @@ function draw(){
    ${C.fonte==="arquivo"?`<p class="muted">Planilha do Excel (.xlsx, .xls), Numbers (.numbers), LibreOffice (.ods), CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
     :C.fonte==="colar"?`<textarea class="ap-txt" id="ap-txt" rows="5" placeholder="data;hora;OD;temperatura;pH&#10;24/10/2026;06:00;4,8;27,9;7,2"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-ap="ler">Ler dados</button></div>`
     :C.fonte==="link"?`<div class="rp-grid"><label class="ap-url">Link dos dados (CSV ou JSON)<input data-ap-cfg="url" value="${E(C.url)}" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv"></label>
-       <label>Buscar sozinho<select class="lv-sel" data-ap-cfg="min">${[5,15,30,60,180].map(m=>`<option value="${m}"${+C.min===m?" selected":""}>a cada ${m<60?m+" min":m/60+" h"}</option>`).join("")}</select></label>
+       <label>Buscar sozinho<select class="lv-sel" data-ap-cfg="min">${[1,5,15,30,60,180].map(m=>`<option value="${m}"${+C.min===m?" selected":""}>a cada ${m<60?m+" min":m/60+" h"}</option>`).join("")}</select></label>
        <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="auto"${C.auto?" checked":""}> <span><b>Ligado</b><br><span class="muted">enquanto o app estiver aberto</span></span></label></div>
        <div class="pj-btns"><button type="button" class="btn solid" data-ap="buscar"${busy?" disabled":""}>Buscar e importar agora</button></div>
        <details class="us-det"><summary>De onde tirar o link</summary><ol class="rp-steps"><li><b>Google Planilhas:</b> Arquivo › Compartilhar › Publicar na Web › escolha a aba e o formato CSV › copie o link.</li><li><b>ThingSpeak:</b> https://api.thingspeak.com/channels/<i>NÚMERO</i>/feeds.json?results=500 (canal público, ou acrescente &amp;api_key=<i>chave de leitura</i>). Os nomes dos campos do canal viram as colunas.</li><li><b>Servidor do sensor / Node-RED / API própria:</b> qualquer endereço que devolva CSV ou JSON e permita acesso do navegador (CORS).</li></ol></details>`
@@ -6484,6 +6495,47 @@ function acao(a,b){
     return}
   if(a==="copiar"){const v=b.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{msg="Copiado.";draw()}).catch(()=>window.prompt("Copie:",v));return}
 }
+/* ---- cadência em tempo real: para cada origem, de quanto em quanto tempo as leituras devem chegar e se estão em dia ---- */
+const boxC=document.getElementById("aqua-cad");let cadAberto=false,cadTick=null;
+const CAD_PAD={manual:180,webhook:15,link:null,arquivo:0,colado:0,importado:0};
+const CAD_OPT=[[0,"sem cadência (lote)"],[1,"1 min"],[5,"5 min"],[10,"10 min"],[15,"15 min"],[30,"30 min"],[60,"1 h"],[120,"2 h"],[180,"3 h"],[360,"6 h"],[720,"12 h"],[1440,"24 h"]];
+const cadDe=o=>{const c=(C.cad||{})[o.key];if(c!=null)return +c;if(o.tipo==="link")return +C.min||15;return CAD_PAD[o.tipo]??0};
+const dur=m=>{m=Math.max(0,Math.round(m));if(m<1)return "menos de 1 min";if(m<60)return m+" min";const h=Math.floor(m/60),r=m%60;if(h<48)return h+" h"+(r?" "+String(r).padStart(2,"0"):"");return Math.round(h/24)+" dias"};
+const tsD=s=>{if(!s)return null;const [d,h]=s.split("T"),[Y,M,D]=d.split("-").map(Number),[hh,mm]=(h||"0:0").split(":").map(Number);return new Date(Y,M-1,D,hh,mm)};
+function cadEstado(o){const c=cadDe(o),u=tsD(o.ult),agora=Date.now();if(!c)return {c,st:"lote"};if(!u)return {c,st:"sem"};
+  const atraso=(agora-u)/60000;return {c,u,atraso,prox:u.getTime()+c*60000,st:atraso<=c*1.25?"ok":"atrasada"}}
+function cadTexto(o){const e=cadEstado(o),agora=Date.now();
+  if(e.st==="lote")return o.med?`intervalo típico entre leituras: ${dur(o.med)}`:"importação em lote";
+  if(e.st==="sem")return "aguardando a primeira leitura";
+  if(e.prox>agora){const s=Math.round((e.prox-agora)/1000);return `próxima esperada em ${s<3600?Math.floor(s/60)+":"+String(s%60).padStart(2,"0"):dur(s/60)}`}
+  return e.st==="ok"?`dentro da tolerância (+${dur(e.atraso-e.c)})`:`atrasada há ${dur(e.atraso-e.c)}`}
+function cadLista(){try{const w=frame().contentWindow;return w&&w.aquaCadencia?w.aquaCadencia():null}catch(e){return null}}
+window.aquaCadResumo=()=>{const L=cadLista();if(!L)return null;const es=L.map(o=>({o,e:cadEstado(o)})).filter(x=>x.e.st!=="lote");return {emDia:es.filter(x=>x.e.st==="ok").length,atrasadas:es.filter(x=>x.e.st==="atrasada"||x.e.st==="sem").map(x=>x.o.nome||x.o.rotulo),total:es.length}};
+function drawCad(){if(!boxC)return;const L=cadLista();if(!L){boxC.innerHTML="";return}
+  const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥"},R=window.aquaCadResumo()||{emDia:0,atrasadas:[],total:0};
+  const lin=[...L];const temHook=C.webhook&&!L.some(o=>o.tipo==="webhook"),temLink=C.auto&&C.url&&!L.some(o=>o.tipo==="link"&&o.nome===C.url);
+  if(temHook)lin.push({key:"webhook",tipo:"webhook",rotulo:"Automação (webhook)",nome:"",n:0,hoje:0,ult:"",rec:0,med:null,unidades:[]});
+  if(temLink)lin.push({key:"link|"+C.url,tipo:"link",rotulo:"Link",nome:C.url,n:0,hoje:0,ult:"",rec:0,med:null,unidades:[]});
+  const fD=s=>{const d=tsD(s);return d?d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):"—"};
+  const sum=R.total?`${R.emDia} em dia${R.atrasadas.length?` · ${R.atrasadas.length} atrasada${R.atrasadas.length===1?"":"s"}`:""}`:"nenhuma origem contínua";
+  boxC.innerHTML=`<details class="card wide ao-card cad-card${R.atrasadas.length?" cad-late":""}"${cadAberto?" open":""}><summary class="card-head"><h2>⏱ Cadência em tempo real<span>${E(sum)} · atualiza a cada segundo</span></h2></summary><div class="pj-body">
+   <div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Origem</th><th>Cadência esperada</th><th>Última leitura</th><th>Situação agora</th><th class="num">Hoje</th></tr></thead><tbody>${lin.map((o,i)=>{const e=cadEstado(o),esp=e.c?Math.floor(((Date.now()-new Date().setHours(0,0,0,0))/60000)/e.c)+1:null;
+     const tag=e.st==="ok"?`<span class="us-st ok">em dia</span>`:e.st==="atrasada"?`<span class="us-st bad">atrasada</span>`:e.st==="sem"?`<span class="us-st wait">sem leitura</span>`:`<span class="us-st">lote</span>`;
+     const extra=o.tipo==="webhook"?`<label class="cad-sub">recolher a cada <select class="lv-sel" data-cad-hook="1">${[[15,"15 s"],[30,"30 s"],[60,"1 min"],[300,"5 min"],[900,"15 min"]].map(([v,t])=>`<option value="${v}"${(+C.hookSeg||60)===v?" selected":""}>${t}</option>`).join("")}</select>${C.webhook?"":" (ligue o recolhimento automático no Webhook)"}</label>`:o.tipo==="link"&&o.nome===C.url?`<small>${C.auto?`busca automática a cada ${C.min<60?C.min+" min":C.min/60+" h"}`:"busca automática desligada"}</small>`:"";
+     return `<tr><td><b>${ICO[o.tipo]||""} ${E(o.nome?(o.nome.length>40?o.nome.slice(0,37)+"…":o.nome):o.rotulo)}</b><small>${o.nome?E(o.rotulo)+" · ":""}${o.unidades.length} unidade${o.unidades.length===1?"":"s"}${o.med?` · intervalo típico ${dur(o.med)}`:""}</small>${extra}</td>
+      <td><select class="lv-sel" data-cad="${E(o.key)}" data-tipo="${E(o.tipo)}" data-nome="${E(o.nome)}" aria-label="Cadência esperada">${CAD_OPT.map(([v,t])=>`<option value="${v}"${e.c===v?" selected":""}>${t}</option>`).join("")}</select></td>
+      <td>${fD(o.ult)}${o.rec?`<small>chegou ${new Date(o.rec).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</small>`:""}</td>
+      <td>${tag}<small data-cad-t="${i}">${E(cadTexto(o))}</small></td><td class="num">${f0c(o.hoje)}${esp&&e.st!=="lote"?`<small>de ${esp} esperadas</small>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhuma leitura ainda.</td></tr>`}</tbody></table></div>
+   <p class="muted">Para cada origem, escolha de quanto em quanto tempo as leituras devem chegar. O app compara com a hora da última leitura, conta as leituras de hoje contra as esperadas e marca <b>atrasada</b> quando passa 25% da cadência sem leitura nova. Na automação (webhook) você também escolhe de quanto em quanto tempo o app recolhe o que chegou; no link, a cadência é a frequência da busca automática. Arquivos e dados colados entram em lote: mostram o intervalo típico entre as leituras.</p></div></details>`;
+  const d=boxC.querySelector("details");d.addEventListener("toggle",()=>{cadAberto=d.open});
+  boxC.querySelectorAll("[data-cad]").forEach(sel=>sel.addEventListener("change",()=>{const v=+sel.value;C.cad=C.cad||{};C.cad[sel.dataset.cad]=v;
+    if(sel.dataset.tipo==="link"&&sel.dataset.nome===C.url&&v>0){C.min=v;C.auto=true;agendar()}
+    if(sel.dataset.tipo==="webhook"&&v>0&&v<(+C.hookSeg||60)/60){C.hookSeg=Math.max(15,v*60);agendarHook()}salvar();drawCad();try{window.focoRefresh&&focoRefresh()}catch(e){}}));
+  const hk=boxC.querySelector("[data-cad-hook]");hk&&hk.addEventListener("change",()=>{C.hookSeg=+hk.value;salvar();agendarHook();drawCad()});
+  clearInterval(cadTick);cadTick=setInterval(()=>{if(!document.body.contains(boxC)||document.hidden)return;let mud=false;
+    boxC.querySelectorAll("[data-cad-t]").forEach(el=>{const o=lin[+el.dataset.cadT];if(!o)return;const st=cadEstado(o).st,t=cadTexto(o);if(el.textContent!==t)el.textContent=t;if(el.dataset.st&&el.dataset.st!==st)mud=true;el.dataset.st=st});
+    if(mud)drawCad()},1000)}
+const f0c=v=>Number(v||0).toLocaleString("pt-BR");
 /* ---- origem dos dados: projeto aberto e por onde as leituras entraram; escolhe o que o AquaNictemeral processa ---- */
 const boxO=document.getElementById("aqua-orig");let origAberto=false;
 const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥",exemplo:"🧪"};
@@ -6508,8 +6560,8 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
   boxO.querySelectorAll("[data-ao]").forEach(b=>b.addEventListener("click",()=>aplicar(O.fOrig===b.dataset.ao?"":b.dataset.ao,O.fProj)));
   const so=boxO.querySelector("#ao-orig"),sp=boxO.querySelector("#ao-proj");so&&so.addEventListener("change",()=>aplicar(so.value,O.fProj));sp&&sp.addEventListener("change",()=>aplicar(O.fOrig,sp.value));
   const lp=boxO.querySelector("[data-ao-limpa]");lp&&lp.addEventListener("click",()=>aplicar("",""));try{window.focoRefresh&&focoRefresh()}catch(e){}}
-let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(()=>{drawOrig();const hw=box.querySelector("#ap-histw");if(hw&&(C.log||[]).length&&!busy){const op=(hw.querySelector("details")||{}).open;hw.innerHTML=histHTML(C.log);const dd=hw.querySelector("details");if(dd&&op===false)dd.open=false;hw.querySelectorAll("[data-ap]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.ap,b)))}},80)};
-window.drawAquaPlug=()=>{drawOrig();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
+let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(()=>{drawOrig();drawCad();const hw=box.querySelector("#ap-histw");if(hw&&(C.log||[]).length&&!busy){const op=(hw.querySelector("details")||{}).open;hw.innerHTML=histHTML(C.log);const dd=hw.querySelector("details");if(dd&&op===false)dd.open=false;hw.querySelectorAll("[data-ap]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.ap,b)))}},80)};
+window.drawAquaPlug=()=>{drawOrig();drawCad();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
 window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora,lerArquivo};
 agendar();agendarHook();draw();
 })();
@@ -6573,7 +6625,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v47";
+  const APP_VERSAO="ras-v48";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
