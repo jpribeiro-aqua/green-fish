@@ -689,6 +689,21 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-pro-tag{margin-left:auto;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:2px 8px}
 .us-pro-list{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:grid;gap:4px}
 .us-pro p{margin:0}
+/* AquaNictemeral · plugin de automação */
+#aqua-plug{margin-bottom:12px}
+.ap-card>summary{list-style:none;cursor:pointer}.ap-card>summary::-webkit-details-marker{display:none}
+.ap-card>summary h2::before{content:"▸ ";color:var(--accent)}.ap-card[open]>summary h2::before{content:"▾ "}
+.ap-card .pj-body{display:grid;gap:12px}.ap-card .pj-tools{margin-left:0}
+.ap-box{display:grid;gap:8px;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
+.ap-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.ap-cols label{display:grid;gap:3px;font-size:13px;min-width:0}.ap-cols label span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--f-mono);color:var(--muted)}
+.ap-code{display:block;font:12px/1.5 var(--f-mono);background:var(--accent-soft);border-radius:8px;padding:8px 10px;white-space:pre-wrap;word-break:break-all}
+.ap-txt{width:100%;box-sizing:border-box;font:13px/1.45 var(--f-mono);border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);color:var(--ink)}
+.ap-prev td,.ap-prev th{white-space:nowrap}
+.ap-log{margin:6px 0 0;padding-left:18px;font-size:13px;display:grid;gap:3px}
+.ap-url{grid-column:span 2}.ap-url input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;padding:7px 8px;background:var(--bg);color:var(--ink);font:14px var(--f-body)}
+.ap-card label.ap-chk{display:flex;gap:8px;align-items:flex-start;align-self:end}.ap-chk input{margin-top:2px;width:16px;height:16px;flex:none}
+@media (max-width:640px){.ap-url{grid-column:auto}}
 </style>
 
 <div class="wrap">
@@ -793,6 +808,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   </div>
 
   <div id="view-aqua" role="tabpanel" aria-labelledby="tab-aqua" hidden>
+    <div id="aqua-plug"></div>
     <iframe id="aqua-frame" title="AquaNictemeral: monitoramento nictemeral da água" loading="eager" data-srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;pt-BR&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap&quot;&gt;&lt;script&gt;window.AQUA_KEY=&quot;aquanictemeral.ras.v1&quot;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;title&gt;AquaNictemeral&lt;/title&gt;
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
 &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
@@ -1903,6 +1919,35 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   });
   let rz; window.addEventListener(&quot;resize&quot;, () =&gt; { clearTimeout(rz); rz = setTimeout(() =&gt; (aba === &quot;painel&quot; ? renderPainel() : renderCharts()), 140); });
 
+  // --------------------------------------------------- plugin de automação (página-mãe): unidades e importação de leituras
+  window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id }));
+  window.aquaImport = (lista, op) =&gt; {
+    op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [] };
+    const PS = ORDEM.concat([&quot;od_saturacao&quot;, &quot;nh3&quot;]), dias = new Set(), uns = new Set();
+    const porNome = (v) =&gt; { if (v == null || v === &quot;&quot;) return null; const s = String(v).trim().toLowerCase(); return S.unidades.find((u) =&gt; String(u.id).toLowerCase() === s || String(u.nome || &quot;&quot;).trim().toLowerCase() === s) || null; };
+    for (const it of Array.isArray(lista) ? lista : []) {
+      const u = porNome(it.unidade) || uniById(op.destino);
+      if (!u || !/^\d{4}-\d{2}-\d{2}$/.test(it.data || &quot;&quot;) || !/^\d{2}:\d{2}$/.test(it.hora || &quot;&quot;)) { r.ignoradas++; continue; }
+      const prof = it.profundidade || &quot;superfície&quot;, vals = {};
+      for (const p of PS) { const v = typeof it[p] === &quot;number&quot; ? it[p] : Number(String(it[p] == null ? &quot;&quot; : it[p]).replace(&quot;,&quot;, &quot;.&quot;)); if (it[p] !== undefined &amp;&amp; it[p] !== &quot;&quot; &amp;&amp; Number.isFinite(v)) vals[p] = v; }
+      if (!Object.keys(vals).length) { r.ignoradas++; continue; }
+      const ix = S.leituras.findIndex((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) &amp;&amp; l.unidade === u.id &amp;&amp; l.data === it.data &amp;&amp; l.hora === it.hora &amp;&amp; (l.profundidade || &quot;superfície&quot;) === prof);
+      if (ix &gt;= 0) { Object.assign(S.leituras[ix], vals); r.atualizadas++; }
+      else { S.leituras.push({ id: &quot;i&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), unidade: u.id, data: it.data, hora: it.hora, profundidade: prof, ...vals }); r.novas++; }
+      dias.add(it.data); uns.add(u.id);
+    }
+    r.dias = [...dias].sort(); r.unidades = [...uns];
+    if (r.novas || r.atualizadas) {
+      if (S.exemplo) { S.leituras = S.leituras.filter((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) || !uns.has(l.unidade)); }
+      uns.forEach((id) =&gt; { const u = uniById(id); if (u) u.exemplo = false; });
+      if (S.exemplo &amp;&amp; !S.leituras.some((l) =&gt; String(l.id).startsWith(&quot;e&quot;))) S.exemplo = false;
+      S.dia = r.dias[r.dias.length - 1]; if (uns.size === 1) S.ativa = [...uns][0];
+      diaPainel = null; sel = null; salvar(); renderRodape();
+      if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade();
+    }
+    return r;
+  };
+
   // --------------------------------------------------- vínculo com o Sistema RAS Multitanques
   // a página-mãe chama window.aquaSync(grupos) ao abrir a aba; cada grupo de tanques vira uma unidade
   window.aquaSync = (gs) =&gt; {
@@ -2850,7 +2895,7 @@ const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","proj","u
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
-  dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";if(v==="aqua"){loadAqua();pushAqua()}
+  dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}
   try{localStorage.setItem(KEY+"-view",v)}catch(e){}
   hideTip();drawDash();
   if(v==="bio"){drawBioEditor();drawBio()}
@@ -4002,6 +4047,8 @@ const Auth={
   async admStatus(id,novo){const {data,error}=await A.sb.rpc("ras_adm_status",{alvo:id,novo});if(error)throw {msg:/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe.":/dono/i.test(error.message)?"Isso foi decidido pelo dono do app: só ele pode mudar.":/Cota/i.test(error.message)?"Sua cota de logins acabou: peça ao dono do app para aumentá-la.":"Não foi possível salvar: "+error.message};return data},
   async admAbas(id,abas){const {data,error}=await A.sb.rpc("ras_adm_abas",{alvo:id,abas:abas||null});if(error)throw {msg:/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe.":/dono/i.test(error.message)?"Isso foi decidido pelo dono do app: só ele pode mudar.":/Cota/i.test(error.message)?"Sua cota de logins acabou: peça ao dono do app para aumentá-la.":"Não foi possível salvar: "+error.message};return data},
   async admPrazo(id,ate,dias,nota){const {data,error}=await A.sb.rpc("ras_adm_prazo",{alvo:id,ate:ate==null?null:Math.round(ate),dias:dias||0,nota:nota||""});if(error)throw {msg:/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe.":/dono/i.test(error.message)?"Isso foi decidido pelo dono do app: só ele pode mudar.":/Cota/i.test(error.message)?"Sua cota de logins acabou: peça ao dono do app para aumentá-la.":"Não foi possível salvar: "+error.message};return data},
+  async aquaChave(nova,soLer){const {data,error}=await A.sb.rpc("ras_aqua_chave",{nova:!!nova,criar:!soLer});if(error)throw {msg:"Não foi possível gerar a chave: "+error.message};return data||""},
+  async aquaReceber(){const {data,error}=await A.sb.rpc("ras_aqua_receber");if(error)throw {msg:"Não foi possível recolher as leituras: "+error.message};return Array.isArray(data)?data:[]},
   async aceitarConvite(){const {data,error}=await A.sb.rpc("ras_aceitar_convite");if(error)throw {msg:error.message};return data||null},
   async excluirInscricao(id){const {data,error}=await A.sb.rpc("ras_excluir_inscricao",{pessoa:id});if(error)throw {msg:/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe.":/administrador/i.test(error.message)?"Para excluir um administrador, remova primeiro o papel de administrador.":"Não foi possível excluir a inscrição: "+error.message};return data},
   async aprovar(id){const {data,error}=await A.sb.rpc("ras_aprovar",{alvo:id});if(error)throw {msg:/Mensalidade/i.test(error.message)?"Sua mensalidade está em atraso: regularize o pagamento para voltar a liberar logins.":/Cota/i.test(error.message)?"Sua cota de logins acabou. Peça ao dono do app para aumentá-la.":/Bloqueado/i.test(error.message)?"Esta pessoa foi bloqueada pelo dono do app.":/equipe/i.test(error.message)?"Esta pessoa não é da sua equipe: só o dono do app pode liberá-la.":/inscri/i.test(error.message)?"Esta pessoa não tem inscrição ativa.":"Não foi possível liberar: "+error.message};return data},
@@ -5941,6 +5988,176 @@ async function iniciar(){
 }
 draw();iniciar();
 })();
+</script>
+<script>
+/* ---------- AquaNictemeral · plugin de automação: importar leituras de arquivos, links, sensores e webhooks ---------- */
+(function(){
+const box=document.getElementById("aqua-plug");if(!box)return;
+const K="ras-multitanques-v1-aquaauto";
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}};
+const C=Object.assign({fonte:"arquivo",agrupar:true,destino:"",url:"",min:15,auto:false,log:[],map:{},webhook:false},rd());
+const salvar=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}};
+let dados=null,msg="",busy=false,aberto=false,chave="",timer=null,timerHook=null;
+const pad=n=>String(n).padStart(2,"0");
+const numBR=s=>{if(typeof s==="number")return s;if(s==null)return NaN;s=String(s).trim();if(!s||!/^[-+]?[\d.,]+([eE][-+]?\d+)?$/.test(s))return NaN;
+  if(s.includes(",")&&s.includes("."))s=s.lastIndexOf(",")>s.lastIndexOf(".")?s.replace(/\./g,"").replace(",","."):s.replace(/,/g,"");else s=s.replace(",",".");return parseFloat(s)};
+const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\(.*?\)|\[.*?\]/g,"").replace(/[^a-z0-9]/g,"");
+
+/* parâmetros do AquaNictemeral e nomes que costumam aparecer nas planilhas, sondas e plataformas de IoT */
+const ALVOS=[["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora","datetimeutc","horario","momento","registro","time_stamp","entryts"]],
+  ["data","Data",["data","date","dia","day"]],["hora","Hora",["hora","hour","time","horas"]],
+  ["unidade","Unidade / tanque",["unidade","tanque","viveiro","unit","tank","pond","local","ponto","sensor","device","dispositivo","estacao"]],
+  ["profundidade","Profundidade",["profundidade","depth","prof"]],
+  ["temperatura","Temperatura (°C)",["temperatura","temp","t","tempc","temperature","tagua","tempagua","watertemp","temperaturadaagua"]],
+  ["od","OD (mg/L)",["od","oxigenio","oxigeniodissolvido","do","dissolvedoxygen","o2","oxygen","odmgl","domgl"]],
+  ["od_saturacao","OD (% saturação)",["odsat","saturacao","dosat","o2sat","odsaturacao","dopercent","dosaturation","saturacaood"]],
+  ["ph","pH",["ph"]],["co2","CO₂ (mg/L)",["co2","gascarbonico","dioxidodecarbono"]],
+  ["alcalinidade","Alcalinidade",["alcalinidade","alcalinity","alkalinity","alk"]],["dureza","Dureza",["dureza","hardness","durezatotal"]],
+  ["tan","Amônia total (TAN)",["tan","amonia","amoniatotal","nh4","nat","ammonia","nh3nh4","amoniaionizada"]],["nh3","Amônia não ionizada (NH₃)",["nh3","amonianaoionizada","amonialivre"]],
+  ["nitrito","Nitrito",["nitrito","no2","nitrite"]],["nitrato","Nitrato",["nitrato","no3","nitrate"]],
+  ["salinidade","Salinidade",["salinidade","sal","salinity","psu","ppt"]],["transparencia","Transparência (cm)",["transparencia","secchi","transparency","disco"]],
+  ["clorofila_a","Clorofila-a",["clorofila","clorofilaa","chlorophyll","chla"]],["sst","Sólidos suspensos (SST)",["sst","tss","solidos","solidossuspensos"]],
+  ["ss_imhoff","Sólidos sedimentáveis (Imhoff)",["imhoff","ssimhoff","sedimentaveis"]],["vibrio","Vibrio",["vibrio"]]];
+const NUM=ALVOS.filter(a=>!["dt","data","hora","unidade","profundidade"].includes(a[0])).map(a=>a[0]);
+function autoMap(cols){const m={},usados=new Set();
+  for(const [k,,syn] of ALVOS)for(const c of cols){const n=norm(c);if(usados.has(c))continue;if(syn.includes(n)||(k!=="t"&&syn.some(s=>s.length>3&&n.startsWith(s)))){m[c]=k;usados.add(c);break}}
+  if(!Object.values(m).includes("dt")&&!Object.values(m).includes("data")){const c=cols.find(c=>!m[c]&&/date|data|time|created/i.test(c));if(c)m[c]="dt"}
+  return m}
+
+/* leitura de texto: CSV/TSV (vírgula ou ponto e vírgula, decimal com vírgula) ou JSON (lista, {leituras}, {feeds} do ThingSpeak, {data}) */
+function lerTexto(txt){
+  txt=String(txt||"").replace(/^﻿/,"").trim();if(!txt)throw new Error("Nada para ler.");
+  if(/^[\[{]/.test(txt)){let j=JSON.parse(txt);let arr=Array.isArray(j)?j:j.leituras||j.feeds||j.data||j.itens||j.records||j.rows||j.values||[j];
+    if(j.channel&&Array.isArray(j.feeds)){const ch=j.channel;arr=j.feeds.map(f=>{const o={};for(const k in f){const nome=/^field\d$/.test(k)&&ch[k]?ch[k]:k;o[nome]=f[k]}return o})}
+    if(Array.isArray(arr)&&Array.isArray(arr[0])){const [h,...rs]=arr;arr=rs.map(r=>Object.fromEntries(h.map((c,i)=>[c,r[i]])))}
+    arr=arr.filter(x=>x&&typeof x==="object");if(!arr.length)throw new Error("O JSON não tem uma lista de leituras.");return arr}
+  const ls=txt.split(/\r?\n/).filter(s=>s.trim());const amostra=ls.slice(0,20);let dl=",",best=-1;
+  for(const d of [";","\t",","]){const k=amostra.map(s=>s.split(d).length);const ok=k.filter(x=>x>1&&x===k[0]).length;if(ok>best){best=ok;dl=d}}
+  const split=s=>{const out=[];let cur="",q=false;for(const ch of s){if(ch==='"'){q=!q;continue}if(ch===dl&&!q){out.push(cur);cur="";continue}cur+=ch}out.push(cur);return out.map(x=>x.trim())};
+  const h=split(ls[0]);if(h.length<2)throw new Error("Não reconheci as colunas. A primeira linha precisa ter os nomes (data, hora, OD, temperatura…).");
+  return ls.slice(1).map(l=>{const r=split(l);return Object.fromEntries(h.map((c,i)=>[c||("col"+(i+1)),r[i]]))})}
+
+/* data e hora em vários formatos: ISO (com fuso), dd/mm/aaaa hh:mm, epoch em segundos ou ms */
+function dataHora(v){if(v==null||v==="")return null;
+  if(typeof v==="number"||/^\d{10,13}$/.test(String(v))){const n=+v;const d=new Date(n<1e12?n*1000:n);return isNaN(d)?null:d}
+  const s=String(v).trim();let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m){const y=+m[3]<100?2000+ +m[3]:+m[3];return new Date(y,+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0))}
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);if(m)return new Date(+m[1],+m[2]-1,+m[3],+(m[4]||0),+(m[5]||0));
+  const d=new Date(s);return isNaN(d)?null:d}
+const isoD=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+function normalizar(rows,map,agrupar){
+  const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const out=[];let ruins=0;
+  for(const r of rows){let d=null,hora=null,data=null;
+    if(inv.dt)d=dataHora(r[inv.dt]);
+    if(!d&&inv.data){d=dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm){d.setHours(+hm[1],+(hm[2]||0))}}}
+    if(d){data=isoD(d);hora=pad(d.getHours())+":"+pad(d.getMinutes())}
+    const o={data,hora};if(inv.unidade&&r[inv.unidade]!=null&&r[inv.unidade]!=="")o.unidade=String(r[inv.unidade]).trim();
+    if(inv.profundidade&&r[inv.profundidade])o.profundidade=/fun|bot|deep/i.test(r[inv.profundidade])?"fundo":"superfície";
+    let n=0;for(const p of NUM)if(inv[p]){const v=numBR(r[inv[p]]);if(Number.isFinite(v)){o[p]=Math.round(v*1000)/1000;n++}}
+    if(!data||!n){ruins++;continue}out.push(o)}
+  if(!agrupar)return {lista:out,ruins};
+  const g=new Map();for(const o of out){const h=o.hora.slice(0,2)+":00",k=[o.unidade||"",o.data,h,o.profundidade||""].join("|");if(!g.has(k))g.set(k,{base:{...o,hora:h},soma:{},n:{}});const e=g.get(k);for(const p of NUM)if(typeof o[p]==="number"){e.soma[p]=(e.soma[p]||0)+o[p];e.n[p]=(e.n[p]||0)+1}}
+  const lista=[...g.values()].map(e=>{const o={...e.base};for(const p of NUM)if(e.n[p])o[p]=Math.round(e.soma[p]/e.n[p]*100)/100;else delete o[p];return o});
+  return {lista,ruins,brutas:out.length}}
+
+/* ponte com o AquaNictemeral (iframe) */
+const frame=()=>document.getElementById("aqua-frame");
+async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="function")loadAqua();
+  for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function")return w}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
+function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
+async function importar(lista,origem){const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu. Abra a aba e tente de novo.");
+  const r=w.aquaImport(lista,{destino:C.destino,origem});
+  C.log.unshift({em:Date.now(),origem,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias});C.log=C.log.slice(0,12);salvar();return r}
+const resumo=(r,brutas)=>`${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem unidade ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
+
+/* link (Google Planilhas publicada, ThingSpeak, servidor do sensor): busca agora e, se marcado, a cada N minutos */
+async function buscarLink(silencioso){if(!C.url)throw new Error("Cole o link dos dados.");
+  const r=await fetch(C.url+(C.url.includes("?")?"&":"?")+"_t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("O link respondeu com erro "+r.status+".");
+  const rows=lerTexto(await r.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];
+  if(!Object.keys(C.map).length||!cols.some(c=>C.map[c]))C.map=autoMap(cols);
+  const n=normalizar(rows,C.map,C.agrupar);if(!n.lista.length)throw new Error("O link não trouxe leituras com data e valores reconhecidos. Confira as colunas.");
+  const res=await importar(n.lista,"link");C.ultimaBusca=Date.now();salvar();if(!silencioso){dados={rows,cols,origem:"link"};}return resumo(res,n.brutas)}
+function agendar(){clearInterval(timer);timer=null;if(C.auto&&C.url&&C.min>0)timer=setInterval(()=>{buscarLink(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()})},C.min*60000)}
+
+/* webhook: automações (Make, Zapier, n8n, Node-RED, ESP32) enviam para o Supabase com a chave da conta; o app recolhe */
+async function recolher(silencioso){if(!(window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok()&&Auth.aquaReceber))return null;
+  const itens=await Auth.aquaReceber();if(!itens||!itens.length){if(!silencioso)msg="Nenhuma leitura nova chegou pelo webhook.";return null}
+  const cols=[...new Set(itens.flatMap(o=>Object.keys(o)).filter(k=>k!=="_recebido"))],map={...autoMap(cols)};
+  for(const c of cols)if(["data","hora","unidade","profundidade",...NUM].includes(c))map[c]=c;if(cols.includes("data_hora"))map.data_hora="dt";
+  const n=normalizar(itens,map,C.agrupar);const r=await importar(n.lista,"webhook");return "Webhook: "+resumo(r,n.brutas)}
+function agendarHook(){clearInterval(timerHook);timerHook=null;if(C.webhook)timerHook=setInterval(()=>{recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{})},60000)}
+
+/* ---- tela ---- */
+function mapaHTML(){if(!dados)return "";const n=normalizar(dados.rows,C.map,C.agrupar),us=unidades();
+  const temU=Object.values(C.map).includes("unidade");
+  return `<div class="ap-box"><b>Colunas encontradas · ${dados.rows.length} linha${dados.rows.length===1?"":"s"}</b>
+   <div class="ap-cols">${dados.cols.map(c=>`<label><span title="${E(c)}">${E(c)}</span><select class="lv-sel" data-ap-col="${E(c)}"><option value="">ignorar</option>${ALVOS.map(([k,t])=>`<option value="${k}"${C.map[c]===k?" selected":""}>${t}</option>`).join("")}</select></label>`).join("")}</div>
+   ${n.lista.length?`<div class="scroll"><table class="pj-tab ap-prev"><thead><tr><th>Data</th><th>Hora</th>${temU?"<th>Unidade</th>":""}${NUM.filter(p=>n.lista.some(o=>typeof o[p]==="number")).map(p=>`<th class="num">${E((ALVOS.find(a=>a[0]===p)||[])[1]||p)}</th>`).join("")}</tr></thead><tbody>${n.lista.slice(0,6).map(o=>`<tr><td>${o.data.split("-").reverse().join("/")}</td><td>${o.hora}</td>${temU?`<td>${E(o.unidade||"—")}</td>`:""}${NUM.filter(p=>n.lista.some(x=>typeof x[p]==="number")).map(p=>`<td class="num">${typeof o[p]==="number"?String(o[p]).replace(".",","):"—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="muted">${n.lista.length} leitura${n.lista.length===1?"":"s"} prontas${n.brutas&&n.brutas!==n.lista.length?` (de ${n.brutas} medições, juntadas por hora)`:""}${n.ruins?` · ${n.ruins} linha${n.ruins===1?"":"s"} sem data ou sem valores`:""}.${temU?" A coluna de unidade é usada quando o nome bate com uma unidade do AquaNictemeral; as outras vão para a unidade de destino.":""}</p>
+    <div class="pj-btns"><button type="button" class="btn solid" data-ap="importar"${busy?" disabled":""}>Importar ${n.lista.length} leitura${n.lista.length===1?"":"s"}</button><button type="button" class="btn" data-ap="limpar">Descartar</button></div>`
+   :`<p class="us-pag-alert wait">Nenhuma leitura reconhecida ainda: diga qual coluna tem a <b>data e hora</b> (ou a data e a hora separadas) e pelo menos um parâmetro.</p>`}</div>`}
+function hookHTML(){const sup=window.Auth&&Auth.supa&&Auth.supa(),log=sup&&Auth.ok();const cfg=window.RAS_CONFIG||{};
+  if(!sup)return `<p class="muted">O webhook usa a conta do app (login pelo link do GitHub). Nesta versão use Arquivo, Colar ou Link.</p>`;
+  if(!log)return `<p class="muted">Entre com seu login para gerar a chave do webhook.</p>`;
+  const url=(cfg.supabaseUrl||"")+"/rest/v1/rpc/ras_aqua_ingest",ex=JSON.stringify({chave:chave||"SUA_CHAVE",leituras:[{unidade:"Tanque 1",data_hora:"2026-10-24 06:00",od:5.4,temperatura:28.2,ph:7.3}]},null,1);
+  return `${chave?`<div class="ap-box"><b>Endereço para a automação enviar (POST)</b><code class="ap-code">${E(url)}</code>
+     <b>Cabeçalhos</b><code class="ap-code">Content-Type: application/json<br>apikey: ${E(cfg.supabaseAnonKey||"")}</code>
+     <b>Corpo (JSON)</b><code class="ap-code">${E(ex)}</code>
+     <span class="muted">Cada envio aceita até 500 leituras. Campos: <b>unidade</b> (nome da unidade), <b>data_hora</b> (ou <b>data</b> e <b>hora</b>), e os parâmetros com estes nomes: ${NUM.map(p=>`<b>${p}</b>`).join(", ")}. A chave é secreta: quem tiver a chave consegue mandar leituras para a sua conta.</span>
+     <div class="pj-btns"><button type="button" class="btn" data-ap="copiar" data-v="${E(url)}">Copiar endereço</button><button type="button" class="btn" data-ap="copiar" data-v="${E(chave)}">Copiar chave</button><button type="button" class="btn" data-ap="copiar" data-v="${E(ex)}">Copiar exemplo</button><button type="button" class="btn warn" data-ap="nova-chave">Trocar a chave</button></div></div>
+     <label class="us-chk"><input type="checkbox" data-ap-cfg="webhook"${C.webhook?" checked":""}> <span><b>Recolher sozinho a cada minuto</b><br><span class="muted">enquanto o app estiver aberto; também recolhe ao abrir a aba</span></span></label>
+     <div class="pj-btns"><button type="button" class="btn solid" data-ap="recolher"${busy?" disabled":""}>Recolher agora</button></div>
+     <details class="us-det"><summary>Como ligar em cada automação</summary><ol class="rp-steps">
+      <li><b>Make / Zapier / n8n:</b> crie um passo "HTTP · Make a request" (ou Webhooks by Zapier → POST, ou nó HTTP Request), método POST, com o endereço, os cabeçalhos e o corpo acima. Mapeie os campos do seu gatilho (planilha, formulário, sensor) para unidade, data_hora e os parâmetros.</li>
+      <li><b>Node-RED:</b> nó "http request" (POST, retorno JSON) depois de um nó "function" que monte o objeto {chave, leituras:[...]}.</li>
+      <li><b>ESP32 / Arduino com sonda:</b> use HTTPClient em HTTPS para o endereço acima, com os dois cabeçalhos e o JSON; envie a cada 5–15 min. O app junta as medições da mesma hora (média).</li>
+      <li><b>Google Planilhas (Apps Script):</b> UrlFetchApp.fetch(endereço, {method:"post", contentType:"application/json", headers:{apikey:"…"}, payload:JSON.stringify({chave, leituras})}).</li></ol></details>`
+   :`<p>Gere a chave da sua conta para receber leituras de automações e sensores, sem precisar abrir o app na hora da coleta.</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="gerar-chave"${busy?" disabled":""}>Gerar chave do webhook</button></div>`}`}
+function draw(){
+  const us=unidades(),log=C.log||[];if(C.destino&&us.length&&!us.some(u=>u.id===C.destino))C.destino="";if(!C.destino&&us[0])C.destino=us[0].id;
+  const st=[C.auto&&C.url?`link a cada ${C.min} min`:"",C.webhook?"webhook ativo":"",log[0]?`última importação ${new Date(log[0].em).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""].filter(Boolean).join(" · ");
+  box.innerHTML=`<details class="card wide ap-card"${aberto?" open":""}><summary class="card-head"><h2>🔌 Conectar automação<span>Importar leituras de sondas, planilhas, plataformas de IoT e automações para o AquaNictemeral${st?" · "+E(st):""}</span></h2></summary><div class="pj-body">
+   <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
+   <div class="pj-tools chips">${[["arquivo","Arquivo"],["colar","Colar dados"],["link","Link (atualiza sozinho)"],["webhook","Webhook (automação envia)"]].map(([k,t])=>`<button type="button" class="chip${C.fonte===k?" on":""}" data-ap-fonte="${k}" aria-pressed="${C.fonte===k}">${t}</button>`).join("")}</div>
+   <div class="rp-grid"><label>Unidade de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
+    <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="agrupar"${C.agrupar?" checked":""}> <span><b>Juntar as medições da mesma hora</b><br><span class="muted">média por hora, para sondas que medem a cada poucos minutos</span></span></label></div>
+   ${C.fonte==="arquivo"?`<p class="muted">CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
+    :C.fonte==="colar"?`<textarea class="ap-txt" id="ap-txt" rows="5" placeholder="data;hora;OD;temperatura;pH&#10;24/10/2026;06:00;4,8;27,9;7,2"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-ap="ler">Ler dados</button></div>`
+    :C.fonte==="link"?`<div class="rp-grid"><label class="ap-url">Link dos dados (CSV ou JSON)<input data-ap-cfg="url" value="${E(C.url)}" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv"></label>
+       <label>Buscar sozinho<select class="lv-sel" data-ap-cfg="min">${[5,15,30,60,180].map(m=>`<option value="${m}"${+C.min===m?" selected":""}>a cada ${m<60?m+" min":m/60+" h"}</option>`).join("")}</select></label>
+       <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="auto"${C.auto?" checked":""}> <span><b>Ligado</b><br><span class="muted">enquanto o app estiver aberto</span></span></label></div>
+       <div class="pj-btns"><button type="button" class="btn solid" data-ap="buscar"${busy?" disabled":""}>Buscar e importar agora</button></div>
+       <details class="us-det"><summary>De onde tirar o link</summary><ol class="rp-steps"><li><b>Google Planilhas:</b> Arquivo › Compartilhar › Publicar na Web › escolha a aba e o formato CSV › copie o link.</li><li><b>ThingSpeak:</b> https://api.thingspeak.com/channels/<i>NÚMERO</i>/feeds.json?results=500 (canal público, ou acrescente &amp;api_key=<i>chave de leitura</i>). Os nomes dos campos do canal viram as colunas.</li><li><b>Servidor do sensor / Node-RED / API própria:</b> qualquer endereço que devolva CSV ou JSON e permita acesso do navegador (CORS).</li></ol></details>`
+    :hookHTML()}
+   ${C.fonte!=="webhook"?mapaHTML():""}
+   ${log.length?`<details class="us-det"><summary>Histórico de importações</summary><ul class="ap-log">${log.map(l=>`<li><b>${new Date(l.em).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</b> · ${E(l.origem)} · ${l.novas} novas, ${l.atualizadas} atualizadas${l.ignoradas?`, ${l.ignoradas} ignoradas`:""}</li>`).join("")}</ul></details>`:""}
+  </div></details>`;
+  bind()}
+function bind(){
+  const d=box.querySelector("details.ap-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unidades().length)pronto().then(()=>draw())});
+  box.querySelectorAll("[data-ap-fonte]").forEach(b=>b.addEventListener("click",()=>{C.fonte=b.dataset.apFonte;salvar();msg="";if(C.fonte==="webhook"&&!chave&&window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok())Auth.aquaChave(false,true).then(t=>{chave=t||"";draw()}).catch(()=>{});draw()}));
+  box.querySelectorAll("[data-ap-cfg]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.apCfg;C[k]=i.type==="checkbox"?i.checked:k==="min"?+i.value:i.value.trim();salvar();if(k==="auto"||k==="min"||k==="url")agendar();if(k==="webhook")agendarHook();draw()}));
+  box.querySelectorAll("[data-ap-col]").forEach(s=>s.addEventListener("change",()=>{C.map[s.dataset.apCol]=s.value;salvar();draw()}));
+  box.querySelectorAll("[data-ap]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.ap,b)));
+}
+async function rodar(fn){if(busy)return;busy=true;draw();try{msg=await fn()||msg}catch(e){msg="Erro: "+(e&&(e.message||e.msg)||e)}finally{busy=false;draw()}}
+function acao(a,b){
+  if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=".csv,.txt,.tsv,.json,text/csv,application/json";i.addEventListener("change",()=>{const f=i.files[0];if(!f)return;
+    rodar(async()=>{const rows=lerTexto(await f.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols);salvar();dados={rows,cols,origem:"arquivo "+f.name};return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols);salvar();dados={rows,cols,origem:"colado"};return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
+  if(a==="importar"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar);const r=await importar(n.lista,dados.origem);dados=null;return "Importado: "+resumo(r,n.brutas)});return}
+  if(a==="limpar"){dados=null;msg="";draw();return}
+  if(a==="buscar"){rodar(()=>buscarLink(false).then(t=>"Link: "+t));return}
+  if(a==="gerar-chave"||a==="nova-chave"){rodar(async()=>{chave=await Auth.aquaChave(a==="nova-chave");C.webhook=true;salvar();agendarHook();return a==="nova-chave"?"Chave trocada: atualize a chave nas suas automações.":"Chave gerada. Configure a automação com o endereço e a chave abaixo."});return}
+  if(a==="recolher"){rodar(async()=>await recolher(false)||msg);return}
+  if(a==="copiar"){const v=b.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{msg="Copiado.";draw()}).catch(()=>window.prompt("Copie:",v));return}
+}
+window.drawAquaPlug=()=>{if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
+window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora};
+agendar();agendarHook();draw();
+})();
+
 </script>
 <script>
 /* ---------- Celular: barra de navegação inferior, menu "Mais" e instalação como app (PWA) ---------- */
