@@ -707,6 +707,9 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-cota .inp:has(input[id^="us-nome-"]){width:100%;max-width:440px}.us-cota input[id^="us-nome-"],#us-meunome{width:100%;text-align:left;font-family:var(--f-body)}
 /* AquaNictemeral · plugin de automação */
 #aqua-plug{margin-bottom:12px}
+#aqua-orig{margin-bottom:12px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
+.ao-card>summary h2::before{content:"▸ ";color:var(--accent)}.ao-card[open]>summary h2::before{content:"▾ "}.ao-card .pj-body{display:grid;gap:12px}
+.ao-res{margin:0;font-size:15px}.ao-chips .chip b{margin-left:4px;color:var(--ink)}.ao-bar{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.ao-t{font-weight:600}
 .ap-card>summary{list-style:none;cursor:pointer}.ap-card>summary::-webkit-details-marker{display:none}
 .ap-card>summary h2::before{content:"▸ ";color:var(--accent)}.ap-card[open]>summary h2::before{content:"▾ "}
 .ap-card .pj-body{display:grid;gap:12px}.ap-card .pj-tools{margin-left:0}
@@ -825,6 +828,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   </div>
 
   <div id="view-aqua" role="tabpanel" aria-labelledby="tab-aqua" hidden>
+    <div id="aqua-orig"></div>
     <div id="aqua-plug"></div>
     <iframe id="aqua-frame" title="AquaNictemeral: monitoramento nictemeral da água" loading="eager" data-srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;pt-BR&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap&quot;&gt;&lt;script&gt;window.AQUA_KEY=&quot;aquanictemeral.ras.v1&quot;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;title&gt;AquaNictemeral&lt;/title&gt;
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
@@ -1379,16 +1383,26 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       v1.leituras.forEach((l) =&gt; ex.leituras.push({ ...l, unidade: id, data: v1.data || hoje() })); ex.ativa = id; S = ex;
     } else S = gerarExemplo();
   }
-  const salvar = () =&gt; { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+  const salvar = () =&gt; { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} try { window.parent &amp;&amp; window.parent !== window &amp;&amp; window.parent.drawAquaOrig &amp;&amp; window.parent.drawAquaOrig(); } catch (e) {} };
+  // origem de cada leitura (como entrou) e projeto aberto no Sistema RAS na hora do lançamento
+  const ORIG = { manual: &quot;Digitadas no sistema&quot;, arquivo: &quot;Arquivo&quot;, colado: &quot;Dados colados&quot;, link: &quot;Link&quot;, webhook: &quot;Automação (webhook)&quot;, importado: &quot;Importadas (antes do registro de origem)&quot;, exemplo: &quot;Dados de exemplo&quot; };
+  const escO = (x) =&gt; String(x).replace(/[&amp;&lt;&gt;&quot;]/g, (c) =&gt; ({ &quot;&amp;&quot;: &quot;&amp;amp;&quot;, &quot;&lt;&quot;: &quot;&amp;lt;&quot;, &quot;&gt;&quot;: &quot;&amp;gt;&quot;, &#x27;&quot;&#x27;: &quot;&amp;quot;&quot; }[c]));
+  const fonteDe = (l) =&gt; l.origem || (String(l.id).startsWith(&quot;e&quot;) ? &quot;exemplo&quot; : String(l.id).startsWith(&quot;i&quot;) ? &quot;importado&quot; : &quot;manual&quot;);
+  const chaveOrig = (l) =&gt; fonteDe(l) + (l.origemNome ? &quot;|&quot; + l.origemNome : &quot;&quot;);
+  const projAt = () =&gt; { try { const p = window.parent &amp;&amp; window.parent !== window &amp;&amp; window.parent.projAtual &amp;&amp; window.parent.projAtual(); return p ? { pid: p.id, pnome: p.nome } : {}; } catch (e) { return {}; } };
+  const passa = (l) =&gt; { const f = S.fOrig || &quot;&quot;, q = S.fProj || &quot;&quot;;
+    if (f &amp;&amp; !(chaveOrig(l) === f || (!f.includes(&quot;|&quot;) &amp;&amp; fonteDe(l) === f))) return false;
+    if (q &amp;&amp; (q === &quot;__sem&quot; ? !!l.pid : l.pid !== q)) return false; return true; };
+  const LT = () =&gt; S.leituras.filter(passa);
   let sel = null, periodo = 1, filtroEsp = &quot;&quot;, diaPainel = null, mostrarTodos = false;
   const uniById = (id) =&gt; S.unidades.find((u) =&gt; u.id === id);
   const UA = () =&gt; uniById(S.ativa) || S.unidades[0];
   const corUnidade = (u) =&gt; (Number.isInteger(u.cor) ? (u.cor &lt; 0 ? &quot;var(--ink-2)&quot; : u.cor &lt; 8 ? `var(--s${u.cor + 1})` : &quot;var(--ink-3)&quot;) : `var(--s${(S.unidades.indexOf(u) % 8) + 1})`);
-  const diasDisponiveis = () =&gt; [...new Set([...S.leituras.map((l) =&gt; l.data), hoje()])].sort().reverse();
+  const diasDisponiveis = () =&gt; [...new Set([...LT().map((l) =&gt; l.data), hoje()])].sort().reverse();
   // no RAS a água circula por todos os tanques: estes parâmetros são lançados uma vez, na unidade &quot;Água do sistema&quot;
   const SYS = [&quot;ph&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;dureza&quot;, &quot;tan&quot;, &quot;nitrito&quot;, &quot;nitrato&quot;, &quot;salinidade&quot;, &quot;ss_imhoff&quot;, &quot;sst&quot;], SYS_ID = &quot;ras-sistema&quot;;
   const ordH = (a, b) =&gt; a.data.localeCompare(b.data) || Core.minutos(a.hora) - Core.minutos(b.hora);
-  const brutas = (uid, dias) =&gt; S.leituras.filter((l) =&gt; l.unidade === uid &amp;&amp; dias.includes(l.data)).sort(ordH);
+  const brutas = (uid, dias) =&gt; S.leituras.filter((l) =&gt; l.unidade === uid &amp;&amp; dias.includes(l.data) &amp;&amp; passa(l)).sort(ordH);
   function leituras(uid, dias) {
     const g = brutas(uid, dias), u = uniById(uid);
     if (!(S.ras &amp;&amp; u &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS &amp;&amp; uniById(SYS_ID))) return g;
@@ -1525,7 +1539,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;p-esp&quot;).innerHTML = `&lt;option value=&quot;&quot;&gt;Todas&lt;/option&gt;` + presentes.map((e) =&gt; `&lt;option value=&quot;${e}&quot;${e === filtroEsp ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão&quot; }[e]}&lt;/option&gt;`).join(&quot;&quot;);
     const nL = US.reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0);
     $(&quot;p-titulo&quot;).textContent = S.ras ? &quot;Grupos de tanques do RAS&quot; : &quot;Todas as unidades&quot;;
-    $(&quot;p-meta&quot;).innerHTML = `${S.ras ? &quot;vinculado à Calculadora · &quot; : &quot;&quot;}${US.length} unidade(s) · ${periodo === 1 ? diaSemana(dRef) + &quot; &quot; + dataBR(dRef) : dataBR(dias[0]) + &quot; a &quot; + dataBR(dRef)} · ${nL} leituras${S.exemplo ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}`;
+    $(&quot;p-meta&quot;).innerHTML = `${S.ras ? &quot;vinculado à Calculadora · &quot; : &quot;&quot;}${US.length} unidade(s) · ${periodo === 1 ? diaSemana(dRef) + &quot; &quot; + dataBR(dRef) : dataBR(dias[0]) + &quot; a &quot; + dataBR(dRef)} · ${nL} leituras${S.exemplo &amp;&amp; LT().some((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${S.fOrig || S.fProj ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;só &#x27; + escO([S.fOrig ? (ORIG[S.fOrig.split(&quot;|&quot;)[0]] || S.fOrig) + (S.fOrig.includes(&quot;|&quot;) ? &quot;: &quot; + S.fOrig.split(&quot;|&quot;).slice(1).join(&quot;|&quot;) : &quot;&quot;) : &quot;&quot;, S.fProj ? &quot;projeto &quot; + (S.fProj === &quot;__sem&quot; ? &quot;sem projeto&quot; : ((S.leituras.find((l) =&gt; l.pid === S.fProj) || {}).pnome || &quot;&quot;)) : &quot;&quot;].filter(Boolean).join(&quot; · &quot;)) + &quot;&lt;/span&gt;&quot; : &quot;&quot;}`;
     renderKPIs(US, dias, dRef); renderUCards(US, dRef); renderMatriz(US, dias); renderTrends(US, dRef); renderDist(US, dias); renderCad(US, dias); renderAlertas(US, dias);
   }
 
@@ -1724,7 +1738,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   }
   function lerForm() {
     const u = UA(); const hora = $(&quot;f-hora&quot;).value; if (!/^\d{2}:\d{2}$/.test(hora)) return { erro: &quot;Informe a hora da leitura (ex.: 06:00).&quot; };
-    const l = { id: &quot;l&quot; + Date.now(), unidade: u.id, data: S.dia || hoje(), hora, profundidade: $(&quot;f-prof&quot;).value }; let n = 0;
+    const l = { id: &quot;l&quot; + Date.now(), unidade: u.id, data: S.dia || hoje(), hora, profundidade: $(&quot;f-prof&quot;).value, origem: &quot;manual&quot;, ...projAt() }; let n = 0;
     for (const [, ps] of camposU(u)) for (const p of ps) { const raw = $(&quot;f-&quot; + p).value.trim().replace(&quot;,&quot;, &quot;.&quot;); if (raw === &quot;&quot;) continue; const v = Number(raw); if (!Number.isFinite(v)) return { erro: `Valor inválido em ${curto[p]}.` }; l[p] = v; n++; }
     if (!n) return { erro: &quot;Preencha pelo menos um parâmetro.&quot; };
     if (l.ph !== undefined &amp;&amp; (l.ph &lt; 0 || l.ph &gt; 14)) return { erro: &quot;pH deve ficar entre 0 e 14.&quot; };
@@ -1953,8 +1967,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       for (const p of PS) { const v = typeof it[p] === &quot;number&quot; ? it[p] : Number(String(it[p] == null ? &quot;&quot; : it[p]).replace(&quot;,&quot;, &quot;.&quot;)); if (it[p] !== undefined &amp;&amp; it[p] !== &quot;&quot; &amp;&amp; Number.isFinite(v)) vals[p] = v; }
       if (!Object.keys(vals).length) { r.ignoradas++; continue; }
       const ix = S.leituras.findIndex((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) &amp;&amp; l.unidade === u.id &amp;&amp; l.data === it.data &amp;&amp; l.hora === it.hora &amp;&amp; (l.profundidade || &quot;superfície&quot;) === prof);
-      if (ix &gt;= 0) { Object.assign(S.leituras[ix], vals); r.atualizadas++; }
-      else { S.leituras.push({ id: &quot;i&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), unidade: u.id, data: it.data, hora: it.hora, profundidade: prof, ...vals }); r.novas++; }
+      const og = { origem: op.tipo || &quot;arquivo&quot;, ...(op.nome ? { origemNome: String(op.nome).slice(0, 120) } : {}), ...projAt() };
+      if (ix &gt;= 0) { Object.assign(S.leituras[ix], vals, og); r.atualizadas++; }
+      else { S.leituras.push({ id: &quot;i&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), unidade: u.id, data: it.data, hora: it.hora, profundidade: prof, ...vals, ...og }); r.novas++; }
       dias.add(it.data); uns.add(u.id);
     }
     r.dias = [...dias].sort(); r.unidades = [...uns];
@@ -1971,12 +1986,22 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
   // resumo para o Painel da página-mãe: último dia com leituras de cada unidade
   window.aquaResumo = () =&gt; S.unidades.map((u) =&gt; {
-    const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []), dias = [...new Set(S.leituras.filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].sort();
+    const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []), dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].sort();
     const dia = dias[dias.length - 1]; if (!dia) return { id: u.id, nome: u.nome || u.id, especie: u.especie, n: 0 };
     const mt = metricasDia(u, dia), L = mt.L || [], ult = L[L.length - 1] || {};
     return { id: u.id, nome: u.nome || u.id, especie: u.especie, dia, dias: dias.length, n: mt.n, odMin: mt.odMin, odMinHora: mt.odMinHora, odMinSt: mt.odMinSt, odPrev: mt.odPrev, odPrevSt: mt.odPrevSt, dph: mt.dph, nh3: mt.nh3, nh3St: mt.nh3St, st: mt.st, temp: ult.temperatura, ph: ult.ph, hora: ult.hora, exemplo: !!u.exemplo };
   });
   window.aquaAbrir = (id, dia) =&gt; { if (uniById(id)) { S.ativa = id; if (dia) S.dia = dia; sel = null; salvar(); irPara(&quot;unidade&quot;); } };
+
+  // origem dos dados: lista as origens e projetos com quantas leituras cada um tem, e escolhe quais o AquaNictemeral processa
+  window.aquaOrigens = () =&gt; { const o = {}, pj = {};
+    for (const l of S.leituras) { const k = chaveOrig(l), t = fonteDe(l); (o[k] = o[k] || { key: k, tipo: t, rotulo: ORIG[t] || t, nome: l.origemNome || &quot;&quot;, n: 0 }).n++;
+      const pk = l.pid || &quot;__sem&quot;; (pj[pk] = pj[pk] || { pid: pk, pnome: l.pid ? l.pnome || &quot;Projeto&quot; : &quot;Sem projeto&quot;, n: 0 }).n++; }
+    const ord = Object.keys(ORIG);
+    return { origens: Object.values(o).sort((a, b) =&gt; ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || &quot;&quot;, fProj: S.fProj || &quot;&quot;, total: S.leituras.length, visiveis: LT().length }; };
+  window.aquaFiltroOrigem = (fo, fp) =&gt; { S.fOrig = fo || &quot;&quot;; S.fProj = fp || &quot;&quot;; diaPainel = null; sel = null;
+    const ds = LT().map((l) =&gt; l.data).sort(); if (ds.length &amp;&amp; !ds.includes(S.dia)) S.dia = ds[ds.length - 1];
+    salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
 
   // --------------------------------------------------- vínculo com o Sistema RAS Multitanques
   // a página-mãe chama window.aquaSync(grupos) ao abrir a aba; cada grupo de tanques vira uma unidade
@@ -5505,6 +5530,7 @@ function chip(){
 
 window.drawProj=()=>{st.confirm=null;draw()};
 window.projChip=chip;
+window.projAtual=()=>{const c=atual();return c&&c.id&&c.modo===st.mode?{id:c.id,nome:c.nome||"Projeto"}:null};
 window.projApi={list:()=>back().list(),del:id=>back().del(id),reload:recarregar,
   relogin(){recarregar()}};
 const chipBtn=document.getElementById("proj-chip");chipBtn&&chipBtn.addEventListener("click",()=>setView("proj"));
@@ -6294,7 +6320,8 @@ async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="
 function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
 async function importar(lista,origem){const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu. Abra a aba e tente de novo.");
   const sal=lista.map(o=>o.salinidade).filter(v=>typeof v==="number"),esp=sal.length&&sal.reduce((a,b)=>a+b,0)/sal.length>5?"camarao":undefined;
-  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp});
+  const tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:"";
+  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp,tipo,nome});
   C.log.unshift({em:Date.now(),origem,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias});C.log=C.log.slice(0,12);salvar();return r}
 const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} unidade${r.criadas.length===1?" criada":"s criadas"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem unidade ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
 
@@ -6382,7 +6409,32 @@ function acao(a,b){
   if(a==="recolher"){rodar(async()=>await recolher(false)||msg);return}
   if(a==="copiar"){const v=b.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{msg="Copiado.";draw()}).catch(()=>window.prompt("Copie:",v));return}
 }
-window.drawAquaPlug=()=>{if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
+/* ---- origem dos dados: projeto aberto e por onde as leituras entraram; escolhe o que o AquaNictemeral processa ---- */
+const boxO=document.getElementById("aqua-orig");let origAberto=false;
+const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥",exemplo:"🧪"};
+function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow;if(w&&w.aquaOrigens)O=w.aquaOrigens()}catch(e){}
+  const pa=window.projAtual?window.projAtual():null;
+  if(!O){boxO.innerHTML=`<div class="ao-bar"><span class="ao-t">🗂 Origem dos dados</span><span class="muted">abrindo o AquaNictemeral…</span></div>`;pronto().then(w=>{if(w)drawOrig()});return}
+  const cur=O.origens.find(o=>o.key===O.fOrig),tipoSel=!cur&&O.fOrig?O.fOrig:"",curP=O.projetos.find(p=>p.pid===O.fProj);
+  const rot=o=>(ICO[o.tipo]||"")+" "+o.rotulo+(o.nome?": "+(o.nome.length>48?o.nome.slice(0,45)+"…":o.nome):"");
+  const tipos=[...new Set(O.origens.map(o=>o.tipo))];
+  const resumo=O.fOrig||O.fProj?`Processando só: <b>${E([cur?rot(cur):tipoSel?(ICO[tipoSel]||"")+" "+((O.origens.find(o=>o.tipo===tipoSel)||{}).rotulo||tipoSel):"",curP?"projeto "+curP.pnome:""].filter(Boolean).join(" · "))}</b> · ${O.visiveis} de ${O.total} leituras`:`Processando <b>todas as origens</b> · ${O.total} leitura${O.total===1?"":"s"}`;
+  boxO.innerHTML=`<details class="card wide ao-card"${origAberto?" open":""}><summary class="card-head"><h2>🗂 Origem dos dados<span>Projeto aberto: ${pa?E(pa.nome):"nenhum (projeto não salvo)"} · ${resumo.replace(/<[^>]+>/g,"")}</span></h2></summary><div class="pj-body">
+   <p class="ao-res">${resumo}</p>
+   <div class="ao-chips chips">${O.origens.length?O.origens.map(o=>`<button type="button" class="chip${O.fOrig===o.key?" on":""}" data-ao="${E(o.key)}" title="${E(o.nome||o.rotulo)}">${E(rot(o))} <b>${o.n}</b></button>`).join(""):`<span class="muted">Nenhuma leitura ainda.</span>`}</div>
+   <div class="rp-grid"><label>Origem processada<select class="lv-sel" id="ao-orig"><option value="">Todas as origens (${O.total})</option>
+     ${tipos.length>1||O.origens.length>tipos.length?tipos.map(t=>{const os=O.origens.filter(o=>o.tipo===t),n=os.reduce((a,o)=>a+o.n,0);return `<option value="${E(t)}"${O.fOrig===t?" selected":""}>${E((ICO[t]||"")+" "+os[0].rotulo)}: todas (${n})</option>`+(os.length>1||os[0].nome?os.map(o=>`<option value="${E(o.key)}"${O.fOrig===o.key?" selected":""}>↳ ${E(rot(o))} (${o.n})</option>`).join(""):"")}).join(""):O.origens.map(o=>`<option value="${E(o.key)}"${O.fOrig===o.key?" selected":""}>${E(rot(o))} (${o.n})</option>`).join("")}</select></label>
+    <label>Projeto<select class="lv-sel" id="ao-proj"><option value="">Todos os projetos</option>${O.projetos.map(p=>`<option value="${E(p.pid)}"${O.fProj===p.pid?" selected":""}>${E(p.pnome)} (${p.n})</option>`).join("")}</select></label></div>
+   <div class="pj-btns">${O.fOrig||O.fProj?`<button type="button" class="btn" data-ao-limpa="1">Processar todas as origens</button>`:""}</div>
+   <p class="muted">Cada leitura guarda por onde entrou: digitada no formulário da unidade, arquivo, dados colados, link, automação (webhook) ou exemplo, e o projeto que estava aberto na hora (botão de projeto no topo do app). Ao escolher uma origem, o painel, os gráficos, os alertas e o resumo do Painel passam a usar só essas leituras; as outras ficam guardadas. Leituras lançadas antes desta versão aparecem como "Digitadas no sistema" ou "Importadas" e sem projeto.</p>
+  </div></details>`;
+  const d=boxO.querySelector("details");d.addEventListener("toggle",()=>{origAberto=d.open});
+  const aplicar=(fo,fp)=>{try{frame().contentWindow.aquaFiltroOrigem(fo,fp)}catch(e){}drawOrig()};
+  boxO.querySelectorAll("[data-ao]").forEach(b=>b.addEventListener("click",()=>aplicar(O.fOrig===b.dataset.ao?"":b.dataset.ao,O.fProj)));
+  const so=boxO.querySelector("#ao-orig"),sp=boxO.querySelector("#ao-proj");so&&so.addEventListener("change",()=>aplicar(so.value,O.fProj));sp&&sp.addEventListener("change",()=>aplicar(O.fOrig,sp.value));
+  const lp=boxO.querySelector("[data-ao-limpa]");lp&&lp.addEventListener("click",()=>aplicar("",""))}
+let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(drawOrig,80)};
+window.drawAquaPlug=()=>{drawOrig();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
 window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora,lerArquivo};
 agendar();agendarHook();draw();
 })();
