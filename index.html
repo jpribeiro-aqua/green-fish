@@ -5586,7 +5586,7 @@ async function trocarSenha(){await rodar(async()=>{await Auth.trocar(val("us-pa"
 /* ---- ações do dono do app (nuvem) ---- */
 async function decidir(id,status){await rodar(async()=>{
   if(Auth.supa()&&!Auth.dono()){if(status!=="ativo"&&status!=="suspenso")throw {msg:"Só o dono do app faz isso."};const r=await Auth.admStatus(id,status);await carregar();aviso(r==="ja_ativo"?"Esta pessoa já estava ativa.":status==="ativo"?"Membro reativado.":"Membro suspenso.");return}
-  const x=st.lista.find(y=>y.id===id),novo={...((x&&x.ac)||{}),status,em:Date.now()};if(status==="suspenso"&&Auth.dono())novo.suspensoPorDono=true;else delete novo.suspensoPorDono;
+  const x=st.lista.find(y=>y.id===id),novo={...((x&&x.ac)||{}),status,em:Date.now()};if(status==="ativo"&&!(x&&x.ac&&x.ac.por&&["ativo","suspenso"].includes(x.ac.status))){novo.por=st.uid;novo.liberadoEm=Date.now()}if(status==="suspenso"&&Auth.dono())novo.suspensoPorDono=true;else delete novo.suspensoPorDono;
   await st.db.doc("acessos/"+id).set(novo);if(x)x.ac=novo;
   if(status==="ativo"&&cobAtiva()&&!st.ass[id]){const a={plano:(st.admins.has(id)||planoAvancado(novo))?"avancado":"basico",vencimento:Date.now(),criada:Date.now()};await st.db.doc("assinaturas/"+id).set(a);st.ass[id]=a}
   aviso({ativo:"Acesso liberado."+(cobAtiva()?" A assinatura foi aberta: a pessoa tem a carência para pagar a primeira mensalidade.":""),suspenso:"Acesso suspenso: a pessoa continua inscrita, mas não salva nem abre projetos até ser reativada.",cancelado:"Inscrição cancelada: a pessoa perde o acesso ao salvamento de projetos. Os projetos dela continuam na conta dela."}[status]);
@@ -5727,8 +5727,8 @@ const menuAcoes=arr=>{const l=arr.filter(Boolean);if(!l.length)return `<span cla
 const nomeDe=x=>x?((st.nomes[x.id]&&st.nomes[x.id].name)||x.insc.ident||"Pessoa sem nome visível"):"Pessoa";
 /* nome visível: cada pessoa muda o próprio em Minha conta; o dono muda o de qualquer pessoa e o administrador, o dos membros da equipe */
 /* quem autorizou: quem colocou a pessoa na equipe (equipePor) e/ou quem liberou o acesso (acessos.por) */
-const quemNome=id=>{if(!id)return "";if(id===st.uid)return "você";const n=st.nomes[id];if(n&&n.name)return n.name;const a=st.admins.get(id);if(a&&a.dono)return "dono do app";if(a)return "administrador da equipe "+id.slice(0,8);return "outra pessoa"};
-const autorInfo=x=>{const i=(x&&x.insc)||{},ac=(x&&x.ac)||{},lib=ac.por&&["ativo","suspenso"].includes(ac.status)?ac.por:null,eqp=codOk(i.equipe)&&i.equipePor?i.equipePor:null;
+const quemNome=id=>{if(!id)return "";if(id==="__dono")return Auth.dono()?"você":"dono do app";if(id===st.uid)return "você";const n=st.nomes[id];if(n&&n.name)return n.name;const a=st.admins.get(id);if(a&&a.dono)return "dono do app";if(a)return "administrador da equipe "+id.slice(0,8);return "outra pessoa"};
+const autorInfo=x=>{const i=(x&&x.insc)||{},ac=(x&&x.ac)||{},lib=["ativo","suspenso"].includes(ac.status)?(ac.por||"__dono"):null,eqp=codOk(i.equipe)&&i.equipePor?i.equipePor:null;
   if(!lib&&!eqp)return null;return {eqp,eqEm:i.equipeEm,lib,libEm:ac.liberadoEm||ac.em}};
 const autorTag=x=>{const a=autorInfo(x);if(!a)return "";const q=id=>`<b>${esc(quemNome(id))}</b>`,d=t=>t?" em "+dia(t):"";
   const t=a.eqp&&a.lib&&a.eqp!==a.lib?`na equipe por ${q(a.eqp)}${d(a.eqEm)} · acesso liberado por ${q(a.lib)}${d(a.libEm)}`:`autorizado(a) por ${q(a.eqp||a.lib)}${d(a.eqp?a.eqEm:a.libEm)}`;
@@ -5833,7 +5833,7 @@ function draw(){
        <div class="pj-form us-form"><label for="us-ident">Identificação</label><div class="inp"><input id="us-ident" maxlength="120" placeholder="Nome, instituição ou matrícula (opcional)" value="${esc(st.ident)}"></div>${Auth.supa()?`<label for="us-equipe">Código da equipe</label><div class="inp"><input id="us-equipe" maxlength="8" autocapitalize="off" placeholder="Recebido do seu administrador (opcional)" value="${esc(st.equipeCod||"")}"></div>`:""}</div>${Auth.supa()&&codOk(st.equipeCod)?`<p>Equipe: <b>${st.equipeNome?"de "+esc(st.equipeNome):"código "+esc(st.equipeCod)+" (não encontrado)"}</b></p>`:""}
        ${cf&&cf.t==="cancel-me"?cancelaConf(`<label class="us-chk"><input type="checkbox" id="us-apagar"${st.apagar?" checked":""}> Excluir também todos os meus projetos salvos na conta (não dá para desfazer)</label>`):
        `<div class="pj-btns">${!temInsc?`<button type="button" class="btn solid" id="us-insc">${st.minha?"Inscrever-me de novo":"Inscrever-me"}</button>`:`<button type="button" class="btn" id="us-insc">Atualizar identificação</button><button type="button" class="btn warn" id="us-cancel">Cancelar minha inscrição</button>`}</div>`}
-       ${(()=>{if(st.owner)return "";const i=st.minha||{},ac=st.meuAcesso||{},por=(codOk(i.equipe)&&i.equipePor)||(ac.por&&["ativo","suspenso"].includes(ac.status)?ac.por:null);if(!por)return "";
+       ${(()=>{if(st.owner)return "";const i=st.minha||{},ac=st.meuAcesso||{},por=(codOk(i.equipe)&&i.equipePor)||(["ativo","suspenso"].includes(ac.status)?(ac.por||"__dono"):null);if(!por)return "";
          const ehAdmEq=codOk(st.equipeCod)&&por.slice(0,8)===st.equipeCod,quem=ehAdmEq?(st.equipeNome?"administrador(a) "+st.equipeNome:"administrador(a) da sua equipe"):"dono do app",em=(codOk(i.equipe)&&i.equipePor?i.equipeEm:(ac.liberadoEm||ac.em));
          return `<p>Autorizado(a) por: <b>${esc(quem)}</b>${em?` <span class="muted">em ${dataBR(em)}</span>`:""}</p>`})()}
        <p>Versão: <b>${planoAvancado(st.meuAcesso)?"Avançada (todas as abas)":"Básica"}</b></p>${st.meuPrazo&&st.meuPrazo.ate?`<p>Prazo de uso: ${prazoTag(st.meuPrazo)}</p>`:""}
