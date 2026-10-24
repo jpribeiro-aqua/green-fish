@@ -689,6 +689,18 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-pro-tag{margin-left:auto;font:600 11px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--warn);border:1px solid var(--warn);border-radius:999px;padding:2px 8px}
 .us-pro-list{margin:0;padding-left:18px;color:var(--muted);font-size:14px;display:grid;gap:4px}
 .us-pro p{margin:0}
+/* Aba em evidência no Painel */
+.foco-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.foco-bar .fb-t{font-size:14px;color:var(--ink)}.foco-bar .fb-b{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.foco-bar .chips{display:flex;flex-wrap:wrap;gap:6px}
+.fc-kpis{display:grid;align-items:start;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:12px}
+.fc-kpi{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;gap:2px;background:var(--bg)}
+.fc-kpi span{font-size:12px;color:var(--muted)}.fc-kpi b{font:600 20px var(--f-data,inherit)}.fc-kpi small{font-size:12px;color:var(--muted)}
+.fc-kpi.bad{border-color:var(--bad,#b4532a)}.fc-kpi.bad b{color:var(--bad,#b4532a)}.fc-kpi.ok b{color:var(--accent)}
+.fc-tab td small{display:block;color:var(--muted);font-size:12px}.fc-tab td .us-st{font-size:11px}
+.fc-tab a{color:var(--ink);text-decoration:none}.fc-tab a:hover b{color:var(--accent);text-decoration:underline}
+@media (max-width:640px){.foco-bar .fb-b{margin-left:0}.fc-tab td[data-l]{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}.fc-tab td[data-l]::before{content:attr(data-l);color:var(--muted);font-size:12px}.fc-tab td[data-l] small{display:inline;margin-left:4px}}
+
 .us-autor,.pj-tab td small.us-autor{display:block;color:var(--accent);font-size:12px}.us-autor b,.pj-tab td .us-autor b{font:inherit;font-weight:700;color:inherit;display:inline}
 .us-email{display:block;color:var(--muted);font:12px var(--f-mono);word-break:break-all}
 .us-nomebox{display:flex;gap:8px;align-items:center}.us-nomebox input{flex:1;min-width:0}
@@ -747,6 +759,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
     <button type="button" class="btn" id="print">Imprimir / PDF</button>
   </nav>
 
+  <div id="foco-bar" class="foco-bar" hidden></div>
   <div class="dash" id="view-dash" role="tabpanel" aria-labelledby="tab-dash"></div>
   <div class="dash" id="view-local" role="tabpanel" aria-labelledby="tab-local" hidden></div>
   <div class="dash" id="view-repro" role="tabpanel" aria-labelledby="tab-repro" hidden></div>
@@ -1956,6 +1969,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return r;
   };
 
+  // resumo para o Painel da página-mãe: último dia com leituras de cada unidade
+  window.aquaResumo = () =&gt; S.unidades.map((u) =&gt; {
+    const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []), dias = [...new Set(S.leituras.filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].sort();
+    const dia = dias[dias.length - 1]; if (!dia) return { id: u.id, nome: u.nome || u.id, especie: u.especie, n: 0 };
+    const mt = metricasDia(u, dia), L = mt.L || [], ult = L[L.length - 1] || {};
+    return { id: u.id, nome: u.nome || u.id, especie: u.especie, dia, dias: dias.length, n: mt.n, odMin: mt.odMin, odMinHora: mt.odMinHora, odMinSt: mt.odMinSt, odPrev: mt.odPrev, odPrevSt: mt.odPrevSt, dph: mt.dph, nh3: mt.nh3, nh3St: mt.nh3St, st: mt.st, temp: ult.temperatura, ph: ult.ph, hora: ult.hora, exemplo: !!u.exemplo };
+  });
+  window.aquaAbrir = (id, dia) =&gt; { if (uniById(id)) { S.ativa = id; if (dia) S.dia = dia; sel = null; salvar(); irPara(&quot;unidade&quot;); } };
+
   // --------------------------------------------------- vínculo com o Sistema RAS Multitanques
   // a página-mãe chama window.aquaSync(grupos) ao abrir a aba; cada grupo de tanques vira uma unidade
   window.aquaSync = (gs) =&gt; {
@@ -2292,35 +2314,112 @@ function dcard(title,sub,body,wide){
   return `<section class="card${wide?" wide":""}"><div class="card-head"><h2>${title}<span>${sub}</span></h2></div><div class="body">${body}</div></section>`;
 }
 
+/* ---------- Aba em evidência: o Painel mostra só os dados da aba escolhida (ou de todas) ---------- */
+const FOCO_K="ras-foco-painel",FOCOS=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"]];
+let foco=(()=>{try{return localStorage.getItem(FOCO_K)||""}catch(e){return ""}})(),focoTent=0,focoTimer=null;
+const focoPode=a=>!window.abaPermitida||abaPermitida(a);
+const focoVe=a=>(!foco||foco===a)&&focoPode(a);
+const focoNome=a=>(FOCOS.find(x=>x[0]===a)||[])[1]||"";
+function setFoco(a){foco=a||"";try{localStorage.setItem(FOCO_K,foco)}catch(e){}const t=document.querySelector('.tab[aria-selected="true"]');drawFocoBar(t?t.dataset.view:"dash");drawDash()}
+function focoRender(blocos){
+  if(foco&&!focoPode(foco))foco="";
+  const ord=a=>FOCOS.findIndex(x=>x[0]===a);
+  const vis=blocos.filter(([a,h])=>h&&focoVe(a)).sort((x,y)=>ord(x[0])-ord(y[0]));
+  if(foco&&!vis.length)return `<section class="card wide"><div class="note">A aba <b>${esc(focoNome(foco))}</b> ainda não tem dados para mostrar no Painel. <a href="#" data-goto="${foco}">Abrir a aba ${esc(focoNome(foco))}</a> ou <a href="#" data-foco="">mostrar todas as abas</a>.</div></section>`;
+  return vis.map(b=>b[1]).join("");
+}
+function focoOutros(){const B=[];
+  if(focoVe("local")&&window.localDashHTML)B.push(["local",localDashHTML()]);
+  if(focoVe("aqua"))B.push(["aqua",aquaDashHTML()]);
+  if(focoVe("bio"))B.push(["bio",(window.shrimpDashHTML?shrimpDashHTML():"")+bioDashHTML()]);
+  if(focoVe("repro")&&window.reproDashHTML)B.push(["repro",reproDashHTML()]);
+  if(focoVe("topo"))B.push(["topo",topoDashHTML()]);
+  return B}
+function focoDepois(){}
+const fcK=l=>`<div class="fc-kpis">${l.map(([t,v,s,c])=>`<div class="fc-kpi${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`).join("")}</div>`;
+const fcHead=(t,s,go,lbl)=>`<div class="card-head"><h2>${t}<span>${s}</span></h2>${go?`<a href="#" class="btn" data-goto="${go}" style="margin-left:auto;text-decoration:none">${lbl||"Abrir a aba"}</a>`:""}</div>`;
+
+/* AquaNictemeral: último dia com leituras de cada unidade */
+function aquaDashHTML(){
+  let R=null;try{const w=aquaFrame.contentWindow;if(w&&w.aquaResumo)R=w.aquaResumo()}catch(e){}
+  if(!R){if(typeof loadAqua==="function")loadAqua();clearTimeout(focoTimer);if(focoTent++<30)focoTimer=setTimeout(()=>{if(!dashEl.hidden)drawDash()},400);
+    return `<section class="card wide">${fcHead("AquaNictemeral","Qualidade da água","aqua","Abrir AquaNictemeral")}<div class="note">Carregando as leituras do AquaNictemeral…</div></section>`}
+  focoTent=0;
+  const com=R.filter(u=>u.n);
+  if(!com.length)return `<section class="card wide">${fcHead("AquaNictemeral","Qualidade da água","aqua","Abrir AquaNictemeral")}<div class="note">Nenhuma leitura de água ainda. Lance as leituras na aba AquaNictemeral ou importe um arquivo pelo 🔌 Conectar automação.</div></section>`;
+  const ST={ideal:["ideal","ok"],alerta:["alerta","wait"],critico:["crítico","bad"],letal:["letal","bad"],sem_faixa:["sem faixa",""]};
+  const tag=s=>s&&ST[s]?`<span class="us-st ${ST[s][1]}">${ST[s][0]}</span>`:"";
+  const dBR=d=>d?d.split("-").reverse().join("/"):"—",nu=(v,k)=>typeof v==="number"&&isFinite(v)?fmt(v,k):"—";
+  const graves=com.filter(u=>u.st==="critico"||u.st==="letal"),odm=com.filter(u=>typeof u.odMin==="number").sort((a,b)=>a.odMin-b.odMin)[0];
+  const ult=com.map(u=>u.dia).sort().pop(),ex=com.some(u=>u.exemplo);
+  const k=fcK([["Unidades com leituras",f0(com.length),`de ${f0(R.length)} unidades`],["Em situação grave",f0(graves.length),graves.length?graves.map(u=>esc(u.nome)).join(", "):"nenhuma",graves.length?"bad":"ok"],
+    ["Menor OD",odm?nu(odm.odMin,1)+" mg/L":"—",odm?`${esc(odm.nome)} · ${dBR(odm.dia)} ${odm.odMinHora||""}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"bad":""],["Última leitura",dBR(ult),ex?"inclui dados de exemplo":""]]);
+  const linhas=com.slice().sort((a,b)=>({letal:0,critico:1,alerta:2,ideal:3}[a.st]??4)-({letal:0,critico:1,alerta:2,ideal:3}[b.st]??4)).map(u=>`<tr><td><a href="#" data-aqua-u="${esc(u.id)}" data-dia="${esc(u.dia)}"><b>${esc(u.nome)}</b></a><small>${dBR(u.dia)} · ${f0(u.n)} leitura${u.n===1?"":"s"}${u.dias>1?` · ${f0(u.dias)} dias`:""}</small></td>
+    <td class="num" data-l="OD mín.">${nu(u.odMin,1)}<small>${u.odMinHora||""} ${tag(u.odMinSt)}</small></td><td class="num" data-l="OD previsto 06:00">${nu(u.odPrev,1)}<small>${tag(u.odPrevSt)}</small></td><td class="num" data-l="Temp. (°C)">${nu(u.temp,1)}</td><td class="num" data-l="pH">${nu(u.ph,2)}</td><td class="num" data-l="ΔpH 24 h">${nu(u.dph,2)}</td><td class="num" data-l="NH₃ (mg/L)">${nu(u.nh3,3)}<small>${tag(u.nh3St)}</small></td><td data-l="Situação">${tag(u.st)}</td></tr>`).join("");
+  return `<section class="card wide">${fcHead("AquaNictemeral",`Qualidade da água · último dia com leituras de cada unidade${ex?" · dados de exemplo":""}`,"aqua","Abrir AquaNictemeral")}<div class="pj-body">${k}
+    <div class="scroll"><table class="pj-tab fc-tab"><thead><tr><th>Unidade</th><th class="num">OD mín. (mg/L)</th><th class="num">OD previsto 06:00</th><th class="num">Temp. (°C)</th><th class="num">pH</th><th class="num">ΔpH 24 h</th><th class="num">NH₃ (mg/L)</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <p class="muted">Toque no nome da unidade para abrir o dia no AquaNictemeral. Temperatura e pH são da última leitura do dia.</p></div></section>`}
+
+/* Biomassa: situação de cada grupo hoje (ou na data escolhida na aba Biomassa) */
+function bioDashHTML(){
+  const fms=feedModels()||[];if(!fms.length)return "";
+  const now=bioRef===null?Date.now():bioRef,dBR=t=>t?new Date(t).toLocaleDateString("pt-BR"):"—";
+  let bio=0,ani=0,gan=0,rac=0,ativos=0;
+  const linhas=fms.map(m=>{const v=m.ok?m.at(now):{};if(v.on){ativos++;bio+=v.bio;ani+=v.n;gan+=v.gain;rac+=v.feed}
+    const sit=!m.ok?`<span class="us-st wait">dados incompletos</span>`:v.on?`<span class="us-st ok">dia ${f0(Math.floor(v.e))}</span><small>${esc(v.phase||"")}</small>`:v.pre?`<span class="muted">povoa em ${dBR(m.start)}</span>`:`<span class="muted">despescado</span>`;
+    return `<tr><td><i class="sw" style="background:${m.color}"></i> <b>${esc(m.name)}</b><small>${esc(m.sp.name)}</small></td><td data-l="Situação">${sit}</td><td class="num" data-l="Peso médio">${v.on?n(v.w,v.w<10?1:0)+" g":"—"}</td><td class="num" data-l="Animais">${v.on?f0(v.n):"—"}</td><td class="num" data-l="Biomassa">${v.on?n(v.bio,0)+" kg":"—"}</td><td class="num" data-l="Ração/dia">${v.on?n(v.feed,1)+" kg":"—"}</td><td data-l="Despesca prevista">${m.ok?dBR(m.harvest):"—"}</td></tr>`}).join("");
+  return `<section class="card wide">${fcHead("Biomassa",`${bioRef===null?"Hoje":"Na data "+dBR(now)} · ${f0(ativos)} de ${f0(fms.length)} grupo${fms.length===1?"":"s"} em cultivo`,"bio","Abrir Biomassa")}<div class="pj-body">
+    ${fcK([["Biomassa agora",n(bio,0)+" kg",""],["Animais vivos",f0(ani),""],["Ganho de peso",n(gan,1)+" kg/dia",""],["Ração do dia",n(rac,1)+" kg",""]])}
+    <div class="scroll"><table class="pj-tab fc-tab"><thead><tr><th>Grupo</th><th>Situação</th><th class="num">Peso médio</th><th class="num">Animais</th><th class="num">Biomassa</th><th class="num">Ração/dia</th><th>Despesca prevista</th></tr></thead><tbody>${linhas}</tbody></table></div></div></section>`}
+
+/* Levantamentos e projetos: resumo do projeto aberto */
+function topoDashHTML(){
+  const T=window.topoResumo&&topoResumo();if(!T)return "";
+  const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0});
+  return `<section class="card wide">${fcHead("Levantamentos e projetos",esc(T.nome||"Projeto sem nome"),"topo","Abrir Levantamentos")}<div class="pj-body">
+    ${fcK([["Área levantada",isFinite(T.ha)?fmt(T.ha,2)+" ha":"—",""],["Viveiros projetados",f0(T.n||0),T.esp?fmt(T.esp/10000,2)+" ha de espelho d'água":""],["Água nos viveiros",f0(Math.round(T.agua||0))+" m³",""],
+      ["Corte",f0(Math.round(T.corte||0))+" m³",""],["Aterro",f0(Math.round(T.aterro||0))+" m³",""],["Terraplenagem",T.custo?brl(T.custo):"—",T.mov?f0(Math.round(T.mov))+" m³ movimentados":""]])}</div></section>`}
+
+/* barra "em evidência": no Painel escolhe a aba; nas outras abas põe a aba atual em evidência */
+function drawFocoBar(v){const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";
+  if(v==="dash"){b.hidden=false;b.innerHTML=`<span class="fb-t">📌 Em evidência no Painel</span><div class="chips">${[["","Todas as abas"],...opts].map(([a,t])=>`<button type="button" class="chip${foco===a?" on":""}" data-foco="${a}" aria-pressed="${foco===a}">${esc(t)}</button>`).join("")}</div>`;return}
+  const it=opts.find(x=>x[0]===v);if(!it){b.hidden=true;b.innerHTML="";return}
+  b.hidden=false;b.innerHTML=foco===v
+    ?`<span class="fb-t">📌 <b>${esc(it[1])}</b> está em evidência: o Painel mostra só os dados desta aba.</span><div class="fb-b"><button type="button" class="btn" data-goto="dash">Ver no Painel</button><button type="button" class="btn" data-foco="">Mostrar todas</button></div>`
+    :`<span class="fb-t">${foco?`O Painel está mostrando só <b>${esc(focoNome(foco))}</b>.`:"O Painel mostra todas as abas."}</span><div class="fb-b"><button type="button" class="btn solid" data-foco="${v}" data-ir="1">📌 Pôr ${esc(it[1])} em evidência</button></div>`}
+document.addEventListener("click",e=>{const f=e.target.closest("[data-foco]");if(f){e.preventDefault();setFoco(f.dataset.foco);if(f.dataset.ir)setView("dash");return}
+  const u=e.target.closest("[data-aqua-u]");if(u){e.preventDefault();setView("aqua");const go=()=>{try{const w=aquaFrame.contentWindow;if(w&&w.aquaAbrir){w.aquaAbrir(u.dataset.aquaU,u.dataset.dia);return true}}catch(er){}return false};
+    if(!go()){let k=0;const t=setInterval(()=>{if(go()||++k>20)clearInterval(t)},250)}}});
+
 function drawDash(){
   const el=document.getElementById("view-dash");
   if(!dashState||el.hidden) return;
   const {p,r,groups,nTanks,ok}=dashState;
-  if(!ok){el.innerHTML=`<section class="card wide"><div class="note">${dashState.errs.length?`O painel aparece quando os parâmetros e os tanques estiverem válidos (${dashState.errs.length} ${dashState.errs.length===1?"campo precisa":"campos precisam"} de correção).`:"O painel aparece quando houver pelo menos um tanque com volume."} <a href="#" data-goto="calc">Abrir a calculadora</a>.</div></section>`+(window.reproDashHTML&&(!window.abaPermitida||abaPermitida("repro"))?reproDashHTML():"");return}
+  if(!ok){el.innerHTML=focoRender([["calc",`<section class="card wide"><div class="note">${dashState.errs.length?`O painel aparece quando os parâmetros e os tanques estiverem válidos (${dashState.errs.length} ${dashState.errs.length===1?"campo precisa":"campos precisam"} de correção).`:"O painel aparece quando houver pelo menos um tanque com volume."} <a href="#" data-goto="calc">Abrir a calculadora</a>.</div></section>`],...focoOutros()]);focoDepois();return}
   const all=groups.filter(g=>g.vol>0).map(withColor);
   const gs=colored(groups.filter(g=>g.vol>0));
   const share=g=>p.perEsp&&r.BM>0?(g.bm||0)/r.BM:g.vol/p.V;
-  let h=(window.localDashHTML&&(!window.abaPermitida||abaPermitida("local"))?localDashHTML():"")+(window.shrimpDashHTML?shrimpDashHTML():"")+(window.reproDashHTML&&(!window.abaPermitida||abaPermitida("repro"))?reproDashHTML():"");
+  let hc="",hr="";
 
   // 1. Distribuição da água (parte do todo)
   const stack=gs.map(g=>`<div style="flex:${g.vol} 1 0;background:${g.color}" ${tipAttr(g.name,`${n(g.vol,0)} m³ · ${fmt(share(g)*100,1)} % da água`)}></div>`).join("");
   const legend=gs.map(g=>`<div class="li"><i class="sw" style="background:${g.color}"></i><span class="nm">${esc(g.name)}<small>${g.v===null?`${f0(g.q)} tanques`:`${f0(g.q)} × ${n(g.v,0)} m³`}</small></span><span class="v">${n(g.vol,0)} m³</span><span class="pc">${fmt(share(g)*100,1)} %</span></div>`).join("");
-  h+=dcard("Distribuição da água por grupo",`${f0(nTanks)} tanques · ${n(p.V,0)} m³ no total`,`<div class="stack" role="img" aria-label="Participação de cada grupo no volume de água">${stack}</div><div class="legend">${legend}</div>`,true);
+  hc+=dcard("Distribuição da água por grupo",`${f0(nTanks)} tanques · ${n(p.V,0)} m³ no total`,`<div class="stack" role="img" aria-label="Participação de cada grupo no volume de água">${stack}</div><div class="legend">${legend}</div>`,true);
 
   // 2. Mídia por grupo (magnitude, cor segue o grupo)
   const maxVM=Math.max(1e-9,...gs.map(g=>r.VM*share(g)));
   const bars=gs.map(g=>{const v=r.VM*share(g);return `<div class="bar"><div class="lb"><i class="sw" style="background:${g.color}"></i><span>${esc(g.name)}</span></div><div class="tr"><div class="fill" style="width:calc((100% - 80px) * ${(v/maxVM).toFixed(4)});background:${g.color}" ${tipAttr(g.name,`${n(v)} m³ de mídia${g.q?` · ${n(v/g.q)} m³ por tanque`:""}`)}></div><span class="vl">${n(v)}<small>m³</small></span></div></div>`}).join("");
-  h+=dcard("Volume de mídia por grupo",`${n(r.VM)} m³ no sistema · proporcional à água`,`<div class="bars">${bars}</div>`);
+  hc+=dcard("Volume de mídia por grupo",`${n(r.VM)} m³ no sistema · proporcional à água`,`<div class="bars">${bars}</div>`);
 
   // 3. Balanço diário de massa
   const mass=[["Ração fornecida",r.QR,"QR"],["Resíduos sólidos",r.PRS,"PRS"],["Sólidos ao filtro mecânico",r.SPF,"SPF"],["NAT produzido",r.PNAT,"PNAT"],["NAT ao filtro biológico",r.NATPF,"NATPF"]];
   const maxM=Math.max(1e-9,...mass.map(m=>m[1]));
   const mb=(rows)=>rows.map(([l,v,s])=>`<div class="bar"><div class="lb"><span>${l}</span></div><div class="tr"><div class="fill" style="width:calc((100% - 90px) * ${(v/maxM).toFixed(4)});background:var(--accent)" ${tipAttr(`${l} (${s})`,`${fmt(v,v<10?3:2)} kg/d`)}></div><span class="vl">${fmt(v,v<10?3:2)}<small>kg/d</small></span></div></div>`).join("");
-  h+=dcard("Balanço diário de massa","Quanto entra de ração e quanto chega a cada filtro",`<div class="bars"><div class="subhead">Sólidos</div>${mb(mass.slice(0,3))}<div class="subhead">Nitrogênio</div>${mb(mass.slice(3))}</div>`);
+  hc+=dcard("Balanço diário de massa","Quanto entra de ração e quanto chega a cada filtro",`<div class="bars"><div class="subhead">Sólidos</div>${mb(mass.slice(0,3))}<div class="subhead">Nitrogênio</div>${mb(mass.slice(3))}</div>`);
 
   // 4. Fluxo do sistema
   const mh=x=>x/1000, ren=x=>mh(x)/p.V;
-  h+=dcard("Fluxo do sistema de recirculação","Todos os tanques ligados a um único conjunto de filtros",
+  hc+=dcard("Fluxo do sistema de recirculação","Todos os tanques ligados a um único conjunto de filtros",
     `<div class="flow">
       <div class="node"><span>Tanques</span><b>${n(p.V,0)}<small>m³</small></b><p>${f0(nTanks)} tanques · ${n(r.BM,0)} kg de peixe</p></div>
       <div class="arrow" aria-hidden="true">→</div>
@@ -2331,24 +2430,25 @@ function drawDash(){
     <div class="flow-foot"><span>Renovações do volume por hora: filtro mecânico <b>${fmt(ren(r.FAFMh),2)}</b> · filtro biológico <b>${fmt(ren(r.VNh),2)}</b></span><span>Tempo para passar todo o volume pelo biofiltro: <b>${fmt(1/ren(r.VNh)*60,0)} min</b></span></div>`,true);
 
   // 5. Sensibilidade da mídia à área superficial
-  h+=dcard("Volume de mídia × área superficial",`Como o tipo de mídia muda o volume necessário · atual: ${n(p.AS,0)} m²/m³`,`<div class="chart" id="sens"></div>`,true);
+  hc+=dcard("Volume de mídia × área superficial",`Como o tipo de mídia muda o volume necessário · atual: ${n(p.AS,0)} m²/m³`,`<div class="chart" id="sens"></div>`,true);
 
   // 6. Ficha por tipo de tanque
   const cards=all.map(g=>{const s=share(g),q=g.q||1;return `<div class="gcard"><h3><i class="sw" style="background:${g.color}"></i><span>${esc(g.name)}</span></h3><div class="sub">${f0(g.q)} tanques de ${n(g.v)} m³</div>
     <dl><dt>Biomassa por tanque</dt><dd>${n(r.BM*s/q,0)} kg</dd><dt>Densidade máxima</dt><dd>${n(g.dm??p.DM,0)} kg/m³</dd><dt>${g.sp==="camarao"?"Camarões":"Peixes"} por tanque</dt><dd>${f0(fl((p.perEsp?g.np:r.NP*s)/q))}</dd><dt>Ração por tanque</dt><dd>${n(r.QR*s/q)} kg/d</dd><dt>Mídia por tanque</dt><dd>${n(r.VM*s/q)} m³</dd>
     <div class="tot"><span>Mídia do grupo</span><b>${n(r.VM*s)} m³</b></div></dl></div>`}).join("");
-  h+=dcard("Ficha por tipo de tanque","Valores individuais de cada tanque do grupo",`<div class="cards">${cards}</div>`,true);
+  hc+=dcard("Ficha por tipo de tanque","Valores individuais de cada tanque do grupo",`<div class="cards">${cards}</div>`,true);
 
   // 7. Arraçoamento (mesmo conteúdo da aba Arraçoamento, todos os grupos)
   const fms=(feedModels()||[]).filter(m=>m.ok),fLive=bioRef===null,fNow=fLive?Date.now():bioRef;
   if(fms.length){
-    h+=`<section class="card wide"><div class="card-head"><h2>Arraçoamento<span>${fLive?"Hoje":"Na data "+fmtD(fNow)} · todos os grupos · ração pela ${feedMet==="fca"?"FCA × ganho":"tabela (% da biomassa)"}</span></h2><a href="#" class="btn" data-goto="racao" style="margin-left:auto;text-decoration:none">Abrir o painel de arraçoamento</a></div></section>`;
-    h+=feedBlock(fms,fNow,fLive,"dash-fd-chart");
-  } else h+=`<section class="card wide"><div class="card-head"><h2>Arraçoamento</h2></div><div class="note">Preencha os lotes na <a href="#" data-goto="bio">aba Biomassa</a> para ver a ração, os tratos e as compras.</div></section>`;
-  el.innerHTML=h;
-  if(window.localDashDraw)localDashDraw();
-  drawSens(document.getElementById("sens"),p,r);
-  if(fms.length) drawFeedChart(document.getElementById("dash-fd-chart"),fms,fNow);
+    hr+=`<section class="card wide"><div class="card-head"><h2>Arraçoamento<span>${fLive?"Hoje":"Na data "+fmtD(fNow)} · todos os grupos · ração pela ${feedMet==="fca"?"FCA × ganho":"tabela (% da biomassa)"}</span></h2><a href="#" class="btn" data-goto="racao" style="margin-left:auto;text-decoration:none">Abrir o painel de arraçoamento</a></div></section>`;
+    hr+=feedBlock(fms,fNow,fLive,"dash-fd-chart");
+  } else hr+=`<section class="card wide"><div class="card-head"><h2>Arraçoamento</h2></div><div class="note">Preencha os lotes na <a href="#" data-goto="bio">aba Biomassa</a> para ver a ração, os tratos e as compras.</div></section>`;
+  el.innerHTML=focoRender([["calc",hc],["racao",hr],...focoOutros()]);
+  if(window.localDashDraw&&focoVe("local"))localDashDraw();
+  if(document.getElementById("sens"))drawSens(document.getElementById("sens"),p,r);
+  if(fms.length&&document.getElementById("dash-fd-chart")) drawFeedChart(document.getElementById("dash-fd-chart"),fms,fNow);
+  focoDepois();
 }
 
 // curva VM(AS) = NATPF / (TN × AS / 1000), com faixas de material ruim e bom
@@ -2905,7 +3005,7 @@ function setView(v){
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
   dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}
   try{localStorage.setItem(KEY+"-view",v)}catch(e){}
-  hideTip();drawDash();
+  hideTip();window.drawFocoBar&&drawFocoBar(v);drawDash();
   if(v==="bio"){drawBioEditor();drawBio()}
   feedEl.hidden=v!=="racao";if(v==="racao")drawFeedDash();
   document.getElementById("view-local").hidden=v!=="local";if(v==="local"&&window.drawLocal)drawLocal();
