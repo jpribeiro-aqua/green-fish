@@ -724,6 +724,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .ap-txt{width:100%;box-sizing:border-box;font:13px/1.45 var(--f-mono);border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--bg);color:var(--ink)}
 .ap-prev td,.ap-prev th{white-space:nowrap}
 .ap-log{margin:6px 0 0;padding-left:18px;font-size:13px;display:grid;gap:3px}
+.ap-hist td small{display:block;color:var(--muted);font-size:12px}.ap-hist .us-acts{flex-wrap:wrap;justify-content:flex-end}
 .ap-url{grid-column:span 2}.ap-url input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:6px;padding:7px 8px;background:var(--bg);color:var(--ink);font:14px var(--f-body)}
 .ap-card label.ap-chk{display:flex;gap:8px;align-items:flex-start;align-self:end}.ap-chk input{margin-top:2px;width:16px;height:16px;flex:none}
 @media (max-width:640px){.ap-url{grid-column:auto}}
@@ -2007,6 +2008,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       const pk = l.pid || &quot;__sem&quot;; (pj[pk] = pj[pk] || { pid: pk, pnome: l.pid ? l.pnome || &quot;Projeto&quot; : &quot;Sem projeto&quot;, n: 0 }).n++; }
     const ord = Object.keys(ORIG);
     return { origens: Object.values(o).sort((a, b) =&gt; ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || &quot;&quot;, fProj: S.fProj || &quot;&quot;, total: S.leituras.length, visiveis: LT().length, ras: !!S.ras }; };
+  window.aquaApagarOrigem = (k) =&gt; { const antes = S.leituras.length; S.leituras = S.leituras.filter((l) =&gt; chaveOrig(l) !== k); const n = antes - S.leituras.length;
+    if (S.fOrig === k) S.fOrig = &quot;&quot;; diaPainel = null; sel = null; salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return n; };
   window.aquaFiltroOrigem = (fo, fp) =&gt; { S.fOrig = fo || &quot;&quot;; S.fProj = fp || &quot;&quot;; diaPainel = null; sel = null;
     const ds = LT().map((l) =&gt; l.data).sort(); if (ds.length &amp;&amp; !ds.includes(S.dia)) S.dia = ds[ds.length - 1];
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
@@ -6351,11 +6354,20 @@ const frame=()=>document.getElementById("aqua-frame");
 async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="function")loadAqua();
   for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function")return w}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
 function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
+/* cópia das leituras de cada importação (IndexedDB), para processar de novo quando precisar */
+const IDB=(()=>{let p;const db=()=>p||(p=new Promise((ok,er)=>{const r=indexedDB.open("greenfish-aquaauto",1);r.onupgradeneeded=()=>r.result.createObjectStore("imp");r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)}));
+  const tx=(m,f)=>db().then(d=>new Promise((ok,er)=>{const t=d.transaction("imp",m),q=f(t.objectStore("imp"));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>er(t.error)}));
+  return {put:(k,v)=>tx("readwrite",st=>st.put(v,k)),get:k=>tx("readonly",st=>st.get(k)),del:k=>tx("readwrite",st=>st.delete(k))}})();
+const chaveLog=l=>l.key||(()=>{const o=String(l.origem||"");if(/^arquivo /.test(o))return "arquivo|"+o.slice(8);return o==="colado"?"colado":o==="link"?"link":o==="webhook"?"webhook":o})();
+let histConf=null;
 async function importar(lista,origem){const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu. Abra a aba e tente de novo.");
   const sal=lista.map(o=>o.salinidade).filter(v=>typeof v==="number"),esp=sal.length&&sal.reduce((a,b)=>a+b,0)/sal.length>5?"camarao":undefined;
   const tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:"";
   const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp,tipo,nome});
-  C.log.unshift({em:Date.now(),origem,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias});C.log=C.log.slice(0,12);salvar();return r}
+  const id="imp"+Date.now().toString(36),key=tipo+(nome?"|"+String(nome).slice(0,120):"");
+  C.log.unshift({id,em:Date.now(),origem,tipo,nome,key,n:lista.length,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias,criadas:r.criadas});
+  const sai=C.log.slice(30);C.log=C.log.slice(0,30);salvar();sai.forEach(l=>l.id&&IDB.del(l.id).catch(()=>{}));
+  IDB.put(id,{lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem}}).catch(()=>{});return r}
 const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} unidade${r.criadas.length===1?" criada":"s criadas"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem unidade ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
 
 /* link (Google Planilhas publicada, ThingSpeak, servidor do sensor): busca agora e, se marcado, a cada N minutos */
@@ -6419,9 +6431,20 @@ function draw(){
        <details class="us-det"><summary>De onde tirar o link</summary><ol class="rp-steps"><li><b>Google Planilhas:</b> Arquivo › Compartilhar › Publicar na Web › escolha a aba e o formato CSV › copie o link.</li><li><b>ThingSpeak:</b> https://api.thingspeak.com/channels/<i>NÚMERO</i>/feeds.json?results=500 (canal público, ou acrescente &amp;api_key=<i>chave de leitura</i>). Os nomes dos campos do canal viram as colunas.</li><li><b>Servidor do sensor / Node-RED / API própria:</b> qualquer endereço que devolva CSV ou JSON e permita acesso do navegador (CORS).</li></ol></details>`
     :hookHTML()}
    ${C.fonte!=="webhook"?mapaHTML():""}
-   ${log.length?`<details class="us-det"><summary>Histórico de importações</summary><ul class="ap-log">${log.map(l=>`<li><b>${new Date(l.em).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</b> · ${E(l.origem)} · ${l.novas} novas, ${l.atualizadas} atualizadas${l.ignoradas?`, ${l.ignoradas} ignoradas`:""}</li>`).join("")}</ul></details>`:""}
+   <div id="ap-histw">${log.length?histHTML(log):""}</div>
   </div></details>`;
   bind()}
+function histHTML(log){let O=null;try{const w=frame().contentWindow;O=w&&w.aquaOrigens&&w.aquaOrigens()}catch(e){}
+  const temN=k=>O?((O.origens.find(o=>o.key===k)||{}).n||0):null,ICO={arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖"},fD=t=>new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  const per=d=>d&&d.length?(d.length>1?`${d[0].split("-").reverse().join("/")} a ${d[d.length-1].split("-").reverse().join("/")}`:d[0].split("-").reverse().join("/")):"";
+  return `<details class="us-det" open><summary>Histórico de importações · processar de novo</summary>
+   <div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Quando</th><th>Origem</th><th>Resultado</th><th>No AquaNictemeral</th><th></th></tr></thead><tbody>${log.map((l,i)=>{const k=chaveLog(l),n=temN(k),tp=l.tipo||k.split("|")[0],nm=l.nome||(k.split("|")[1]||""),conf=histConf&&histConf.i===i;
+     return `<tr><td>${fD(l.em)}</td><td><b>${ICO[tp]||""} ${E(nm||({colado:"Dados colados",link:"Link",webhook:"Automação (webhook)"}[tp]||l.origem))}</b>${l.n?`<small>${l.n} leitura${l.n===1?"":"s"} no arquivo${per(l.dias)?" · "+per(l.dias):""}</small>`:""}</td>
+      <td><small>${l.novas} novas, ${l.atualizadas} atualizadas${l.ignoradas?`, ${l.ignoradas} ignoradas`:""}${l.criadas&&l.criadas.length?` · ${l.criadas.length} unidades criadas`:""}</small></td>
+      <td>${n===null?"—":n?`<span class="us-st ok">${n} leitura${n===1?"":"s"}</span>`:`<span class="us-st wait">nenhuma</span>`}</td>
+      <td class="pj-acts"><div class="us-acts">${conf?`<button type="button" class="btn warn" data-ap="h-apagar-ok" data-i="${i}">Confirmar: apagar ${n} leituras</button><button type="button" class="btn" data-ap="h-nao">Voltar</button>`
+       :`${n?`<button type="button" class="btn solid" data-ap="h-ver" data-i="${i}">▶ Processar só esta</button>`:""}<button type="button" class="btn" data-ap="h-re" data-i="${i}" title="${l.id?"Lança de novo as leituras desta importação (recria o que foi apagado ou alterado e as unidades)":"Importação anterior à cópia automática: escolha o arquivo de novo"}">↻ Reprocessar</button>${n?`<button type="button" class="btn warn" data-ap="h-apagar" data-i="${i}">Apagar leituras</button>`:""}`}</div></td></tr>`}).join("")}</tbody></table></div>
+   <p class="muted"><b>Processar só esta</b> mostra no AquaNictemeral apenas as leituras daquela importação (o painel vai para as datas dela). <b>Reprocessar</b> lança de novo as leituras guardadas da importação: recria leituras apagadas ou alteradas e as unidades que faltarem, sem duplicar. O app guarda uma cópia de cada importação neste aparelho (as importações anteriores a esta versão não têm cópia: para elas, escolha o arquivo de novo).</p></details>`}
 function bind(){
   const d=box.querySelector("details.ap-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unidades().length)pronto().then(()=>draw())});
   box.querySelectorAll("[data-ap-fonte]").forEach(b=>b.addEventListener("click",()=>{C.fonte=b.dataset.apFonte;salvar();msg="";if(C.fonte==="webhook"&&!chave&&window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok())Auth.aquaChave(false,true).then(t=>{chave=t||"";draw()}).catch(()=>{});draw()}));
@@ -6440,6 +6463,17 @@ function acao(a,b){
   if(a==="buscar"){rodar(()=>buscarLink(false).then(t=>"Link: "+t));return}
   if(a==="gerar-chave"||a==="nova-chave"){rodar(async()=>{chave=await Auth.aquaChave(a==="nova-chave");C.webhook=true;salvar();agendarHook();return a==="nova-chave"?"Chave trocada: atualize a chave nas suas automações.":"Chave gerada. Configure a automação com o endereço e a chave abaixo."});return}
   if(a==="recolher"){rodar(async()=>await recolher(false)||msg);return}
+  if(a.startsWith("h-")){const i=+b.dataset.i,l=(C.log||[])[i],k=l?chaveLog(l):"";
+    if(a==="h-nao"){histConf=null;draw();return}
+    if(a==="h-ver"){try{frame().contentWindow.aquaFiltroOrigem(k,"")}catch(e){}msg=`Processando só: ${l.nome||l.origem}. O painel do AquaNictemeral mostra apenas essas leituras (troque em 🗂 Origem dos dados).`;draw();drawOrig();const f=frame();f&&f.scrollIntoView({behavior:"smooth",block:"start"});return}
+    if(a==="h-apagar"){histConf={i};draw();return}
+    if(a==="h-apagar-ok"){histConf=null;rodar(async()=>{const w=await pronto();const n=w.aquaApagarOrigem(k);drawOrig();return `${n} leitura${n===1?"":"s"} de ${l.nome||l.origem} apagada${n===1?"":"s"}. Para trazer de volta, use Reprocessar.`});return}
+    if(a==="h-re"){rodar(async()=>{if(!l.id)throw new Error("Esta importação é anterior à cópia automática. Escolha o arquivo de novo em Arquivo › Escolher arquivo.");
+      const g=await IDB.get(l.id).catch(()=>null);if(!g||!g.lista)throw new Error("A cópia desta importação não está neste aparelho (foi feita em outro aparelho ou o navegador limpou os dados). Escolha o arquivo de novo.");
+      const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu.");const r=w.aquaImport(g.lista,g.op);
+      try{w.aquaFiltroOrigem(k,"")}catch(e){}drawOrig();l.reproc=Date.now();salvar();
+      return `Reprocessado: ${l.nome||l.origem} · ${r.novas} recriada${r.novas===1?"":"s"}, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}${r.criadas&&r.criadas.length?` · ${r.criadas.length} unidades recriadas`:""}. Mostrando só estas leituras.`});return}
+    return}
   if(a==="copiar"){const v=b.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{msg="Copiado.";draw()}).catch(()=>window.prompt("Copie:",v));return}
 }
 /* ---- origem dos dados: projeto aberto e por onde as leituras entraram; escolhe o que o AquaNictemeral processa ---- */
@@ -6466,7 +6500,7 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
   boxO.querySelectorAll("[data-ao]").forEach(b=>b.addEventListener("click",()=>aplicar(O.fOrig===b.dataset.ao?"":b.dataset.ao,O.fProj)));
   const so=boxO.querySelector("#ao-orig"),sp=boxO.querySelector("#ao-proj");so&&so.addEventListener("change",()=>aplicar(so.value,O.fProj));sp&&sp.addEventListener("change",()=>aplicar(O.fOrig,sp.value));
   const lp=boxO.querySelector("[data-ao-limpa]");lp&&lp.addEventListener("click",()=>aplicar("",""));try{window.focoRefresh&&focoRefresh()}catch(e){}}
-let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(drawOrig,80)};
+let origT=null;window.drawAquaOrig=()=>{clearTimeout(origT);origT=setTimeout(()=>{drawOrig();const hw=box.querySelector("#ap-histw");if(hw&&(C.log||[]).length&&!busy){const op=(hw.querySelector("details")||{}).open;hw.innerHTML=histHTML(C.log);const dd=hw.querySelector("details");if(dd&&op===false)dd.open=false;hw.querySelectorAll("[data-ap]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.ap,b)))}},80)};
 window.drawAquaPlug=()=>{drawOrig();if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
 window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora,lerArquivo};
 agendar();agendarHook();draw();
