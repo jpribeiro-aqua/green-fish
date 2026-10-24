@@ -6090,7 +6090,7 @@ function lerTexto(txt){
   return ls.slice(1).map(l=>{const r=split(l);return Object.fromEntries(h.map((c,i)=>[c||("col"+(i+1)),r[i]]))})}
 
 /* data e hora em vários formatos: ISO (com fuso), dd/mm/aaaa hh:mm, epoch em segundos ou ms */
-function dataHora(v){if(v==null||v==="")return null;
+function dataHora(v){if(v==null||v==="")return null;if(v instanceof Date)return isNaN(v)?null:v;
   if(typeof v==="number"||/^\d{10,13}$/.test(String(v))){const n=+v;const d=new Date(n<1e12?n*1000:n);return isNaN(d)?null:d}
   const s=String(v).trim();let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
   if(m){const y=+m[3]<100?2000+ +m[3]:+m[3];return new Date(y,+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0))}
@@ -6111,6 +6111,25 @@ function normalizar(rows,map,agrupar){
   const g=new Map();for(const o of out){const h=o.hora.slice(0,2)+":00",k=[o.unidade||"",o.data,h,o.profundidade||""].join("|");if(!g.has(k))g.set(k,{base:{...o,hora:h},soma:{},n:{}});const e=g.get(k);for(const p of NUM)if(typeof o[p]==="number"){e.soma[p]=(e.soma[p]||0)+o[p];e.n[p]=(e.n[p]||0)+1}}
   const lista=[...g.values()].map(e=>{const o={...e.base};for(const p of NUM)if(e.n[p])o[p]=Math.round(e.soma[p]/e.n[p]*100)/100;else delete o[p];return o});
   return {lista,ruins,brutas:out.length}}
+
+/* arquivos: CSV/TXT/JSON (UTF-8 ou Windows-1252, como o Excel salva) e planilhas Excel/LibreOffice (.xlsx, .xls, .ods) */
+const XLSX_URL="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";let xlsxP=null;
+function carregaXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);if(!xlsxP)xlsxP=new Promise((ok,er)=>{const sc=document.createElement("script");sc.src=XLSX_URL;sc.onload=()=>window.XLSX?ok(window.XLSX):er(new Error("x"));sc.onerror=()=>{xlsxP=null;er(new Error("Para ler planilhas do Excel o app precisa de internet na primeira vez. Conecte e tente de novo, ou salve a planilha como CSV."))};document.head.appendChild(sc)});return xlsxP}
+async function lerPlanilha(f){const X=await carregaXLSX();const wb=X.read(new Uint8Array(await f.arrayBuffer()),{type:"array",cellNF:true,cellDates:false});
+  const fmt=v=>{const d=X.SSF.parse_date_code(v);if(!d)return v;const hm=pad(d.H)+":"+pad(d.M);return v<1?hm:pad(d.d)+"/"+pad(d.m)+"/"+d.y+(d.H||d.M?" "+hm:"")};
+  for(const nome of wb.SheetNames){const ws=wb.Sheets[nome];if(!ws||!ws["!ref"])continue;const rg=X.utils.decode_range(ws["!ref"]),M=[];
+    for(let r=rg.s.r;r<=rg.e.r;r++){const lin=[];for(let c=rg.s.c;c<=rg.e.c;c++){const cel=ws[X.utils.encode_cell({r,c})];let v="";
+      if(cel){if(cel.t==="n"&&cel.z&&X.SSF.is_date(cel.z))v=fmt(cel.v);else if(cel.t==="d")v=cel.v;else v=cel.v}lin.push(v)}
+      if(lin.some(x=>x!==""&&x!=null))M.push(lin)}
+    if(M.length<2)continue;const h=M[0].map((c,i)=>String(c||"").trim()||("col"+(i+1)));if(h.filter(Boolean).length<2)continue;
+    return M.slice(1).map(l=>Object.fromEntries(h.map((c,i)=>[c,l[i]])))}
+  throw new Error("A planilha não tem uma tabela com nomes de colunas na primeira linha (data, hora, OD, temperatura…).")}
+async function lerArquivo(f){const n=(f.name||"").toLowerCase();
+  if(/\.(xlsx|xlsm|xls|ods)$/.test(n)||/spreadsheet|excel/.test(f.type||""))return lerPlanilha(f);
+  if(/\.(pdf|docx?|jpe?g|png|heic)$/.test(n))throw new Error("Esse tipo de arquivo não tem a tabela de leituras. Use CSV, TXT, JSON ou planilha do Excel (.xlsx).");
+  const buf=await f.arrayBuffer();let t=new TextDecoder("utf-8").decode(buf);if(t.includes("\uFFFD")){try{t=new TextDecoder("windows-1252").decode(buf)}catch(e){}}
+  return lerTexto(t)}
+const ACEITA=".csv,.txt,.tsv,.json,.xlsx,.xlsm,.xls,.ods,text/csv,text/plain,text/comma-separated-values,text/tab-separated-values,application/json,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.oasis.opendocument.spreadsheet";
 
 /* ponte com o AquaNictemeral (iframe) */
 const frame=()=>document.getElementById("aqua-frame");
@@ -6173,7 +6192,7 @@ function draw(){
    <div class="pj-tools chips">${[["arquivo","Arquivo"],["colar","Colar dados"],["link","Link (atualiza sozinho)"],["webhook","Webhook (automação envia)"]].map(([k,t])=>`<button type="button" class="chip${C.fonte===k?" on":""}" data-ap-fonte="${k}" aria-pressed="${C.fonte===k}">${t}</button>`).join("")}</div>
    <div class="rp-grid"><label>Unidade de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
     <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="agrupar"${C.agrupar?" checked":""}> <span><b>Juntar as medições da mesma hora</b><br><span class="muted">média por hora, para sondas que medem a cada poucos minutos</span></span></label></div>
-   ${C.fonte==="arquivo"?`<p class="muted">CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
+   ${C.fonte==="arquivo"?`<p class="muted">Planilha do Excel (.xlsx, .xls), LibreOffice (.ods), CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
     :C.fonte==="colar"?`<textarea class="ap-txt" id="ap-txt" rows="5" placeholder="data;hora;OD;temperatura;pH&#10;24/10/2026;06:00;4,8;27,9;7,2"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-ap="ler">Ler dados</button></div>`
     :C.fonte==="link"?`<div class="rp-grid"><label class="ap-url">Link dos dados (CSV ou JSON)<input data-ap-cfg="url" value="${E(C.url)}" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv"></label>
        <label>Buscar sozinho<select class="lv-sel" data-ap-cfg="min">${[5,15,30,60,180].map(m=>`<option value="${m}"${+C.min===m?" selected":""}>a cada ${m<60?m+" min":m/60+" h"}</option>`).join("")}</select></label>
@@ -6194,8 +6213,9 @@ function bind(){
 }
 async function rodar(fn){if(busy)return;busy=true;draw();try{msg=await fn()||msg}catch(e){msg="Erro: "+(e&&(e.message||e.msg)||e)}finally{busy=false;draw()}}
 function acao(a,b){
-  if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=".csv,.txt,.tsv,.json,text/csv,application/json";i.addEventListener("change",()=>{const f=i.files[0];if(!f)return;
-    rodar(async()=>{const rows=lerTexto(await f.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols);salvar();dados={rows,cols,origem:"arquivo "+f.name};return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
+  if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=ACEITA;i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
+    i.addEventListener("change",()=>{const f=i.files[0];i.remove();if(!f)return;
+    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols);salvar();dados={rows,cols,origem:"arquivo "+f.name};return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
   if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols);salvar();dados={rows,cols,origem:"colado"};return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
   if(a==="importar"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar);const r=await importar(n.lista,dados.origem);dados=null;return "Importado: "+resumo(r,n.brutas)});return}
   if(a==="limpar"){dados=null;msg="";draw();return}
@@ -6205,7 +6225,7 @@ function acao(a,b){
   if(a==="copiar"){const v=b.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{msg="Copiado.";draw()}).catch(()=>window.prompt("Copie:",v));return}
 }
 window.drawAquaPlug=()=>{if(C.webhook)recolher(true).then(t=>{if(t){msg=t;draw()}}).catch(()=>{});draw()};
-window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora};
+window.aquaPlugDebug={lerTexto,autoMap,normalizar,dataHora,lerArquivo};
 agendar();agendarHook();draw();
 })();
 
