@@ -1610,6 +1610,12 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const agg = US.map((u) =&gt; { const r = {}; for (const l of leituras(u.id, dias)) for (const x of avaliar(l, u)) {
       const cur = r[x.p]; if (!cur || STORD[x.st] &gt; STORD[cur.st] || (x.st === cur.st &amp;&amp; Math.abs(dirU(u, x.p, x.v)) &amp;&amp; ((x.p === &quot;od&quot; &amp;&amp; x.v &lt; cur.v) || (x.p !== &quot;od&quot; &amp;&amp; x.v &gt; cur.v)))) r[x.p] = { ...x, hora: l.hora, data: l.data }; } return { u, r }; });
     const cols = MCOLS.filter((p) =&gt; agg.some((a) =&gt; a.r[p]));
+    if (!cols.length) { // sem leituras no dia/período escolhido: explica e oferece o último dia com dados
+      const ids = new Set(US.map((u) =&gt; u.id)), ult = S.leituras.filter((l) =&gt; ids.has(l.unidade) &amp;&amp; passa(l)).map((l) =&gt; l.data).sort().pop();
+      $(&quot;p-matriz&quot;).innerHTML = `&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;foot&quot; style=&quot;text-align:left;padding:14px&quot;&gt;Nenhuma leitura ${periodo === 1 ? &quot;em &quot; + dataBR(dias[0]) : &quot;de &quot; + dataBR(dias[0]) + &quot; a &quot; + dataBR(dias[dias.length - 1])}${S.fOrig || S.fProj ? &quot; para a origem/projeto selecionado&quot; : &quot;&quot;}, por isso a matriz está sem parâmetros. ${ult ? `&lt;button type=&quot;button&quot; class=&quot;btn&quot; id=&quot;m-ult&quot;&gt;Ver ${dataBR(ult)}, último dia com leituras&lt;/button&gt;` : &quot;Lance ou importe leituras para ver a matriz.&quot;}&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;`;
+      const bu = $(&quot;m-ult&quot;); if (bu) bu.addEventListener(&quot;click&quot;, () =&gt; { diaPainel = ult; renderPainel(); });
+      $(&quot;p-mleg&quot;).innerHTML = &quot;&quot;; return;
+    }
     const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Unidade&lt;/th&gt;${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;/tr&gt;&lt;/thead&gt;`;
     const body = agg.map(({ u, r }) =&gt; `&lt;tr&gt;&lt;td&gt;&lt;span style=&quot;display:inline-block;width:9px;height:9px;border-radius:50%;background:${corUnidade(u)};margin-right:7px&quot;&gt;&lt;/span&gt;${u.nome}&lt;/td&gt;${cols.map((p) =&gt; { const c = r[p];
       if (!c) return &#x27;&lt;td&gt;&lt;div class=&quot;cell none&quot;&gt;—&lt;/div&gt;&lt;/td&gt;&#x27;;
@@ -6923,7 +6929,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v50";
+  const APP_VERSAO="ras-v51";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
