@@ -6560,13 +6560,20 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
   const cur=O.origens.find(o=>o.key===O.fOrig),tipoSel=!cur&&O.fOrig?O.fOrig:"",curP=O.projetos.find(p=>p.pid===O.fProj);
   const rot=o=>(ICO[o.tipo]||"")+" "+o.rotulo+(o.nome?": "+(o.nome.length>48?o.nome.slice(0,45)+"…":o.nome):"");
   const tipos=[...new Set(O.origens.map(o=>o.tipo))];
-  const resumo=O.fOrig||O.fProj?`Processando só: <b>${E([cur?rot(cur):tipoSel?(ICO[tipoSel]||"")+" "+((O.origens.find(o=>o.tipo===tipoSel)||{}).rotulo||tipoSel):"",curP?"projeto "+curP.pnome:""].filter(Boolean).join(" · "))}</b> · ${O.visiveis} de ${O.total} leituras`:`Processando <b>todas as origens</b> · ${O.total} leitura${O.total===1?"":"s"}`;
+  /* todas as origens possíveis e todos os projetos aparecem nos botões, mesmo sem leituras (com a contagem) */
+  const TODAS=[["manual","Digitadas no sistema"],["arquivo","Arquivo"],["colado","Dados colados"],["link","Link"],["webhook","Automação (webhook)"],["importado","Importadas (antes do registro de origem)"],["exemplo","Dados de exemplo"]];
+  const optOrig=TODAS.filter(([t])=>t!=="importado"||tipos.includes(t)).map(([t,r])=>{const os=O.origens.filter(o=>o.tipo===t),n=os.reduce((a,o)=>a+o.n,0);
+    return `<option value="${E(t)}"${O.fOrig===t?" selected":""}>${E((ICO[t]||"")+" "+r)}${os.length>1||(os[0]&&os[0].nome)?": todas":""} (${n})</option>`+(os.length>1||(os[0]&&os[0].nome)?os.map(o=>`<option value="${E(o.key)}"${O.fOrig===o.key?" selected":""}>↳ ${E(rot(o))} (${o.n})</option>`).join(""):"")}).join("");
+  const PJ=[];const addP=(pid,pnome,n)=>{const x=PJ.find(p=>p.pid===pid);if(x){x.n+=n;if(pnome&&x.pnome==="Projeto")x.pnome=pnome}else PJ.push({pid,pnome:pnome||"Projeto",n})};
+  if(pa)addP(pa.id,pa.nome+" (aberto)",0);try{for(const p of (window.projLista?window.projLista():[]))addP(p.id,p.nome,0)}catch(e){}
+  for(const p of O.projetos)if(p.pid!=="__sem")addP(p.pid,p.pnome,p.n);addP("__sem","Sem projeto (leituras de projeto não salvo)",(O.projetos.find(p=>p.pid==="__sem")||{}).n||0);
+  const resumo=O.fOrig||O.fProj?`Processando só: <b>${E([cur?rot(cur):tipoSel?(ICO[tipoSel]||"")+" "+((O.origens.find(o=>o.tipo===tipoSel)||{}).rotulo||(TODAS.find(x=>x[0]===tipoSel)||[,tipoSel])[1]):"",O.fProj?"projeto "+((PJ.find(p=>p.pid===O.fProj)||curP||{}).pnome||"").replace(" (aberto)",""):""].filter(Boolean).join(" · "))}</b> · ${O.visiveis} de ${O.total} leituras`:`Processando <b>todas as origens</b> · ${O.total} leitura${O.total===1?"":"s"}`;
   boxO.innerHTML=`<details class="card wide ao-card"${origAberto?" open":""}><summary class="card-head"><h2>🗂 Origem dos dados<span>Projeto aberto: ${pa?E(pa.nome):"nenhum (projeto não salvo)"} · ${resumo.replace(/<[^>]+>/g,"")}</span></h2></summary><div class="pj-body">
    <p class="ao-res">${resumo}</p>
    <div class="ao-chips chips">${O.origens.length?O.origens.map(o=>`<button type="button" class="chip${O.fOrig===o.key?" on":""}" data-ao="${E(o.key)}" title="${E(o.nome||o.rotulo)}">${E(rot(o))} <b>${o.n}</b></button>`).join(""):`<span class="muted">Nenhuma leitura ainda.</span>`}</div>
-   <div class="rp-grid"><label>Origem processada<select class="lv-sel" id="ao-orig"><option value="">Todas as origens (${O.total})</option>
-     ${tipos.length>1||O.origens.length>tipos.length?tipos.map(t=>{const os=O.origens.filter(o=>o.tipo===t),n=os.reduce((a,o)=>a+o.n,0);return `<option value="${E(t)}"${O.fOrig===t?" selected":""}>${E((ICO[t]||"")+" "+os[0].rotulo)}: todas (${n})</option>`+(os.length>1||os[0].nome?os.map(o=>`<option value="${E(o.key)}"${O.fOrig===o.key?" selected":""}>↳ ${E(rot(o))} (${o.n})</option>`).join(""):"")}).join(""):O.origens.map(o=>`<option value="${E(o.key)}"${O.fOrig===o.key?" selected":""}>${E(rot(o))} (${o.n})</option>`).join("")}</select></label>
-    <label>Projeto<select class="lv-sel" id="ao-proj"><option value="">Todos os projetos</option>${O.projetos.map(p=>`<option value="${E(p.pid)}"${O.fProj===p.pid?" selected":""}>${E(p.pnome)} (${p.n})</option>`).join("")}</select></label></div>
+   <div class="rp-grid"><label>Origem processada<select class="lv-sel" id="ao-orig"><option value="">Todas as origens (${O.total})</option>${optOrig}</select></label>
+    <label>Projeto<select class="lv-sel" id="ao-proj"><option value="">Todos os projetos (${O.total})</option>${PJ.map(p=>`<option value="${E(p.pid)}"${O.fProj===p.pid?" selected":""}>${E(p.pnome)} (${p.n})</option>`).join("")}</select></label></div>
+   ${O.total?"":`<p class="muted"><b>Ainda não há leituras no AquaNictemeral</b>: por isso todas as origens e projetos estão com (0). Lance uma leitura na aba Unidade, importe um arquivo ou ligue a automação no 🔌 Conectar automação; cada leitura passa a contar na origem por onde entrou e no projeto aberto na hora.</p>`}
    <div class="pj-btns">${O.fOrig||O.fProj?`<button type="button" class="btn" data-ao-limpa="1">Processar todas as origens</button>`:""}</div>
    <p class="muted">Cada leitura guarda por onde entrou: digitada no formulário da unidade, arquivo, dados colados, link, automação (webhook) ou exemplo, e o projeto que estava aberto na hora (botão de projeto no topo do app). Ao escolher uma origem, o painel, os gráficos, os alertas e o resumo do Painel passam a usar só essas leituras; as outras ficam guardadas. Leituras lançadas antes desta versão aparecem como "Digitadas no sistema" ou "Importadas" e sem projeto.</p>
   </div></details>`;
@@ -6929,7 +6936,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v51";
+  const APP_VERSAO="ras-v52";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
