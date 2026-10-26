@@ -713,7 +713,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-cota .inp:has(input[id^="us-nome-"]){width:100%;max-width:440px}.us-cota input[id^="us-nome-"],#us-meunome{width:100%;text-align:left;font-family:var(--f-body)}
 /* AquaNictemeral · plugin de automação */
 #aqua-plug{margin-bottom:12px}
-#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}.bi-kpis>div{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}.bi-kpis b{font:600 16px var(--f-mono,monospace)}.bi-kpis span{font-size:12px;color:var(--muted)}.bi-pop{max-width:110px;margin-left:auto}.bi-pop input{text-align:right}.bi-ft{margin-bottom:4px}.bi-lbl{font-size:13px;font-weight:600;margin:6px 0 2px}.bi-h{margin:14px 0 6px;font-size:15px}.bi-met{font-size:12px;margin-top:4px}.bi-bad{color:var(--bad,#b4532a);font-weight:600}.bi-ok{color:var(--good,#2e7d4f);font-weight:600}.bi-tipos{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));font-size:13px}.bi-tipos>li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px}.bi-cad{width:auto;padding:3px 6px;font-size:12px}.bi-tab td.num{text-align:right}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
+#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}.bi-kpis>div{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}.bi-kpis b{font:600 16px var(--f-mono,monospace)}.bi-kpis span{font-size:12px;color:var(--muted)}.bi-pop{max-width:110px;margin-left:auto}.bi-pop input{text-align:right}.bi-ft{margin-bottom:4px}.bi-lbl{font-size:13px;font-weight:600;margin:6px 0 2px}.bi-h{margin:14px 0 6px;font-size:15px}.bi-met{font-size:12px;margin-top:4px}.bi-bad{color:var(--bad,#b4532a);font-weight:600}.bi-ok{color:var(--good,#2e7d4f);font-weight:600}.bi-tipos{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));font-size:13px}.bi-tipos>li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px}.bi-cad{width:auto;padding:3px 6px;font-size:12px}.bi-tab td.num{text-align:right}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
 .ao-card>summary h2::before{content:"▸ ";color:var(--accent)}.ao-card[open]>summary h2::before{content:"▾ "}.ao-card .pj-body{display:grid;gap:12px}
 .ao-res{margin:0;font-size:15px}.ao-chips .chip b{margin-left:4px;color:var(--ink)}.ao-bar{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.ao-t{font-weight:600}
 .ap-card>summary{list-style:none;cursor:pointer}.ap-card>summary::-webkit-details-marker{display:none}
@@ -769,6 +769,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
     <button type="button" class="btn" id="print">Imprimir / PDF</button>
   </nav>
 
+  <div id="pj-gate" class="pjg-host" hidden></div>
   <div id="foco-bar" class="foco-bar" hidden></div>
   <div class="dash" id="view-dash" role="tabpanel" aria-labelledby="tab-dash"></div>
   <div class="dash" id="view-local" role="tabpanel" aria-labelledby="tab-local" hidden></div>
@@ -3084,7 +3085,7 @@ function setView(v){
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
   dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}
   try{localStorage.setItem(KEY+"-view",v)}catch(e){}
-  hideTip();window.drawFocoBar&&drawFocoBar(v);drawDash();
+  hideTip();window.drawPjGate&&drawPjGate(v);window.drawFocoBar&&drawFocoBar(v);drawDash();
   if(v==="bio"){drawBioEditor();drawBio()}
   feedEl.hidden=v!=="racao";if(v==="racao")drawFeedDash();
   document.getElementById("view-local").hidden=v!=="local";if(v==="local"&&window.drawLocal)drawLocal();
@@ -5574,7 +5575,7 @@ function bind(){
 }
 /* indicador no topo: usuário e projeto aberto */
 function chip(){
-  setTimeout(()=>{try{window.focoRefresh&&focoRefresh()}catch(e){}},0);
+  setTimeout(()=>{try{window.focoRefresh&&focoRefresh()}catch(e){}try{window.drawPjGate&&drawPjGate()}catch(e){}},0);
   const b=document.getElementById("proj-chip");if(!b)return;
   const c=atual(),nome=c&&c.modo===st.mode&&logado()&&(!c.uid||ehDono())?c.nome+(c.uid?" (cliente "+c.cliente+")":""):"";
   const u=logado()?(st.uname||"conta claude.ai"):"";
@@ -5585,6 +5586,31 @@ function chip(){
 
 window.drawProj=()=>{st.confirm=null;draw()};
 window.projChip=chip;
+/* ---- projeto identificado antes de lançar qualquer dado: criar pelo nome e salvar sozinho enquanto é elaborado ---- */
+const auto={ult:null,em:0,erro:"",parado:false,salvando:false};
+const evtProj=()=>{try{window.dispatchEvent(new Event("proj-status"))}catch(e){}};
+window.projCriar=async nome=>{nome=String(nome||"").trim().slice(0,80);if(!nome)throw new Error("Dê um nome ao projeto.");
+  if(!logado())throw new Error("Entre na sua conta para criar o projeto.");if(bloq())throw new Error(gate().txt||"Sua conta ainda não pode criar projetos.");
+  if(!st.list.length){try{st.list=(await back().list())||[]}catch(e){}}
+  if(st.list.some(p=>String(p.nome||"").trim().toLowerCase()===nome.toLowerCase()))throw new Error("Já existe um projeto com esse nome: abra-o na aba Projetos ou use outro nome.");
+  const id=novoId(),agora=Date.now(),snap=snapshot(),meta={nome,notas:"",resp:"",criadoEm:agora,atualizadoEm:agora,resumo:resumo(),app:"ras-multitanques",versao:1};
+  await back().put(id,meta,snap);wr(CUR,{id,nome,modo:st.mode,base:agora});
+  auto.ult=JSON.stringify(snap);auto.em=agora;auto.erro="";auto.parado=false;
+  await recarregar();evtProj();return {id,nome}};
+async function autoSalvar(forcar){const c=atual();if(!c||!c.id||c.modo!==st.mode||c.uid||!logado()||bloq()||auto.parado||auto.salvando||st.busy)return;
+  const p=st.list.find(x=>x.id===c.id);if(!p)return;const snap=snapshot(),js=JSON.stringify(snap);if(!forcar&&js===auto.ult)return;
+  auto.salvando=true;
+  try{if(st.mode==="nuvem"){const m=await nuvem.meta(c.id);if(m&&(m.atualizadoEm||0)>(c.base||0)+2000){auto.parado=true;
+      auto.erro=m.editadoPeloDono?"O dono do app atualizou este projeto: abra a versão nova na aba Projetos (salvamento automático pausado).":"Este projeto foi salvo em outro aparelho: abra a versão mais nova na aba Projetos (salvamento automático pausado).";evtProj();return}}
+    const agora=Date.now(),meta={nome:p.nome,notas:p.notas||"",resp:p.resp||"",criadoEm:p.criadoEm||agora,atualizadoEm:agora,resumo:resumo(),app:"ras-multitanques",versao:1};
+    await back().put(c.id,meta,snap);wr(CUR,{...c,base:agora});Object.assign(p,meta);auto.ult=js;auto.em=agora;auto.erro="";evtProj()}
+  catch(e){auto.erro="Não foi possível salvar automaticamente agora: "+erroTxt(e);evtProj()}
+  finally{auto.salvando=false}}
+setInterval(()=>{if(!document.hidden)autoSalvar(false)},8000);
+document.addEventListener("visibilitychange",()=>{if(document.hidden)autoSalvar(false)});
+window.projAutoSalvar=()=>{auto.parado=false;return autoSalvar(true)};
+window.projStatus=()=>{const c=atual();return {aberto:!!(c&&c.id&&c.modo===st.mode&&logado()),nome:c&&c.nome,em:auto.em,erro:auto.erro,cliente:!!(c&&c.uid),logado:logado(),pronto:st.mode!=="init"}};
+window.projNovo=()=>novoEmBranco();
 window.projLista=()=>st.list.map(p=>({id:p.id,nome:p.nome,resumo:p.resumo||{}}));
 window.projAtual=()=>{const c=atual();return c&&c.id&&c.modo===st.mode?{id:c.id,nome:c.nome||"Projeto"}:null};
 window.projApi={list:()=>back().list(),del:id=>back().del(id),reload:recarregar,
@@ -6397,10 +6423,11 @@ async function buscarLink(silencioso){if(!C.url)throw new Error("Cole o link dos
   if(!Object.keys(C.map).length||!cols.some(c=>C.map[c]))C.map=autoMap(cols,rows);
   const n=normalizar(rows,C.map,C.agrupar);if(!n.lista.length)throw new Error("O link não trouxe leituras com data e valores reconhecidos. Confira as colunas.");
   const res=await importar(n.lista,"link");C.ultimaBusca=Date.now();salvar();if(!silencioso){dados={rows,cols,origem:"link"};}return resumo(res,n.brutas)}
-function agendar(){clearInterval(timer);timer=null;if(C.auto&&C.url&&C.min>0)timer=setInterval(()=>{buscarLink(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()})},C.min*60000)}
+function agendar(){clearInterval(timer);timer=null;if(C.auto&&C.url&&C.min>0)timer=setInterval(()=>{if(window.projLiberado&&!projLiberado())return;buscarLink(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()})},C.min*60000)}
 
 /* webhook: automações (Make, Zapier, n8n, Node-RED, ESP32) enviam para o Supabase com a chave da conta; o app recolhe */
 async function recolher(silencioso){if(!(window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok()&&Auth.aquaReceber))return null;
+  if(window.projLiberado&&!projLiberado()){if(!silencioso)msg="Crie ou abra um projeto: as leituras da automação ficam guardadas no servidor e entram quando houver um projeto aberto.";return null}
   let itens=await Auth.aquaReceber();if(!itens||!itens.length){if(!silencioso)msg="Nenhuma leitura nova chegou pelo webhook.";return null}
   /* biometrias que chegam pela mesma automação vão para o sistema de Biometria */
   const ehBio=o=>/^biom/i.test(String(o.tipo||""))||(["peso","peso_medio","peso_total","comprimento"].some(k=>k in o)&&!NUM.some(p=>p in o));
@@ -6730,7 +6757,7 @@ async function buscarLinkB(sil){if(!B.url)throw new Error("Cole o link dos dados
   const p=projImp(),ja=new Set(B.amostras.filter(a=>a.origem&&a.origem.tipo==="link").map(a=>(a.pid||"_local")+"|"+a.unome+"|"+a.data+"|"+a.metodo)),
     L=linhasParaAmostras(rows,B.map).amostras.filter(a=>!ja.has([(a.proj&&projDe(a.proj))||p,a.un||(uniP(p).find(x=>x.id===unidade)||{}).nome,a.data,a.metodo].join("|")));
   return L.length?res(guardar(L,{tipo:"link",nome:B.url}),{tipo:"link",nome:B.url}):"Link sem biometrias novas."}
-function agendar(){clearInterval(timer);timer=null;if(B.auto&&B.url)timer=setInterval(()=>buscarLinkB(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()}),Math.max(1,+B.min||60)*60000)}
+function agendar(){clearInterval(timer);timer=null;if(B.auto&&B.url)timer=setInterval(()=>(window.projLiberado&&!projLiberado())?null:buscarLinkB(true).then(t=>{msg="Busca automática: "+t;draw()}).catch(e=>{msg="Busca automática falhou: "+e.message;draw()}),Math.max(1,+B.min||60)*60000)}
 /* automação: o plugin entrega aqui os itens do webhook que são biometria (vão para o projeto escolhido, ou para o "projeto" informado no item) */
 window.bioReceber=async itens=>{const cols=[...new Set(itens.flatMap(o=>Object.keys(o)))],map=autoMapB(cols);for(const c of cols){if(c==="data_hora")map[c]="dt";if(["unidade","projeto","data","hora","peso","comprimento","n","peso_total","metodo"].includes(c))map[c]=c;if(c==="peso_medio")map[c]="peso";if(c==="quantidade")map[c]="n";if(c==="tipo")delete map[c]}
   const L=linhasParaAmostras(itens,map).amostras;if(!L.length)return "";const r=guardar(L,{tipo:"webhook",nome:""});draw();return "Biometria pela automação: "+res(r,{tipo:"webhook"})};
@@ -6879,6 +6906,47 @@ salvar();agendar();draw();
 
 </script>
 <script>
+/* ---------- Projeto primeiro: as abas de dados só liberam depois de criar (ou abrir) um projeto com nome ---------- */
+(function(){
+const host=document.getElementById("pj-gate");if(!host)return;
+const DADOS=["calc","local","bio","racao","repro","topo","aqua"];
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let vAtual=null,criando=false,msg="",novoConf=false,nomeDig="";
+const viewEl=v=>document.getElementById("view-"+v);
+const st=()=>window.projStatus?projStatus():null;
+window.projLiberado=()=>{const s=st();return !s||!!s.aberto};
+function travar(on){for(const v of DADOS){const el=viewEl(v);if(el){const t=on&&v===vAtual;el.classList.toggle("pj-trava",t);if(t)el.setAttribute("aria-disabled","true");else el.removeAttribute("aria-disabled")}}}
+function outros(){try{window.drawAquaOrig&&drawAquaOrig()}catch(e){}try{window.drawAquaBio&&drawAquaBio()}catch(e){}try{window.focoRefresh&&focoRefresh()}catch(e){}}
+function draw(v){if(v)vAtual=v;if(!vAtual){const t=document.querySelector('.tab[aria-selected="true"]');vAtual=t?t.dataset.view:"calc"}
+  const s=st();if(!s||!DADOS.includes(vAtual)){host.hidden=true;host.innerHTML="";travar(false);return}
+  host.hidden=false;
+  if(s.aberto){travar(false);const hora=s.em?new Date(s.em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}):"";
+    host.innerHTML=`<div class="pjg-bar"><span>📂 Projeto: <b>${E(s.nome)}</b></span><span class="pjg-st${s.erro?" bad":""}">${s.erro?E(s.erro):s.cliente?"projeto de cliente: salve as mudanças na aba Projetos":hora?"✓ salvo automaticamente às "+hora:"salvamento automático ligado"}</span>
+     <span class="pjg-acts">${novoConf?`<span>Começar um projeto novo, em branco? O atual continua salvo.</span><button type="button" class="btn warn" data-pjg="novo-ok">Sim, novo projeto</button><button type="button" class="btn" data-pjg="nao">Voltar</button>`
+       :`${s.cliente?"":`<button type="button" class="btn" data-pjg="salvar">Salvar agora</button>`}<button type="button" class="btn" data-pjg="novo">+ Novo projeto</button>`}</span></div>`}
+  else{travar(true);
+    host.innerHTML=`<div class="pjg-card"><h2>${s.pronto?"1º passo: dê um nome ao projeto":"Verificando o projeto…"}</h2>
+     <p>Todo dado lançado no app (grupos de tanques, local e viabilidade, biomassa, ração, reprodução, levantamento, leituras e biometrias) fica identificado com um projeto. Crie o nome: o projeto é salvo na hora e continua sendo salvo sozinho enquanto você elabora, com todas as abas correlacionadas em tempo real. As abas de dados ficam liberadas depois disso.</p>
+     ${s.logado?`<div class="pjg-form"><div class="inp"><input id="pjg-nome" maxlength="80" value="${E(nomeDig)}" placeholder="Nome do projeto (ex.: Fazenda Uanina – RAS 2026)" aria-label="Nome do projeto"></div><button type="button" class="btn solid" data-pjg="criar"${criando?" disabled":""}>${criando?"Criando…":"Criar projeto e começar"}</button><button type="button" class="btn" data-pjg="abrir">Abrir projeto salvo</button></div>`
+       :`<p><b>Entre na sua conta</b> para criar ou abrir um projeto.</p>`}
+     <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
+     <p class="muted">O que já estiver preenchido nas abas entra no projeto quando ele for criado.</p></div>`}
+  bind()}
+function criar(){const nome=(host.querySelector("#pjg-nome")||{}).value||nomeDig;if(criando)return;criando=true;msg="";draw();
+  Promise.resolve().then(()=>projCriar(nome)).then(()=>{criando=false;nomeDig="";msg="";draw();outros()}).catch(e=>{criando=false;msg=(e&&e.message)||String(e);draw()})}
+function bind(){const q=s=>host.querySelector(s);const n=q("#pjg-nome");if(n){n.addEventListener("input",()=>{nomeDig=n.value});n.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();criar()}})}
+  host.querySelectorAll("[data-pjg]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.pjg;
+    if(a==="criar")return criar();if(a==="abrir")return setView("proj");
+    if(a==="salvar"){b.disabled=true;b.textContent="Salvando…";Promise.resolve(window.projAutoSalvar&&projAutoSalvar()).finally(()=>draw());return}
+    if(a==="novo"){novoConf=true;draw();return}if(a==="nao"){novoConf=false;draw();return}
+    if(a==="novo-ok"){novoConf=false;window.projNovo&&projNovo()}}))}
+window.drawPjGate=draw;
+window.addEventListener("proj-status",()=>{if(!host.querySelector("#pjg-nome:focus"))draw()});
+draw();setTimeout(()=>draw(),1500);
+})();
+
+</script>
+<script>
 /* ---------- Celular: barra de navegação inferior, menu "Mais" e instalação como app (PWA) ---------- */
 (function(){
 const ICO={
@@ -6936,7 +7004,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v52";
+  const APP_VERSAO="ras-v53";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
