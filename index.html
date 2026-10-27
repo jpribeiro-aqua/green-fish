@@ -467,6 +467,8 @@ table.lv-apt th:nth-child(n+5):nth-child(-n+16){padding:10px 2px;text-align:cent
 td.lv-mc{padding:10px 2px!important;text-align:center!important}
 .lv-m{display:inline-block;width:16px;height:16px;border-radius:4px;vertical-align:middle;background:var(--line)}
 .lv-m.ot{background:var(--accent)}.lv-m.sub{background:var(--c4)}.lv-m.cr{background:var(--c8)}
+.lv-m.rf{box-shadow:inset 0 -5px 0 #3b82c4}.lv-m.aq{box-shadow:inset 0 -5px 0 #e0702a}
+.lv-sisd{margin:8px 0}.lv-sisd summary{cursor:pointer;font-weight:600;font-size:14px}.lv-sist{border-collapse:collapse;font-size:12.5px;margin-top:6px}.lv-sist th,.lv-sist td{border:1px solid var(--line);padding:5px 7px;text-align:center;vertical-align:top}.lv-sist td.g{text-align:left;font-weight:600}.lv-sist td small{display:block;margin-top:3px;color:var(--muted,#667);white-space:nowrap}.lv-sist td.on{outline:2px solid var(--ink);outline-offset:-2px}
 .lv-leg{margin:10px 0 4px;font-size:12px;color:var(--muted)}
 .pill.lv-ap.bad{background:var(--c8);color:#fff}
 .lv-ape{border-top:1px solid var(--line);padding:12px 0 0;margin-top:12px}
@@ -898,6 +900,10 @@ button, select, input { font: inherit; color: inherit; }
 .unit h1 input { border: 0; background: transparent; font: inherit; width: 100%; min-width: 0; padding: 0; color: var(--ink); }
 .unit h1 input:hover { box-shadow: inset 0 -1px 0 var(--line); }
 .unit .meta { color: var(--ink-2); margin-top: 4px; }
+.t-sis { display: inline-block; margin-top: 6px; font-size: 13px; }
+.t-tab { margin-top: 8px; font-size: 13px; } .t-tab summary { cursor: pointer; color: var(--accent, #1a6b5a); font-weight: 600; }
+.t-tab table { border-collapse: collapse; margin-top: 6px; width: 100%; } .t-tab th, .t-tab td { border: 1px solid var(--line, #ddd); padding: 4px 6px; text-align: center; white-space: nowrap; }
+.t-tab td:first-child, .t-tab th:first-child { text-align: left; white-space: normal; } .t-tab .on { background: var(--accent-soft, #e3f1ec); font-weight: 700; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
 .field { display: grid; gap: 3px; min-width: 0; }
 .field label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; }
@@ -1130,6 +1136,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
       &lt;div class=&quot;eyebrow&quot;&gt;Unidade de cultivo&lt;/div&gt;
       &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome da unidade&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;u-meta&quot;&gt;&lt;/div&gt;
+      &lt;details class=&quot;t-tab&quot; id=&quot;u-ttab&quot;&gt;&lt;/details&gt;
     &lt;/div&gt;
     &lt;div class=&quot;controls&quot;&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-sel&quot;&gt;Unidade&lt;/label&gt;&lt;select id=&quot;u-sel&quot;&gt;&lt;/select&gt;&lt;/div&gt;
@@ -1137,6 +1144,8 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
         &lt;select id=&quot;u-esp&quot;&gt;&lt;option value=&quot;tilapia&quot;&gt;Tilápia-do-Nilo&lt;/option&gt;&lt;option value=&quot;tambaqui&quot;&gt;Tambaqui&lt;/option&gt;&lt;option value=&quot;camarao&quot;&gt;Camarão L. vannamei&lt;/option&gt;&lt;option value=&quot;pirarucu&quot;&gt;Pirarucu&lt;/option&gt;&lt;option value=&quot;pangasius&quot;&gt;Pangasius&lt;/option&gt;&lt;option value=&quot;curimata&quot;&gt;Curimatã&lt;/option&gt;&lt;option value=&quot;lambari&quot;&gt;Lambari&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-sis&quot;&gt;Sistema&lt;/label&gt;
         &lt;select id=&quot;u-sis&quot;&gt;&lt;option&gt;extensivo&lt;/option&gt;&lt;option&gt;semi-intensivo&lt;/option&gt;&lt;option&gt;intensivo&lt;/option&gt;&lt;option&gt;superintensivo&lt;/option&gt;&lt;option&gt;hiperintensivo&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-estr&quot;&gt;Estrutura&lt;/label&gt;
+        &lt;select id=&quot;u-estr&quot;&gt;&lt;option value=&quot;viveiro&quot;&gt;Viveiro escavado&lt;/option&gt;&lt;option value=&quot;suspenso&quot;&gt;Tanque suspenso / elevado&lt;/option&gt;&lt;option value=&quot;tanque_rede&quot;&gt;Tanque-rede&lt;/option&gt;&lt;option value=&quot;ras&quot;&gt;RAS (recirculação)&lt;/option&gt;&lt;option value=&quot;bft&quot;&gt;Bioflocos (BFT)&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-orig&quot;&gt;Origem da água&lt;/label&gt;
         &lt;select id=&quot;u-orig&quot;&gt;&lt;option value=&quot;&quot;&gt;Não informada&lt;/option&gt;&lt;option value=&quot;poco&quot;&gt;Poço (água subterrânea)&lt;/option&gt;&lt;option value=&quot;rio&quot;&gt;Rio ou córrego&lt;/option&gt;&lt;option value=&quot;represa&quot;&gt;Represa, açude ou lago&lt;/option&gt;&lt;option value=&quot;rede&quot;&gt;Rede pública (tratada)&lt;/option&gt;&lt;option value=&quot;chuva&quot;&gt;Água da chuva&lt;/option&gt;&lt;option value=&quot;mar&quot;&gt;Mar ou estuário&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-dia&quot;&gt;Dia&lt;/label&gt;&lt;select id=&quot;u-dia&quot;&gt;&lt;/select&gt;&lt;/div&gt;
@@ -1434,9 +1443,41 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   // espécie de referência: na água do sistema vale o pior caso entre as espécies dos grupos
   const espRef = (u) =&gt; (u.sistemaRAS ? ((u.especies || []).includes(&quot;tambaqui&quot;) ? &quot;tambaqui&quot; : (u.especies || [])[0] || &quot;tilapia&quot;) : u.especie);
   const espDe = (u) =&gt; (u.sistemaRAS &amp;&amp; (u.especies || []).length ? u.especies : [u.especie]);
-  function cls(u, p, v) { return espDe(u).map((e) =&gt; Core.classificar(BASE, e, p, v)).reduce((a, b) =&gt; (STORD[b] &gt; STORD[a] ? b : a), &quot;sem_faixa&quot;); }
-  function dirU(u, p, v) { let pe = espDe(u)[0], ps = -1; for (const e of espDe(u)) { const s = STORD[Core.classificar(BASE, e, p, v)]; if (s &gt; ps) { ps = s; pe = e; } } return Core.direcao(BASE, pe, p, v); }
-  const fx = (u, p) =&gt; Core.faixa(BASE, espRef(u), p);
+  // ---- temperatura ideal conforme o sistema de cultivo (estrutura + intensidade) ----
+  const ESTR = {
+    viveiro: { nome: &quot;Viveiro escavado&quot;, amp: 4, txt: &quot;segue o clima; a superfície pode passar de 38 °C às 15 h com termoclina nos primeiros 30 cm (meça a meia profundidade); prefira viveiros com mais de 1,2 m&quot; },
+    suspenso: { nome: &quot;Tanque suspenso / elevado (lona, geomembrana, fibra)&quot;, amp: 3, txt: &quot;pouco volume e paredes expostas esquentam e esfriam rápido: sombreie ou cubra, e o alerta de calor vem 1 °C antes&quot; },
+    tanque_rede: { nome: &quot;Tanque-rede (reservatório)&quot;, amp: 2, txt: &quot;a temperatura é a do reservatório (mais estável), mas há estratificação: na virada da coluna d&#x27;água sobem água fria, sem oxigênio e com gases tóxicos&quot; },
+    ras: { nome: &quot;RAS (recirculação)&quot;, amp: 1, txt: &quot;temperatura controlada: mantenha a água numa faixa estreita em torno do ótimo de crescimento, com variação de até 1 °C no dia&quot; },
+    bft: { nome: &quot;Bioflocos (BFT)&quot;, amp: 2, txt: &quot;flocos e alta biomassa consomem muito oxigênio: trabalhe no ótimo de crescimento, sem passar de ~1 °C acima dele (a 32 °C o camarão em BFT cresce com menor eficiência)&quot; }
+  };
+  const ALVO_T = { tilapia: 29, tambaqui: 29.5, camarao: 29, pirarucu: 28, pangasius: 28, curimata: 27, lambari: 26 };
+  const estrDe = (u) =&gt; { if (!u) return &quot;viveiro&quot;; if (u.sistemaRAS || u.ras) return &quot;ras&quot;; if (u.estrutura &amp;&amp; ESTR[u.estrutura]) return u.estrutura; const n = String(u.nome || &quot;&quot;);
+    if (/bft|biofloc/i.test(n)) return &quot;bft&quot;; if (/tanque.?rede|gaiola/i.test(n)) return &quot;tanque_rede&quot;; if (/\bras\b|recircula/i.test(n)) return &quot;ras&quot;; if (/suspens|elevad|lona|geomembrana|caixa|fibra/i.test(n)) return &quot;suspenso&quot;;
+    return [&quot;superintensivo&quot;, &quot;hiperintensivo&quot;].includes(u.sistema) ? &quot;bft&quot; : &quot;viveiro&quot;; };
+  function tempFaixa(esp, sis, estr) {
+    const f0 = Core.faixa(BASE, esp, &quot;temperatura&quot;); if (!f0) return null; const f = { ...f0 }, alvo = ALVO_T[esp] ?? (f0.ideal_min + f0.ideal_max) / 2, E = ESTR[estr] || ESTR.viveiro, mot = [];
+    if (estr === &quot;ras&quot;) { f.ideal_min = Math.max(f0.ideal_min, alvo - 1); f.ideal_max = Math.min(f0.ideal_max, alvo + 1); mot.push(&quot;RAS: faixa estreita em torno do ótimo de &quot; + String(alvo).replace(&quot;.&quot;, &quot;,&quot;) + &quot; °C&quot;); }
+    else if (estr === &quot;bft&quot;) { f.ideal_min = Math.max(f0.ideal_min, alvo - 1.5); f.ideal_max = Math.min(f0.ideal_max, alvo + 1); mot.push(&quot;bioflocos: até ~1 °C acima do ótimo de &quot; + String(alvo).replace(&quot;.&quot;, &quot;,&quot;) + &quot; °C&quot;); }
+    if (sis === &quot;superintensivo&quot; || sis === &quot;hiperintensivo&quot;) { const cap = alvo + (sis === &quot;hiperintensivo&quot; ? 1 : 2); if (f.ideal_max &gt; cap) { f.ideal_max = cap; mot.push((sis === &quot;hiperintensivo&quot; ? &quot;hiperintensivo&quot; : &quot;superintensivo&quot;) + &quot;: teto do ideal reduzido (mais biomassa, menos oxigênio na água quente)&quot;); }
+      if (f.alerta_max != null) f.alerta_max = Math.max(f.ideal_max, f0.alerta_max - (sis === &quot;hiperintensivo&quot; ? 1.5 : 1)); }
+    if (estr === &quot;suspenso&quot; &amp;&amp; f.alerta_max != null) { f.alerta_max = Math.max(f.ideal_max, (f.alerta_max) - 1); mot.push(&quot;tanque suspenso: alerta de calor 1 °C antes&quot;); }
+    if (f.ideal_min &gt; f.ideal_max) f.ideal_min = f.ideal_max;
+    f.amplitude_max_24h = Math.min(f0.amplitude_max_24h ?? E.amp, E.amp); f._mot = mot; f._estr = estr; return f; }
+  const BX_CACHE = {};
+  const BX = (u) =&gt; { const sis = u?.sistema || &quot;&quot;, estr = estrDe(u), k = sis + &quot;|&quot; + estr; if (BX_CACHE[k]) return BX_CACHE[k];
+    return (BX_CACHE[k] = { ...BASE, faixas: BASE.faixas.map((f) =&gt; (f.parametro === &quot;temperatura&quot; ? tempFaixa(f.especie, sis, estr) || f : f)) }); };
+  const fmtT = (v) =&gt; (v == null ? &quot;—&quot; : String(Math.round(v * 10) / 10).replace(&quot;.&quot;, &quot;,&quot;));
+  function tempMetaHTML(u) { const e = espRef(u), f = Core.faixa(BX(u), e, &quot;temperatura&quot;); if (!f) return &quot;&quot;; const E = ESTR[estrDe(u)];
+    return `&lt;br&gt;&lt;span class=&quot;t-sis&quot;&gt;🌡 Temperatura ideal para ${ESP[e].nome_comum} em &lt;b&gt;${E.nome}&lt;/b&gt; · ${u.sistema}: &lt;b&gt;${fmtT(f.ideal_min)}–${fmtT(f.ideal_max)} °C&lt;/b&gt; (alerta abaixo de ${fmtT(f.alerta_min)} e acima de ${fmtT(f.alerta_max)} °C; variação de até ${fmtT(f.amplitude_max_24h)} °C no dia). ${E.txt}.${f._mot &amp;&amp; f._mot.length ? &quot; Ajuste: &quot; + f._mot.join(&quot;; &quot;) + &quot;.&quot; : &quot;&quot;}&lt;/span&gt;`; }
+  function tempTabHTML(u) { const e = espRef(u), sisL = [&quot;extensivo&quot;, &quot;semi-intensivo&quot;, &quot;intensivo&quot;, &quot;superintensivo&quot;, &quot;hiperintensivo&quot;], eu = estrDe(u);
+    return `&lt;summary&gt;Temperatura ideal de ${ESP[e].nome_comum} em cada sistema de cultivo&lt;/summary&gt;&lt;div style=&quot;overflow-x:auto&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Estrutura&lt;/th&gt;${sisL.map((x) =&gt; `&lt;th&gt;${x}&lt;/th&gt;`).join(&quot;&quot;)}&lt;th&gt;Variação no dia&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${Object.entries(ESTR).map(([k, E]) =&gt; `&lt;tr&gt;&lt;td&gt;${E.nome}&lt;/td&gt;${sisL.map((x) =&gt; { const f = tempFaixa(e, x, k); return `&lt;td class=&quot;${k === eu &amp;&amp; x === u.sistema ? &quot;on&quot; : &quot;&quot;}&quot;&gt;${f ? fmtT(f.ideal_min) + &quot;–&quot; + fmtT(f.ideal_max) : &quot;—&quot;}&lt;/td&gt;`; }).join(&quot;&quot;)}&lt;td&gt;até ${fmtT(Math.min((Core.faixa(BASE, e, &quot;temperatura&quot;) || {}).amplitude_max_24h ?? E.amp, E.amp))} °C&lt;/td&gt;&lt;/tr&gt;`).join(&quot;&quot;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;
+     &lt;p class=&quot;foot&quot;&gt;Faixa ideal em °C. Base: faixa ótima da espécie (pesquisa nas fichas da FAO, Embrapa e artigos). Em RAS a água é controlada e fica numa faixa estreita em torno do ótimo de crescimento; em bioflocos e nos sistemas super e hiperintensivos o teto do ideal é reduzido porque água quente segura menos oxigênio e a biomassa alta consome mais (a 32 °C a água guarda bem menos O₂ que a 22 °C; com 25–35 kg/m³ a falta de oxigênio no calor é muito provável). Viveiros escavados e tanques suspensos seguem o clima e variam mais no dia; tanques-rede seguem o reservatório. A célula destacada é a desta unidade.&lt;/p&gt;`; }
+  window.aquaTempSistema = (esp, sis, estr) =&gt; { const f = tempFaixa(esp, sis, estr); return f ? { ideal_min: f.ideal_min, ideal_max: f.ideal_max, alerta_min: f.alerta_min, alerta_max: f.alerta_max, amp: f.amplitude_max_24h, mot: f._mot } : null; };
+  window.aquaEstruturas = () =&gt; Object.fromEntries(Object.entries(ESTR).map(([k, v]) =&gt; [k, v.nome]));
+  function cls(u, p, v) { return espDe(u).map((e) =&gt; Core.classificar(BX(u), e, p, v)).reduce((a, b) =&gt; (STORD[b] &gt; STORD[a] ? b : a), &quot;sem_faixa&quot;); }
+  function dirU(u, p, v) { let pe = espDe(u)[0], ps = -1; for (const e of espDe(u)) { const s = STORD[Core.classificar(BX(u), e, p, v)]; if (s &gt; ps) { ps = s; pe = e; } } return Core.direcao(BX(u), pe, p, v); }
+  const fx = (u, p) =&gt; Core.faixa(BX(u), espRef(u), p);
   const nomeEsp = (u) =&gt; (u.sistemaRAS ? &quot;Água comum · &quot; + espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; + &quot;) : ESP[u.especie].nome_comum);
   // salinidade sem leitura: usa a última medida; se não houver, estima pela origem da água (g/L ≈ ‰)
   const SAL_ORIG = { poco: 0.3, rio: 0.05, represa: 0.05, rede: 0.05, chuva: 0, mar: 25 };
@@ -1714,7 +1755,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     fs.placeholder = `${ide ? &quot;ideal &quot; + ide + &quot; · &quot; : &quot;&quot;}vazio: ${fmt(si.v, 1)}`; fs.title = `Se ficar vazio: ${fmt(si.v, 1)} g/L, ${si.txt}`; }
   function renderHead() {
     const u = UA(); setSalPh();
-    $(&quot;u-nome&quot;).value = u.nome; $(&quot;u-esp&quot;).value = u.especie; $(&quot;u-sis&quot;).value = u.sistema;
+    $(&quot;u-nome&quot;).value = u.nome; $(&quot;u-esp&quot;).value = u.especie; $(&quot;u-sis&quot;).value = u.sistema; $(&quot;u-estr&quot;).value = estrDe(u); $(&quot;u-estr&quot;).disabled = !!(u.ras || u.sistemaRAS); $(&quot;u-estr&quot;).title = u.ras || u.sistemaRAS ? &quot;Grupos da Calculadora e a água do sistema são RAS&quot; : &quot;Muda a faixa ideal de temperatura e a variação aceita no dia&quot;;
     $(&quot;u-nome&quot;).readOnly = !!u.ras;
     excArmed = false; $(&quot;b-exc-u&quot;).hidden = !!u.ras; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir unidade&quot;; $(&quot;b-exc-u&quot;).disabled = S.unidades.length &lt; 2;
     $(&quot;b-exc-u&quot;).title = S.unidades.length &lt; 2 ? &quot;É preciso manter pelo menos uma unidade&quot; : &quot;Apaga a unidade e todas as leituras dela&quot;;
@@ -1728,7 +1769,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;u-sel&quot;).innerHTML = S.unidades.map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
     $(&quot;u-dia&quot;).innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === (S.dia || hoje()) ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}&lt;/option&gt;`).join(&quot;&quot;);
     const sc = BASE.sistemas_cultivo.find((x) =&gt; x.especie === u.especie &amp;&amp; x.sistema === u.sistema);
-    $(&quot;u-meta&quot;).innerHTML = `${ORIGENS[origemDe(u)] ? &quot;Origem: &quot; + ORIGENS[origemDe(u)].nome + &quot; · &quot; : &quot;&quot;}${u.sistemaRAS ? &quot;Avaliada pelo pior caso entre &quot; + espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; e &quot;) : `&lt;em&gt;${ESP[u.especie].cientifico}&lt;/em&gt;`} · ${u.sistema} · ${u.sistemaRAS ? `água comum a ${fmt(u.ras.tanques, 0)} tanques, ${fmt(u.volume_m3, 0)} m³` : u.ras ? `grupo da Calculadora: ${fmt(u.ras.tanques, 0)} × ${fmt(u.ras.volume_tanque, 0)} m³ = ${fmt(u.volume_m3, 0)} m³${u.racao_kg_dia ? ` · ração de projeto ${fmt(u.racao_kg_dia, 1)} kg/d` : &quot;&quot;}` : `densidade de referência ${sc ? sc.densidade : &quot;—&quot;}`}${u.exemplo ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}`;
+    $(&quot;u-meta&quot;).innerHTML = `${ORIGENS[origemDe(u)] ? &quot;Origem: &quot; + ORIGENS[origemDe(u)].nome + &quot; · &quot; : &quot;&quot;}${u.sistemaRAS ? &quot;Avaliada pelo pior caso entre &quot; + espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; e &quot;) : `&lt;em&gt;${ESP[u.especie].cientifico}&lt;/em&gt;`} · ${u.sistema} · ${u.sistemaRAS ? `água comum a ${fmt(u.ras.tanques, 0)} tanques, ${fmt(u.volume_m3, 0)} m³` : u.ras ? `grupo da Calculadora: ${fmt(u.ras.tanques, 0)} × ${fmt(u.ras.volume_tanque, 0)} m³ = ${fmt(u.volume_m3, 0)} m³${u.racao_kg_dia ? ` · ração de projeto ${fmt(u.racao_kg_dia, 1)} kg/d` : &quot;&quot;}` : `densidade de referência ${sc ? sc.densidade : &quot;—&quot;}`}${u.exemplo ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${tempMetaHTML(u)}`; { const tt = $(&quot;u-ttab&quot;); if (tt) { const op = tt.open; tt.innerHTML = tempTabHTML(u); tt.open = op; } }
     $(&quot;ver&quot;).textContent = BASE.versao;
   }
   function renderSummary() {
@@ -1920,6 +1961,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     renderUnidade(); });
   $(&quot;u-orig&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) return; u.origem = e.target.value; requestAnimationFrame(() =&gt; { renderHead(); renderEval(); setTimeout(salvar, 0); }); });
   $(&quot;u-sis&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().sistema = e.target.value; salvar(); renderUnidade(); });
+  $(&quot;u-estr&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.ras || u.sistemaRAS) return; u.estrutura = e.target.value; salvar(); renderUnidade(); });
   // excluir unidade criada em &quot;Nova unidade&quot; (os grupos da Calculadora saem pela Calculadora)
   var excArmed = false;
   $(&quot;b-exc-u&quot;).addEventListener(&quot;click&quot;, () =&gt; {
@@ -3381,7 +3423,7 @@ const OPQ=[
 const QLIST=[...OPQ.map(x=>({...x,g:"Custeio"})),...INV.map(i=>({k:"inv_"+i.k,nome:i.nome,un:i.un==="verba"?"R$ (verba)":"R$/"+i.un,ref:i.pu,dica:"estimativa",g:"Investimento"}))];
 const QBY=Object.fromEntries(QLIST.map(x=>[x.k,x]));
 const LVD={
-  preset:"pinheiro",est:"",salAgua:"",origem:"",espApt:"",
+  preset:"pinheiro",est:"",salAgua:"",origem:"",espApt:"",estrApt:"",intApt:"",
   loc:"Pinheiro – MA",lat:"-2,52083",lon:"-45,08278",
   zA:"20",zB:"18,5",dist:"100",argila:"32",prof:"1,2",fArea:"2",coberto:true,
   clima:{tx:CLIMA0.tx.map(s2),tn:CLIMA0.tn.map(s2),tm:CLIMA0.tm.map(s2),pr:CLIMA0.pr.map(s2),ev:Array(12).fill("")},
@@ -3503,27 +3545,62 @@ function salInfo(){
   if(orig&&AGUA[orig])return {v:AGUA[orig].sal,how:`estimada pela origem (${ORIG[orig].toLowerCase()})`,orig,aq,reg};
   return {v:0,how:"sem origem informada: considerada doce",orig,aq,reg};
 }
+/* ---------- temperatura da água × sistema de cultivo (estrutura e intensidade) ---------- */
+const ESTR_L={
+  ras:{n:"RAS (recirculação)",dw:2,amp:1,txt:"água em galpão com controle de temperatura: fica numa faixa estreita em torno do ótimo; meses fora dela pedem aquecimento ou resfriamento (custo de energia), não perda de crescimento"},
+  bft:{n:"Bioflocos (BFT)",dw:1.5,amp:2,txt:"em estufa a água fica ~1,5 °C acima da média do ar; flocos e biomassa alta consomem muito oxigênio, por isso o teto do ótimo fica só ~1 °C acima do alvo"},
+  suspenso:{n:"Tanque suspenso / elevado",dw:0.5,amp:3,txt:"pouco volume e paredes expostas: segue o ar, varia ~3 °C no dia e esfria rápido à noite; o limite de calor vem 1 °C antes"},
+  tanque_rede:{n:"Tanque-rede (reservatório)",dw:1,amp:2,txt:"a água é a do reservatório, mais estável (~2 °C no dia), sem controle; atenção à virada térmica da coluna d'água"},
+  viveiro:{n:"Viveiro escavado",dw:1,amp:4,txt:"segue o clima: média ~1 °C acima do ar e até ~4 °C de variação no dia (superfície mais quente à tarde)"}
+};
+const INT_L={extensivo:"Extensivo",semi:"Semi-intensivo",intensivo:"Intensivo",super:"Superintensivo",hiper:"Hiperintensivo"};
+const ALVO_L={tilapia:29,tambaqui:29.5,camarao:29,pirarucu:28,pangasius:28,curimata:27,lambari:26};
+const fT=v=>isFinite(v)?String(Math.round(v*10)/10).replace(".",","):"—";
+let SIS_C=null;
+function sisApt(){const now=Date.now();if(SIS_C&&now-SIS_C.t<1500&&SIS_C.e===LV.estrApt&&SIS_C.i===LV.intApt)return SIS_C.v;
+  let aqs="";try{const S=JSON.parse(localStorage.getItem(AQ_KEY));const su=S&&Array.isArray(S.unidades)?(S.unidades.find(u=>u.id==="ras-sistema")||S.unidades[0]):null;aqs=su&&su.sistema||""}catch(e){}
+  const im={"extensivo":"extensivo","semi-intensivo":"semi","intensivo":"intensivo","superintensivo":"super","hiperintensivo":"hiper"};
+  const v={est:ESTR_L[LV.estrApt]?LV.estrApt:"ras",it:INT_L[LV.intApt]?LV.intApt:(im[aqs]||"intensivo"),aqs:im[aqs]||""};
+  SIS_C={t:now,e:LV.estrApt,i:LV.intApt,v};return v}
+// faixa da espécie ajustada à estrutura e à intensidade (mesma regra do AquaNictemeral)
+function faixaSis(e,k,it,est){const alvo=ALVO_L[k]!=null?ALVO_L[k]:(e.opt[0]+e.opt[1])/2;let o0=e.opt[0],o1=e.opt[1],c0=e.crit[0],c1=e.crit[1];const mot=[];
+  if(est==="ras"){o0=Math.max(o0,alvo-1);o1=Math.min(o1,alvo+1);mot.push(`RAS: água mantida em ${fT(o0)} a ${fT(o1)} °C, em torno do ótimo de ${fT(alvo)} °C`)}
+  else if(est==="bft"){o0=Math.max(o0,alvo-1.5);o1=Math.min(o1,alvo+1);mot.push(`bioflocos: até ~1 °C acima do ótimo de ${fT(alvo)} °C`)}
+  if(it==="super"||it==="hiper"){const cap=alvo+(it==="hiper"?1:2);if(o1>cap){o1=cap;mot.push(`${INT_L[it].toLowerCase()}: teto do ótimo reduzido para ${fT(cap)} °C (mais biomassa, menos oxigênio na água quente)`)}
+    if(isFinite(c1)){c1=Math.max(o1+1,c1-(it==="hiper"?1.5:1));mot.push(`limite crítico de calor ${it==="hiper"?"1,5":"1"} °C antes`)}}
+  if(est==="suspenso"&&isFinite(c1)){c1=Math.max(o1+0.5,c1-1);mot.push("tanque suspenso: limite de calor 1 °C antes")}
+  if(o0>o1)o0=o1;return {opt:[o0,o1],crit:[c0,c1],alvo,mot}}
+const RAS_MAXC=()=>LV.coberto?4:2; // correção de temperatura viável em RAS (°C): galpão fechado × aberto
 const salClass=s=>!isFinite(s)?"":s<=0.5?"doce":s<30?"salobra":"salina";
-function aptidao(o,k){
-  const e=ESP[k],cl=o.cl;
-  const meses=cl.map(c=>{const t=c.tm,tn=c.tn;
-    if(!isFinite(t))return "na";
-    if(t<e.crit[0]||t>e.crit[1]||(isFinite(tn)&&tn<e.let))return "cr";
-    return t>=e.opt[0]&&t<=e.opt[1]?"ot":"sub"});
+function aptidao(o,k,it,est){
+  const e=ESP[k],cl=o.cl,sa=sisApt();it=it||sa.it;est=est||sa.est;
+  const E=ESTR_L[est],f=faixaSis(e,k,it,est),ras=est==="ras",dw=est==="bft"&&!LV.coberto?1:ras&&!LV.coberto?1:E.dw;
+  const w=cl.map(c=>isFinite(c.tm)?c.tm+dw:NaN),clim=Array(12).fill("");
+  const meses=cl.map((c,i)=>{const t=w[i];if(!isFinite(t))return "na";
+    if(ras){const dz=t<f.opt[0]?f.opt[0]-t:t>f.opt[1]?t-f.opt[1]:0;if(dz>0.05)clim[i]=t<f.opt[0]?"aq":"rf";return dz>RAS_MAXC()?"sub":"ot"}
+    const wmin=t-E.amp/2,wmax=t+E.amp/2,tn=c.tn;
+    if(t<f.crit[0]||t>f.crit[1]||wmax>f.crit[1]+2||wmin<e.let||(est==="suspenso"&&isFinite(tn)&&tn+1.5<e.let))return "cr";
+    return t>=f.opt[0]&&t<=f.opt[1]&&wmax<=f.crit[1]&&wmin>=f.crit[0]?"ot":"sub"});
   const nOt=meses.filter(m=>m==="ot").length,nCr=meses.filter(m=>m==="cr").length,nSub=meses.filter(m=>m==="sub").length;
+  const nAq=clim.filter(x=>x==="aq").length,nRf=clim.filter(x=>x==="rf").length;
+  const dMax=ras?Math.max(0,...w.filter(isFinite).map(t=>t<f.opt[0]?f.opt[0]-t:t>f.opt[1]?t-f.opt[1]:0)):0;
   let term=nCr?"inapto":nOt>=9?"apto":"restrito";
   const sc=salClass(o.sal.v),sal=sc?e.sal[sc]:"apto";
   const rank={apto:0,restrito:1,inapto:2},fin=[term,sal].sort((a,b)=>rank[b]-rank[a])[0];
-  // em RAS coberto com controle de temperatura, a restrição térmica pode ser corrigida (aquecimento/resfriamento)
-  const fin2=fin==="inapto"&&term==="inapto"&&sal!=="inapto"&&LV.coberto?"restrito":fin;
-  return {k,e,meses,nOt,nCr,nSub,term,sc,sal,fin:fin2};
+  // bioflocos em estufa: frio ou calor fora do limite ainda pode ser corrigido com aquecimento/sombreamento, com custo
+  const fin2=fin==="inapto"&&term==="inapto"&&sal!=="inapto"&&est==="bft"&&LV.coberto?"restrito":fin;
+  return {k,e,f,it,est,E,w,clim,nAq,nRf,dMax,meses,nOt,nCr,nSub,term,sc,sal,fin:fin2};
 }
+// aptidão térmica da espécie em todas as estruturas × intensidades
+function aptGrade(o,a){const it0=a.it,es0=a.est,ab={apto:"Apto",restrito:"Restrito",inapto:"Inapto"};
+  return `<details class="lv-sisd"><summary>Aptidão de ${a.e.n} em cada sistema de cultivo neste local</summary><div class="scroll"><table class="lv-sist"><thead><tr><th>Estrutura</th>${Object.values(INT_L).map(x=>`<th>${x}</th>`).join("")}</tr></thead><tbody>${Object.entries(ESTR_L).map(([ek,E])=>`<tr><td class="g">${E.n}</td>${Object.keys(INT_L).map(ik=>{const b=aptidao(o,a.k,ik,ek),t=b.term;return `<td class="${ek===es0&&ik===it0?"on":""}"><span class="pill lv-ap ${APT[t][1]}">${ab[t]}</span><small>${fT(b.f.opt[0])}–${fT(b.f.opt[1])} °C${ek==="ras"&&(b.nAq||b.nRf)?` · ${b.nRf?b.nRf+" meses resfriar":""}${b.nAq&&b.nRf?", ":""}${b.nAq?b.nAq+" meses aquecer":""}`:` · ${b.nOt} meses no ótimo`}</small></td>`}).join("")}</tr>`).join("")}</tbody></table></div>
+   <p class="lv-foot">Só a temperatura (a salinidade não muda com o sistema). Água estimada a partir da média mensal do ar: viveiro e tanque-rede ≈ ar + 1 °C, tanque suspenso ≈ ar + 0,5 °C, bioflocos em estufa ≈ ar + 1,5 °C; a variação no dia é de ~4, 2, 3 e 2 °C. Em RAS a água é controlada: o resultado mostra os meses que precisam de aquecimento ou resfriamento (até ${RAS_MAXC()} °C de correção é considerado viável${LV.coberto?" em galpão fechado":" com tanques abertos"}). Super e hiperintensivo baixam o teto do ótimo e o limite de calor porque a água quente guarda menos oxigênio. Faixas iguais às do AquaNictemeral.</p></details>`}
 // leitura em texto: temperatura do município × salinidade informada
 function leitura(o,a){
   const loc=LV.loc||"o local do projeto",sv=o.sal.v,ms=t=>a.meses.map((m,i)=>m===t?MES[i]:null).filter(Boolean).join(", ");
-  const subs=a.meses.map((m,i)=>m==="sub"?i:-1).filter(i=>i>=0),lo=subs.filter(i=>o.cl[i].tm<a.e.opt[0]).length,hi=subs.length-lo;
+  const subs=a.meses.map((m,i)=>m==="sub"?i:-1).filter(i=>i>=0),lo=subs.filter(i=>a.w[i]<a.f.opt[0]).length,hi=subs.length-lo;
   const dir=lo&&hi?"fora do ótimo":lo?"abaixo do ótimo":"acima do ótimo";
-  const tp=a.term==="apto"?(a.nOt===12?`temperatura adequada o ano todo (12 meses na faixa ótima de ${a.e.opt[0]} a ${a.e.opt[1]} °C)`:`temperatura adequada (${a.nOt} de 12 meses na faixa ótima de ${a.e.opt[0]} a ${a.e.opt[1]} °C; ${dir} em ${ms("sub")})`)
+  const tp=a.term==="apto"?(a.nOt===12?`temperatura adequada o ano todo (12 meses na faixa ótima de ${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C)`:`temperatura adequada (${a.nOt} de 12 meses na faixa ótima de ${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C; ${dir} em ${ms("sub")})`)
     :a.term==="restrito"?`temperatura ${dir} em ${a.nSub} ${a.nSub>1?"meses":"mês"} (${ms("sub")}), com crescimento mais lento`
     :`temperatura crítica em ${a.nCr} ${a.nCr>1?"meses":"mês"} (${ms("cr")})`;
   const sp=!a.sc?"salinidade não informada"
@@ -3531,7 +3608,8 @@ function leitura(o,a){
     :a.sal==="restrito"?`água ${a.sc} (${fmt(sv,1)} ‰) possível, com acompanhamento`
     :`água ${a.sc} (${fmt(sv,1)} ‰) incompatível: a espécie precisa de ${a.e.salReq}`;
   const mot=a.fin==="apto"?"":a.term!=="apto"&&a.sal!=="apto"?" Motivo: temperatura e salinidade.":a.sal!=="apto"?" Motivo: salinidade.":" Motivo: temperatura.";
-  return `<b>${APT[a.fin][0]}</b> em ${esc(loc)}: ${tp}; ${sp}.${mot}`;
+  const ras=a.est==="ras"?(a.nAq||a.nRf?` Em RAS, ${a.nRf?`resfriar a água em ${a.nRf} ${a.nRf>1?"meses":"mês"}`:""}${a.nAq&&a.nRf?" e ":""}${a.nAq?`aquecer em ${a.nAq} ${a.nAq>1?"meses":"mês"}`:""} (até ${fT(a.dMax)} °C de correção).`:" Em RAS, a água fica no ótimo sem precisar de aquecimento ou resfriamento."):"";
+  return `<b>${APT[a.fin][0]}</b> em ${esc(loc)} · ${a.E.n.toLowerCase()} ${INT_L[a.it].toLowerCase()}: ${tp}; ${sp}.${mot}${ras}`;
 }
 const APT={apto:["Apto",""],restrito:["Apto com restrição","late"],inapto:["Inapto","bad"]};
 const aptPill=v=>`<span class="pill lv-ap ${APT[v][1]}">${APT[v][0]}</span>`;
@@ -3717,7 +3795,7 @@ function build(){
   el.innerHTML=
   `<section class="card wide"><div class="card-head"><h2>Local e viabilidade<span>Do mapa e do clima até o investimento e o retorno, ligado aos números da Calculadora</span></h2></div>${out("lo-kpi")}</section>`+
   card(0,"Aptidão do local para a espécie","Onde a espécie pode ser cultivada com viabilidade, pelas faixas de temperatura e salinidade adequadas",
-    `<div class="body lv-grid">${sel("preset","Município de implantação",{...Object.fromEntries(Object.entries(MUNIS).sort((a,b)=>a[1].n.localeCompare(b[1].n,"pt")).map(([k,v])=>[k,v.n])),outro:"Outro município: digite o nome e as coordenadas no item 1"})}${sel("est","Dados climáticos",{"":"Automático: estação mais próxima",...Object.fromEntries(Object.entries(PRESETS).map(([k,v])=>[k,`Estação de ${v.loc.replace(" – MA","")} · ${v.src.replace(/^[^,]*, /,"")}`])),manual:"Manual: valores digitados no item 3"})}${sel("origem","Origem da água",{"":"A mesma do AquaNictemeral (água do sistema)",...ORIG})}${fld("salAgua","Salinidade da água","‰","Em branco: medida no AquaNictemeral ou estimada pela origem",{ph:"auto"})}${sel("espApt","Espécie a avaliar",{"":"Espécie(s) dos lotes do projeto",todas:"Comparar todas as espécies",tilapia:"Tilápia-do-nilo",tambaqui:"Tambaqui",camarao:"Camarão L. vannamei",pirarucu:"Pirarucu",pangasius:"Pangasius",curimata:"Curimatã",lambari:"Lambari"})}</div>${out("lo-0")}`,true)+
+    `<div class="body lv-grid">${sel("preset","Município de implantação",{...Object.fromEntries(Object.entries(MUNIS).sort((a,b)=>a[1].n.localeCompare(b[1].n,"pt")).map(([k,v])=>[k,v.n])),outro:"Outro município: digite o nome e as coordenadas no item 1"})}${sel("est","Dados climáticos",{"":"Automático: estação mais próxima",...Object.fromEntries(Object.entries(PRESETS).map(([k,v])=>[k,`Estação de ${v.loc.replace(" – MA","")} · ${v.src.replace(/^[^,]*, /,"")}`])),manual:"Manual: valores digitados no item 3"})}${sel("origem","Origem da água",{"":"A mesma do AquaNictemeral (água do sistema)",...ORIG})}${fld("salAgua","Salinidade da água","‰","Em branco: medida no AquaNictemeral ou estimada pela origem",{ph:"auto"})}${sel("espApt","Espécie a avaliar",{"":"Espécie(s) dos lotes do projeto",todas:"Comparar todas as espécies",tilapia:"Tilápia-do-nilo",tambaqui:"Tambaqui",camarao:"Camarão L. vannamei",pirarucu:"Pirarucu",pangasius:"Pangasius",curimata:"Curimatã",lambari:"Lambari"})}${sel("estrApt","Estrutura de cultivo",{"":"Automática: RAS (sistema da Calculadora)",...Object.fromEntries(Object.entries(ESTR_L).map(([k,v])=>[k,v.n]))})}${sel("intApt","Intensidade do cultivo",{"":"Automática: a do AquaNictemeral",...INT_L})}</div>${out("lo-0")}`,true)+
   card(1,"Local","Geoprocessamento · coordenadas e fuso UTM",`<div class="body lv-grid">${fld("loc","Local do projeto","","",{text:true})}${fld("lat","Latitude","°","Graus decimais; sul é negativo")}${fld("lon","Longitude","°","Oeste é negativo")}</div>${out("lo-1")}`)+
   card(2,"Terreno","Topografia · declividade, solo e área ocupada",`<div class="body lv-grid">${fld("zA","Cota do ponto mais alto","m")}${fld("zB","Cota do ponto mais baixo","m")}${fld("dist","Distância entre os pontos","m")}${fld("argila","Argila no solo","%","Teste do “S” ou laudo de solo")}${fld("prof","Profundidade útil dos tanques","m")}${fld("fArea","Área total ÷ área de lâmina","×","Corredores, filtros, casa de bombas")}<label class="opts lv-chk"><input type="checkbox" data-lv="coberto"${LV.coberto?" checked":""}> Tanques cobertos (galpão ou estufa): sem chuva e com pouca evaporação</label></div>${out("lo-2")}`)+
   card(3,"Clima","Meteorologia e climatologia · temperatura, chuva, evaporação e ritmo de crescimento",
@@ -3762,6 +3840,7 @@ function drawLocal(){
   {const ks=LV.espApt==="todas"?Object.keys(ESP):LV.espApt?[LV.espApt]:projSp(),A=ks.map(k=>aptidao(o,k));
    const sc=salClass(o.sal.v);
    const si=o.sal,ag=AGUA[si.orig],ploc=ag&&(ag.loc[LV.preset==="saoluis"?"saoluis":si.reg]||"");
+   {const ii=document.getElementById("lv-intApt"),sa=sisApt();if(ii&&ii.options[0])ii.options[0].text=`Automática: ${sa.aqs?INT_L[sa.aqs].toLowerCase()+" (AquaNictemeral)":"intensivo"}`}
    const ph=document.getElementById("lv-salAgua");if(ph)ph.placeholder=`auto ${fmt(si.aq.sal!=null?si.aq.sal:ag?ag.sal:0,1)}`;
    const os=document.getElementById("lv-origem");if(os&&os.options[0])os.options[0].text=`A mesma do AquaNictemeral${si.aq.origem?` (${ORIG[si.aq.origem]||si.aq.origem})`:" (não informada lá)"}`;
    const chuvaCap=si.orig==="chuva"?o.prAno/1000*o.Atot*0.8:NaN;
@@ -3773,11 +3852,11 @@ function drawLocal(){
    {const es=document.getElementById("lv-est"),sI=stInfo();if(es&&es.options[0]){const nr=isFinite(P(LV.lat))?nearestSt(P(LV.lat),P(LV.lon)):null;es.options[0].text=`Automático: estação mais próxima${nr?` (${PRESETS[nr.k].loc.replace(" – MA","")}, ${f0(nr.d)} km)`:""}`}}
    const sI=stInfo(),stale=!sI.manual&&LV.estUsed&&sI.k!==LV.estUsed;
    set("lo-0",wpanel+`${stale?`<div class="lv-act"><button type="button" class="btn solid" id="lv-near">Atualizar o clima: estação de ${PRESETS[sI.k].loc.replace(" – MA","")}</button><span class="hint">As coordenadas mudaram e a estação ${sI.auto?"mais próxima":"escolhida"} agora é outra.</span></div>`:""}<p class="lv-foot lv-src">${srcTxt()} · temperatura da água estimada pela média mensal do ar${sc?` · água ${sc}`:""}${LV.coberto?" · tanques cobertos":""}</p>
-   <div class="scroll"><table class="lv-apt"><thead><tr><th>Espécie</th><th>Faixa ótima</th><th>Limites críticos</th><th>Meses no ótimo</th><th>${MES.map(m=>m[0]).join("</th><th>")}</th><th>Temperatura</th><th>Salinidade</th><th>Resultado</th></tr></thead><tbody>${A.map(a=>`<tr><td class="g"><b>${a.e.n}</b></td><td>${a.e.opt[0]} a ${a.e.opt[1]} °C</td><td class="lv-wrap">${a.e.critTxt}</td><td>${a.nOt} de 12</td>${a.meses.map((m,i)=>`<td class="lv-mc"><i class="lv-m ${m}" title="${MES[i]}: ${fmt(o.cl[i].tm,1)} °C"></i></td>`).join("")}<td>${aptPill(a.term)}</td><td>${aptPill(a.sal)}</td><td>${aptPill(a.fin)}</td></tr>`).join("")}</tbody></table></div>
-   <div class="legend-row lv-leg"><span><i class="lv-m ot"></i> faixa ótima</span><span><i class="lv-m sub"></i> crescimento reduzido</span><span><i class="lv-m cr"></i> risco crítico (média ou mínima noturna fora do limite)</span></div>
-   ${A.map(a=>`<div class="lv-ape"><h3>${a.e.n} ${aptPill(a.fin)}</h3><p class="lv-lei">${leitura(o,a)}</p><p>${a.term==="apto"?`Temperatura média de ${fmt(o.tMin,1)} a ${fmt(o.tMax,1)} °C: ${a.nOt} meses na faixa ótima de ${a.e.opt[0]} a ${a.e.opt[1]} °C.`:a.term==="restrito"?`Só ${a.nOt} meses na faixa ótima de ${a.e.opt[0]} a ${a.e.opt[1]} °C; nos outros ${a.nSub} o crescimento é menor. Use o ritmo de crescimento do item 3 na aba Biomassa.`:`${a.nCr} ${a.nCr>1?"meses":"mês"} com temperatura fora dos limites críticos (${a.e.critTxt}).${LV.coberto?" Em RAS coberto, só é viável com controle de temperatura da água (aquecimento ou resfriamento), que aumenta o custo de energia.":""}`}
-   Salinidade: ${a.e.salTxt}${a.sc?` — água ${a.sc}: ${APT[a.sal][0].toLowerCase()}`:""}.</p><p class="lv-leg2"><b>Legislação:</b> ${a.e.leg}</p><p class="lv-foot">Faixas: ${a.e.src}.</p></div>`).join("")}
-   <p class="lv-foot">Critério: apto com 9 ou mais meses na faixa ótima e nenhum mês crítico; apto com restrição com menos meses no ótimo; inapto com algum mês abaixo ou acima dos limites críticos, ou com salinidade incompatível. A Baixada Maranhense é Área de Proteção Ambiental e sítio Ramsar: confirme o licenciamento com a SEMA-MA antes de escolher a área.</p>`);}
+   <div class="scroll"><table class="lv-apt"><thead><tr><th>Espécie</th><th>Faixa ótima no sistema</th><th>Limites críticos</th><th>Meses no ótimo</th><th>${MES.map(m=>m[0]).join("</th><th>")}</th><th>Temperatura</th><th>Salinidade</th><th>Resultado</th></tr></thead><tbody>${A.map(a=>`<tr><td class="g"><b>${a.e.n}</b></td><td>${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C</td><td class="lv-wrap">${a.e.critTxt}</td><td>${a.nOt} de 12</td>${a.meses.map((m,i)=>`<td class="lv-mc"><i class="lv-m ${m}${a.clim[i]?" "+a.clim[i]:""}" title="${MES[i]}: ar ${fmt(o.cl[i].tm,1)} °C · água ≈ ${fmt(a.w[i],1)} °C${a.clim[i]==="aq"?" · aquecer":a.clim[i]==="rf"?" · resfriar":""}"></i></td>`).join("")}<td>${aptPill(a.term)}</td><td>${aptPill(a.sal)}</td><td>${aptPill(a.fin)}</td></tr>`).join("")}</tbody></table></div>
+   <div class="legend-row lv-leg"><span><i class="lv-m ot"></i> faixa ótima</span><span><i class="lv-m sub"></i> crescimento reduzido</span><span><i class="lv-m cr"></i> risco crítico (média da água fora do limite, pico da tarde 2 °C acima dele ou mínima letal)</span><span><i class="lv-m ot rf"></i> RAS: resfriar</span><span><i class="lv-m ot aq"></i> RAS: aquecer</span></div><p class="lv-foot lv-sisn">${(()=>{const sa=sisApt(),E=ESTR_L[sa.est];return `<b>Sistema avaliado:</b> ${E.n} · ${INT_L[sa.it].toLowerCase()}${sa.est==="ras"&&!LV.coberto?" (tanques abertos)":""}. ${E.txt}. Mude a estrutura e a intensidade no bloco 0; a grade de cada espécie compara todos os sistemas.`})()}</p>
+   ${A.map(a=>`<div class="lv-ape"><h3>${a.e.n} ${aptPill(a.fin)}</h3><p class="lv-lei">${leitura(o,a)}</p><p>${a.term==="apto"?`Temperatura média de ${fmt(o.tMin,1)} a ${fmt(o.tMax,1)} °C: ${a.nOt} meses na faixa ótima de ${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C.`:a.term==="restrito"?`Só ${a.nOt} meses na faixa ótima de ${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C; nos outros ${a.nSub} o crescimento é menor. Use o ritmo de crescimento do item 3 na aba Biomassa.`:`${a.nCr} ${a.nCr>1?"meses":"mês"} com temperatura fora dos limites críticos (${a.e.critTxt}).${a.est==="bft"&&LV.coberto?" Em bioflocos em estufa, só é viável com aquecimento ou sombreamento/resfriamento da água, que aumenta o custo.":" Veja na grade abaixo se outra estrutura (como RAS) resolve."}`}
+   Salinidade: ${a.e.salTxt}${a.sc?` — água ${a.sc}: ${APT[a.sal][0].toLowerCase()}`:""}.</p>${a.f.mot.length?`<p class="lv-foot">Ajuste da faixa ao sistema: ${a.f.mot.join("; ")}.</p>`:""}${aptGrade(o,a)}<p class="lv-leg2"><b>Legislação:</b> ${a.e.leg}</p><p class="lv-foot">Faixas: ${a.e.src}.</p></div>`).join("")}
+   <p class="lv-foot">Critério: temperatura da água estimada para a estrutura escolhida e comparada à faixa da espécie ajustada ao sistema; apto com 9 ou mais meses na faixa ótima e nenhum mês crítico (em RAS, meses que precisam de mais de ${RAS_MAXC()} °C de correção contam como crescimento reduzido); apto com restrição com menos meses no ótimo; inapto com algum mês abaixo ou acima dos limites críticos, ou com salinidade incompatível. A Baixada Maranhense é Área de Proteção Ambiental e sítio Ramsar: confirme o licenciamento com a SEMA-MA antes de escolher a área.</p>`);}
   // 1
   set("lo-1",o.utm?rows([["Fuso e zona",`${o.utm.zone} ${o.utm.band} · meridiano central ${o.utm.mc}°`,1],["Coordenada E (leste)",`${fmt(o.utm.E,0)} m`],["Coordenada N (norte)",`${fmt(o.utm.N,0)} m`],["Hemisfério",o.lat<0?"Sul (N com falso norte de 10.000 km)":"Norte"],["Ver no mapa",`<a class="linkbtn" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${o.lat}&mlon=${o.lon}#map=15/${o.lat}/${o.lon}">OpenStreetMap</a> · <a class="linkbtn" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${o.lat},${o.lon}">Google Maps</a>`]])+`<p class="lv-foot">Para a carta do projeto, use QGIS ou Google Earth Pro com coordenadas, escala, norte e legenda, como na avaliação de Cartografia e Geoprocessamento.</p>`:`<p class="note">Informe latitude e longitude válidas.</p>`);
   // 2
@@ -7013,7 +7092,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v55";
+  const APP_VERSAO="ras-v57";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
