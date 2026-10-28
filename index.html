@@ -5428,6 +5428,14 @@ function resumo(){
   try{if(window.localDashHTML){localDashHTML();const o=window._lvDash;if(o&&isFinite(o.VPL))r.vpl=o.VPL}}catch(e){}
   return r;
 }
+/* ao trocar de projeto: nada do estado antigo (ainda em memória) pode gravar por cima do projeto recém-carregado
+   antes do recarregamento da página (ex.: salvamento automático disparado quando a página some) */
+function travarGravacao(){window.__projTroca=true;
+  const prender=w=>{try{const S=w.Storage.prototype;if(S.__trava)return;const set=S.setItem,rem=S.removeItem;
+    S.setItem=function(k,v){if(window.__projTroca&&isSnap(k)&&!/-view$/.test(k))return;return set.call(this,k,v)};
+    S.removeItem=function(k){if(window.__projTroca&&isSnap(k))return;return rem.call(this,k)};S.__trava=true}catch(e){}};
+  prender(window);for(let i=0;i<window.frames.length;i++)prender(window.frames[i])}
+function recarregarPagina(){travarGravacao();location.reload()}
 function restaurar(dados){
   const rm=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(isSnap(k)&&!/-view$/.test(k))rm.push(k)}
   rm.forEach(k=>localStorage.removeItem(k));
@@ -5517,12 +5525,12 @@ async function salvar(comoNovo,forcar){
     await recarregar();aviso(`“${nome}” salvo às ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})}.`);
   });
 }
-async function abrir(id){if(barrar())return;await rodar(async()=>{
+async function abrir(id){if(barrar())return;try{await autoSalvar(false)}catch(e){}await rodar(async()=>{
   const p=await back().get(id);restaurar(p.dados||{});
   wr(CUR,{id,nome:p.nome,modo:st.mode,base:p.atualizadoEm||0});
   const novo=st.mode==="nuvem"&&naoVisto(p);if(novo){try{await nuvem.marcarVisto(id)}catch(e){}}
   try{localStorage.setItem(FLASH,novo?`Projeto “${p.nome}” aberto na versão atualizada pelo dono do app em ${quando(p.editadoPeloDono)}. Todas as abas foram carregadas com ela.`:`Projeto “${p.nome}” aberto. Todas as abas foram carregadas com os dados dele.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
-  location.reload();
+  recarregarPagina();
 })}
 /* ---- dono do app: projetos de todos os clientes (somente leitura; abre como cópia) ---- */
 const ehDono=()=>st.mode==="nuvem"&&!!window.Auth&&Auth.supa()&&Auth.ok()&&Auth.dono();
@@ -5530,12 +5538,12 @@ async function carregarTodos(){await rodar(async()=>{
   const l=await Auth.todosProjetos(),ids=[...new Set(l.map(p=>p.uid))];
   st.todos=l.sort((a,b)=>(b.atualizadoEm||0)-(a.atualizadoEm||0));
   aviso(`${st.todos.length} projeto${st.todos.length===1?"":"s"} de ${ids.length} cliente${ids.length===1?"":"s"} carregado${st.todos.length===1?"":"s"}.`)})}
-async function abrirCliente(uid,id,editar){await rodar(async()=>{
+async function abrirCliente(uid,id,editar){try{await autoSalvar(false)}catch(e){}await rodar(async()=>{
   const p=await nuvem.get(id,uid),x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};restaurar(p.dados||{});
   if(editar)wr(CUR,{id,uid,cliente:x.cliente||"cliente",nome:p.nome,notas:p.notas||"",resp:p.resp||"",criadoEm:p.criadoEm,modo:st.mode,base:p.atualizadoEm||0});
   else wr(CUR,{nome:`Cópia de ${p.nome} (${x.cliente||"cliente"})`,modo:st.mode});
   try{localStorage.setItem(FLASH,editar?`Editando “${p.nome}”, projeto de ${x.cliente||"cliente"}. Faça as alterações nas abas e clique em Salvar no projeto do cliente: a versão nova aparece também no login dele.`:`Projeto “${p.nome}” de ${x.cliente||"cliente"} aberto como cópia em todas as abas. O original do cliente não muda; para guardar a cópia na sua conta, clique em Salvar projeto.`);localStorage.setItem(KEY+"-view","proj")}catch(e){}
-  location.reload();
+  recarregarPagina();
 })}
 async function excluirCliente(uid,id){await rodar(async()=>{
   const x=(st.todos||[]).find(y=>y.uid===uid&&y.id===id)||{};await nuvem.del(id,uid);
@@ -5568,10 +5576,11 @@ async function excluir(id){if(barrar())return;await rodar(async()=>{
   const c=atual();if(c&&c.id===id)localStorage.removeItem(CUR);
   await recarregar();aviso(`“${p?p.nome:"Projeto"}” excluído.`);
 })}
-function novoEmBranco(){
+async function novoEmBranco(){
+  try{await autoSalvar(false)}catch(e){}
   restaurar({});localStorage.removeItem(CUR);
   try{localStorage.setItem(FLASH,"Novo projeto em branco: todas as abas voltaram aos valores iniciais.");localStorage.setItem(KEY+"-view","local")}catch(e){}
-  location.reload();
+  recarregarPagina();
 }
 async function exportar(id){await rodar(async()=>{
   const p=id?await back().get(id):{nome:(el.querySelector("#pj-nome").value||"Projeto atual").trim(),notas:el.querySelector("#pj-notas").value,resp:el.querySelector("#pj-resp").value,resumo:resumo(),atualizadoEm:Date.now(),dados:snapshot()};
@@ -5685,7 +5694,7 @@ window.projCriar=async nome=>{nome=String(nome||"").trim().slice(0,80);if(!nome)
   await back().put(id,meta,snap);wr(CUR,{id,nome,modo:st.mode,base:agora});
   auto.ult=JSON.stringify(snap);auto.em=agora;auto.erro="";auto.parado=false;
   await recarregar();evtProj();return {id,nome}};
-async function autoSalvar(forcar){const c=atual();if(!c||!c.id||c.modo!==st.mode||c.uid||!logado()||bloq()||auto.parado||auto.salvando||st.busy)return;
+async function autoSalvar(forcar){if(window.__projTroca)return;const c=atual();if(!c||!c.id||c.modo!==st.mode||c.uid||!logado()||bloq()||auto.parado||auto.salvando||st.busy)return;
   const p=st.list.find(x=>x.id===c.id);if(!p)return;const snap=snapshot(),js=JSON.stringify(snap);if(!forcar&&js===auto.ult)return;
   auto.salvando=true;
   try{if(st.mode==="nuvem"){const m=await nuvem.meta(c.id);if(m&&(m.atualizadoEm||0)>(c.base||0)+2000){auto.parado=true;
@@ -7092,7 +7101,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v57";
+  const APP_VERSAO="ras-v58";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
