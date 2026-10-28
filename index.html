@@ -7067,7 +7067,7 @@ function draw(v){if(v)vAtual=v;if(!vAtual){const t=document.querySelector('.tab[
        :`${s.cliente?"":`<button type="button" class="btn" data-pjg="salvar">Salvar agora</button>`}<button type="button" class="btn${pasta?" on":""}" data-pjg="pasta" aria-expanded="${pasta}">📁 Projetos salvos</button><button type="button" class="btn" data-pjg="novo">+ Novo projeto</button><button type="button" class="btn" data-pjg="fechar">✕ Fechar projeto</button>`}</span></div>
      ${modo==="novo"?`<div class="pjg-sub"><b>Novo projeto</b> <span class="muted">O projeto atual é salvo; o novo é criado e salvo na pasta assim que você confirmar, com as abas em branco.</span>${form("pjg-novo","Criar e salvar")}<div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div></div>`:""}
      ${pasta?pastaHTML(s,false):""}`}
-  else{travar(true);
+  else{travar(true);if(s.pronto&&s.logado)setTimeout(limparSemProjeto,0);
     host.innerHTML=fl+`<div class="pjg-card"><h2>${s.pronto?"Escolha o projeto: crie um novo ou abra um salvo":"Verificando o projeto…"}</h2>
      <p>Todo dado lançado no app (grupos de tanques, local e viabilidade, biomassa, ração, reprodução, levantamento, leituras e biometrias) fica identificado com um projeto. O projeto é salvo na hora em que é criado e continua sendo salvo sozinho enquanto você elabora, com todas as abas correlacionadas em tempo real.</p>
      ${s.logado?`<h3 class="pjg-h3">1. Criar um projeto novo</h3>${form("pjg-nome","Criar e salvar projeto")}
@@ -7114,6 +7114,10 @@ function autoPreencher(){const s=st();if(!s||!s.aberto||!s.pronto||typeof tanks=
     :`A Calculadora estava sem tanques com volume. Coloquei os grupos de exemplo (${vol.toLocaleString("pt-BR",{maximumFractionDigits:0})} m³) para o resumo aparecer: troque pelos tanques do projeto.`;
   setTimeout(()=>{flash="";draw()},20000);draw();outros()}
 window.calcAutoPreencher=autoPreencher;
+// sem projeto aberto (depois de fechar, ou ao entrar sem abrir nenhum): o resumo e a Calculadora ficam vazios
+function limparSemProjeto(){const s=st();if(!s||s.aberto||!s.pronto||typeof tanks==="undefined"||!tanks.length)return;
+  try{tanks=[];drawTanks();render();save()}catch(e){}
+  const k=document.getElementById("k-vm-sub");if(k)k.textContent="Nenhum projeto aberto: crie ou abra um projeto abaixo"}
 window.drawPjGate=draw;
 window.addEventListener("proj-status",()=>{const a=document.activeElement;if(!(a&&host.contains(a)&&a.tagName==="INPUT"))draw()});
 draw();setTimeout(()=>draw(),1500);
@@ -7178,7 +7182,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v62";
+  const APP_VERSAO="ras-v63";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
