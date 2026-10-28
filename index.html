@@ -489,7 +489,7 @@ td.lv-mc{padding:10px 2px!important;text-align:center!important}
 .lv-dm .lv-ds b{font:10px var(--f-mono);color:var(--muted);text-align:center;font-weight:400}
 .lv-dr{grid-template-columns:170px 238px repeat(4,140px)!important;column-gap:14px!important}
 .lv-dm{grid-template-columns:170px 238px!important}
-.lv-dp .pill{white-space:nowrap}.lv-ap.lv-na{opacity:.55}.lv-par{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}.lv-par li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}.lv-par li .pill{flex:0 0 auto;margin-top:1px}
+.lv-dp .pill{white-space:nowrap}.lv-ap.lv-na{opacity:.55}.lv-med{border:1px solid var(--accent,#1a6b5a);border-radius:12px;padding:10px 12px;margin:0 0 12px;background:var(--surface,#fff)}.lv-med h3{margin:0 0 6px;font-size:15px;display:flex;gap:8px;align-items:center}.lv-mr{display:flex;gap:10px;flex-wrap:wrap;font-size:13.5px;padding:3px 0;border-bottom:1px dashed var(--line,#ddd)}.lv-mr b{min-width:170px}.lv-par{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}.lv-par li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}.lv-par li .pill{flex:0 0 auto;margin-top:1px}
 .lv-dp{display:grid;gap:2px;justify-items:start}
 .lv-dp em{font:normal 10px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .lv-lul{margin:12px 0 0;padding-left:18px;display:grid;gap:6px;font-size:13px}
@@ -3545,6 +3545,7 @@ function salInfo(){
   const aq=aquaInfo(),orig=LV.origem||aq.origem||"",reg=MUNIS[LV.preset]?MUNIS[LV.preset].reg:"";
   if(LV.salAgua.trim()!==""&&isFinite(P(LV.salAgua)))return {v:P(LV.salAgua),how:"informada no bloco 0",orig,aq,reg};
   if(aq.sal!=null)return {v:aq.sal,how:`medida no AquaNictemeral em ${aq.salDt}`,orig,aq,reg};
+  {const m=medAqua();if(m&&m.P.salinidade)return {v:m.P.salinidade.mean,how:`média de ${m.P.salinidade.n} leitura${m.P.salinidade.n>1?"s":""} no AquaNictemeral (${m.ini} a ${m.fim})`,orig,aq,reg}}
   if(orig&&AGUA[orig])return {v:AGUA[orig].sal,how:`estimada pela origem (${ORIG[orig].toLowerCase()})`,orig,aq,reg};
   return {v:0,how:"sem origem informada: considerada doce",orig,aq,reg};
 }
@@ -3593,12 +3594,52 @@ const PH_ORIG=o=>{const reg=MUNIS[LV.preset]?MUNIS[LV.preset].reg:"",lit=LV.pres
     chuva:{ph:[5,6],alk:2,t:"água da chuva: ácida, sem alcalinidade"},mar:{ph:[7.5,8.2],alk:110,t:"mar ou estuário"}}[o]||null};
 let PH_C=null;
 function phAgua(o){const orig=o.sal.orig||"",now=Date.now();if(PH_C&&PH_C.o===orig&&PH_C.p===LV.preset&&now-PH_C.t<1500)return PH_C.v;
-  let v=null;try{const S=JSON.parse(localStorage.getItem(AQ_KEY));const su=S&&Array.isArray(S.unidades)?(S.unidades.find(u=>u.id==="ras-sistema")||S.unidades[0]):null;
-    if(su){const L=(S.leituras||[]).filter(l=>l.unidade===su.id&&!String(l.id).startsWith("e")).sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
-      const lp=L.filter(l=>typeof l.ph==="number").pop(),la=L.filter(l=>typeof l.alcalinidade==="number").pop();
-      if(lp)v={ph:[lp.ph,lp.ph],alk:la?la.alcalinidade:null,t:`medido no AquaNictemeral em ${lp.data.split("-").reverse().join("/")}`,med:true}}}catch(e){}
+  let v=null;const m=medAqua();
+  if(m&&m.P.ph)v={ph:[m.P.ph.min,m.P.ph.max],alk:m.P.alcalinidade?m.P.alcalinidade.mean:null,t:`medido no AquaNictemeral: ${m.P.ph.n} leitura${m.P.ph.n>1?"s":""} de pH${m.P.alcalinidade?" e "+m.P.alcalinidade.n+" de alcalinidade":""}, ${m.ini} a ${m.fim}`,med:true};
   if(!v){const p=PH_ORIG(orig);if(p)v={...p,med:false}}
   PH_C={o:orig,p:LV.preset,t:now,v};return v}
+/* ---- dados medidos no AquaNictemeral (leituras reais do projeto, últimos 30 dias) ---- */
+const NLIM={"tilapia":{"tan":[1.0,2.0,5.0],"nh3":[0.05,0.1,0.6],"nitrito":[0.3,1.0,5.0]},"tambaqui":{"tan":[0.5,1.0,3.0],"nh3":[0.02,0.05,0.3],"nitrito":[0.1,0.3,1.0]},"camarao":{"tan":[1.0,2.0,3.5],"nh3":[0.05,0.1,0.16],"nitrito":[1.0,5.0,6.1]},"pirarucu":{"tan":[0.5,1.0,3.0],"nh3":[0.02,0.05,0.3],"nitrito":[0.1,0.3,1.0]},"pangasius":{"tan":[0.5,1.0,3.0],"nh3":[0.02,0.05,0.3],"nitrito":[0.1,0.3,1.0]},"curimata":{"tan":[0.5,1.0,3.0],"nh3":[0.02,0.05,0.3],"nitrito":[0.1,0.3,1.0]},"lambari":{"tan":[0.5,1.0,3.0],"nh3":[0.02,0.05,0.3],"nitrito":[0.1,0.3,1.0]}};
+const MPAR={temperatura:["Temperatura","°C",1],od:["Oxigênio dissolvido","mg/L",1],ph:["pH","",2],alcalinidade:["Alcalinidade","mg/L CaCO₃",0],salinidade:["Salinidade","‰",1],tan:["Amônia total (TAN)","mg/L",2],nh3:["Amônia tóxica (NH₃)","mg/L",3],nitrito:["Nitrito","mg/L",2]};
+const nh3De=(tan,ph,t)=>{const pKa=0.09018+2729.92/(t+273.15);return tan/(1+Math.pow(10,pKa-ph))};
+let MED_C=null;
+function medAqua(){let raw="";try{raw=localStorage.getItem(AQ_KEY)||""}catch(e){}
+  if(MED_C&&MED_C.raw===raw)return MED_C.v;let v=null;
+  try{const S=JSON.parse(raw);const U=(S&&S.unidades||[]).filter(u=>!u.exemplo),ids=new Set(U.map(u=>u.id));
+    let L=(S.leituras||[]).filter(l=>ids.has(l.unidade)&&!String(l.id).startsWith("e")&&l.data);
+    if(L.length){L.sort((a,b)=>(a.data+(a.hora||"")).localeCompare(b.data+(b.hora||"")));
+      const fim=L[L.length-1].data,ini=new Date(fim+"T12:00:00");ini.setDate(ini.getDate()-30);const iniS=ini.toISOString().slice(0,10);
+      L=L.filter(l=>l.data>=iniS);const P={};
+      for(const l of L){const add=(k,x)=>{if(typeof x!=="number"||!isFinite(x))return;const p=P[k]||(P[k]={n:0,s:0,min:Infinity,max:-Infinity,last:null,dt:""});p.n++;p.s+=x;p.min=Math.min(p.min,x);p.max=Math.max(p.max,x);p.last=x;p.dt=l.data+" "+(l.hora||"")};
+        for(const k of ["temperatura","od","ph","alcalinidade","salinidade","tan","nitrito"])add(k,l[k]);
+        add("nh3",typeof l.nh3==="number"?l.nh3:(typeof l.tan==="number"&&typeof l.ph==="number"&&typeof l.temperatura==="number"?nh3De(l.tan,l.ph,l.temperatura):NaN))}
+      for(const k in P)P[k].mean=P[k].s/P[k].n;
+      const dBR=d=>d.slice(0,10).split("-").reverse().join("/")+d.slice(10);
+      v={P,n:L.length,uni:new Set(L.map(l=>l.unidade)).size,ini:dBR(iniS<L[0].data?L[0].data:iniS),fim:dBR(fim),dt:dBR(L[L.length-1].data+" "+(L[L.length-1].hora||""))}}}catch(e){}
+  MED_C={raw,v};return v}
+function medHTML(){const m=medAqua();
+  if(!m)return `<div class="lv-med"><h3>Dados medidos no AquaNictemeral</h3><p class="lv-foot">Ainda não há leituras do projeto no AquaNictemeral. Quando você lançar leituras lá (temperatura, oxigênio, pH, alcalinidade, salinidade, amônia, nitrito), a aptidão abaixo passa a usar os valores medidos e se atualiza sozinha.</p></div>`;
+  const rows=Object.keys(MPAR).filter(k=>m.P[k]).map(k=>{const p=m.P[k],[n,u,d]=MPAR[k],f=x=>fmt(x,d);return [n,`média ${f(p.mean)} ${u} · mín. ${f(p.min)} · máx. ${f(p.max)} · ${p.n} leitura${p.n>1?"s":""}`]});
+  return `<div class="lv-med"><h3>Dados medidos no AquaNictemeral <span class="pill lv-ap">ao vivo</span></h3>${rows.length?rows.map(r=>`<div class="lv-mr"><b>${r[0]}</b><span>${r[1]}</span></div>`).join(""):""}<p class="lv-foot">${m.n} leituras de ${m.uni} unidade${m.uni>1?"s":""} entre ${m.ini} e ${m.fim} (última: ${m.dt}). A aptidão usa esses valores junto com o clima e se atualiza sozinha quando entram leituras novas.</p></div>`}
+function medEsp(a){const m=medAqua();if(!m)return null;const k=a.k,P=m.P,q=QA[k],out={},f=a.f;
+  if(P.temperatura){const t=P.temperatura;let r,tx=`média ${fT(t.mean)} °C, de ${fT(t.min)} a ${fT(t.max)} °C (faixa ótima no sistema ${fT(f.opt[0])} a ${fT(f.opt[1])} °C)`;
+    if(t.mean<f.crit[0]||t.mean>f.crit[1]){r="inapto";tx+=": a média medida está fora do limite da espécie"}
+    else if(t.min<f.crit[0]||t.max>f.crit[1]){r="restrito";tx+=": houve leituras fora do limite"}
+    else if(t.mean<f.opt[0]||t.mean>f.opt[1]){r="restrito";tx+=a.est==="ras"?": ajuste a climatização para ficar na faixa":": crescimento abaixo do potencial"}
+    else{r="apto";tx+=": dentro do ótimo"}out.temp=[r,tx]}
+  if(P.od&&q){const o=P.od,ar=q.ar>=2;let r,tx=`mínimo ${fT(o.min)} mg/L, média ${fT(o.mean)} mg/L (ideal ≥ ${q.od[2]})`;
+    if(o.min<q.od[0]){r=ar?"restrito":"inapto";tx+=ar?": muito baixo, mas a espécie respira ar":": chegou a nível letal, reforce a aeração"}
+    else if(o.min<q.od[1]){r="restrito";tx+=": abaixo do alerta em parte do dia (madrugada): aeração noturna"}
+    else if(o.mean<q.od[2]){r="restrito";tx+=": média abaixo do ideal"}else{r="apto";tx+=": adequado"}out.od=[r,tx]}
+  const NL=NLIM[k];if(NL&&(P.tan||P.nh3||P.nitrito)){let r="apto";const t=[];
+    for(const [kk,nm] of [["nh3","amônia tóxica (NH₃)"],["tan","amônia total"],["nitrito","nitrito"]]){const p=P[kk];if(!p)continue;const [i1,a1,c1]=NL[kk];
+      const st=p.mean>c1?"inapto":p.max>a1?"restrito":"apto";r=piorDe(r,st);t.push(`${nm} máx. ${fmt(p.max,kk==="nh3"?3:2)} mg/L (ideal ≤ ${fmt(i1,kk==="nh3"?2:1)}, crítico ${fmt(c1,kk==="nh3"?2:1)})${st==="apto"?"":st==="restrito"?": acima do alerta":": média acima do crítico"}`)}
+    out.nit=[r,t.join("; ")+(r==="apto"?"":". Revise renovação de água, biofiltro e arraçoamento.")]}
+  return out}
+let AQ_RAW=null;
+setInterval(()=>{let raw="";try{raw=localStorage.getItem(AQ_KEY)||""}catch(e){}if(AQ_RAW===null){AQ_RAW=raw;return}if(raw===AQ_RAW)return;AQ_RAW=raw;PH_C=null;SIS_C=null;
+  try{const lv=document.getElementById("view-local");if(lv&&!lv.hidden)drawLocal()}catch(e){}
+  try{const d=document.getElementById("view-dash");if(d&&!d.hidden&&typeof drawDash==="function")drawDash()}catch(e){}},3000);
 const nv=["extensivo","semi","intensivo","super","hiper"];
 // espécie × estrutura (pacote tecnológico conhecido) e limite de intensidade
 const SIS_ESP={
@@ -3639,11 +3680,11 @@ function extras(o,a){const k=a.k,q=QA[k],est=a.est,it=a.it,ctl=est==="ras"||est=
     t.push(o.decl<=2?`declividade ${fT(o.decl)} % ideal`:o.decl<=8?`declividade ${fT(o.decl)} %: mais terraplenagem`:`declividade ${fT(o.decl)} %: terreno impróprio para viveiros`);
     if(o.decl>8)r="inapto";else if(o.decl>2)r=piorDe(r,"restrito");
     X.terr=[r,t.join("; ")+" (bloco 2)"]}
-  else X.terr=["na",est==="viveiro"?"informe cotas, distância e argila no bloco 2":`não se aplica a ${a.E.n.toLowerCase()}`];
+  else X.terr=["na",est==="viveiro"?"informe cotas, distância e argila no bloco 2":`não se aplica a ${/^RAS/.test(a.E.n)?a.E.n:a.E.n.toLowerCase()}`];
   // licença (informativo: não muda o resultado)
   X.lic=EXO[k]?["restrito",`espécie exótica: exige licença ambiental e medidas contra escape${(MUNIS[LV.preset]||{}).reg==="baixada"?"; a Baixada é APA e sítio Ramsar":""}`]:["apto","espécie nativa: licenciamento ambiental comum"];
   return X}
-const PNOME={term:"temperatura",sal:"salinidade",ph:"pH e alcalinidade",od:"oxigênio",sis:"espécie × sistema",terr:"terreno"};
+const PNOME={term:"temperatura",sal:"salinidade",ph:"pH e alcalinidade",od:"oxigênio",nit:"amônia e nitrito",sis:"espécie × sistema",terr:"terreno"};
 function aptidao(o,k,it,est){
   const e=ESP[k],cl=o.cl,sa=sisApt();it=it||sa.it;est=est||sa.est;
   const E=ESTR_L[est],f=faixaSis(e,k,it,est),ras=est==="ras",dw=est==="bft"&&!LV.coberto?1:ras&&!LV.coberto?1:E.dw;
@@ -3662,7 +3703,9 @@ function aptidao(o,k,it,est){
   if(term==="inapto"&&est==="bft"&&LV.coberto)term="restrito";
   const a={k,e,f,it,est,E,w,clim,nAq,nRf,dMax,meses,nOt,nCr,nSub,term,sc,sal};
   a.x=extras(o,a);a.ph=a.x.ph[0];a.od=a.x.od?a.x.od[0]:"na";a.sis=a.x.sis[0];a.terr=a.x.terr[0];
-  a.fin=piorDe(term,sal,a.ph,a.od,a.sis,a.terr);
+  // leituras reais do AquaNictemeral entram junto com o clima e o modelo
+  a.m=medEsp(a);if(a.m){if(a.m.temp){a.termClima=a.term;a.term=piorDe(a.term,a.m.temp[0])}if(a.m.od){a.odModelo=a.od;a.od=piorDe(a.od,a.m.od[0])}a.nit=a.m.nit?a.m.nit[0]:"na";a.med=piorDe(a.m.temp&&a.m.temp[0],a.m.od&&a.m.od[0],a.nit)}else{a.nit="na";a.med="na"}
+  a.fin=piorDe(a.term,sal,a.ph,a.od,a.sis,a.terr,a.nit);
   return a;
 }
 // aptidão térmica da espécie em todas as estruturas × intensidades
@@ -3929,12 +3972,12 @@ function drawLocal(){
      ${si.aq.sal==null?`<p class="lv-foot">Quando houver leituras de salinidade na água do sistema (AquaNictemeral), a última leitura passa a ser usada automaticamente.</p>`:""}</div>`;
    {const es=document.getElementById("lv-est"),sI=stInfo();if(es&&es.options[0]){const nr=isFinite(P(LV.lat))?nearestSt(P(LV.lat),P(LV.lon)):null;es.options[0].text=`Automático: estação mais próxima${nr?` (${PRESETS[nr.k].loc.replace(" – MA","")}, ${f0(nr.d)} km)`:""}`}}
    const sI=stInfo(),stale=!sI.manual&&LV.estUsed&&sI.k!==LV.estUsed;
-   set("lo-0",wpanel+`${stale?`<div class="lv-act"><button type="button" class="btn solid" id="lv-near">Atualizar o clima: estação de ${PRESETS[sI.k].loc.replace(" – MA","")}</button><span class="hint">As coordenadas mudaram e a estação ${sI.auto?"mais próxima":"escolhida"} agora é outra.</span></div>`:""}<p class="lv-foot lv-src">${srcTxt()} · temperatura da água estimada pela média mensal do ar${sc?` · água ${sc}`:""}${LV.coberto?" · tanques cobertos":""}</p>
-   <div class="scroll"><table class="lv-apt"><thead><tr><th>Espécie</th><th>Faixa ótima no sistema</th><th>Meses no ótimo</th><th>${MES.map(m=>m[0]).join("</th><th>")}</th><th>Temp.</th><th>Sal.</th><th>pH e alcal.</th><th>Oxigênio</th><th>Espécie × sistema</th><th>Terreno</th><th>Resultado</th></tr></thead><tbody>${A.map(a=>`<tr><td class="g"><b>${a.e.n}</b></td><td>${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C</td><td>${a.nOt} de 12</td>${a.meses.map((m,i)=>`<td class="lv-mc"><i class="lv-m ${m}${a.clim[i]?" "+a.clim[i]:""}" title="${MES[i]}: ar ${fmt(o.cl[i].tm,1)} °C · água ≈ ${fmt(a.w[i],1)} °C${a.clim[i]==="aq"?" · aquecer":a.clim[i]==="rf"?" · resfriar":""}"></i></td>`).join("")}<td>${pS(a.term)}</td><td>${pS(a.sal)}</td><td>${pS(a.ph)}</td><td>${pS(a.od)}</td><td>${pS(a.sis)}</td><td>${pS(a.terr)}</td><td>${aptPill(a.fin)}</td></tr>`).join("")}</tbody></table></div>
+   set("lo-0",medHTML()+wpanel+`${stale?`<div class="lv-act"><button type="button" class="btn solid" id="lv-near">Atualizar o clima: estação de ${PRESETS[sI.k].loc.replace(" – MA","")}</button><span class="hint">As coordenadas mudaram e a estação ${sI.auto?"mais próxima":"escolhida"} agora é outra.</span></div>`:""}<p class="lv-foot lv-src">${srcTxt()} · temperatura da água estimada pela média mensal do ar${sc?` · água ${sc}`:""}${LV.coberto?" · tanques cobertos":""}</p>
+   <div class="scroll"><table class="lv-apt"><thead><tr><th>Espécie</th><th>Faixa ótima no sistema</th><th>Meses no ótimo</th><th>${MES.map(m=>m[0]).join("</th><th>")}</th><th>Temp.</th><th>Sal.</th><th>pH e alcal.</th><th>Oxigênio</th><th>Amônia e nitrito</th><th>Espécie × sistema</th><th>Terreno</th><th>Resultado</th></tr></thead><tbody>${A.map(a=>`<tr><td class="g"><b>${a.e.n}</b></td><td>${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C</td><td>${a.nOt} de 12</td>${a.meses.map((m,i)=>`<td class="lv-mc"><i class="lv-m ${m}${a.clim[i]?" "+a.clim[i]:""}" title="${MES[i]}: ar ${fmt(o.cl[i].tm,1)} °C · água ≈ ${fmt(a.w[i],1)} °C${a.clim[i]==="aq"?" · aquecer":a.clim[i]==="rf"?" · resfriar":""}"></i></td>`).join("")}<td>${pS(a.term)}</td><td>${pS(a.sal)}</td><td>${pS(a.ph)}</td><td>${pS(a.od)}</td><td>${pS(a.nit)}</td><td>${pS(a.sis)}</td><td>${pS(a.terr)}</td><td>${aptPill(a.fin)}</td></tr>`).join("")}</tbody></table></div>
    <div class="legend-row lv-leg"><span><i class="lv-m ot"></i> faixa ótima</span><span><i class="lv-m sub"></i> crescimento reduzido</span><span><i class="lv-m cr"></i> risco crítico (média da água fora do limite, pico da tarde 2 °C acima dele ou mínima letal)</span><span>“Restrito” = apto com restrição · “—” = não se aplica · detalhes de cada parâmetro abaixo, por espécie</span>${sisApt().est==="ras"?`<span><i class="lv-m ot rf"></i> RAS: resfriar a água</span><span><i class="lv-m ot aq"></i> RAS: aquecer a água</span>`:""}</div><p class="lv-foot lv-sisn">${(()=>{const sa=sisApt(),E=ESTR_L[sa.est];return `<b>Sistema avaliado:</b> ${E.n} · ${INT_L[sa.it].toLowerCase()}. ${E.txt}. Mude a estrutura e a intensidade no bloco 0; a grade de cada espécie compara todos os sistemas.`})()}</p>
    ${A.map(a=>`<div class="lv-ape"><h3>${a.e.n} ${aptPill(a.fin)}</h3><p class="lv-lei">${leitura(o,a)}</p><p class="lv-foot">Limites de temperatura: ${a.e.critTxt}.</p><p>${a.term==="apto"?`Temperatura média de ${fmt(o.tMin,1)} a ${fmt(o.tMax,1)} °C: ${a.nOt} meses na faixa ótima de ${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C.`:a.term==="restrito"?`Só ${a.nOt} meses na faixa ótima de ${fT(a.f.opt[0])} a ${fT(a.f.opt[1])} °C; nos outros ${a.nSub} o crescimento é menor. Use o ritmo de crescimento do item 3 na aba Biomassa.`:`${a.nCr} ${a.nCr>1?"meses":"mês"} com temperatura fora dos limites críticos (${a.e.critTxt}).${a.est==="bft"&&LV.coberto?" Em bioflocos em estufa, só é viável com aquecimento ou sombreamento/resfriamento da água, que aumenta o custo.":" Veja na grade abaixo se outra estrutura (como RAS) resolve."}`}
-   Salinidade: ${a.e.salTxt}${a.sc?` — água ${a.sc}: ${APT[a.sal][0].toLowerCase()}`:""}.</p>${a.f.mot.length?`<p class="lv-foot">Ajuste da faixa ao sistema: ${a.f.mot.join("; ")}.</p>`:""}<ul class="lv-par">${[["pH e alcalinidade",a.x.ph],["Oxigênio",a.x.od],["Espécie × sistema",a.x.sis],["Terreno",a.x.terr],["Licença (informativo)",a.x.lic]].filter(r=>r[1]).map(([n,v])=>`<li>${aptPillN(v[0])}<span><b>${n}:</b> ${esc(v[1])}</span></li>`).join("")}</ul>${aptGrade(o,a)}<p class="lv-leg2"><b>Legislação:</b> ${a.e.leg}</p><p class="lv-foot">Faixas: ${a.e.src}.</p></div>`).join("")}
-   <p class="lv-foot">Critério: o resultado é o pior entre temperatura, salinidade, pH e alcalinidade, oxigênio, espécie × sistema e terreno (a licença é só informativa). Temperatura da água estimada para a estrutura escolhida e comparada à faixa da espécie ajustada ao sistema; apto com 9 ou mais meses na faixa ótima e nenhum mês crítico (em RAS, meses que precisam de mais de ${RAS_MAXC()} °C de correção contam como crescimento reduzido); apto com restrição com menos meses no ótimo; inapto com algum mês abaixo ou acima dos limites críticos, ou com salinidade incompatível. A Baixada Maranhense é Área de Proteção Ambiental e sítio Ramsar: confirme o licenciamento com a SEMA-MA antes de escolher a área.</p>`);}
+   Salinidade: ${a.e.salTxt}${a.sc?` — água ${a.sc}: ${APT[a.sal][0].toLowerCase()}`:""}.</p>${a.f.mot.length?`<p class="lv-foot">Ajuste da faixa ao sistema: ${a.f.mot.join("; ")}.</p>`:""}<ul class="lv-par">${[["Temperatura medida",a.m&&a.m.temp],["pH e alcalinidade",a.x.ph],["Oxigênio (modelo do sistema)",a.x.od],["Oxigênio medido",a.m&&a.m.od],["Amônia e nitrito medidos",a.m&&a.m.nit],["Espécie × sistema",a.x.sis],["Terreno",a.x.terr],["Licença (informativo)",a.x.lic]].filter(r=>r[1]).map(([n,v])=>`<li>${aptPillN(v[0])}<span><b>${n}:</b> ${esc(v[1])}</span></li>`).join("")}</ul>${aptGrade(o,a)}<p class="lv-leg2"><b>Legislação:</b> ${a.e.leg}</p><p class="lv-foot">Faixas: ${a.e.src}.</p></div>`).join("")}
+   <p class="lv-foot">Critério: o resultado é o pior entre temperatura, salinidade, pH e alcalinidade, oxigênio, amônia e nitrito, espécie × sistema e terreno (a licença é só informativa). Quando há leituras no AquaNictemeral (últimos 30 dias), temperatura, oxigênio, pH, alcalinidade, salinidade, amônia e nitrito medidos entram na conta e a aptidão se atualiza sozinha. Temperatura da água estimada para a estrutura escolhida e comparada à faixa da espécie ajustada ao sistema; apto com 9 ou mais meses na faixa ótima e nenhum mês crítico (em RAS, meses que precisam de mais de ${RAS_MAXC()} °C de correção contam como crescimento reduzido); apto com restrição com menos meses no ótimo; inapto com algum mês abaixo ou acima dos limites críticos, ou com salinidade incompatível. A Baixada Maranhense é Área de Proteção Ambiental e sítio Ramsar: confirme o licenciamento com a SEMA-MA antes de escolher a área.</p>`);}
   // 1
   set("lo-1",o.utm?rows([["Fuso e zona",`${o.utm.zone} ${o.utm.band} · meridiano central ${o.utm.mc}°`,1],["Coordenada E (leste)",`${fmt(o.utm.E,0)} m`],["Coordenada N (norte)",`${fmt(o.utm.N,0)} m`],["Hemisfério",o.lat<0?"Sul (N com falso norte de 10.000 km)":"Norte"],["Ver no mapa",`<a class="linkbtn" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${o.lat}&mlon=${o.lon}#map=15/${o.lat}/${o.lon}">OpenStreetMap</a> · <a class="linkbtn" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${o.lat},${o.lon}">Google Maps</a>`]])+`<p class="lv-foot">Para a carta do projeto, use QGIS ou Google Earth Pro com coordenadas, escala, norte e legenda, como na avaliação de Cartografia e Geoprocessamento.</p>`:`<p class="note">Informe latitude e longitude válidas.</p>`);
   // 2
@@ -4014,7 +4057,7 @@ window.localDashHTML=function(){
   ].join("")}</div>${o.nQ<QLIST.length?`<p class="note">${QLIST.length-o.nQ} de ${QLIST.length} preços ainda usam valor de referência: preencha as cotações em Local e viabilidade.</p>`:""}</section>`;
   // aptidão: espécie × mês
   h+=`<section class="card wide"><div class="card-head"><h2>Aptidão por espécie em ${esc(LV.loc||"local do projeto")}<span>Temperatura da água em ${ESTR_L[sisApt().est].n.toLowerCase()} × água ${o.sal.orig?"de "+ORIG[o.sal.orig].toLowerCase()+" · ":""}${fmt(o.sal.v,1)} ‰ ${salClass(o.sal.v)} (${o.sal.how})</span></h2></div><div class="body">
-    <div class="lv-dapt">${A.map(a=>`<div class="lv-dr"><span class="lv-dn">${a.e.n}${sp.includes(a.k)?" <small>no projeto</small>":""}</span><span class="lv-ds">${a.meses.map((m,i)=>`<i class="lv-m ${m}${a.clim[i]?" "+a.clim[i]:""}" ${tt(`${a.e.n} · ${MES[i]}`,`ar ${fmt(o.cl[i].tm,1)} °C · água ≈ ${fmt(a.w[i],1)} °C · ${m==="ot"?"faixa ótima":m==="sub"?"crescimento reduzido":m==="cr"?"risco crítico":"sem dado"}${a.clim[i]==="rf"?" · resfriar a água":a.clim[i]==="aq"?" · aquecer a água":""}`)}></i>`).join("")}</span><span class="lv-dp"><em>Temp.</em>${aptPill(a.term)}</span><span class="lv-dp"><em>Água (sal., pH)</em>${aptPill(piorDe(a.sal,a.ph))}</span><span class="lv-dp"><em>Sistema (O₂, estrutura, terreno)</em>${aptPill(piorDe(a.od,a.sis,a.terr))}</span><span class="lv-dp"><em>Resultado</em>${aptPill(a.fin)}</span></div>`).join("")}
+    <div class="lv-dapt">${A.map(a=>`<div class="lv-dr"><span class="lv-dn">${a.e.n}${sp.includes(a.k)?" <small>no projeto</small>":""}</span><span class="lv-ds">${a.meses.map((m,i)=>`<i class="lv-m ${m}${a.clim[i]?" "+a.clim[i]:""}" ${tt(`${a.e.n} · ${MES[i]}`,`ar ${fmt(o.cl[i].tm,1)} °C · água ≈ ${fmt(a.w[i],1)} °C · ${m==="ot"?"faixa ótima":m==="sub"?"crescimento reduzido":m==="cr"?"risco crítico":"sem dado"}${a.clim[i]==="rf"?" · resfriar a água":a.clim[i]==="aq"?" · aquecer a água":""}`)}></i>`).join("")}</span><span class="lv-dp"><em>Temp.</em>${aptPill(a.term)}</span><span class="lv-dp"><em>Água (sal., pH)</em>${aptPill(piorDe(a.sal,a.ph))}</span><span class="lv-dp"><em>Sistema (O₂, NH₃/NO₂, estrutura, terreno)</em>${aptPill(piorDe(a.od,a.nit,a.sis,a.terr))}</span><span class="lv-dp"><em>Resultado</em>${aptPill(a.fin)}</span></div>`).join("")}
     <div class="lv-dr lv-dm"><span class="lv-dn"></span><span class="lv-ds">${MES.map(m=>`<b>${m[0]}</b>`).join("")}</span></div></div>
     <div class="legend-row"><span><i class="lv-m ot"></i> faixa ótima</span><span><i class="lv-m sub"></i> crescimento reduzido</span><span><i class="lv-m cr"></i> risco crítico</span>${sisApt().est==="ras"?`<span><i class="lv-m ot rf"></i> RAS: resfriar a água</span><span><i class="lv-m ot aq"></i> RAS: aquecer a água</span>`:""}</div><p class="lv-foot">Sistema avaliado: <b>${ESTR_L[sisApt().est].n} · ${INT_L[sisApt().it].toLowerCase()}</b> (mude no bloco 0 de Local e viabilidade).</p><ul class="lv-lul">${A.map(a=>`<li><span class="lv-ln">${a.e.n}:</span> ${leitura(o,a)}</li>`).join("")}</ul><p class="lv-foot">Altere o município e a salinidade no bloco 0 de <a href="#" data-goto="local" class="linkbtn">Local e viabilidade</a>.</p></div></section>`;
   // custo operacional
@@ -7261,7 +7304,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v66";
+  const APP_VERSAO="ras-v67";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
