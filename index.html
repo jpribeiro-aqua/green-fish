@@ -715,7 +715,8 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .us-cota .inp:has(input[id^="us-nome-"]){width:100%;max-width:440px}.us-cota input[id^="us-nome-"],#us-meunome{width:100%;text-align:left;font-family:var(--f-body)}
 /* AquaNictemeral · plugin de automação */
 #aqua-plug{margin-bottom:12px}
-#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
+#aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
+.pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}.bi-kpis>div{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}.bi-kpis b{font:600 16px var(--f-mono,monospace)}.bi-kpis span{font-size:12px;color:var(--muted)}.bi-pop{max-width:110px;margin-left:auto}.bi-pop input{text-align:right}.bi-ft{margin-bottom:4px}.bi-lbl{font-size:13px;font-weight:600;margin:6px 0 2px}.bi-h{margin:14px 0 6px;font-size:15px}.bi-met{font-size:12px;margin-top:4px}.bi-bad{color:var(--bad,#b4532a);font-weight:600}.bi-ok{color:var(--good,#2e7d4f);font-weight:600}.bi-tipos{list-style:none;padding:0;margin:8px 0;display:grid;gap:6px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));font-size:13px}.bi-tipos>li{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px}.bi-cad{width:auto;padding:3px 6px;font-size:12px}.bi-tab td.num{text-align:right}#aqua-cad{margin-bottom:12px}.cad-late>summary h2{color:var(--bad,#b4532a)}.cad-sub{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--muted);margin-top:4px}.cad-sub .lv-sel{width:auto;padding:3px 6px;font-size:12px}.cad-tab .lv-sel{min-width:130px}.ao-card>summary{list-style:none;cursor:pointer}.ao-card>summary::-webkit-details-marker{display:none}
 .ao-card>summary h2::before{content:"▸ ";color:var(--accent)}.ao-card[open]>summary h2::before{content:"▾ "}.ao-card .pj-body{display:grid;gap:12px}
 .ao-res{margin:0;font-size:15px}.ao-chips .chip b{margin-left:4px;color:var(--ink)}.ao-bar{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.ao-t{font-weight:600}
@@ -5709,7 +5710,25 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden)autoSalvar(
 window.projAutoSalvar=()=>{auto.parado=false;return autoSalvar(true)};
 window.projStatus=()=>{const c=atual();return {aberto:!!(c&&c.id&&c.modo===st.mode&&logado()),nome:c&&c.nome,em:auto.em,erro:auto.erro,cliente:!!(c&&c.uid),logado:logado(),pronto:st.mode!=="init"}};
 window.projNovo=()=>novoEmBranco();
-window.projLista=()=>st.list.map(p=>({id:p.id,nome:p.nome,resumo:p.resumo||{}}));
+window.projLista=()=>st.list.map(p=>({id:p.id,nome:p.nome,resumo:p.resumo||{},atualizadoEm:p.atualizadoEm||0,criadoEm:p.criadoEm||0,notas:p.notas||"",resp:p.resp||""}));
+const nomeOk=nome=>{nome=String(nome||"").trim().slice(0,80);if(!nome)throw new Error("Dê um nome ao projeto.");
+  if(!logado())throw new Error("Entre na sua conta para criar o projeto.");if(bloq())throw new Error(gate().txt||"Sua conta ainda não pode criar projetos.");
+  if(st.list.some(p=>String(p.nome||"").trim().toLowerCase()===nome.toLowerCase()))throw new Error("Já existe um projeto com esse nome: abra-o na pasta de projetos ou use outro nome.");return nome};
+// abrir um projeto salvo (o aberto agora é salvo antes)
+window.projAbrir=id=>abrir(id);
+// fechar o projeto aberto: salva, limpa as abas e volta para a escolha de projeto
+window.projFechar=async()=>{const c=atual();try{await autoSalvar(true)}catch(e){}
+  restaurar({});localStorage.removeItem(CUR);
+  try{localStorage.setItem(FLASH,`Projeto “${(c&&c.nome)||"atual"}” salvo e fechado. Abra outro projeto da pasta ou crie um novo.`);localStorage.setItem(KEY+"-view","calc")}catch(e){}
+  recarregarPagina()};
+// novo projeto com nome: salva o atual, cria e grava o novo na hora (abas em branco) e já deixa aberto
+window.projNovoNome=async nome=>{if(!st.list.length){try{st.list=(await back().list())||[]}catch(e){}}
+  nome=nomeOk(nome);try{await autoSalvar(true)}catch(e){}
+  const id=novoId(),agora=Date.now();
+  await back().put(id,{nome,notas:"",resp:"",criadoEm:agora,atualizadoEm:agora,resumo:{},app:"ras-multitanques",versao:1},{});
+  restaurar({});wr(CUR,{id,nome,modo:st.mode,base:agora});
+  try{localStorage.setItem(FLASH,`Projeto “${nome}” criado e salvo na pasta de projetos. As abas estão em branco para você elaborar.`);localStorage.setItem(KEY+"-view","calc")}catch(e){}
+  recarregarPagina();return {id,nome}};
 window.projAtual=()=>{const c=atual();return c&&c.id&&c.modo===st.mode?{id:c.id,nome:c.nome||"Projeto"}:null};
 window.projApi={list:()=>back().list(),del:id=>back().del(id),reload:recarregar,
   relogin(){recarregar()}};
@@ -7009,38 +7028,72 @@ salvar();agendar();draw();
 const host=document.getElementById("pj-gate");if(!host)return;
 const DADOS=["calc","local","bio","racao","repro","topo","aqua"];
 const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-let vAtual=null,criando=false,msg="",novoConf=false,nomeDig="",flash="";
+const N=(v,d=0)=>Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d});
+const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
+const sem=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase();
+let vAtual=null,criando=false,msg="",nomeDig="",flash="",modo="",pasta=false,busca="",ordem="data",abrindo="";
 if(window.__projFlash){flash=window.__projFlash;window.__projFlash=null;setTimeout(()=>{flash="";draw()},15000)}
 const viewEl=v=>document.getElementById("view-"+v);
 const st=()=>window.projStatus?projStatus():null;
 window.projLiberado=()=>{const s=st();return !s||!!s.aberto};
 function travar(on){for(const v of DADOS){const el=viewEl(v);if(el){const t=on&&v===vAtual;el.classList.toggle("pj-trava",t);if(t)el.setAttribute("aria-disabled","true");else el.removeAttribute("aria-disabled")}}}
 function outros(){try{window.drawAquaOrig&&drawAquaOrig()}catch(e){}try{window.drawAquaBio&&drawAquaBio()}catch(e){}try{window.focoRefresh&&focoRefresh()}catch(e){}}
+/* ---- pasta de projetos salvos, com busca ---- */
+function pastaHTML(s,fixa){
+  const L=window.projLista?projLista():[],q=sem(busca).trim(),cur=window.projAtual?projAtual():null;
+  const F=L.filter(p=>{if(!q)return true;const r=p.resumo||{};return sem([p.nome,p.notas,p.resp,r.local,r.esp].join(" ")).includes(q)})
+    .sort((a,b)=>ordem==="nome"?String(a.nome).localeCompare(String(b.nome),"pt"):(b.atualizadoEm||0)-(a.atualizadoEm||0));
+  const itens=F.map(p=>{const r=p.resumo||{},on=cur&&cur.id===p.id;
+    return `<li class="pjp-it${on?" on":""}"><div class="pjp-tx"><b>📄 ${E(p.nome)}</b>${on?' <span class="pj-tag">aberto</span>':""}
+      <small>${E(r.local||"local não informado")}${r.tanques?` · ${N(r.tanques)} tanques · ${r.grupos} grupo${r.grupos===1?"":"s"}${r.vol?` · ${N(r.vol)} m³`:""}`:""}${r.esp?` · ${E(r.esp)}`:""}</small>
+      <small>Atualizado em ${dataBR(p.atualizadoEm)}${p.resp?` · ${E(p.resp)}`:""}</small></div>
+      ${on?`<span class="muted pjp-ab">em uso</span>`:`<button type="button" class="btn${fixa?" solid":""}" data-pjg="abrir-id" data-id="${E(p.id)}"${abrindo?" disabled":""}>${abrindo===p.id?"Abrindo…":"Abrir"}</button>`}</li>`}).join("");
+  return `<div class="pjp" role="region" aria-label="Pasta de projetos salvos">
+    <div class="pjp-hd"><b>📁 Pasta de projetos salvos</b><span class="muted">${L.length} projeto${L.length===1?"":"s"}</span>${fixa?"":`<button type="button" class="btn pjp-x" data-pjg="pasta" aria-label="Fechar a pasta">✕</button>`}</div>
+    ${L.length?`<div class="pjp-tools"><div class="inp"><input id="pjg-busca" type="search" value="${E(busca)}" placeholder="🔍 Buscar por nome, local, espécie ou responsável" aria-label="Buscar projetos"></div>
+      <select id="pjg-ord" class="lv-sel" aria-label="Ordenar"><option value="data"${ordem==="data"?" selected":""}>Mais recentes</option><option value="nome"${ordem==="nome"?" selected":""}>Nome (A–Z)</option></select></div>
+      ${F.length?`<ul class="pjp-l">${itens}</ul>`:`<p class="muted">Nenhum projeto encontrado para “${E(busca)}”.</p>`}`
+      :`<p class="muted">Nenhum projeto salvo ainda. Crie o primeiro dando um nome acima.</p>`}
+    <p class="muted pjp-ft">Ao abrir outro projeto, o que está aberto é salvo antes. Para exportar, importar ou excluir projetos, use a aba <a href="#" data-pjg="ir-proj">Projetos</a>.</p></div>`}
 function draw(v){if(v)vAtual=v;if(!vAtual){const t=document.querySelector('.tab[aria-selected="true"]');vAtual=t?t.dataset.view:"calc"}
   const s=st();if(!s||!DADOS.includes(vAtual)){host.hidden=true;host.innerHTML="";travar(false);return}
+  const foco=document.activeElement&&host.contains(document.activeElement)?document.activeElement.id:"";
   host.hidden=false;
+  const fl=flash?`<div class="pjg-flash" role="status">✅ ${E(flash)}${s.aberto?" Este é o projeto ativo: Local e viabilidade, Calculadora, AquaNictemeral, Biomassa, Arraçoamento, Reprodução e Levantamentos trabalham com ele ao mesmo tempo.":""}</div>`:"";
+  const form=(id,lab)=>`<div class="pjg-form"><div class="inp"><input id="${id}" maxlength="80" value="${E(nomeDig)}" placeholder="Nome do projeto (ex.: Fazenda Uanina – RAS 2026)" aria-label="Nome do projeto"></div><button type="button" class="btn solid" data-pjg="${id==="pjg-nome"?"criar":"novo-criar"}"${criando?" disabled":""}>${criando?"Criando…":lab}</button>${id==="pjg-novo"?`<button type="button" class="btn" data-pjg="cancelar">Cancelar</button>`:""}</div>`;
   if(s.aberto){travar(false);const hora=s.em?new Date(s.em).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}):"";
-    host.innerHTML=`${flash?`<div class="pjg-flash" role="status">✅ ${E(flash)} Este é o projeto ativo: Local e viabilidade, Calculadora, AquaNictemeral, Biomassa, Arraçoamento, Reprodução e Levantamentos trabalham com ele ao mesmo tempo.</div>`:""}<div class="pjg-bar"><span>📂 Projeto ativo em todas as abas: <b>${E(s.nome)}</b></span><span class="pjg-st${s.erro?" bad":""}">${s.erro?E(s.erro):s.cliente?"projeto de cliente: salve as mudanças na aba Projetos":hora?"✓ salvo automaticamente às "+hora:"salvamento automático ligado"}</span>
-     <span class="pjg-acts">${novoConf?`<span>Começar um projeto novo, em branco? O atual continua salvo.</span><button type="button" class="btn warn" data-pjg="novo-ok">Sim, novo projeto</button><button type="button" class="btn" data-pjg="nao">Voltar</button>`
-       :`${s.cliente?"":`<button type="button" class="btn" data-pjg="salvar">Salvar agora</button>`}<button type="button" class="btn" data-pjg="novo">+ Novo projeto</button>`}</span></div>`}
+    host.innerHTML=fl+`<div class="pjg-bar"><span>📂 Projeto ativo em todas as abas: <b>${E(s.nome)}</b></span><span class="pjg-st${s.erro?" bad":""}">${s.erro?E(s.erro):s.cliente?"projeto de cliente: salve as mudanças na aba Projetos":hora?"✓ salvo automaticamente às "+hora:"salvamento automático ligado"}</span>
+     <span class="pjg-acts">${modo==="fechar"?`<span>Fechar “${E(s.nome)}”? Ele é salvo e as abas ficam livres para abrir ou criar outro.</span><button type="button" class="btn warn" data-pjg="fechar-ok">Salvar e fechar</button><button type="button" class="btn" data-pjg="cancelar">Voltar</button>`
+       :`${s.cliente?"":`<button type="button" class="btn" data-pjg="salvar">Salvar agora</button>`}<button type="button" class="btn${pasta?" on":""}" data-pjg="pasta" aria-expanded="${pasta}">📁 Projetos salvos</button><button type="button" class="btn" data-pjg="novo">+ Novo projeto</button><button type="button" class="btn" data-pjg="fechar">✕ Fechar projeto</button>`}</span></div>
+     ${modo==="novo"?`<div class="pjg-sub"><b>Novo projeto</b> <span class="muted">O projeto atual é salvo; o novo é criado e salvo na pasta assim que você confirmar, com as abas em branco.</span>${form("pjg-novo","Criar e salvar")}<div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div></div>`:""}
+     ${pasta?pastaHTML(s,false):""}`}
   else{travar(true);
-    host.innerHTML=`<div class="pjg-card"><h2>${s.pronto?"1º passo: dê um nome ao projeto":"Verificando o projeto…"}</h2>
-     <p>Todo dado lançado no app (grupos de tanques, local e viabilidade, biomassa, ração, reprodução, levantamento, leituras e biometrias) fica identificado com um projeto. Crie o nome: o projeto é salvo na hora e continua sendo salvo sozinho enquanto você elabora, com todas as abas correlacionadas em tempo real. As abas de dados ficam liberadas depois disso.</p>
-     ${s.logado?`<div class="pjg-form"><div class="inp"><input id="pjg-nome" maxlength="80" value="${E(nomeDig)}" placeholder="Nome do projeto (ex.: Fazenda Uanina – RAS 2026)" aria-label="Nome do projeto"></div><button type="button" class="btn solid" data-pjg="criar"${criando?" disabled":""}>${criando?"Criando…":"Criar projeto e começar"}</button><button type="button" class="btn" data-pjg="abrir">Abrir projeto salvo</button></div>`
-       :`<p><b>Entre na sua conta</b> para criar ou abrir um projeto.</p>`}
-     <div class="pj-msg" role="status" aria-live="polite">${E(msg||flash)}</div>
-     <p class="muted">O que já estiver preenchido nas abas entra no projeto quando ele for criado.</p></div>`}
-  bind()}
-function criar(){const nome=(host.querySelector("#pjg-nome")||{}).value||nomeDig;if(criando)return;criando=true;msg="";draw();
-  Promise.resolve().then(()=>projCriar(nome)).then(()=>{criando=false;nomeDig="";msg="";draw();outros()}).catch(e=>{criando=false;msg=(e&&e.message)||String(e);draw()})}
-function bind(){const q=s=>host.querySelector(s);const n=q("#pjg-nome");if(n){n.addEventListener("input",()=>{nomeDig=n.value});n.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();criar()}})}
-  host.querySelectorAll("[data-pjg]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.pjg;
-    if(a==="criar")return criar();if(a==="abrir")return setView("proj");
-    if(a==="salvar"){b.disabled=true;b.textContent="Salvando…";Promise.resolve(window.projAutoSalvar&&projAutoSalvar()).finally(()=>draw());return}
-    if(a==="novo"){novoConf=true;draw();return}if(a==="nao"){novoConf=false;draw();return}
-    if(a==="novo-ok"){novoConf=false;window.projNovo&&projNovo()}}))}
+    host.innerHTML=fl+`<div class="pjg-card"><h2>${s.pronto?"Escolha o projeto: crie um novo ou abra um salvo":"Verificando o projeto…"}</h2>
+     <p>Todo dado lançado no app (grupos de tanques, local e viabilidade, biomassa, ração, reprodução, levantamento, leituras e biometrias) fica identificado com um projeto. O projeto é salvo na hora em que é criado e continua sendo salvo sozinho enquanto você elabora, com todas as abas correlacionadas em tempo real.</p>
+     ${s.logado?`<h3 class="pjg-h3">1. Criar um projeto novo</h3>${form("pjg-nome","Criar e salvar projeto")}
+       <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
+       <h3 class="pjg-h3">2. Ou abrir um projeto salvo</h3>${pastaHTML(s,true)}`
+       :`<p><b>Entre na sua conta</b> para criar ou abrir um projeto.</p>`}</div>`}
+  bind();
+  if(foco){const f=document.getElementById(foco);if(f){f.focus();if(f.setSelectionRange&&typeof f.value==="string"){const n=f.value.length;try{f.setSelectionRange(n,n)}catch(e){}}}}}
+function criar(novo){const inp=host.querySelector(novo?"#pjg-novo":"#pjg-nome"),nome=(inp||{}).value||nomeDig;if(criando)return;criando=true;msg="";draw();
+  Promise.resolve().then(()=>novo?projNovoNome(nome):projCriar(nome)).then(()=>{criando=false;nomeDig="";msg="";modo="";if(!novo){flash=`Projeto “${String(nome).trim()}” criado e salvo na pasta de projetos.`;setTimeout(()=>{flash="";draw()},15000)}draw();outros()}).catch(e=>{criando=false;msg=(e&&e.message)||String(e);draw()})}
+function bind(){const q=s=>host.querySelector(s);
+  for(const id of ["#pjg-nome","#pjg-novo"]){const n=q(id);if(n){n.addEventListener("input",()=>{nomeDig=n.value});n.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();criar(id==="#pjg-novo")}})}}
+  const b=q("#pjg-busca");if(b)b.addEventListener("input",()=>{busca=b.value;draw()});
+  const o=q("#pjg-ord");if(o)o.addEventListener("change",()=>{ordem=o.value;draw()});
+  host.querySelectorAll("[data-pjg]").forEach(x=>x.addEventListener("click",ev=>{const a=x.dataset.pjg;
+    if(a==="ir-proj"){ev.preventDefault();return setView("proj")}
+    if(a==="criar")return criar(false);if(a==="novo-criar")return criar(true);
+    if(a==="abrir-id"){abrindo=x.dataset.id;draw();Promise.resolve(window.projAbrir&&projAbrir(abrindo)).catch(()=>{}).finally(()=>{abrindo="";draw()});return}
+    if(a==="salvar"){x.disabled=true;x.textContent="Salvando…";Promise.resolve(window.projAutoSalvar&&projAutoSalvar()).finally(()=>draw());return}
+    if(a==="pasta"){pasta=!pasta;if(pasta)modo="";draw();if(pasta){const i=q("#pjg-busca");i&&i.focus()}return}
+    if(a==="novo"){modo="novo";pasta=false;msg="";draw();const i=q("#pjg-novo");i&&i.focus();return}
+    if(a==="fechar"){modo="fechar";pasta=false;draw();return}
+    if(a==="cancelar"){modo="";msg="";draw();return}
+    if(a==="fechar-ok"){x.disabled=true;x.textContent="Salvando e fechando…";Promise.resolve(window.projFechar&&projFechar()).catch(e=>{modo="";msg=(e&&e.message)||String(e);draw()})}}))}
 window.drawPjGate=draw;
-window.addEventListener("proj-status",()=>{if(!host.querySelector("#pjg-nome:focus"))draw()});
+window.addEventListener("proj-status",()=>{const a=document.activeElement;if(!(a&&host.contains(a)&&a.tagName==="INPUT"))draw()});
 draw();setTimeout(()=>draw(),1500);
 })();
 
@@ -7103,7 +7156,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v60";
+  const APP_VERSAO="ras-v61";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
