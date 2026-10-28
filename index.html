@@ -7074,7 +7074,7 @@ function draw(v){if(v)vAtual=v;if(!vAtual){const t=document.querySelector('.tab[
        <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
        <h3 class="pjg-h3">2. Ou abrir um projeto salvo</h3>${pastaHTML(s,true)}`
        :`<p><b>Entre na sua conta</b> para criar ou abrir um projeto.</p>`}</div>`}
-  bind();
+  bind();if(s.aberto)setTimeout(autoPreencher,0);
   if(foco){const f=document.getElementById(foco);if(f){f.focus();if(f.setSelectionRange&&typeof f.value==="string"){const n=f.value.length;try{f.setSelectionRange(n,n)}catch(e){}}}}}
 function criar(novo){const inp=host.querySelector(novo?"#pjg-novo":"#pjg-nome"),nome=(inp||{}).value||nomeDig;if(criando)return;criando=true;msg="";draw();
   Promise.resolve().then(()=>novo?projNovoNome(nome):projCriar(nome)).then(()=>{criando=false;nomeDig="";msg="";modo="";if(!novo){flash=`Projeto “${String(nome).trim()}” criado e salvo na pasta de projetos.`;setTimeout(()=>{flash="";draw()},15000)}draw();outros()}).catch(e=>{criando=false;msg=(e&&e.message)||String(e);draw()})}
@@ -7092,6 +7092,28 @@ function bind(){const q=s=>host.querySelector(s);
     if(a==="fechar"){modo="fechar";pasta=false;draw();return}
     if(a==="cancelar"){modo="";msg="";draw();return}
     if(a==="fechar-ok"){x.disabled=true;x.textContent="Salvando e fechando…";Promise.resolve(window.projFechar&&projFechar()).catch(e=>{modo="";msg=(e&&e.message)||String(e);draw()})}}))}
+/* ---- ao criar ou abrir um projeto: se a Calculadora estiver sem volume, preenche sozinha com os dados do próprio projeto ---- */
+const autoFeito={};
+const volCalc=()=>{try{return tanks.reduce((a,t)=>a+(parse(t.q)||0)*(parse(t.v)||0),0)}catch(e){return 0}};
+function fontesProjeto(){const G=[];let de="";
+  try{const T=JSON.parse(localStorage.getItem("ras-multitanques-v1-topo"))||{},ps=T.proj||[],p=ps.find(x=>x.id===T.cur)||ps.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];
+    for(const v of ((p&&p.res&&p.res.viv)||[]))if(+v.agua>0)G.push({name:String(v.nome||"Viveiro").slice(0,24)+" (lev.)",q:"1",v:String(Math.round(+v.agua))});
+    if(G.length)de=`os viveiros do levantamento “${p.nome||"atual"}”`}catch(e){}
+  if(!G.length)try{const S=JSON.parse(localStorage.getItem("aquanictemeral.ras.v1"))||{};
+    for(const u of (S.unidades||[]))if(!u.exemplo&&!u.ras&&!u.sistemaRAS&&u.id!=="ras-sistema"&&+u.volume_m3>0)G.push({name:String(u.nome||"Unidade").slice(0,24),q:"1",v:String(Math.round(+u.volume_m3)),sp:u.especie});
+    if(G.length)de="as unidades (tanques e viveiros) do AquaNictemeral"}catch(e){}
+  return {G,de}}
+function autoPreencher(){const s=st();if(!s||!s.aberto||!s.pronto||typeof tanks==="undefined")return;
+  const pa=window.projAtual&&projAtual();if(!pa||autoFeito[pa.id])return;autoFeito[pa.id]=1;
+  if(volCalc()>0)return;
+  const {G,de}=fontesProjeto(),base=G.length?G:defaultTanks.map(t=>({name:t.name,q:t.q,v:t.v}));
+  const novos=base.map((g,i)=>{const t={id:i,c:Math.min(i,typeof MAXC==="number"?MAXC:8),name:g.name||"",q:g.q,v:g.v};if(g.sp){lotOf(t);if(SPECIES[g.sp])t.lot.sp=g.sp}return t});
+  try{tanks=novos;drawTanks();render();save()}catch(e){return}
+  const vol=volCalc();
+  flash=G.length?`A Calculadora estava sem volume e foi preenchida automaticamente com ${de}: ${novos.length} grupo${novos.length===1?"":"s"}, ${vol.toLocaleString("pt-BR",{maximumFractionDigits:0})} m³ de água. Confira as quantidades e os volumes.`
+    :`A Calculadora estava sem tanques com volume. Coloquei os grupos de exemplo (${vol.toLocaleString("pt-BR",{maximumFractionDigits:0})} m³) para o resumo aparecer: troque pelos tanques do projeto.`;
+  setTimeout(()=>{flash="";draw()},20000);draw();outros()}
+window.calcAutoPreencher=autoPreencher;
 window.drawPjGate=draw;
 window.addEventListener("proj-status",()=>{const a=document.activeElement;if(!(a&&host.contains(a)&&a.tagName==="INPUT"))draw()});
 draw();setTimeout(()=>draw(),1500);
@@ -7156,7 +7178,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v61";
+  const APP_VERSAO="ras-v62";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
