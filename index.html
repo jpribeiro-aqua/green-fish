@@ -1152,7 +1152,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
   &lt;nav class=&quot;u-chips&quot; id=&quot;u-chips&quot; aria-label=&quot;Selecionar tanque/viveiro&quot;&gt;&lt;/nav&gt;
   &lt;header class=&quot;unit u-top&quot;&gt;
     &lt;div style=&quot;min-width:0&quot;&gt;
-      &lt;div class=&quot;eyebrow&quot;&gt;Tanque/viveiro selecionado&lt;/div&gt;
+      &lt;div class=&quot;eyebrow&quot; id=&quot;u-eyeb&quot;&gt;Tanque/viveiro selecionado&lt;/div&gt;
       &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome do tanque/viveiro&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;u-meta&quot;&gt;&lt;/div&gt;
       &lt;details class=&quot;t-tab&quot; id=&quot;u-ttab&quot;&gt;&lt;/details&gt;
@@ -1477,6 +1477,18 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const estrDe = (u) =&gt; { if (!u) return &quot;viveiro&quot;; if (u.sistemaRAS || u.ras) return &quot;ras&quot;; if (u.estrutura &amp;&amp; ESTR[u.estrutura]) return u.estrutura; const n = String(u.nome || &quot;&quot;);
     if (/bft|biofloc/i.test(n)) return &quot;bft&quot;; if (/tanque.?rede|gaiola/i.test(n)) return &quot;tanque_rede&quot;; if (/\bras\b|recircula/i.test(n)) return &quot;ras&quot;; if (/suspens|elevad|lona|geomembrana|caixa|fibra/i.test(n)) return &quot;suspenso&quot;;
     return [&quot;superintensivo&quot;, &quot;hiperintensivo&quot;].includes(u.sistema) ? &quot;bft&quot; : &quot;viveiro&quot;; };
+  /* estrutura a partir de um texto dos dados (coluna Estrutura ou nome do tanque/viveiro) */
+  const estrTxt = (t) =&gt; { const n = String(t || &quot;&quot;).toLowerCase().normalize(&quot;NFD&quot;).replace(/[\u0300-\u036f]/g, &quot;&quot;); if (!n.trim()) return null;
+    if (/bft|biofloc/.test(n)) return &quot;bft&quot;; if (/tanque.?rede|gaiola|\bcage\b/.test(n)) return &quot;tanque_rede&quot;; if (/\bras\b|recircula/.test(n)) return &quot;ras&quot;;
+    if (/suspens|elevad|lona|geomembrana|caixa|fibra|alvenaria|concreto|circular/.test(n)) return &quot;suspenso&quot;;
+    const tq = /\btanques?\b|\btank/.test(n), vv = /viveiro|escavad|acude|\bpond\b/.test(n);
+    if (vv &amp;&amp; !tq) return &quot;viveiro&quot;; if (tq &amp;&amp; !vv) return &quot;suspenso&quot;; return null; };
+  const PREF_E = { viveiro: &quot;Viveiro&quot;, suspenso: &quot;Tanque&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;Tanque RAS&quot;, bft: &quot;Tanque BFT&quot; };
+  const CURTO_E = { viveiro: &quot;Viveiro escavado&quot;, suspenso: &quot;Tanque suspenso / elevado&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;RAS (recirculação)&quot;, bft: &quot;Bioflocos (BFT)&quot; };
+  /* nome que acompanha a estrutura: &quot;Tanque 7&quot; vira &quot;Viveiro 7&quot; ao escolher viveiro escavado (nomes próprios ficam como estão) */
+  function nomePorEstr(nome, k) { const m = String(nome || &quot;&quot;).trim().match(/^(?:viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|bioflocos?|tanque\/viveiro)\s*[-–:nº°#.]*\s*(\S.*)$/i);
+    return m &amp;&amp; PREF_E[k] ? PREF_E[k] + &quot; &quot; + m[1] : null; }
+  function migrarEstr() { let mud = false; for (const u of S.unidades) if (!u.ras &amp;&amp; !u.sistemaRAS &amp;&amp; !u.estrutura &amp;&amp; u.importada) { const k = estrTxt(u.nome); if (k) { u.estrutura = k; u.estrFonte = &quot;nome&quot;; mud = true; } } if (mud) salvar(); }
   function tempFaixa(esp, sis, estr) {
     const f0 = Core.faixa(BASE, esp, &quot;temperatura&quot;); if (!f0) return null; const f = { ...f0 }, alvo = ALVO_T[esp] ?? (f0.ideal_min + f0.ideal_max) / 2, E = ESTR[estr] || ESTR.viveiro, mot = [];
     if (estr === &quot;ras&quot;) { f.ideal_min = Math.max(f0.ideal_min, alvo - 1); f.ideal_max = Math.min(f0.ideal_max, alvo + 1); mot.push(&quot;RAS: faixa estreita em torno do ótimo de &quot; + String(alvo).replace(&quot;.&quot;, &quot;,&quot;) + &quot; °C&quot;); }
@@ -1777,7 +1789,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const ide = f &amp;&amp; f.ideal_min !== null &amp;&amp; f.ideal_max !== null ? (f.ideal_min === 0 ? &quot;≤ &quot; + fmt(f.ideal_max, 1) : fmt(f.ideal_min, 1) + &quot;–&quot; + fmt(f.ideal_max, 1)) : &quot;&quot;;
     fs.placeholder = `${ide ? &quot;ideal &quot; + ide + &quot; · &quot; : &quot;&quot;}vazio: ${fmt(si.v, 1)}`; fs.title = `Se ficar vazio: ${fmt(si.v, 1)} g/L, ${si.txt}`; }
   function renderHead() {
-    const u = UA(); setSalPh();
+    migrarEstr(); const u = UA(); setSalPh();
+    { const k = estrDe(u), eb = $(&quot;u-eyeb&quot;); if (eb) eb.textContent = `${u.sistemaRAS ? &quot;Água do sistema RAS&quot; : CURTO_E[k] || &quot;Tanque/viveiro&quot;} · selecionado${u.estrFonte === &quot;dados&quot; ? &quot; (estrutura vinda dos dados)&quot; : &quot;&quot;}`; }
     $(&quot;u-nome&quot;).value = u.nome; $(&quot;u-esp&quot;).value = u.especie; $(&quot;u-sis&quot;).value = u.sistema; $(&quot;u-estr&quot;).value = estrDe(u); $(&quot;u-estr&quot;).disabled = !!(u.ras || u.sistemaRAS); $(&quot;u-estr&quot;).title = u.ras || u.sistemaRAS ? &quot;Grupos da Calculadora e a água do sistema são RAS&quot; : &quot;Muda a faixa ideal de temperatura e a variação aceita no dia&quot;;
     $(&quot;u-nome&quot;).readOnly = !!u.ras;
     excArmed = false; $(&quot;b-exc-u&quot;).hidden = !!u.ras; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir tanque/viveiro&quot;; $(&quot;b-exc-u&quot;).disabled = S.unidades.length &lt; 2;
@@ -1989,7 +2002,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;c-passo&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(), c = cadDe(u), v = e.target.value; u.cad = { passo: v === &quot;p&quot; ? &quot;p&quot; : Number(v), inicio: c.inicio ?? 0 }; salvar(); renderSlots(); renderCharts(); });
   $(&quot;c-ini&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(), c = cadDe(u); u.cad = { passo: c.passo, inicio: Number(e.target.value) }; salvar(); renderSlots(); renderCharts(); });
   $(&quot;b-limpar&quot;).addEventListener(&quot;click&quot;, () =&gt; { renderForm(); $(&quot;f-msg&quot;).textContent = &quot;&quot;; });
-  $(&quot;u-nome&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().nome = e.target.value.trim() || &quot;Tanque/viveiro sem nome&quot;; salvar(); renderHead(); });
+  $(&quot;u-nome&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(), velho = u.nome; u.nome = e.target.value.trim() || &quot;Tanque/viveiro sem nome&quot;; salvar(); try { if (velho !== u.nome &amp;&amp; parent.bioRenomear) parent.bioRenomear(velho, u.nome); } catch (er) {} renderUnidade(); });
   $(&quot;u-sel&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.ativa = e.target.value; sel = null; irUltDia(); salvar(); renderUnidade(); });
   $(&quot;u-dia&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.dia = e.target.value; sel = null; salvar(); renderUnidade(); });
   $(&quot;u-esp&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.sistemaRAS) return; u.especie = e.target.value; salvar();
@@ -1997,7 +2010,11 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     renderUnidade(); });
   $(&quot;u-orig&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) return; u.origem = e.target.value; requestAnimationFrame(() =&gt; { renderHead(); renderEval(); setTimeout(salvar, 0); }); });
   $(&quot;u-sis&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().sistema = e.target.value; salvar(); renderUnidade(); });
-  $(&quot;u-estr&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.ras || u.sistemaRAS) return; u.estrutura = e.target.value; salvar(); renderUnidade(); });
+  $(&quot;u-estr&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.ras || u.sistemaRAS) return; u.estrutura = e.target.value; u.estrFonte = &quot;usuario&quot;;
+    const nv = nomePorEstr(u.nome, u.estrutura); let msg = &quot;&quot;;
+    if (nv &amp;&amp; nv !== u.nome) { if (S.unidades.some((x) =&gt; x !== u &amp;&amp; String(x.nome || &quot;&quot;).trim().toLowerCase() === nv.toLowerCase())) msg = `Já existe &quot;${nv}&quot;: o nome ficou como estava.`; else { msg = `Nome alterado: ${u.nome} → ${nv}.`; const velho = u.nome; u.nome = nv; try { parent.bioRenomear &amp;&amp; parent.bioRenomear(velho, nv, u.estrutura); } catch (er) {} } }
+    else { try { parent.bioRenomear &amp;&amp; parent.bioRenomear(u.nome, u.nome, u.estrutura); } catch (er) {} }
+    salvar(); renderUnidade(); if (msg) { const f = $(&quot;f-msg&quot;); if (f) { f.textContent = msg; f.className = &quot;msg ok&quot;; } } });
   // excluir tanque/viveiro criado em &quot;Nova unidade&quot; (os grupos da Calculadora saem pela Calculadora)
   var excArmed = false;
   $(&quot;b-exc-u&quot;).addEventListener(&quot;click&quot;, () =&gt; {
@@ -2060,6 +2077,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
         u = { id: &quot;u&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nome: String(it.unidade).slice(0, 60), especie: op.especie || (tpl.sistemaRAS ? (tpl.especies || [])[0] : tpl.especie) || &quot;tilapia&quot;, sistema: &quot;semi-intensivo&quot;, volume_m3: 1000, racao_kg_dia: 10, importada: true };
         S.unidades.push(u); r.criadas.push(u.nome); }
       if (!u) u = uniById(op.destino);
+      if (u &amp;&amp; !u.ras &amp;&amp; !u.sistemaRAS) { const ke = estrTxt(it.estrutura), kn = ke ? null : (!u.estrutura || u.estrFonte === &quot;nome&quot; ? estrTxt(it.unidade) : null), k = ke || kn;
+        if (k &amp;&amp; k !== u.estrutura) { u.estrutura = k; u.estrFonte = ke ? &quot;dados&quot; : &quot;nome&quot;; (r.estr = r.estr || {})[u.nome] = CURTO_E[k]; } }
       if (!u || !/^\d{4}-\d{2}-\d{2}$/.test(it.data || &quot;&quot;) || !/^\d{2}:\d{2}$/.test(it.hora || &quot;&quot;)) { r.ignoradas++; continue; }
       const prof = it.profundidade || &quot;superfície&quot;, vals = {};
       for (const p of PS) { const v = typeof it[p] === &quot;number&quot; ? it[p] : Number(String(it[p] == null ? &quot;&quot; : it[p]).replace(&quot;,&quot;, &quot;.&quot;)); if (it[p] !== undefined &amp;&amp; it[p] !== &quot;&quot; &amp;&amp; Number.isFinite(v)) vals[p] = v; }
@@ -6584,6 +6603,7 @@ const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""
 const ALVOS=[["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora","datetimeutc","horario","momento","registro","time_stamp","entryts"]],
   ["data","Data",["data","date","dia","day"]],["hora","Hora",["hora","hour","time","horas"]],
   ["unidade","Unidade / tanque",["unidade","tanque","viveiro","unit","tank","pond","local","ponto","sensor","device","dispositivo","estacao"]],
+  ["estrutura","Estrutura (viveiro, tanque…)",["estrutura","tipodeestrutura","estruturadecultivo","estruturacultivo","sistemadecultivo","tipodetanque","tipodeviveiro","tipodecultivo","structure"]],
   ["profundidade","Profundidade",["profundidade","depth","prof"]],
   ["temperatura","Temperatura (°C)",["temperatura","temp","t","tempc","temperature","tagua","tempagua","watertemp","temperaturadaagua"]],
   ["od","OD (mg/L)",["od","oxigenio","oxigeniodissolvido","do","dissolvedoxygen","o2","oxygen","odmgl","domgl"]],
@@ -6595,7 +6615,7 @@ const ALVOS=[["dt","Data e hora",["datahora","datetime","timestamp","createdat",
   ["salinidade","Salinidade",["salinidade","sal","salinity","psu","ppt"]],["transparencia","Transparência (cm)",["transparencia","secchi","transparency","disco"]],
   ["clorofila_a","Clorofila-a",["clorofila","clorofilaa","chlorophyll","chla"]],["sst","Sólidos suspensos (SST)",["sst","tss","solidos","solidossuspensos"]],
   ["ss_imhoff","Sólidos sedimentáveis (Imhoff)",["imhoff","ssimhoff","sedimentaveis"]],["vibrio","Vibrio",["vibrio"]]];
-const NUM=ALVOS.filter(a=>!["dt","data","hora","unidade","profundidade"].includes(a[0])).map(a=>a[0]);
+const NUM=ALVOS.filter(a=>!["dt","data","hora","unidade","estrutura","profundidade"].includes(a[0])).map(a=>a[0]);
 const soHora=v=>/^\s*\d{1,2}[:h]\d{2}(:\d{2})?\s*$/.test(String(v==null?"":v));
 function autoMap(cols,rows){const m={},usados=new Set(),am=(rows||[]).slice(0,30),vals=c=>am.map(r=>r[c]).filter(v=>v!==""&&v!=null);
   /* regras antes dos sinônimos: OD em %, "hora (ordem)" não é horário, coluna de horário só com hh:mm vira Hora */
@@ -6638,6 +6658,7 @@ function normalizar(rows,map,agrupar){
     if(!d&&inv.data){d=dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm){d.setHours(+hm[1],+(hm[2]||0))}}}
     if(d){data=isoD(d);hora=pad(d.getHours())+":"+pad(d.getMinutes())}
     const o={data,hora};const un=uCols.map(c=>{const v=r[c];if(v==null||v==="")return "";const t=String(typeof v==="number"?+v.toFixed(3):v).trim();return t.length<=3?c.replace(/\s*\(.*?\)/g,"").split("/")[0].trim()+" "+t:t}).filter(Boolean).join(" · ");if(un)o.unidade=un;
+    if(inv.estrutura&&r[inv.estrutura]!=null&&r[inv.estrutura]!=="")o.estrutura=String(r[inv.estrutura]).trim().slice(0,60);
     if(inv.profundidade&&r[inv.profundidade])o.profundidade=/fun|bot|deep/i.test(r[inv.profundidade])?"fundo":"superfície";
     let n=0;for(const p of NUM)if(inv[p]){const v=numBR(r[inv[p]]);if(Number.isFinite(v)){o[p]=Math.round(v*1000)/1000;n++}}
     if(!data||!n){ruins++;continue}out.push(o)}
@@ -6740,7 +6761,7 @@ async function importar(lista,origem){const w=await pronto();if(!w)throw new Err
   C.log.unshift({id,em:Date.now(),origem,tipo,nome,key,n:lista.length,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias,criadas:r.criadas});
   const sai=C.log.slice(30);C.log=C.log.slice(0,30);salvar();sai.forEach(l=>l.id&&IDB.del(l.id).catch(()=>{}));
   IDB.put(id,{lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem}}).catch(()=>{});return r}
-const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} ${r.criadas.length===1?"tanque/viveiro criado":"tanques/viveiros criados"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem tanque/viveiro ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
+const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} ${r.criadas.length===1?"tanque/viveiro criado":"tanques/viveiros criados"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem tanque/viveiro ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.${r.estr&&Object.keys(r.estr).length?(()=>{const g={};for(const [n,e] of Object.entries(r.estr))(g[e]=g[e]||[]).push(n);return " Estrutura ajustada pelos dados: "+Object.entries(g).map(([e,ns])=>`${e} (${ns.length>4?ns.slice(0,4).join(", ")+"…":ns.join(", ")})`).join("; ")+"."})():""}`;
 
 /* link (Google Planilhas publicada, ThingSpeak, servidor do sensor): busca agora e, se marcado, a cada N minutos */
 async function buscarLink(silencioso){if(!C.url)throw new Error("Cole o link dos dados.");
@@ -7253,6 +7274,10 @@ window.bioCadResumo=()=>{const R=cadRows().filter(x=>x.c);return {emDia:R.filter
 
 /* resumo para o Painel (projeto em evidência) */
 window.bioDashResumo=()=>linhasResumo(projSel()).map(({p,u,r})=>({nome:u.nome,tipo:u.tipo,projeto:pNome(p),data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
+window.bioRenomear=(velho,novo,estr)=>{try{const v=String(velho||"").trim().toLowerCase(),nv=String(novo||"").trim();if(!v||!nv)return 0;const p=curPid();let n=0;
+  for(const u of B.unisP[p]||[])if(String(u.nome||"").trim().toLowerCase()===v){u.nome=nv;if(estr){u.tipo=estr==="viveiro"?"viveiro":"tanque";B.tipoU[uk(p,u.id)]=u.tipo}n++}
+  for(const a of B.amostras)if((a.pid||"_local")===p&&String(a.unome||"").trim().toLowerCase()===v){a.unome=nv;if(estr){a.utipo=estr==="viveiro"?"viveiro":"tanque";B.tipoU[uk(p,a.unidade)]=a.utipo}n++}
+  if(n){salvar();try{draw()}catch(e){}}return n}catch(e){return 0}};
 window.bioPorNome=()=>{const M={};try{for(const {u,r} of linhasResumo(curPid()))M[String(u.nome||"").trim().toLowerCase()]={nome:u.nome,data:r.u.data,N:r.s.N,pm:r.s.pm,cv:r.s.cv,k:r.s.k,gpd:r.gpd,n:r.n,prox:r.prox}}catch(e){}return M};
 window.drawAquaBio=()=>draw();window.bioDebug={stats,linhasParaAmostras,autoMapB,B,projecao,uniP,projs,cadRows};
 salvar();agendar();draw();
@@ -7419,7 +7444,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v74";
+  const APP_VERSAO="ras-v75";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
