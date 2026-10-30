@@ -849,7 +849,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
 &lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Source+Sans+3:wght@400;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap&quot;&gt;
 &lt;style&gt;
-/* Layout: caderno de campo da fazenda — barra de abas (Painel | Unidade); Painel = resumo → unidades → matriz → tendências → alertas; Unidade = lançar leitura | curva 24 h */
+/* Layout: caderno de campo da fazenda — barra de abas (Painel | Tanque/viveiro); Painel = resumo → tanques/viveiros → matriz → tendências → alertas; Tanque/viveiro = lançar leitura | curva 24 h */
 :root {
   --bg: #F3F6F5; --surface: #FFFFFF; --sunken: #E8EEEC; --ink: #10201F; --ink-2: #4A5C5A; --ink-3: #6F807E; --line: #D5DFDC;
   --accent: #0B6870; --accent-ink: #FFFFFF; --accent-soft: #D7ECEC;
@@ -1001,7 +1001,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 .foot { color: var(--ink-3); font-size: .82rem; max-width: 90ch; margin: 0; }
 .csvbox { width: 100%; min-height: 110px; font-family: var(--f-data); font-size: .78rem; border: 1px solid var(--line); border-radius: 8px; background: var(--sunken); color: var(--ink); padding: 8px; }
 
-/* painel: cartões de unidade */
+/* painel: cartões de tanque/viveiro */
 .ucards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
 .ucard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: grid; gap: 10px; cursor: pointer; text-align: left; position: relative; overflow: hidden; }
 .ucard::before { content: &quot;&quot;; position: absolute; inset: 0 0 auto 0; height: 4px; background: var(--tile-c, transparent); }
@@ -1065,7 +1065,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 &lt;div class=&quot;topbar&quot;&gt;&lt;div class=&quot;topbar-in&quot;&gt;
   &lt;div class=&quot;brand&quot;&gt;Aqua&lt;span&gt;Nictemeral&lt;/span&gt;&lt;/div&gt;
   &lt;div class=&quot;tabs&quot; role=&quot;tablist&quot; aria-label=&quot;Seções&quot;&gt;
-    &lt;button class=&quot;tab&quot; role=&quot;tab&quot; id=&quot;tab-unidade&quot; aria-controls=&quot;v-unidade&quot; aria-selected=&quot;false&quot; type=&quot;button&quot;&gt;Unidade&lt;/button&gt;
+    &lt;button class=&quot;tab&quot; role=&quot;tab&quot; id=&quot;tab-unidade&quot; aria-controls=&quot;v-unidade&quot; aria-selected=&quot;false&quot; type=&quot;button&quot;&gt;Tanque/viveiro&lt;/button&gt;
     &lt;button class=&quot;tab&quot; role=&quot;tab&quot; id=&quot;tab-painel&quot; aria-controls=&quot;v-painel&quot; aria-selected=&quot;true&quot; type=&quot;button&quot;&gt;Painel&lt;/button&gt;
   &lt;/div&gt;
 &lt;/div&gt;&lt;/div&gt;
@@ -1075,7 +1075,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
   &lt;header class=&quot;unit&quot;&gt;
     &lt;div style=&quot;min-width:0&quot;&gt;
       &lt;div class=&quot;eyebrow&quot;&gt;Painel da fazenda&lt;/div&gt;
-      &lt;h1 id=&quot;p-titulo&quot;&gt;Todas as unidades&lt;/h1&gt;
+      &lt;h1 id=&quot;p-titulo&quot;&gt;Todos os tanques/viveiros&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;p-meta&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
     &lt;div class=&quot;controls&quot;&gt;
@@ -1089,7 +1089,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
   &lt;section class=&quot;summary&quot; id=&quot;p-kpis&quot; aria-label=&quot;Resumo do período&quot;&gt;&lt;/section&gt;
 
   &lt;section aria-labelledby=&quot;t-ucards&quot; style=&quot;display:grid;gap:10px&quot;&gt;
-    &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-ucards&quot;&gt;Unidades&lt;/h2&gt;&lt;p&gt;Oxigênio do dia de referência sobre a faixa ideal de cada espécie. Toque num cartão para abrir a unidade.&lt;/p&gt;&lt;/div&gt;
+    &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-ucards&quot;&gt;Tanques/viveiros&lt;/h2&gt;&lt;p&gt;Oxigênio do dia de referência sobre a faixa ideal de cada espécie. Toque num cartão para abrir o tanque/viveiro.&lt;/p&gt;&lt;/div&gt;
     &lt;div class=&quot;ucards&quot; id=&quot;p-ucards&quot;&gt;&lt;/div&gt;
   &lt;/section&gt;
 
@@ -1114,12 +1114,12 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 
   &lt;div class=&quot;cols2&quot;&gt;
     &lt;section class=&quot;panel&quot; aria-labelledby=&quot;t-dist&quot;&gt;
-      &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-dist&quot;&gt;Distribuição das avaliações&lt;/h2&gt;&lt;p&gt;Todas as medições do período, por unidade&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-dist&quot;&gt;Distribuição das avaliações&lt;/h2&gt;&lt;p&gt;Todas as medições do período, por tanque/viveiro&lt;/p&gt;&lt;/div&gt;
       &lt;div class=&quot;sbars&quot; id=&quot;p-dist&quot;&gt;&lt;/div&gt;
       &lt;div class=&quot;legend&quot; id=&quot;p-dleg&quot;&gt;&lt;/div&gt;
     &lt;/section&gt;
     &lt;section class=&quot;panel&quot; aria-labelledby=&quot;t-cad&quot;&gt;
-      &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-cad&quot;&gt;Cadência de coleta&lt;/h2&gt;&lt;p&gt;Coletas feitas × previstas pela cadência de cada unidade (tolerância de 30 min)&lt;/p&gt;&lt;/div&gt;
+      &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-cad&quot;&gt;Cadência de coleta&lt;/h2&gt;&lt;p&gt;Coletas feitas × previstas pela cadência de cada tanque/viveiro (tolerância de 30 min)&lt;/p&gt;&lt;/div&gt;
       &lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table id=&quot;p-cad&quot;&gt;&lt;/table&gt;&lt;/div&gt;
     &lt;/section&gt;
   &lt;/div&gt;
@@ -1127,7 +1127,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
   &lt;section class=&quot;panel&quot; aria-labelledby=&quot;t-alertas&quot;&gt;
     &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-alertas&quot;&gt;Alertas do período&lt;/h2&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;p-todos&quot;&gt;Mostrar todos&lt;/button&gt;&lt;/div&gt;
     &lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table id=&quot;p-alertas&quot;&gt;&lt;/table&gt;&lt;/div&gt;
-    &lt;p class=&quot;foot&quot;&gt;Cada linha junta as ocorrências de um parâmetro numa unidade e mostra a pior delas. O &quot;por quê&quot; vem da tabela de correlações da base técnica.&lt;/p&gt;
+    &lt;p class=&quot;foot&quot;&gt;Cada linha junta as ocorrências de um parâmetro num tanque/viveiro e mostra a pior delas. O &quot;por quê&quot; vem da tabela de correlações da base técnica.&lt;/p&gt;
   &lt;/section&gt;
 &lt;/div&gt;
 
@@ -1135,13 +1135,13 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 &lt;div class=&quot;wrap&quot; id=&quot;v-unidade&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;tab-unidade&quot; hidden&gt;
   &lt;header class=&quot;unit&quot;&gt;
     &lt;div style=&quot;min-width:0&quot;&gt;
-      &lt;div class=&quot;eyebrow&quot;&gt;Unidade de cultivo&lt;/div&gt;
+      &lt;div class=&quot;eyebrow&quot;&gt;Tanque/viveiro de cultivo&lt;/div&gt;
       &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome da unidade&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;u-meta&quot;&gt;&lt;/div&gt;
       &lt;details class=&quot;t-tab&quot; id=&quot;u-ttab&quot;&gt;&lt;/details&gt;
     &lt;/div&gt;
     &lt;div class=&quot;controls&quot;&gt;
-      &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-sel&quot;&gt;Unidade&lt;/label&gt;&lt;select id=&quot;u-sel&quot;&gt;&lt;/select&gt;&lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-sel&quot;&gt;Tanque/viveiro&lt;/label&gt;&lt;select id=&quot;u-sel&quot;&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-esp&quot;&gt;Espécie&lt;/label&gt;
         &lt;select id=&quot;u-esp&quot;&gt;&lt;option value=&quot;tilapia&quot;&gt;Tilápia-do-Nilo&lt;/option&gt;&lt;option value=&quot;tambaqui&quot;&gt;Tambaqui&lt;/option&gt;&lt;option value=&quot;camarao&quot;&gt;Camarão L. vannamei&lt;/option&gt;&lt;option value=&quot;pirarucu&quot;&gt;Pirarucu&lt;/option&gt;&lt;option value=&quot;pangasius&quot;&gt;Pangasius&lt;/option&gt;&lt;option value=&quot;curimata&quot;&gt;Curimatã&lt;/option&gt;&lt;option value=&quot;lambari&quot;&gt;Lambari&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-sis&quot;&gt;Sistema&lt;/label&gt;
@@ -1151,8 +1151,8 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-orig&quot;&gt;Origem da água&lt;/label&gt;
         &lt;select id=&quot;u-orig&quot;&gt;&lt;option value=&quot;&quot;&gt;Não informada&lt;/option&gt;&lt;option value=&quot;poco&quot;&gt;Poço (água subterrânea)&lt;/option&gt;&lt;option value=&quot;rio&quot;&gt;Rio ou córrego&lt;/option&gt;&lt;option value=&quot;represa&quot;&gt;Represa, açude ou lago&lt;/option&gt;&lt;option value=&quot;rede&quot;&gt;Rede pública (tratada)&lt;/option&gt;&lt;option value=&quot;chuva&quot;&gt;Água da chuva&lt;/option&gt;&lt;option value=&quot;mar&quot;&gt;Mar ou estuário&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-dia&quot;&gt;Dia&lt;/label&gt;&lt;select id=&quot;u-dia&quot;&gt;&lt;/select&gt;&lt;/div&gt;
-      &lt;button class=&quot;btn ghost&quot; id=&quot;b-nova&quot; type=&quot;button&quot;&gt;Nova unidade&lt;/button&gt;
-      &lt;button class=&quot;btn ghost&quot; id=&quot;b-exc-u&quot; type=&quot;button&quot;&gt;Excluir unidade&lt;/button&gt;
+      &lt;button class=&quot;btn ghost&quot; id=&quot;b-nova&quot; type=&quot;button&quot;&gt;Novo tanque/viveiro&lt;/button&gt;
+      &lt;button class=&quot;btn ghost&quot; id=&quot;b-exc-u&quot; type=&quot;button&quot;&gt;Excluir tanque/viveiro&lt;/button&gt;
     &lt;/div&gt;
   &lt;/header&gt;
 
@@ -1195,7 +1195,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 
   &lt;section class=&quot;panel&quot; aria-labelledby=&quot;t-tab&quot;&gt;
     &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-tab&quot;&gt;Leituras do dia&lt;/h2&gt;
-      &lt;div class=&quot;form-actions&quot;&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;b-csv&quot;&gt;Copiar CSV de todas as unidades&lt;/button&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;b-del&quot;&gt;Excluir leitura selecionada&lt;/button&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;b-limpa-u&quot;&gt;Limpar leituras desta unidade&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;form-actions&quot;&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;b-csv&quot;&gt;Copiar CSV de todos os tanques/viveiros&lt;/button&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;b-del&quot;&gt;Excluir leitura selecionada&lt;/button&gt;&lt;button class=&quot;btn small&quot; type=&quot;button&quot; id=&quot;b-limpa-u&quot;&gt;Limpar leituras deste tanque/viveiro&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
     &lt;div class=&quot;tbl-wrap&quot;&gt;&lt;table id=&quot;tbl&quot;&gt;&lt;/table&gt;&lt;/div&gt;
     &lt;textarea class=&quot;csvbox&quot; id=&quot;csvbox&quot; hidden readonly aria-label=&quot;CSV das leituras&quot;&gt;&lt;/textarea&gt;
   &lt;/section&gt;
@@ -1311,7 +1311,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return g;
   }
 
-  // --------------------------------------------------- dados de exemplo: 3 unidades × 7 dias
+  // --------------------------------------------------- dados de exemplo: 3 tanques/viveiros × 7 dias
   function rng(seed) { return () =&gt; { seed |= 0; seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed &gt;&gt;&gt; 15), 1 | seed); t = (t + Math.imul(t ^ (t &gt;&gt;&gt; 7), 61 | t)) ^ t; return ((t ^ (t &gt;&gt;&gt; 14)) &gt;&gt;&gt; 0) / 4294967296; }; }
   const HRS = [&quot;00:00&quot;, &quot;03:00&quot;, &quot;06:00&quot;, &quot;09:00&quot;, &quot;12:00&quot;, &quot;15:00&quot;, &quot;18:00&quot;, &quot;20:00&quot;, &quot;22:00&quot;];
   const FOD = [0.30, 0.12, 0.0, 0.30, 0.75, 1.0, 0.68, 0.53, 0.43];
@@ -1422,7 +1422,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const UA = () =&gt; uniById(S.ativa) || S.unidades[0];
   const corUnidade = (u) =&gt; (Number.isInteger(u.cor) ? (u.cor &lt; 0 ? &quot;var(--ink-2)&quot; : u.cor &lt; 8 ? `var(--s${u.cor + 1})` : &quot;var(--ink-3)&quot;) : `var(--s${(S.unidades.indexOf(u) % 8) + 1})`);
   const diasDisponiveis = () =&gt; [...new Set([...LT().map((l) =&gt; l.data), hoje()])].sort().reverse();
-  // no RAS a água circula por todos os tanques: estes parâmetros são lançados uma vez, na unidade &quot;Água do sistema&quot;
+  // no RAS a água circula por todos os tanques: estes parâmetros são lançados uma vez, no tanque/viveiro &quot;Água do sistema&quot;
   const SYS = [&quot;ph&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;dureza&quot;, &quot;tan&quot;, &quot;nitrito&quot;, &quot;nitrato&quot;, &quot;salinidade&quot;, &quot;ss_imhoff&quot;, &quot;sst&quot;], SYS_ID = &quot;ras-sistema&quot;;
   const ordH = (a, b) =&gt; a.data.localeCompare(b.data) || Core.minutos(a.hora) - Core.minutos(b.hora);
   const brutas = (uid, dias) =&gt; S.leituras.filter((l) =&gt; l.unidade === uid &amp;&amp; dias.includes(l.data) &amp;&amp; passa(l)).sort(ordH);
@@ -1474,7 +1474,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return `&lt;br&gt;&lt;span class=&quot;t-sis&quot;&gt;🌡 Temperatura ideal para ${ESP[e].nome_comum} em &lt;b&gt;${E.nome}&lt;/b&gt; · ${u.sistema}: &lt;b&gt;${fmtT(f.ideal_min)}–${fmtT(f.ideal_max)} °C&lt;/b&gt; (alerta abaixo de ${fmtT(f.alerta_min)} e acima de ${fmtT(f.alerta_max)} °C; variação de até ${fmtT(f.amplitude_max_24h)} °C no dia). ${E.txt}.${f._mot &amp;&amp; f._mot.length ? &quot; Ajuste: &quot; + f._mot.join(&quot;; &quot;) + &quot;.&quot; : &quot;&quot;}&lt;/span&gt;`; }
   function tempTabHTML(u) { const e = espRef(u), sisL = [&quot;extensivo&quot;, &quot;semi-intensivo&quot;, &quot;intensivo&quot;, &quot;superintensivo&quot;, &quot;hiperintensivo&quot;], eu = estrDe(u);
     return `&lt;summary&gt;Temperatura ideal de ${ESP[e].nome_comum} em cada sistema de cultivo&lt;/summary&gt;&lt;div style=&quot;overflow-x:auto&quot;&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Estrutura&lt;/th&gt;${sisL.map((x) =&gt; `&lt;th&gt;${x}&lt;/th&gt;`).join(&quot;&quot;)}&lt;th&gt;Variação no dia&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;${Object.entries(ESTR).map(([k, E]) =&gt; `&lt;tr&gt;&lt;td&gt;${E.nome}&lt;/td&gt;${sisL.map((x) =&gt; { const f = tempFaixa(e, x, k); return `&lt;td class=&quot;${k === eu &amp;&amp; x === u.sistema ? &quot;on&quot; : &quot;&quot;}&quot;&gt;${f ? fmtT(f.ideal_min) + &quot;–&quot; + fmtT(f.ideal_max) : &quot;—&quot;}&lt;/td&gt;`; }).join(&quot;&quot;)}&lt;td&gt;até ${fmtT(Math.min((Core.faixa(BASE, e, &quot;temperatura&quot;) || {}).amplitude_max_24h ?? E.amp, E.amp))} °C&lt;/td&gt;&lt;/tr&gt;`).join(&quot;&quot;)}&lt;/tbody&gt;&lt;/table&gt;&lt;/div&gt;
-     &lt;p class=&quot;foot&quot;&gt;Faixa ideal em °C. Base: faixa ótima da espécie (pesquisa nas fichas da FAO, Embrapa e artigos). Em RAS a água é controlada e fica numa faixa estreita em torno do ótimo de crescimento; em bioflocos e nos sistemas super e hiperintensivos o teto do ideal é reduzido porque água quente segura menos oxigênio e a biomassa alta consome mais (a 32 °C a água guarda bem menos O₂ que a 22 °C; com 25–35 kg/m³ a falta de oxigênio no calor é muito provável). Viveiros escavados e tanques suspensos seguem o clima e variam mais no dia; tanques-rede seguem o reservatório. A célula destacada é a desta unidade.&lt;/p&gt;`; }
+     &lt;p class=&quot;foot&quot;&gt;Faixa ideal em °C. Base: faixa ótima da espécie (pesquisa nas fichas da FAO, Embrapa e artigos). Em RAS a água é controlada e fica numa faixa estreita em torno do ótimo de crescimento; em bioflocos e nos sistemas super e hiperintensivos o teto do ideal é reduzido porque água quente segura menos oxigênio e a biomassa alta consome mais (a 32 °C a água guarda bem menos O₂ que a 22 °C; com 25–35 kg/m³ a falta de oxigênio no calor é muito provável). Viveiros escavados e tanques suspensos seguem o clima e variam mais no dia; tanques-rede seguem o reservatório. A célula destacada é a deste tanque/viveiro.&lt;/p&gt;`; }
   window.aquaTempSistema = (esp, sis, estr) =&gt; { const f = tempFaixa(esp, sis, estr); return f ? { ideal_min: f.ideal_min, ideal_max: f.ideal_max, alerta_min: f.alerta_min, alerta_max: f.alerta_max, amp: f.amplitude_max_24h, mot: f._mot } : null; };
   window.aquaEstruturas = () =&gt; Object.fromEntries(Object.entries(ESTR).map(([k, v]) =&gt; [k, v.nome]));
   function cls(u, p, v) { return espDe(u).map((e) =&gt; Core.classificar(BX(u), e, p, v)).reduce((a, b) =&gt; (STORD[b] &gt; STORD[a] ? b : a), &quot;sem_faixa&quot;); }
@@ -1504,7 +1504,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return r;
   }
   const pior = (arr) =&gt; arr.reduce((a, b) =&gt; (STORD[b] &gt; STORD[a] ? b : a), &quot;sem_faixa&quot;);
-  // métricas diárias de uma unidade
+  // métricas diárias de um tanque/viveiro
   function metricasDia(u, dia) {
     const L = leituras(u.id, [dia]); const ods = L.filter((l) =&gt; typeof l.od === &quot;number&quot;);
     const m = { n: L.length, L };
@@ -1519,7 +1519,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return m;
   }
 
-  // --------------------------------------------------- cadência das coletas (por unidade)
+  // --------------------------------------------------- cadência das coletas (por tanque/viveiro)
   const PROTOCOLO = [&quot;06:00&quot;, &quot;15:00&quot;, &quot;20:00&quot;, &quot;22:00&quot;];
   const cadDe = (u) =&gt; u.cad || { passo: 3, inicio: 0 };
   function slotsDe(u) {
@@ -1528,7 +1528,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return out.sort();
   }
   const cadTxt = (u) =&gt; { const c = cadDe(u); return c.passo === &quot;p&quot; ? &quot;protocolo mínimo&quot; : `a cada ${c.passo} h desde ${String(c.inicio).padStart(2, &quot;0&quot;)}:00`; };
-  // um horário previsto conta como feito se houver leitura própria da unidade até 30 min antes ou depois
+  // um horário previsto conta como feito se houver leitura própria do tanque/viveiro até 30 min antes ou depois
   function cobertura(u, dia) {
     const L = brutas(u.id, [dia]), sl = slotsDe(u);
     return sl.map((h) =&gt; { const m = Core.minutos(h); const l = L.find((x) =&gt; { const d = Math.abs(Core.minutos(x.hora) - m); return Math.min(d, 1440 - d) &lt;= 30; });
@@ -1594,7 +1594,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;p-esp&quot;).innerHTML = `&lt;option value=&quot;&quot;&gt;Todas&lt;/option&gt;` + presentes.map((e) =&gt; `&lt;option value=&quot;${e}&quot;${e === filtroEsp ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão&quot;, pirarucu: &quot;Pirarucu&quot;, pangasius: &quot;Pangasius&quot;, curimata: &quot;Curimatã&quot;, lambari: &quot;Lambari&quot; }[e]}&lt;/option&gt;`).join(&quot;&quot;);
     const nL = US.reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0);
     $(&quot;p-titulo&quot;).textContent = S.ras ? &quot;Grupos de tanques do RAS&quot; : &quot;Todas as unidades&quot;;
-    $(&quot;p-meta&quot;).innerHTML = `${S.ras ? &quot;vinculado à Calculadora · &quot; : &quot;&quot;}${US.length} unidade(s) · ${periodo === 1 ? diaSemana(dRef) + &quot; &quot; + dataBR(dRef) : dataBR(dias[0]) + &quot; a &quot; + dataBR(dRef)} · ${nL} leituras${S.exemplo &amp;&amp; LT().some((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${S.fOrig || S.fProj ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;só &#x27; + escO([S.fOrig ? (ORIG[S.fOrig.split(&quot;|&quot;)[0]] || S.fOrig) + (S.fOrig.includes(&quot;|&quot;) ? &quot;: &quot; + S.fOrig.split(&quot;|&quot;).slice(1).join(&quot;|&quot;) : &quot;&quot;) : &quot;&quot;, S.fProj ? &quot;projeto &quot; + (S.fProj === &quot;__sem&quot; ? &quot;sem projeto&quot; : ((S.leituras.find((l) =&gt; l.pid === S.fProj) || {}).pnome || &quot;&quot;)) : &quot;&quot;].filter(Boolean).join(&quot; · &quot;)) + &quot;&lt;/span&gt;&quot; : &quot;&quot;}`;
+    $(&quot;p-meta&quot;).innerHTML = `${S.ras ? &quot;vinculado à Calculadora · &quot; : &quot;&quot;}${US.length} tanque(s)/viveiro(s) · ${periodo === 1 ? diaSemana(dRef) + &quot; &quot; + dataBR(dRef) : dataBR(dias[0]) + &quot; a &quot; + dataBR(dRef)} · ${nL} leituras${S.exemplo &amp;&amp; LT().some((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${S.fOrig || S.fProj ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;só &#x27; + escO([S.fOrig ? (ORIG[S.fOrig.split(&quot;|&quot;)[0]] || S.fOrig) + (S.fOrig.includes(&quot;|&quot;) ? &quot;: &quot; + S.fOrig.split(&quot;|&quot;).slice(1).join(&quot;|&quot;) : &quot;&quot;) : &quot;&quot;, S.fProj ? &quot;projeto &quot; + (S.fProj === &quot;__sem&quot; ? &quot;sem projeto&quot; : ((S.leituras.find((l) =&gt; l.pid === S.fProj) || {}).pnome || &quot;&quot;)) : &quot;&quot;].filter(Boolean).join(&quot; · &quot;)) + &quot;&lt;/span&gt;&quot; : &quot;&quot;}`;
     renderKPIs(US, dias, dRef); renderUCards(US, dRef); renderMatriz(US, dias); renderTrends(US, dRef); renderDist(US, dias); renderCad(US, dias); renderAlertas(US, dias);
   }
 
@@ -1606,7 +1606,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const prev = mets.filter((x) =&gt; x.m.odPrev !== undefined).sort((a, b) =&gt; a.m.odPrev - b.m.odPrev)[0];
     const nh = mets.filter((x) =&gt; x.m.nh3 !== undefined).sort((a, b) =&gt; STORD[b.m.nh3St] - STORD[a.m.nh3St] || b.m.nh3 - a.m.nh3)[0];
     const t = [
-      { e: &quot;Unidades em situação grave&quot;, big: `${ruins.length}&lt;small&gt;de ${US.length}&lt;/small&gt;`, c: ruins.length ? &quot;critico&quot; : &quot;ideal&quot;, note: ruins.length ? ruins.map((x) =&gt; x.u.nome).join(&quot;, &quot;) + &quot; no dia &quot; + dataBR(dRef) : &quot;Nenhuma unidade com leitura crítica ou letal no dia.&quot; },
+      { e: &quot;Tanques/viveiros em situação grave&quot;, big: `${ruins.length}&lt;small&gt;de ${US.length}&lt;/small&gt;`, c: ruins.length ? &quot;critico&quot; : &quot;ideal&quot;, note: ruins.length ? ruins.map((x) =&gt; x.u.nome).join(&quot;, &quot;) + &quot; no dia &quot; + dataBR(dRef) : &quot;Nenhum tanque/viveiro com leitura crítica ou letal no dia.&quot; },
       { e: &quot;Medições fora do ideal&quot;, big: `${avals.length ? Math.round(100 * fora / avals.length) : 0}&lt;small&gt;%&lt;/small&gt;`, c: graves ? &quot;critico&quot; : fora ? &quot;alerta&quot; : &quot;ideal&quot;, note: `${fora} de ${avals.length} avaliações · ${graves} críticas ou letais` },
       prev ? { e: &quot;Menor OD previsto às 06:00&quot;, big: `${fmt(prev.m.odPrev, 1)}&lt;small&gt;mg/L&lt;/small&gt;`, c: prev.m.odPrevSt, note: `${prev.u.nome} · queda de ${fmt(-prev.m.odTaxa, 2)} mg/L/h · ${pill(prev.m.odPrevSt)}` }
         : { e: &quot;Menor OD previsto às 06:00&quot;, big: &quot;—&quot;, c: &quot;sem_faixa&quot;, note: &quot;Sem leituras às 20 h e 22 h no dia.&quot; },
@@ -1645,7 +1645,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
           ${kv(&quot;Δ pH em 24 h&quot;, m.dph !== undefined ? fmt(m.dph, 2) : &quot;—&quot;, m.dphSt === &quot;sem_faixa&quot; ? &quot;ideal&quot; : m.dphSt)}
           ${kv(&quot;NH₃ pior horário&quot;, m.nh3 !== undefined ? fmt(m.nh3, 3) + &quot; mg/L&quot; : &quot;—&quot;, m.nh3St)}&lt;/div&gt;
         &lt;span class=&quot;foot&quot;&gt;${m.n} leituras em ${dataBR(dRef)}&lt;/span&gt;&lt;/button&gt;`; }).join(&quot;&quot;)
-      : &#x27;&lt;p class=&quot;foot&quot;&gt;Nenhuma unidade para esta espécie. Crie uma na aba Unidade.&lt;/p&gt;&#x27;;
+      : &#x27;&lt;p class=&quot;foot&quot;&gt;Nenhum tanque/viveiro para esta espécie. Crie um na aba Tanque/viveiro.&lt;/p&gt;&#x27;;
     el.querySelectorAll(&quot;.ucard&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.ativa = b.dataset.u; S.dia = dRef; sel = null; salvar(); irPara(&quot;unidade&quot;); }));
   }
 
@@ -1660,7 +1660,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       const bu = $(&quot;m-ult&quot;); if (bu) bu.addEventListener(&quot;click&quot;, () =&gt; { diaPainel = ult; renderPainel(); });
       $(&quot;p-mleg&quot;).innerHTML = &quot;&quot;; return;
     }
-    const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Unidade&lt;/th&gt;${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;/tr&gt;&lt;/thead&gt;`;
+    const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Tanque/viveiro&lt;/th&gt;${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;/tr&gt;&lt;/thead&gt;`;
     const body = agg.map(({ u, r }) =&gt; `&lt;tr&gt;&lt;td&gt;&lt;span style=&quot;display:inline-block;width:9px;height:9px;border-radius:50%;background:${corUnidade(u)};margin-right:7px&quot;&gt;&lt;/span&gt;${u.nome}&lt;/td&gt;${cols.map((p) =&gt; { const c = r[p];
       if (!c) return &#x27;&lt;td&gt;&lt;div class=&quot;cell none&quot;&gt;—&lt;/div&gt;&lt;/td&gt;&#x27;;
       return `&lt;td&gt;&lt;div class=&quot;cell st-${c.st}&quot; title=&quot;${curto[p]}: ${fmt(c.v, DEC[p])} ${PN[p].unidade} (${STLBL[c.st]}) em ${dataBR(c.data)} às ${c.hora}&quot;&gt;&lt;span class=&quot;st-ico&quot;&gt;${SHAPE[c.st]}&lt;/span&gt;${fmt(c.v, DEC[p])}&lt;small&gt;${periodo === 7 ? dataBR(c.data) + &quot; &quot; : &quot;&quot;}${c.hora}&lt;/small&gt;&lt;/div&gt;&lt;/td&gt;`; }).join(&quot;&quot;)}&lt;/tr&gt;`).join(&quot;&quot;);
@@ -1668,7 +1668,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;p-mleg&quot;).innerHTML = [&quot;ideal&quot;, &quot;alerta&quot;, &quot;critico&quot;, &quot;letal&quot;].map(pill).join(&quot; &quot;) + &#x27;&lt;span&gt;Cada célula mostra o valor da pior leitura e o horário.&lt;/span&gt;&#x27;;
   }
 
-  // tendência 7 dias, uma linha por unidade (cor por unidade, ordem fixa)
+  // tendência 7 dias, uma linha por tanque/viveiro (cor por tanque/viveiro, ordem fixa)
   function trendChart(el, legEl, US, dias, val, opts) {
     const W = svgW(el), H = 200, m = { l: 36, r: 104, t: 10, b: 24 };
     const ser = US.map((u) =&gt; ({ u, pts: dias.map((d) =&gt; ({ d, v: val(u, d) })) }));
@@ -1676,7 +1676,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     let hi = all.length ? Math.max(...all) : 1; hi = hi * 1.15 || 1; const lo = 0;
     const x = (i) =&gt; m.l + (W - m.l - m.r) * (dias.length === 1 ? 0.5 : i / (dias.length - 1)), y = (v) =&gt; m.t + (H - m.t - m.b) * (1 - (v - lo) / (hi - lo));
     const ticks = niceTicks(lo, hi, 4);
-    let s = `&lt;svg viewBox=&quot;0 0 ${W} ${H}&quot; role=&quot;img&quot; aria-label=&quot;${opts.nome} por unidade nos últimos ${dias.length} dias&quot;&gt;`;
+    let s = `&lt;svg viewBox=&quot;0 0 ${W} ${H}&quot; role=&quot;img&quot; aria-label=&quot;${opts.nome} por tanque/viveiro nos últimos ${dias.length} dias&quot;&gt;`;
     s += `&lt;g class=&quot;grid&quot;&gt;${ticks.map((t) =&gt; `&lt;line x1=&quot;${m.l}&quot; x2=&quot;${W - m.r}&quot; y1=&quot;${y(t)}&quot; y2=&quot;${y(t)}&quot;/&gt;`).join(&quot;&quot;)}&lt;/g&gt;`;
     s += ticks.map((t) =&gt; `&lt;text x=&quot;${m.l - 6}&quot; y=&quot;${y(t) + 3.5}&quot; text-anchor=&quot;end&quot;&gt;${fmt(t, opts.dec)}&lt;/text&gt;`).join(&quot;&quot;);
     s += dias.map((d, i) =&gt; `&lt;text x=&quot;${x(i)}&quot; y=&quot;${H - 6}&quot; text-anchor=&quot;middle&quot;&gt;${dataBR(d)}&lt;/text&gt;`).join(&quot;&quot;);
@@ -1717,7 +1717,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
   function renderCad(US, dias) {
     const dRef = dias[dias.length - 1];
-    const head = &quot;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Unidade&lt;/th&gt;&lt;th style=\&quot;text-align:left\&quot;&gt;Cadência&lt;/th&gt;&lt;th&gt;Feitas&lt;/th&gt;&lt;th style=\&quot;text-align:left\&quot;&gt;Cumprimento&lt;/th&gt;&lt;th style=\&quot;text-align:left\&quot;&gt;Sem coleta em &quot; + dataBR(dRef) + &quot;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
+    const head = &quot;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Tanque/viveiro&lt;/th&gt;&lt;th style=\&quot;text-align:left\&quot;&gt;Cadência&lt;/th&gt;&lt;th&gt;Feitas&lt;/th&gt;&lt;th style=\&quot;text-align:left\&quot;&gt;Cumprimento&lt;/th&gt;&lt;th style=\&quot;text-align:left\&quot;&gt;Sem coleta em &quot; + dataBR(dRef) + &quot;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
     const body = US.map((u) =&gt; {
       let feitas = 0, prev = 0; for (const d of dias) { const c = cobertura(u, d); prev += c.length; feitas += c.filter((x) =&gt; x.feito).length; }
       const pct = prev ? feitas / prev : 0, cor = pct &gt;= 0.9 ? &quot;var(--ok)&quot; : pct &gt;= 0.6 ? &quot;var(--warn)&quot; : &quot;var(--crit)&quot;;
@@ -1741,7 +1741,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     itens.sort((a, b) =&gt; STORD[b.pior.st] - STORD[a.pior.st] || b.n - a.n);
     const vis = mostrarTodos ? itens : itens.slice(0, 8);
     $(&quot;p-todos&quot;).hidden = itens.length &lt;= 8; $(&quot;p-todos&quot;).textContent = mostrarTodos ? &quot;Mostrar só os principais&quot; : `Mostrar todos (${itens.length})`;
-    const head = &quot;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Unidade&lt;/th&gt;&lt;th&gt;Parâmetro&lt;/th&gt;&lt;th&gt;Pior valor&lt;/th&gt;&lt;th&gt;Quando&lt;/th&gt;&lt;th&gt;Situação&lt;/th&gt;&lt;th&gt;Ocorr.&lt;/th&gt;&lt;th&gt;Por que e o que fazer&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
+    const head = &quot;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Tanque/viveiro&lt;/th&gt;&lt;th&gt;Parâmetro&lt;/th&gt;&lt;th&gt;Pior valor&lt;/th&gt;&lt;th&gt;Quando&lt;/th&gt;&lt;th&gt;Situação&lt;/th&gt;&lt;th&gt;Ocorr.&lt;/th&gt;&lt;th&gt;Por que e o que fazer&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&quot;;
     const body = vis.map((it) =&gt; { const x = it.pior, dir = dirU(it.u, x.p, x.v); const w = porque(x.p, dir);
       const nome = it.p === &quot;prev&quot; ? &quot;OD previsto 06:00&quot; : curto[x.p];
       return `&lt;tr class=&quot;click&quot; data-u=&quot;${it.u.id}&quot; data-d=&quot;${x.data}&quot; tabindex=&quot;0&quot;&gt;&lt;td&gt;${it.u.nome}&lt;/td&gt;&lt;td style=&quot;text-align:left&quot;&gt;${nome}&lt;/td&gt;&lt;td class=&quot;v&quot;&gt;${fmt(x.v, DEC[x.p])} &lt;small style=&quot;color:var(--ink-3)&quot;&gt;${PN[x.p].unidade}&lt;/small&gt;&lt;/td&gt;&lt;td class=&quot;v&quot;&gt;${dataBR(x.data)} ${x.hora}&lt;/td&gt;&lt;td&gt;${pill(x.st)}&lt;/td&gt;&lt;td class=&quot;v&quot;&gt;${it.n}&lt;/td&gt;&lt;td class=&quot;wrap-txt&quot;&gt;${w ? (w.mec ? w.mec + &quot; &quot; : &quot;&quot;) + w.acao : &quot;&quot;}&lt;/td&gt;&lt;/tr&gt;`; }).join(&quot;&quot;);
@@ -1760,13 +1760,13 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;u-nome&quot;).value = u.nome; $(&quot;u-esp&quot;).value = u.especie; $(&quot;u-sis&quot;).value = u.sistema; $(&quot;u-estr&quot;).value = estrDe(u); $(&quot;u-estr&quot;).disabled = !!(u.ras || u.sistemaRAS); $(&quot;u-estr&quot;).title = u.ras || u.sistemaRAS ? &quot;Grupos da Calculadora e a água do sistema são RAS&quot; : &quot;Muda a faixa ideal de temperatura e a variação aceita no dia&quot;;
     $(&quot;u-nome&quot;).readOnly = !!u.ras;
     excArmed = false; $(&quot;b-exc-u&quot;).hidden = !!u.ras; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir unidade&quot;; $(&quot;b-exc-u&quot;).disabled = S.unidades.length &lt; 2;
-    $(&quot;b-exc-u&quot;).title = S.unidades.length &lt; 2 ? &quot;É preciso manter pelo menos uma unidade&quot; : &quot;Apaga a unidade e todas as leituras dela&quot;;
+    $(&quot;b-exc-u&quot;).title = S.unidades.length &lt; 2 ? &quot;É preciso manter pelo menos um tanque/viveiro&quot; : &quot;Apaga o tanque/viveiro e todas as leituras dele&quot;;
     const opEsp = (ks) =&gt; ks.map((k) =&gt; `&lt;option value=&quot;${k}&quot;${k === u.especie ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia-do-Nilo&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão L. vannamei&quot;, pirarucu: &quot;Pirarucu&quot;, pangasius: &quot;Pangasius&quot;, curimata: &quot;Curimatã&quot;, lambari: &quot;Lambari&quot; }[k]}&lt;/option&gt;`).join(&quot;&quot;);
     if (u.sistemaRAS) { $(&quot;u-esp&quot;).innerHTML = `&lt;option&gt;Pior caso: ${espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; + &quot;)}&lt;/option&gt;`; $(&quot;u-esp&quot;).disabled = true; $(&quot;u-esp&quot;).title = &quot;A água do sistema é avaliada pelo pior caso entre as espécies dos grupos&quot;; }
     else if (S.ras &amp;&amp; u.ras) { $(&quot;u-esp&quot;).innerHTML = opEsp([&quot;tilapia&quot;, &quot;tambaqui&quot;, &quot;camarao&quot;]); $(&quot;u-esp&quot;).disabled = false; $(&quot;u-esp&quot;).title = &quot;Muda também a espécie do lote na aba Biomassa&quot;; }
     else { $(&quot;u-esp&quot;).innerHTML = opEsp([&quot;tilapia&quot;, &quot;tambaqui&quot;, &quot;camarao&quot;, &quot;pirarucu&quot;, &quot;pangasius&quot;, &quot;curimata&quot;, &quot;lambari&quot;]); $(&quot;u-esp&quot;).disabled = false; $(&quot;u-esp&quot;).title = &quot;&quot;; }
     $(&quot;u-orig&quot;).value = origemDe(u); $(&quot;u-orig&quot;).disabled = !!(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS);
-    $(&quot;u-orig&quot;).title = $(&quot;u-orig&quot;).disabled ? &quot;Num RAS a origem é a da água do sistema: escolha na unidade Água do sistema&quot; : &quot;&quot;;
+    $(&quot;u-orig&quot;).title = $(&quot;u-orig&quot;).disabled ? &quot;Num RAS a origem é a da água do sistema: escolha no tanque/viveiro Água do sistema&quot; : &quot;&quot;;
     $(&quot;u-nome&quot;).title = u.ras ? &quot;O nome vem da Calculadora&quot; : &quot;&quot;;
     $(&quot;u-sel&quot;).innerHTML = S.unidades.map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
     $(&quot;u-dia&quot;).innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === (S.dia || hoje()) ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}&lt;/option&gt;`).join(&quot;&quot;);
@@ -1793,7 +1793,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       for (const p of ps) { const f = fx(u, p);
         const ph = f ? (f.ideal_min !== null &amp;&amp; f.ideal_max !== null ? (f.ideal_min === 0 ? &quot;≤ &quot; + fmt(f.ideal_max, DEC[p]) : fmt(f.ideal_min, DEC[p]) + &quot;–&quot; + fmt(f.ideal_max, DEC[p])) : f.ideal_min !== null ? &quot;≥ &quot; + fmt(f.ideal_min, DEC[p]) : &quot;&quot;) : &quot;&quot;;
         h += `&lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;f-${p}&quot;&gt;${curto[p]} &lt;span class=&quot;unit-lbl&quot;&gt;${PN[p].unidade}&lt;/span&gt;&lt;/label&gt;&lt;input id=&quot;f-${p}&quot; type=&quot;number&quot; step=&quot;any&quot; inputmode=&quot;decimal&quot; placeholder=&quot;ideal ${ph}&quot;&gt;&lt;/div&gt;`; } }
-    if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) h += `&lt;p class=&quot;foot&quot; style=&quot;grid-column:1/-1&quot;&gt;pH, CO₂, amônia, nitrito e alcalinidade são da água do sistema: lance uma vez na unidade &lt;b&gt;Água do sistema&lt;/b&gt;. Eles aparecem aqui avaliados para ${ESP[u.especie].nome_comum}, com a temperatura deste grupo.&lt;/p&gt;`;
+    if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) h += `&lt;p class=&quot;foot&quot; style=&quot;grid-column:1/-1&quot;&gt;pH, CO₂, amônia, nitrito e alcalinidade são da água do sistema: lance uma vez no tanque/viveiro &lt;b&gt;Água do sistema&lt;/b&gt;. Eles aparecem aqui avaliados para ${ESP[u.especie].nome_comum}, com a temperatura deste grupo.&lt;/p&gt;`;
     if (S.ras &amp;&amp; u.sistemaRAS) h += `&lt;p class=&quot;foot&quot; style=&quot;grid-column:1/-1&quot;&gt;Estes valores valem para todos os grupos de tanques. Cada grupo os avalia pelos limites da própria espécie; aqui vale o pior caso.&lt;/p&gt;`;
     $(&quot;form&quot;).innerHTML = h; $(&quot;f-hint&quot;).textContent = `${nomeEsp(u)} · ${u.sistema}`; setSalPh();
   }
@@ -1942,7 +1942,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;p-esp&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { filtroEsp = e.target.value; renderPainel(); });
   $(&quot;p-todos&quot;).addEventListener(&quot;click&quot;, () =&gt; { mostrarTodos = !mostrarTodos; renderAlertas(unidadesFiltradas(), diasPeriodo()); });
 
-  // eventos da unidade
+  // eventos do tanque/viveiro
   $(&quot;form&quot;).addEventListener(&quot;submit&quot;, (e) =&gt; {
     e.preventDefault(); const r = lerForm(); const msg = $(&quot;f-msg&quot;);
     if (r.erro) { msg.textContent = r.erro; msg.className = &quot;msg err&quot;; return; }
@@ -1955,7 +1955,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;c-passo&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(), c = cadDe(u), v = e.target.value; u.cad = { passo: v === &quot;p&quot; ? &quot;p&quot; : Number(v), inicio: c.inicio ?? 0 }; salvar(); renderSlots(); renderCharts(); });
   $(&quot;c-ini&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(), c = cadDe(u); u.cad = { passo: c.passo, inicio: Number(e.target.value) }; salvar(); renderSlots(); renderCharts(); });
   $(&quot;b-limpar&quot;).addEventListener(&quot;click&quot;, () =&gt; { renderForm(); $(&quot;f-msg&quot;).textContent = &quot;&quot;; });
-  $(&quot;u-nome&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().nome = e.target.value.trim() || &quot;Unidade sem nome&quot;; salvar(); renderHead(); });
+  $(&quot;u-nome&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().nome = e.target.value.trim() || &quot;Tanque/viveiro sem nome&quot;; salvar(); renderHead(); });
   $(&quot;u-sel&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.ativa = e.target.value; sel = null; salvar(); renderUnidade(); });
   $(&quot;u-dia&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.dia = e.target.value; sel = null; salvar(); renderUnidade(); });
   $(&quot;u-esp&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.sistemaRAS) return; u.especie = e.target.value; salvar();
@@ -1964,7 +1964,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;u-orig&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) return; u.origem = e.target.value; requestAnimationFrame(() =&gt; { renderHead(); renderEval(); setTimeout(salvar, 0); }); });
   $(&quot;u-sis&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().sistema = e.target.value; salvar(); renderUnidade(); });
   $(&quot;u-estr&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.ras || u.sistemaRAS) return; u.estrutura = e.target.value; salvar(); renderUnidade(); });
-  // excluir unidade criada em &quot;Nova unidade&quot; (os grupos da Calculadora saem pela Calculadora)
+  // excluir tanque/viveiro criado em &quot;Nova unidade&quot; (os grupos da Calculadora saem pela Calculadora)
   var excArmed = false;
   $(&quot;b-exc-u&quot;).addEventListener(&quot;click&quot;, () =&gt; {
     const u = UA(); if (u.ras || S.unidades.length &lt; 2) return;
@@ -1975,22 +1975,22 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;f-msg&quot;).textContent = `${u.nome} excluída.`; $(&quot;f-msg&quot;).className = &quot;msg&quot;;
   });
   $(&quot;b-exc-u&quot;).addEventListener(&quot;blur&quot;, () =&gt; { if (excArmed) { excArmed = false; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir unidade&quot;; } });
-  $(&quot;b-nova&quot;).addEventListener(&quot;click&quot;, () =&gt; { const id = &quot;u&quot; + Date.now(); S.unidades.push({ id, nome: &quot;Unidade &quot; + (S.unidades.length + 1), especie: UA().especie, sistema: UA().sistema, volume_m3: 1000, racao_kg_dia: 10 });
-    S.ativa = id; S.dia = hoje(); sel = null; salvar(); renderUnidade(); $(&quot;u-nome&quot;).focus(); $(&quot;u-nome&quot;).select(); $(&quot;f-msg&quot;).textContent = &quot;Unidade criada. Dê um nome e lance a primeira leitura.&quot;; $(&quot;f-msg&quot;).className = &quot;msg&quot;; });
+  $(&quot;b-nova&quot;).addEventListener(&quot;click&quot;, () =&gt; { const id = &quot;u&quot; + Date.now(); S.unidades.push({ id, nome: &quot;Tanque/viveiro &quot; + (S.unidades.length + 1), especie: UA().especie, sistema: UA().sistema, volume_m3: 1000, racao_kg_dia: 10 });
+    S.ativa = id; S.dia = hoje(); sel = null; salvar(); renderUnidade(); $(&quot;u-nome&quot;).focus(); $(&quot;u-nome&quot;).select(); $(&quot;f-msg&quot;).textContent = &quot;Tanque/viveiro criado. Dê um nome e lance a primeira leitura.&quot;; $(&quot;f-msg&quot;).className = &quot;msg&quot;; });
   $(&quot;b-exemplo&quot;).addEventListener(&quot;click&quot;, () =&gt; {
     if (S.ras) { const us = S.unidades.filter((u) =&gt; u.ras); S.leituras = S.leituras.filter((l) =&gt; !String(l.id).startsWith(&quot;e&quot;)).concat(exemploRAS(us)); S.exemplo = true; us.forEach((u) =&gt; (u.exemplo = true)); S.dia = hoje(); }
     else S = gerarExemplo();
     sel = null; diaPainel = null; salvar(); renderRodape(); irPara(aba); });
   $(&quot;b-del&quot;).addEventListener(&quot;click&quot;, () =&gt; { if (!sel) return;
-    if (String(sel).startsWith(&quot;s:&quot;)) { $(&quot;b-del&quot;).textContent = &quot;Esta linha é da água do sistema: exclua na unidade Água do sistema&quot;; delArmed = false; return; }
+    if (String(sel).startsWith(&quot;s:&quot;)) { $(&quot;b-del&quot;).textContent = &quot;Esta linha é da água do sistema: exclua no tanque/viveiro Água do sistema&quot;; delArmed = false; return; }
     if (!delArmed) { delArmed = true; $(&quot;b-del&quot;).textContent = &quot;Confirmar exclusão&quot;; return; }
     S.leituras = S.leituras.filter((l) =&gt; l.id !== sel); sel = null; salvar(); renderUnidade(false); });
-  // limpar todas as leituras da unidade ativa (pede confirmação com um segundo clique)
+  // limpar todas as leituras do tanque/viveiro ativo (pede confirmação com um segundo clique)
   let limpaArmed = false;
   function limpaRotulo() {
     const u = UA(), n = S.leituras.filter((l) =&gt; l.unidade === u.id).length;
     limpaArmed = false; const b = $(&quot;b-limpa-u&quot;);
-    b.disabled = !n; b.textContent = n ? `Limpar leituras desta unidade (${n})` : &quot;Unidade sem leituras&quot;;
+    b.disabled = !n; b.textContent = n ? `Limpar leituras deste tanque/viveiro (${n})` : &quot;Tanque/viveiro sem leituras&quot;;
     b.title = u.sistemaRAS ? &quot;Apaga as leituras da água do sistema, que aparecem também em todos os grupos&quot; : &quot;&quot;;
   }
   $(&quot;b-limpa-u&quot;).addEventListener(&quot;click&quot;, () =&gt; {
@@ -2014,7 +2014,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   });
   let rz; window.addEventListener(&quot;resize&quot;, () =&gt; { clearTimeout(rz); rz = setTimeout(() =&gt; (aba === &quot;painel&quot; ? renderPainel() : renderCharts()), 140); });
 
-  // --------------------------------------------------- plugin de automação (página-mãe): unidades e importação de leituras
+  // --------------------------------------------------- plugin de automação (página-mãe): tanques/viveiros e importação de leituras
   window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null }));
   window.aquaImport = (lista, op) =&gt; {
     op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
@@ -2048,7 +2048,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return r;
   };
 
-  // resumo para o Painel da página-mãe: último dia com leituras de cada unidade
+  // resumo para o Painel da página-mãe: último dia com leituras de cada tanque/viveiro
   window.aquaResumo = () =&gt; S.unidades.map((u) =&gt; {
     const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []), dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].sort();
     const dia = dias[dias.length - 1]; if (!dia) return { id: u.id, nome: u.nome || u.id, especie: u.especie, n: 0 };
@@ -2065,7 +2065,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return { origens: Object.values(o).sort((a, b) =&gt; ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || &quot;&quot;, fProj: S.fProj || &quot;&quot;, total: S.leituras.length, visiveis: LT().length, ras: !!S.ras }; };
   window.aquaApagarOrigem = (k) =&gt; { const antes = S.leituras.length; S.leituras = S.leituras.filter((l) =&gt; chaveOrig(l) !== k); const n = antes - S.leituras.length;
     if (S.fOrig === k) S.fOrig = &quot;&quot;; diaPainel = null; sel = null; salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return n; };
-  // cadência: para cada origem, última leitura, chegada, leituras de hoje e intervalo típico entre leituras (por unidade)
+  // cadência: para cada origem, última leitura, chegada, leituras de hoje e intervalo típico entre leituras (por tanque/viveiro)
   window.aquaCadencia = () =&gt; { const hj = hoje(), g = {};
     for (const l of S.leituras) { const t = fonteDe(l); if (t === &quot;exemplo&quot;) continue; const k = chaveOrig(l);
       const e = (g[k] = g[k] || { key: k, tipo: t, rotulo: ORIG[t] || t, nome: l.origemNome || &quot;&quot;, n: 0, hoje: 0, ult: &quot;&quot;, rec: 0, por: {} });
@@ -2079,7 +2079,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
 
   // --------------------------------------------------- vínculo com o Sistema RAS Multitanques
-  // a página-mãe chama window.aquaSync(grupos) ao abrir a aba; cada grupo de tanques vira uma unidade
+  // a página-mãe chama window.aquaSync(grupos) ao abrir a aba; cada grupo de tanques vira um tanque/viveiro
   window.aquaSync = (gs) =&gt; {
     if (!Array.isArray(gs)) return;
     const sig = JSON.stringify(gs);
@@ -2439,7 +2439,7 @@ function focoDepois(){}
 const fcK=l=>`<div class="fc-kpis">${l.map(([t,v,s,c])=>`<div class="fc-kpi${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`).join("")}</div>`;
 const fcHead=(t,s,go,lbl)=>`<div class="card-head"><h2>${t}<span>${s}</span></h2>${go?`<a href="#" class="btn" data-goto="${go}" style="margin-left:auto;text-decoration:none">${lbl||"Abrir a aba"}</a>`:""}</div>`;
 
-/* AquaNictemeral: último dia com leituras de cada unidade */
+/* AquaNictemeral: último dia com leituras de cada tanque/viveiro */
 function aquaDashHTML(){
   let R=null;try{const w=aquaFrame.contentWindow;if(w&&w.aquaResumo)R=w.aquaResumo()}catch(e){}
   if(!R){if(typeof loadAqua==="function")loadAqua();clearTimeout(focoTimer);if(focoTent++<30)focoTimer=setTimeout(()=>{if(!dashEl.hidden)drawDash()},400);
@@ -2452,13 +2452,13 @@ function aquaDashHTML(){
   const dBR=d=>d?d.split("-").reverse().join("/"):"—",nu=(v,k)=>typeof v==="number"&&isFinite(v)?fmt(v,k):"—";
   const graves=com.filter(u=>u.st==="critico"||u.st==="letal"),odm=com.filter(u=>typeof u.odMin==="number").sort((a,b)=>a.odMin-b.odMin)[0];
   const ult=com.map(u=>u.dia).sort().pop(),ex=com.some(u=>u.exemplo);
-  const k=fcK([["Unidades com leituras",f0(com.length),`de ${f0(R.length)} unidades`],["Em situação grave",f0(graves.length),graves.length?graves.map(u=>esc(u.nome)).join(", "):"nenhuma",graves.length?"bad":"ok"],
+  const k=fcK([["Tanques/viveiros com leituras",f0(com.length),`de ${f0(R.length)} tanques/viveiros`],["Em situação grave",f0(graves.length),graves.length?graves.map(u=>esc(u.nome)).join(", "):"nenhum",graves.length?"bad":"ok"],
     ["Menor OD",odm?nu(odm.odMin,1)+" mg/L":"—",odm?`${esc(odm.nome)} · ${dBR(odm.dia)} ${odm.odMinHora||""}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"bad":""],["Última leitura",dBR(ult),ex?"inclui dados de exemplo":""],...(()=>{const c=window.aquaCadResumo&&aquaCadResumo();return c&&c.total?[["Cadência",c.atrasadas.length?f0(c.atrasadas.length)+" atrasada"+(c.atrasadas.length===1?"":"s"):"em dia",c.atrasadas.length?c.atrasadas.map(esc).join(", "):`${f0(c.emDia)} origem${c.emDia===1?"":"s"} contínua${c.emDia===1?"":"s"}`,c.atrasadas.length?"bad":"ok"]]:[]})(),...(()=>{let b=[];try{b=window.bioDashResumo?bioDashResumo():[]}catch(e){}if(!b.length)return [];const hj=new Date();hj.setHours(0,0,0,0);const at=b.filter(x=>x.prox&&x.prox<hj),u=b.slice().sort((x,y)=>y.data<x.data?-1:1)[0];return [["Biometria",at.length?f0(at.length)+" atrasada"+(at.length===1?"":"s"):nu(u.pm,u.pm<10?2:1)+" g",at.length?at.map(x=>esc(x.nome)).join(", "):`${esc(u.nome)} · ${dBR(u.data)}${u.gpd!=null?" · GPD "+nu(u.gpd,2)+" g/dia":""}`,at.length?"bad":""]]})()]);
   const linhas=com.slice().sort((a,b)=>({letal:0,critico:1,alerta:2,ideal:3}[a.st]??4)-({letal:0,critico:1,alerta:2,ideal:3}[b.st]??4)).map(u=>`<tr><td><a href="#" data-aqua-u="${esc(u.id)}" data-dia="${esc(u.dia)}"><b>${esc(u.nome)}</b></a><small>${dBR(u.dia)} · ${f0(u.n)} leitura${u.n===1?"":"s"}${u.dias>1?` · ${f0(u.dias)} dias`:""}</small></td>
     <td class="num" data-l="OD mín.">${nu(u.odMin,1)}<small>${u.odMinHora||""} ${tag(u.odMinSt)}</small></td><td class="num" data-l="OD previsto 06:00">${nu(u.odPrev,1)}<small>${tag(u.odPrevSt)}</small></td><td class="num" data-l="Temp. (°C)">${nu(u.temp,1)}</td><td class="num" data-l="pH">${nu(u.ph,2)}</td><td class="num" data-l="ΔpH 24 h">${nu(u.dph,2)}</td><td class="num" data-l="NH₃ (mg/L)">${nu(u.nh3,3)}<small>${tag(u.nh3St)}</small></td><td data-l="Situação">${tag(u.st)}</td></tr>`).join("");
-  return `<section class="card wide">${fcHead("AquaNictemeral",`Qualidade da água · último dia com leituras de cada unidade${ex?" · dados de exemplo":""}`,"aqua","Abrir AquaNictemeral")}<div class="pj-body">${k}
-    <div class="scroll"><table class="pj-tab fc-tab"><thead><tr><th>Unidade</th><th class="num">OD mín. (mg/L)</th><th class="num">OD previsto 06:00</th><th class="num">Temp. (°C)</th><th class="num">pH</th><th class="num">ΔpH 24 h</th><th class="num">NH₃ (mg/L)</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody></table></div>
-    <p class="muted">Toque no nome da unidade para abrir o dia no AquaNictemeral. Temperatura e pH são da última leitura do dia.</p></div></section>`}
+  return `<section class="card wide">${fcHead("AquaNictemeral",`Qualidade da água · último dia com leituras de cada tanque/viveiro${ex?" · dados de exemplo":""}`,"aqua","Abrir AquaNictemeral")}<div class="pj-body">${k}
+    <div class="scroll"><table class="pj-tab fc-tab"><thead><tr><th>Tanque/viveiro</th><th class="num">OD mín. (mg/L)</th><th class="num">OD previsto 06:00</th><th class="num">Temp. (°C)</th><th class="num">pH</th><th class="num">ΔpH 24 h</th><th class="num">NH₃ (mg/L)</th><th>Situação</th></tr></thead><tbody>${linhas}</tbody></table></div>
+    <p class="muted">Toque no nome do tanque/viveiro para abrir o dia no AquaNictemeral. Temperatura e pH são da última leitura do dia.</p></div></section>`}
 
 /* Biomassa: situação de cada grupo hoje (ou na data escolhida na aba Biomassa) */
 function bioDashHTML(){
@@ -2485,7 +2485,7 @@ function topoDashHTML(){
 const CORR={
   local:{de:["calc","topo"],para:["dash"],txt:"o investimento e o fluxo de caixa usam os tanques da Calculadora e a área e a terraplenagem do Levantamento"},
   calc:{de:["topo"],para:["local","aqua","bio","racao","dash"],txt:"os grupos de tanques (inclusive os viveiros vindos do Levantamento) são a base das outras abas"},
-  aqua:{de:["calc","bio"],para:["dash"],txt:"cada grupo da Calculadora vira uma unidade (volume e ração de projeto) e a espécie vem do lote da Biomassa"},
+  aqua:{de:["calc","bio"],para:["dash"],txt:"cada grupo da Calculadora vira um tanque/viveiro (volume e ração de projeto) e a espécie vem do lote da Biomassa"},
   bio:{de:["calc"],para:["racao","aqua","dash"],txt:"um lote por grupo de tanques; peso e número de animais definem a biomassa e a ração"},
   racao:{de:["bio","calc"],para:["dash"],txt:"a ração, os tratos e as compras saem dos lotes da Biomassa"},
   repro:{de:[],para:["dash"],txt:"reprodutores e lotes de reprodução, independentes das outras abas"},
@@ -2502,7 +2502,7 @@ function ctxHTML(v){const pa=window.projAtual?window.projAtual():null,og=ctxOrig
   let corr="";
   if(v==="dash"){const vis=FOCOS.filter(([a])=>focoVe(a)).map(([a])=>a);corr=`🔗 No Painel agora: ${vis.map(lk).join(", ")||"nenhuma aba"}${foco?" (aba em evidência)":""}`}
   else if(CORR[v]){const c=CORR[v],de=c.de.filter(focoPode),para=c.para.filter(a=>a==="dash"||focoPode(a));
-    corr=`🔗 ${de.length?`Recebe de ${de.map(lk).join(" e ")} → `:""}<b>${esc(NOMES[v])}</b>${para.length?` → alimenta ${para.map(lk).join(", ")}`:""}<small>${esc(c.txt)}${v==="aqua"&&og.ras===false?" · agora as unidades não estão vinculadas à Calculadora":""}</small>`}
+    corr=`🔗 ${de.length?`Recebe de ${de.map(lk).join(" e ")} → `:""}<b>${esc(NOMES[v])}</b>${para.length?` → alimenta ${para.map(lk).join(", ")}`:""}<small>${esc(c.txt)}${v==="aqua"&&og.ras===false?" · agora os tanques/viveiros não estão vinculados à Calculadora":""}</small>`}
   return `<div class="ctx"><span>📁 Projeto: <b>${pa?esc(pa.nome):"não salvo"}</b></span><span>🗂 Origem dos dados (AquaNictemeral): <b>${esc(og.txt)}</b></span><span>📌 Painel: <b>${foco?esc(focoNome(foco)):"todas as abas"}</b></span></div>${corr?`<div class="ctx-corr">${corr}</div>`:""}`}
 let focoView="dash";window.focoRefresh=()=>{const t=document.querySelector('.tab[aria-selected="true"]');drawFocoBar(t?t.dataset.view:focoView)};
 function drawFocoBar(v){const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";focoView=v;const cx=ctxHTML(v);
@@ -3161,7 +3161,7 @@ function loadAqua(){
   });
   aquaFrame.srcdoc=aquaFrame.dataset.srcdoc;
 }
-// cada grupo de tanques vira uma unidade do AquaNictemeral (id, nome, cor e espécie do lote; volume e ração de projeto do grupo)
+// cada grupo de tanques vira um tanque/viveiro do AquaNictemeral (id, nome, cor e espécie do lote; volume e ração de projeto do grupo)
 function aquaGroups(){
   if(!dashState) return null;
   const {p,r,groups,ok}=dashState;
@@ -3630,8 +3630,8 @@ function medAqua(){let raw="";try{raw=localStorage.getItem(AQ_KEY)||""}catch(e){
 function medHTML(){const m=medAqua();
   if(!m)return `<div class="lv-med"><h3>Dados medidos no AquaNictemeral</h3><p class="lv-foot">Ainda não há leituras do projeto no AquaNictemeral. Quando você lançar leituras lá (temperatura, oxigênio, pH, alcalinidade, salinidade, amônia, nitrito), a aptidão abaixo passa a usar os valores medidos e se atualiza sozinha.</p></div>`;
   const rows=Object.keys(MPAR).filter(k=>m.P[k]).map(k=>{const p=m.P[k],[n,u,d]=MPAR[k],f=x=>fmt(x,d);return [n,`média ${f(p.mean)} ${u} · mín. ${f(p.min)} · máx. ${f(p.max)} · ${p.n} leitura${p.n>1?"s":""}`]});
-  return `<div class="lv-med"><h3>Dados medidos no AquaNictemeral <span class="pill lv-ap">ao vivo</span></h3>${rows.length?rows.map(r=>`<div class="lv-mr"><b>${r[0]}</b><span>${r[1]}</span></div>`).join(""):""}<p class="lv-foot">${m.n} leituras de ${m.uni} unidade${m.uni>1?"s":""} entre ${m.ini} e ${m.fim} (última: ${m.dt}). A aptidão usa esses valores junto com o clima e se atualiza sozinha quando entram leituras novas.</p></div>`}
-function medEsp(a){const m=medAqua();if(!m)return null;const own=m.PE&&m.PE[a.k];const out=avalMed(own||m.P,a.k,a.f,a.est);out.fonte=own?`leituras das unidades de ${a.e.n}`:"leituras de todas as unidades do projeto";return out}
+  return `<div class="lv-med"><h3>Dados medidos no AquaNictemeral <span class="pill lv-ap">ao vivo</span></h3>${rows.length?rows.map(r=>`<div class="lv-mr"><b>${r[0]}</b><span>${r[1]}</span></div>`).join(""):""}<p class="lv-foot">${m.n} leituras de ${m.uni} tanque${m.uni>1?"s":""}/viveiro${m.uni>1?"s":""} entre ${m.ini} e ${m.fim} (última: ${m.dt}). A aptidão usa esses valores junto com o clima e se atualiza sozinha quando entram leituras novas.</p></div>`}
+function medEsp(a){const m=medAqua();if(!m)return null;const own=m.PE&&m.PE[a.k];const out=avalMed(own||m.P,a.k,a.f,a.est);out.fonte=own?`leituras dos tanques/viveiros de ${a.e.n}`:"leituras de todos os tanques/viveiros do projeto";return out}
 function avalMed(P,k,f,est){const q=QA[k],out={};
   if(P.temperatura){const t=P.temperatura;let r,tx=`média ${fT(t.mean)} °C, de ${fT(t.min)} a ${fT(t.max)} °C (faixa ótima no sistema ${fT(f.opt[0])} a ${fT(f.opt[1])} °C)`;
     if(t.mean<f.crit[0]||t.mean>f.crit[1]){r="inapto";tx+=": a média medida está fora do limite da espécie"}
@@ -3660,9 +3660,9 @@ function unidadesAval(){const m=medAqua();if(!m||!m.UN)return [];
     const nomes={temp:"temperatura",od:"oxigênio",ph:"pH",nit:"amônia/nitrito",sal:"salinidade"},prob=ks.filter(p=>x[p][0]!=="apto");
     return {...u,x,res,prob:prob.map(p=>nomes[p]),txt:prob.map(p=>x[p][1]).join(" · ")}}).sort((a,b)=>({inapto:0,restrito:1,apto:2}[a.res]-{inapto:0,restrito:1,apto:2}[b.res])||a.nome.localeCompare(b.nome,"pt"))}
 function uniHTML(){const L=unidadesAval();if(!L.length)return "";const ruins=L.filter(u=>u.res!=="apto");
-  return `<div class="lv-med lv-uni"><h3>Situação de cada unidade (tanque/viveiro) <span class="pill lv-ap">ao vivo</span></h3>
-    <p class="lv-foot">${ruins.length?`<b>${ruins.length} de ${L.length} unidade${L.length>1?"s":""} com problema:</b> ${ruins.map(u=>esc(u.nome)).join(", ")}.`:`Todas as ${L.length} unidades com leituras estão dentro das faixas da espécie.`} Cada unidade é avaliada pelas suas próprias leituras (últimos 30 dias), pela espécie e pela estrutura dela.</p>
-    <div class="scroll"><table class="lv-ut"><thead><tr><th>Unidade</th><th>Espécie · estrutura</th><th>Leituras</th><th>Temp.</th><th>Oxigênio</th><th>pH</th><th>Amônia/nitrito</th><th>Situação</th><th>O que está fora</th></tr></thead><tbody>
+  return `<div class="lv-med lv-uni"><h3>Situação de cada tanque/viveiro <span class="pill lv-ap">ao vivo</span></h3>
+    <p class="lv-foot">${ruins.length?`<b>${ruins.length} de ${L.length} tanque${L.length>1?"s":""}/viveiro${L.length>1?"s":""} com problema:</b> ${ruins.map(u=>esc(u.nome)).join(", ")}.`:`Todos os ${L.length} tanques/viveiros com leituras estão dentro das faixas da espécie.`} Cada tanque/viveiro é avaliado pelas suas próprias leituras (últimos 30 dias), pela espécie e pela estrutura dele.</p>
+    <div class="scroll"><table class="lv-ut"><thead><tr><th>Tanque/viveiro</th><th>Espécie · estrutura</th><th>Leituras</th><th>Temp.</th><th>Oxigênio</th><th>pH</th><th>Amônia/nitrito</th><th>Situação</th><th>O que está fora</th></tr></thead><tbody>
     ${L.map(u=>`<tr class="${u.res}"><td class="g"><b>${esc(u.nome)}</b></td><td>${ESP[u.esp].n} · ${/^RAS/.test(ESTR_L[u.est].n)?ESTR_L[u.est].n:ESTR_L[u.est].n.toLowerCase()}</td><td>${u.n}</td><td>${pS(u.x.temp&&u.x.temp[0])}</td><td>${pS(u.x.od&&u.x.od[0])}</td><td>${pS(u.x.ph&&u.x.ph[0])}</td><td>${pS(u.x.nit&&u.x.nit[0])}</td><td>${aptPill(u.res)}</td><td class="lv-wrap">${u.txt?esc(u.txt):"—"}</td></tr>`).join("")}</tbody></table></div></div>`}
 window.unidadesAval=unidadesAval;
 let AQ_RAW=null;
@@ -3997,7 +3997,7 @@ function drawLocal(){
    const wpanel=`<div class="lv-agua"><h3>Água de ${si.orig?ORIG[si.orig].toLowerCase():"origem não informada"} em ${esc(LV.loc||"local do projeto")}</h3>
      ${rows([["Salinidade usada na aptidão",`${fmt(si.v,1)} ‰ · água ${salClass(si.v)} · ${si.how}`,1],...(ag?[["Faixa típica desta origem",ag.salR],...ag.rows]:[]),
        ...(si.orig==="chuva"&&isFinite(chuvaCap)?[["Captação de chuva possível",`${f0(chuvaCap)} m³/ano na cobertura de ${f0(o.Atot)} m² (${f0(o.prAno)} mm × 0,8) · ${fmt(chuvaCap/o.repAno*100,0)} % da reposição anual`,1]]:[])])}
-     ${ag&&si.v>ag.salMax?`<p class="note lv-anote">A salinidade usada (${fmt(si.v,1)} ‰) está acima do típico para ${ORIG[si.orig].toLowerCase()} (até ${fmt(ag.salMax,1)} ‰): confira a medição ou investigue intrusão salina.</p>`:""}${ploc?`<p class="note lv-anote">${ploc}</p>`:""}${ag?`<p class="lv-foot"><b>Cuidados:</b> ${ag.alerta} Fonte: ${ag.src}.</p>`:`<p class="lv-foot">Informe a origem da água aqui ou na unidade “Água do sistema” do AquaNictemeral.</p>`}
+     ${ag&&si.v>ag.salMax?`<p class="note lv-anote">A salinidade usada (${fmt(si.v,1)} ‰) está acima do típico para ${ORIG[si.orig].toLowerCase()} (até ${fmt(ag.salMax,1)} ‰): confira a medição ou investigue intrusão salina.</p>`:""}${ploc?`<p class="note lv-anote">${ploc}</p>`:""}${ag?`<p class="lv-foot"><b>Cuidados:</b> ${ag.alerta} Fonte: ${ag.src}.</p>`:`<p class="lv-foot">Informe a origem da água aqui ou no tanque/viveiro “Água do sistema” do AquaNictemeral.</p>`}
      ${si.aq.sal==null?`<p class="lv-foot">Quando houver leituras de salinidade na água do sistema (AquaNictemeral), a última leitura passa a ser usada automaticamente.</p>`:""}</div>`;
    {const es=document.getElementById("lv-est"),sI=stInfo();if(es&&es.options[0]){const nr=isFinite(P(LV.lat))?nearestSt(P(LV.lat),P(LV.lon)):null;es.options[0].text=`Automático: estação mais próxima${nr?` (${PRESETS[nr.k].loc.replace(" – MA","")}, ${f0(nr.d)} km)`:""}`}}
    const sI=stInfo(),stale=!sI.manual&&LV.estUsed&&sI.k!==LV.estUsed;
@@ -5784,7 +5784,7 @@ function draw(){
        <label for="pj-notas">Observações</label><textarea id="pj-notas" rows="3" maxlength="4000" placeholder="Cliente, objetivo, versão, cotações usadas…"${dis}>${esc(cur?cur.notas||"":"")}</textarea>
        <div class="pj-btns"><button type="button" class="btn solid" id="pj-salvar"${dis}>${cli?"Salvar no projeto do cliente":cur?"Salvar alterações":"Salvar projeto"}</button>${cur?`<button type="button" class="btn" id="pj-novo"${dis}>Salvar como novo</button>`:""}<button type="button" class="btn" id="pj-exp-atual">Exportar .json</button>
          ${cf&&cf.t==="blank"?`<button type="button" class="btn warn" id="pj-blank-ok">Confirmar: começar do zero</button><button type="button" class="btn" data-pj="cancel">Cancelar</button>`:`<button type="button" class="btn" id="pj-blank"${dis}>Novo projeto em branco</button>`}</div>
-       ${logado()?`<p class="muted">Salva a fotografia de todas as abas: Local e viabilidade, Calculadora, AquaNictemeral (unidades e leituras), Biomassa, Arraçoamento e camarão por fases.</p>`:`<p class="muted">Entre com usuário e senha (item 1) para salvar projetos.</p>`}
+       ${logado()?`<p class="muted">Salva a fotografia de todas as abas: Local e viabilidade, Calculadora, AquaNictemeral (tanques/viveiros e leituras), Biomassa, Arraçoamento e camarão por fases.</p>`:`<p class="muted">Entre com usuário e senha (item 1) para salvar projetos.</p>`}
      </div></section>`+
   `<section class="card wide"><div class="card-head"><i class="n">3</i><h2>Projetos salvos<span>${logado()?`${st.list.length} projeto${st.list.length===1?"":"s"} ${st.mode==="nuvem"?"na sua conta":"de "+esc(st.uname)}`:"Entre para ver"}</span></h2>
        <div class="pj-tools"><div class="inp"><input id="pj-busca" placeholder="Buscar por nome, local ou espécie" value="${esc(st.filtro)}" aria-label="Buscar projetos"${dis}></div><label class="btn" for="pj-imp"${logado()?"":' aria-disabled="true"'}>Importar .json</label><input type="file" id="pj-imp" accept=".json,application/json" hidden${dis}></div></div>
@@ -6559,7 +6559,7 @@ function autoMap(cols,rows){const m={},usados=new Set(),am=(rows||[]).slice(0,30
     else if(/ordem|indice|índice|seq|n[ºo°]\b/.test(raw)){usados.add(c)}
     else if(/^(hora|horario|time|hour)/.test(n)&&vals(c).length&&vals(c).every(soHora)&&!Object.values(m).includes("hora")){m[c]="hora";usados.add(c)}}
   for(const [k,,syn] of ALVOS){if(Object.values(m).includes(k))continue;for(const c of cols){const n=norm(c);if(usados.has(c))continue;if(syn.includes(n)||(k!=="t"&&syn.some(s=>s.length>3&&n.startsWith(s)))){m[c]=k;usados.add(c);break}}}
-  /* várias colunas de local (viveiro + ponto, tanque + sonda) formam o nome da unidade */
+  /* várias colunas de local (viveiro + ponto, tanque + sonda) formam o nome do tanque/viveiro */
   for(const c of cols)if(!usados.has(c)&&/^(viveiro|ponto|tanque|pond|tank|estacao|local)/.test(norm(c))&&Object.values(m).includes("unidade")){m[c]="unidade";usados.add(c)}
   if(!Object.values(m).includes("dt")&&!Object.values(m).includes("data")){const c=cols.find(c=>!m[c]&&/date|data|time|created/i.test(c));if(c)m[c]="dt"}
   return m}
@@ -6695,7 +6695,7 @@ async function importar(lista,origem){const w=await pronto();if(!w)throw new Err
   C.log.unshift({id,em:Date.now(),origem,tipo,nome,key,n:lista.length,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias,criadas:r.criadas});
   const sai=C.log.slice(30);C.log=C.log.slice(0,30);salvar();sai.forEach(l=>l.id&&IDB.del(l.id).catch(()=>{}));
   IDB.put(id,{lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem}}).catch(()=>{});return r}
-const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} unidade${r.criadas.length===1?" criada":"s criadas"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem unidade ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
+const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} ${r.criadas.length===1?"tanque/viveiro criado":"tanques/viveiros criados"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem tanque/viveiro ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.`;
 
 /* link (Google Planilhas publicada, ThingSpeak, servidor do sensor): busca agora e, se marcado, a cada N minutos */
 async function buscarLink(silencioso){if(!C.url)throw new Error("Cole o link dos dados.");
@@ -6725,8 +6725,8 @@ function mapaHTML(){if(!dados)return "";const n=normalizar(dados.rows,C.map,C.ag
   const temU=Object.values(C.map).includes("unidade");
   return `<div class="ap-box"><b>Colunas encontradas · ${dados.rows.length} linha${dados.rows.length===1?"":"s"}</b>
    <div class="ap-cols">${dados.cols.map(c=>`<label><span title="${E(c)}">${E(c)}</span><select class="lv-sel" data-ap-col="${E(c)}"><option value="">ignorar</option>${ALVOS.map(([k,t])=>`<option value="${k}"${C.map[c]===k?" selected":""}>${t}</option>`).join("")}</select></label>`).join("")}</div>
-   ${n.lista.length?`<div class="scroll"><table class="pj-tab ap-prev"><thead><tr><th>Data</th><th>Hora</th>${temU?"<th>Unidade</th>":""}${NUM.filter(p=>n.lista.some(o=>typeof o[p]==="number")).map(p=>`<th class="num">${E((ALVOS.find(a=>a[0]===p)||[])[1]||p)}</th>`).join("")}</tr></thead><tbody>${n.lista.slice(0,6).map(o=>`<tr><td>${o.data.split("-").reverse().join("/")}</td><td>${o.hora}</td>${temU?`<td>${E(o.unidade||"—")}</td>`:""}${NUM.filter(p=>n.lista.some(x=>typeof x[p]==="number")).map(p=>`<td class="num">${typeof o[p]==="number"?String(o[p]).replace(".",","):"—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
-    <p class="muted">${n.lista.length} leitura${n.lista.length===1?"":"s"} prontas${n.brutas&&n.brutas!==n.lista.length?` (de ${n.brutas} medições, juntadas por hora)`:""}${n.ruins?` · ${n.ruins} linha${n.ruins===1?"":"s"} sem data ou sem valores`:""}.${temU?" "+(C.criar!==false?"Cada nome da coluna de unidade vira uma unidade do AquaNictemeral (as que ainda não existem são criadas).":"A coluna de unidade é usada quando o nome bate com uma unidade do AquaNictemeral; as outras vão para a unidade de destino."):""}</p>
+   ${n.lista.length?`<div class="scroll"><table class="pj-tab ap-prev"><thead><tr><th>Data</th><th>Hora</th>${temU?"<th>Tanque/viveiro</th>":""}${NUM.filter(p=>n.lista.some(o=>typeof o[p]==="number")).map(p=>`<th class="num">${E((ALVOS.find(a=>a[0]===p)||[])[1]||p)}</th>`).join("")}</tr></thead><tbody>${n.lista.slice(0,6).map(o=>`<tr><td>${o.data.split("-").reverse().join("/")}</td><td>${o.hora}</td>${temU?`<td>${E(o.unidade||"—")}</td>`:""}${NUM.filter(p=>n.lista.some(x=>typeof x[p]==="number")).map(p=>`<td class="num">${typeof o[p]==="number"?String(o[p]).replace(".",","):"—"}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    <p class="muted">${n.lista.length} leitura${n.lista.length===1?"":"s"} prontas${n.brutas&&n.brutas!==n.lista.length?` (de ${n.brutas} medições, juntadas por hora)`:""}${n.ruins?` · ${n.ruins} linha${n.ruins===1?"":"s"} sem data ou sem valores`:""}.${temU?" "+(C.criar!==false?"Cada nome da coluna de tanque/viveiro vira um tanque/viveiro do AquaNictemeral (os que ainda não existem são criados).":"A coluna de tanque/viveiro é usada quando o nome bate com um tanque/viveiro do AquaNictemeral; os outros vão para o tanque/viveiro de destino."):""}</p>
     <div class="pj-btns"><button type="button" class="btn solid" data-ap="importar"${busy?" disabled":""}>Importar ${n.lista.length} leitura${n.lista.length===1?"":"s"}</button><button type="button" class="btn" data-ap="limpar">Descartar</button></div>`
    :`<p class="us-pag-alert wait">Nenhuma leitura reconhecida ainda: diga qual coluna tem a <b>data e hora</b> (ou a data e a hora separadas) e pelo menos um parâmetro.</p>`}</div>`}
 function hookHTML(){const sup=window.Auth&&Auth.supa&&Auth.supa(),log=sup&&Auth.ok();const cfg=window.RAS_CONFIG||{};
@@ -6741,7 +6741,7 @@ function hookHTML(){const sup=window.Auth&&Auth.supa&&Auth.supa(),log=sup&&Auth.
      <label class="us-chk"><input type="checkbox" data-ap-cfg="webhook"${C.webhook?" checked":""}> <span><b>Recolher sozinho a cada minuto</b><br><span class="muted">enquanto o app estiver aberto; também recolhe ao abrir a aba</span></span></label>
      <div class="pj-btns"><button type="button" class="btn solid" data-ap="recolher"${busy?" disabled":""}>Recolher agora</button></div>
      <details class="us-det"><summary>Como ligar em cada automação</summary><ol class="rp-steps">
-      <li><b>Make / Zapier / n8n:</b> crie um passo "HTTP · Make a request" (ou Webhooks by Zapier → POST, ou nó HTTP Request), método POST, com o endereço, os cabeçalhos e o corpo acima. Mapeie os campos do seu gatilho (planilha, formulário, sensor) para unidade, data_hora e os parâmetros.</li>
+      <li><b>Make / Zapier / n8n:</b> crie um passo "HTTP · Make a request" (ou Webhooks by Zapier → POST, ou nó HTTP Request), método POST, com o endereço, os cabeçalhos e o corpo acima. Mapeie os campos do seu gatilho (planilha, formulário, sensor) para tanque/viveiro, data_hora e os parâmetros.</li>
       <li><b>Node-RED:</b> nó "http request" (POST, retorno JSON) depois de um nó "function" que monte o objeto {chave, leituras:[...]}.</li>
       <li><b>ESP32 / Arduino com sonda:</b> use HTTPClient em HTTPS para o endereço acima, com os dois cabeçalhos e o JSON; envie a cada 5–15 min. O app junta as medições da mesma hora (média).</li>
       <li><b>Google Planilhas (Apps Script):</b> UrlFetchApp.fetch(endereço, {method:"post", contentType:"application/json", headers:{apikey:"…"}, payload:JSON.stringify({chave, leituras})}).</li></ol></details>`
@@ -6752,8 +6752,8 @@ function draw(){
   box.innerHTML=`<details class="card wide ap-card"${aberto?" open":""}><summary class="card-head"><h2>🔌 Conectar automação<span>Importar leituras de sondas, planilhas, plataformas de IoT e automações para o AquaNictemeral${st?" · "+E(st):""}</span></h2></summary><div class="pj-body">
    <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
    <div class="pj-tools chips">${[["arquivo","Arquivo"],["colar","Colar dados"],["link","Link (atualiza sozinho)"],["webhook","Webhook (automação envia)"]].map(([k,t])=>`<button type="button" class="chip${C.fonte===k?" on":""}" data-ap-fonte="${k}" aria-pressed="${C.fonte===k}">${t}</button>`).join("")}</div>
-   <div class="rp-grid"><label>Unidade de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
-    <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="criar"${C.criar!==false?" checked":""}> <span><b>Criar as unidades que não existem</b><br><span class="muted">pelo nome da coluna de unidade (ex.: Viveiro 1 · Ponto A)</span></span></label>
+   <div class="rp-grid"><label>Tanque/viveiro de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
+    <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="criar"${C.criar!==false?" checked":""}> <span><b>Criar os tanques/viveiros que não existem</b><br><span class="muted">pelo nome da coluna de tanque/viveiro (ex.: Viveiro 1 · Ponto A)</span></span></label>
     <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="agrupar"${C.agrupar?" checked":""}> <span><b>Juntar as medições da mesma hora</b><br><span class="muted">média por hora, para sondas que medem a cada poucos minutos</span></span></label></div>
    ${C.fonte==="arquivo"?`<p class="muted">Planilha do Excel (.xlsx, .xls), Numbers (.numbers), LibreOffice (.ods), CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
     :C.fonte==="colar"?`<textarea class="ap-txt" id="ap-txt" rows="5" placeholder="data;hora;OD;temperatura;pH&#10;24/10/2026;06:00;4,8;27,9;7,2"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-ap="ler">Ler dados</button></div>`
@@ -6773,12 +6773,12 @@ function histHTML(log){let O=null;try{const w=frame().contentWindow;O=w&&w.aquaO
   return `<details class="us-det" open><summary>Histórico de importações · processar de novo</summary>
    <div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Quando</th><th>Origem</th><th>Resultado</th><th>No AquaNictemeral</th><th></th></tr></thead><tbody>${log.map((l,i)=>{const k=chaveLog(l),n=temN(k),tp=l.tipo||k.split("|")[0],nm=l.nome||(k.split("|")[1]||""),conf=histConf&&histConf.i===i&&!histConf.t,ex=histConf&&histConf.i===i&&histConf.t==="ex";
      return `<tr><td>${fD(l.em)}</td><td><b>${ICO[tp]||""} ${E(nm||({colado:"Dados colados",link:"Link",webhook:"Automação (webhook)"}[tp]||l.origem))}</b>${l.n?`<small>${l.n} leitura${l.n===1?"":"s"} no arquivo${per(l.dias)?" · "+per(l.dias):""}</small>`:""}</td>
-      <td><small>${l.novas} novas, ${l.atualizadas} atualizadas${l.ignoradas?`, ${l.ignoradas} ignoradas`:""}${l.criadas&&l.criadas.length?` · ${l.criadas.length} unidades criadas`:""}</small></td>
+      <td><small>${l.novas} novas, ${l.atualizadas} atualizadas${l.ignoradas?`, ${l.ignoradas} ignoradas`:""}${l.criadas&&l.criadas.length?` · ${l.criadas.length} tanques/viveiros criados`:""}</small></td>
       <td>${n===null?"—":n?`<span class="us-st ok">${n} leitura${n===1?"":"s"}</span>`:`<span class="us-st wait">nenhuma</span>`}</td>
       <td class="pj-acts"><div class="us-acts">${ex?`<span class="ap-exq">Excluir do histórico:</span><button type="button" class="btn warn" data-ap="h-ex-ok" data-i="${i}">Só do histórico</button>${n?`<button type="button" class="btn warn" data-ap="h-ex-tudo" data-i="${i}">Do histórico e ${n===1?"a leitura":"as "+n+" leituras"}</button>`:""}<button type="button" class="btn" data-ap="h-nao">Voltar</button>`:conf?`<button type="button" class="btn warn" data-ap="h-apagar-ok" data-i="${i}">Confirmar: apagar ${n} leituras</button><button type="button" class="btn" data-ap="h-nao">Voltar</button>`
-       :`${n?`<button type="button" class="btn solid" data-ap="h-ver" data-i="${i}">▶ Processar só esta</button>`:""}<button type="button" class="btn" data-ap="h-re" data-i="${i}" title="${l.id?"Lança de novo as leituras desta importação (recria o que foi apagado ou alterado e as unidades)":"Importação anterior à cópia automática: escolha o arquivo de novo"}">↻ Reprocessar</button>${n?`<button type="button" class="btn warn" data-ap="h-apagar" data-i="${i}">Apagar leituras</button>`:""}<button type="button" class="btn ap-x" data-ap="h-ex" data-i="${i}" title="Excluir do histórico" aria-label="Excluir do histórico">🗑 Excluir</button>`}</div></td></tr>`}).join("")}</tbody></table></div>
+       :`${n?`<button type="button" class="btn solid" data-ap="h-ver" data-i="${i}">▶ Processar só esta</button>`:""}<button type="button" class="btn" data-ap="h-re" data-i="${i}" title="${l.id?"Lança de novo as leituras desta importação (recria o que foi apagado ou alterado e os tanques/viveiros)":"Importação anterior à cópia automática: escolha o arquivo de novo"}">↻ Reprocessar</button>${n?`<button type="button" class="btn warn" data-ap="h-apagar" data-i="${i}">Apagar leituras</button>`:""}<button type="button" class="btn ap-x" data-ap="h-ex" data-i="${i}" title="Excluir do histórico" aria-label="Excluir do histórico">🗑 Excluir</button>`}</div></td></tr>`}).join("")}</tbody></table></div>
    <div class="pj-btns">${histConf&&histConf.t==="todos"?`<span class="ap-exq">Excluir todo o histórico (${log.length})?</span><button type="button" class="btn warn" data-ap="h-todos-ok">Só o histórico</button><button type="button" class="btn warn" data-ap="h-todos-tudo">O histórico e as leituras importadas</button><button type="button" class="btn" data-ap="h-nao">Voltar</button>`:`<button type="button" class="btn" data-ap="h-todos">🗑 Excluir todo o histórico</button>`}</div>
-   <p class="muted"><b>Processar só esta</b> mostra no AquaNictemeral apenas as leituras daquela importação (o painel vai para as datas dela). <b>Excluir</b> tira a importação da lista (e a cópia guardada): escolha se as leituras dela ficam no AquaNictemeral ou saem junto. <b>Reprocessar</b> lança de novo as leituras guardadas da importação: recria leituras apagadas ou alteradas e as unidades que faltarem, sem duplicar. O app guarda uma cópia de cada importação neste aparelho (as importações anteriores a esta versão não têm cópia: para elas, escolha o arquivo de novo).</p></details>`}
+   <p class="muted"><b>Processar só esta</b> mostra no AquaNictemeral apenas as leituras daquela importação (o painel vai para as datas dela). <b>Excluir</b> tira a importação da lista (e a cópia guardada): escolha se as leituras dela ficam no AquaNictemeral ou saem junto. <b>Reprocessar</b> lança de novo as leituras guardadas da importação: recria leituras apagadas ou alteradas e os tanques/viveiros que faltarem, sem duplicar. O app guarda uma cópia de cada importação neste aparelho (as importações anteriores a esta versão não têm cópia: para elas, escolha o arquivo de novo).</p></details>`}
 function bind(){
   const d=box.querySelector("details.ap-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unidades().length)pronto().then(()=>draw())});
   box.querySelectorAll("[data-ap-fonte]").forEach(b=>b.addEventListener("click",()=>{C.fonte=b.dataset.apFonte;salvar();msg="";if(C.fonte==="webhook"&&!chave&&window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok())Auth.aquaChave(false,true).then(t=>{chave=t||"";draw()}).catch(()=>{});draw()}));
@@ -6811,7 +6811,7 @@ function acao(a,b){
       const g=await IDB.get(l.id).catch(()=>null);if(!g||!g.lista)throw new Error("A cópia desta importação não está neste aparelho (foi feita em outro aparelho ou o navegador limpou os dados). Escolha o arquivo de novo.");
       const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu.");const r=w.aquaImport(g.lista,g.op);
       try{w.aquaFiltroOrigem(k,"")}catch(e){}drawOrig();l.reproc=Date.now();salvar();
-      return `Reprocessado: ${l.nome||l.origem} · ${r.novas} recriada${r.novas===1?"":"s"}, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}${r.criadas&&r.criadas.length?` · ${r.criadas.length} unidades recriadas`:""}. Mostrando só estas leituras.`});return}
+      return `Reprocessado: ${l.nome||l.origem} · ${r.novas} recriada${r.novas===1?"":"s"}, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}${r.criadas&&r.criadas.length?` · ${r.criadas.length} tanques/viveiros recriados`:""}. Mostrando só estas leituras.`});return}
     return}
   if(a==="copiar"){const v=b.dataset.v;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>{msg="Copiado.";draw()}).catch(()=>window.prompt("Copie:",v));return}
 }
@@ -6843,7 +6843,7 @@ function drawCad(){if(!boxC)return;const L=cadLista();if(!L){boxC.innerHTML="";r
    <div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Origem</th><th>Cadência esperada</th><th>Última leitura</th><th>Situação agora</th><th class="num">Hoje</th></tr></thead><tbody>${lin.map((o,i)=>{const e=cadEstado(o),esp=e.c?Math.floor(((Date.now()-new Date().setHours(0,0,0,0))/60000)/e.c)+1:null;
      const tag=e.st==="ok"?`<span class="us-st ok">em dia</span>`:e.st==="atrasada"?`<span class="us-st bad">atrasada</span>`:e.st==="sem"?`<span class="us-st wait">sem leitura</span>`:`<span class="us-st">lote</span>`;
      const extra=o.tipo==="webhook"?`<label class="cad-sub">recolher a cada <select class="lv-sel" data-cad-hook="1">${[[15,"15 s"],[30,"30 s"],[60,"1 min"],[300,"5 min"],[900,"15 min"]].map(([v,t])=>`<option value="${v}"${(+C.hookSeg||60)===v?" selected":""}>${t}</option>`).join("")}</select>${C.webhook?"":" (ligue o recolhimento automático no Webhook)"}</label>`:o.tipo==="link"&&o.nome===C.url?`<small>${C.auto?`busca automática a cada ${C.min<60?C.min+" min":C.min/60+" h"}`:"busca automática desligada"}</small>`:"";
-     return `<tr><td><b>${ICO[o.tipo]||""} ${E(o.nome?(o.nome.length>40?o.nome.slice(0,37)+"…":o.nome):o.rotulo)}</b><small>${o.nome?E(o.rotulo)+" · ":""}${o.unidades.length} unidade${o.unidades.length===1?"":"s"}${o.med?` · intervalo típico ${dur(o.med)}`:""}</small>${extra}</td>
+     return `<tr><td><b>${ICO[o.tipo]||""} ${E(o.nome?(o.nome.length>40?o.nome.slice(0,37)+"…":o.nome):o.rotulo)}</b><small>${o.nome?E(o.rotulo)+" · ":""}${o.unidades.length} tanque${o.unidades.length===1?"":"s"}/viveiro${o.unidades.length===1?"":"s"}${o.med?` · intervalo típico ${dur(o.med)}`:""}</small>${extra}</td>
       <td><select class="lv-sel" data-cad="${E(o.key)}" data-tipo="${E(o.tipo)}" data-nome="${E(o.nome)}" aria-label="Cadência esperada">${CAD_OPT.map(([v,t])=>`<option value="${v}"${e.c===v?" selected":""}>${t}</option>`).join("")}</select></td>
       <td>${fD(o.ult)}${o.rec?`<small>chegou ${new Date(o.rec).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</small>`:""}</td>
       <td>${tag}<small data-cad-t="${i}">${E(cadTexto(o))}</small></td><td class="num">${f0c(o.hoje)}${esp&&e.st!=="lote"?`<small>de ${esp} esperadas</small>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhuma leitura ainda.</td></tr>`}</tbody></table></div>${(()=>{try{return window.bioCadHTML?bioCadHTML():""}catch(e){return ""}})()}
@@ -6881,9 +6881,9 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
    <div class="ao-chips chips">${O.origens.length?O.origens.map(o=>`<button type="button" class="chip${O.fOrig===o.key?" on":""}" data-ao="${E(o.key)}" title="${E(o.nome||o.rotulo)}">${E(rot(o))} <b>${o.n}</b></button>`).join(""):`<span class="muted">Nenhuma leitura ainda.</span>`}</div>
    <div class="rp-grid"><label>Origem processada<select class="lv-sel" id="ao-orig"><option value="">Todas as origens (${O.total})</option>${optOrig}</select></label>
     <label>Projeto<select class="lv-sel" id="ao-proj"><option value="">Todos os projetos (${O.total})</option>${PJ.map(p=>`<option value="${E(p.pid)}"${O.fProj===p.pid?" selected":""}>${E(p.pnome)} (${p.n})</option>`).join("")}</select></label></div>
-   ${O.total?"":`<p class="muted"><b>Ainda não há leituras no AquaNictemeral</b>: por isso todas as origens e projetos estão com (0). Lance uma leitura na aba Unidade, importe um arquivo ou ligue a automação no 🔌 Conectar automação; cada leitura passa a contar na origem por onde entrou e no projeto aberto na hora.</p>`}
+   ${O.total?"":`<p class="muted"><b>Ainda não há leituras no AquaNictemeral</b>: por isso todas as origens e projetos estão com (0). Lance uma leitura na aba Tanque/viveiro, importe um arquivo ou ligue a automação no 🔌 Conectar automação; cada leitura passa a contar na origem por onde entrou e no projeto aberto na hora.</p>`}
    <div class="pj-btns">${O.fOrig||O.fProj?`<button type="button" class="btn" data-ao-limpa="1">Processar todas as origens</button>`:""}</div>
-   <p class="muted">Cada leitura guarda por onde entrou: digitada no formulário da unidade, arquivo, dados colados, link, automação (webhook) ou exemplo, e o projeto que estava aberto na hora (botão de projeto no topo do app). Ao escolher uma origem, o painel, os gráficos, os alertas e o resumo do Painel passam a usar só essas leituras; as outras ficam guardadas. Leituras lançadas antes desta versão aparecem como "Digitadas no sistema" ou "Importadas" e sem projeto.</p>
+   <p class="muted">Cada leitura guarda por onde entrou: digitada no formulário do tanque/viveiro, arquivo, dados colados, link, automação (webhook) ou exemplo, e o projeto que estava aberto na hora (botão de projeto no topo do app). Ao escolher uma origem, o painel, os gráficos, os alertas e o resumo do Painel passam a usar só essas leituras; as outras ficam guardadas. Leituras lançadas antes desta versão aparecem como "Digitadas no sistema" ou "Importadas" e sem projeto.</p>
   </div></details>`;
   const d=boxO.querySelector("details");d.addEventListener("toggle",()=>{origAberto=d.open});
   const aplicar=(fo,fp)=>{try{frame().contentWindow.aquaFiltroOrigem(fo,fp)}catch(e){}drawOrig()};
@@ -6993,7 +6993,7 @@ function resumoUni(p,uid){const L=amostrasU(p,uid);if(!L.length)return null;cons
   const cad=+B.cad[uk(p,uid)]||0,prox=cad?new Date(tsA(u)+cad*864e5):null;
   return {u,s,n:L.length,gpd,esp,dif:esp&&s.pm?(s.pm/esp-1)*100:null,bio:pop&&s.pm?pop*s.pm/1000:null,pop,cad,prox}}
 
-/* ---- projeção: curva de crescimento ajustada às biometrias da unidade no projeto ---- */
+/* ---- projeção: curva de crescimento ajustada às biometrias do tanque/viveiro no projeto ---- */
 function projecao(p,uid){const byD=new Map();
   for(const a of amostrasU(p,uid)){const s=stats(a);if(!(s.pm>0))continue;const w=s.N||1,e=byD.get(a.data)||{sw:0,n:0};e.sw+=s.pm*w;e.n+=w;byD.set(a.data,e)}
   const pts=[...byD].map(([d,e])=>[new Date(d+"T12:00").getTime()/864e5,e.sw/e.n]).sort((x,y)=>x[0]-y[0]);if(pts.length<2)return null;
@@ -7006,7 +7006,7 @@ function projecao(p,uid){const byD=new Map();
 function plProjeto(p){const pares=[];let ks=[];for(const a of B.amostras)if(daP(a,p))for(const x of a.ind||[])if(typeof x.p==="number"&&typeof x.c==="number"&&x.c>0&&x.p>0){if((x.n||1)===1)pares.push([Math.log(x.c),Math.log(x.p)]);ks.push(100*x.p/Math.pow(x.c,3))}
   return {pl:pares.length>=5?regPL(pares):null,k:ks.length?ks.reduce((s,v)=>s+v,0)/ks.length:null,nk:ks.length}}
 
-/* ---- entrada de dados: linhas (planilha, colado, link, automação) → amostras agrupadas por projeto + unidade + data + método ---- */
+/* ---- entrada de dados: linhas (planilha, colado, link, automação) → amostras agrupadas por projeto + tanque/viveiro + data + método ---- */
 const ALV=[["unidade","Unidade (tanque ou viveiro)",["unidade","tanque","viveiro","unit","tank","pond","local","ponto"]],["projeto","Projeto",["projeto","project","fazenda","cliente"]],["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora"]],["data","Data",["data","date","dia"]],["hora","Hora",["hora","time","hour"]],
   ["peso","Peso (g)",["peso","pesog","weight","pesoindividual","pesomedio","pesomediog","pm","w","massa"]],["comprimento","Comprimento (cm)",["comprimento","comp","length","comprimentocm","ct","comprimentototal","tamanho","cm"]],
   ["n","Quantidade de animais",["n","quantidade","qtd","numero","contagem","count","animais","individuos","npeixesamostrados","peixesamostrados","namostrados","namostra","npeixes","peixenumero","peixen"]],["peso_total","Peso total do lote (kg)",["pesototal","pesototalkg","biomassa","totalkg","pesolote"]],["metodo","Método",["metodo","method","tipo","equipamento","fonte"]]];
@@ -7038,7 +7038,7 @@ function guardar(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,pad
     B.amostras.push({id:"b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),unidade:u.id,unome:u.nome,utipo:u.tipo||detectTipo(u),num:a.num||"",data:a.data,hora:a.hora,metodo:a.metodo||B.metodo,origem,ind:a.ind||[],loteN:a.loteN||0,loteKg:a.loteKg||0,obs:a.obs||"",rec:Date.now(),...(p!=="_local"?{pid:p,pnome:pNome(p)}:{})});novas++}
   salvar();outros();return {novas,sem,criadas,p:base}}
 function outros(){try{window.focoRefresh&&focoRefresh()}catch(e){}try{window.drawAquaOrig&&drawAquaOrig()}catch(e){}}
-const res=(r,o)=>`${r.novas} biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"} no projeto ${pNome(r.p)}${r.criadas.length?` · unidade${r.criadas.length===1?"":"s"} nova${r.criadas.length===1?"":"s"}: ${r.criadas.join(", ")}`:""}${r.sem?` · ${r.sem} sem unidade`:""} (${ORIGB[o.tipo]||o.tipo}${o.nome?": "+o.nome:""}).`;
+const res=(r,o)=>`${r.novas} biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"} no projeto ${pNome(r.p)}${r.criadas.length?` · tanque${r.criadas.length===1?"":"s"}/viveiro${r.criadas.length===1?"":"s"} novo${r.criadas.length===1?"":"s"}: ${r.criadas.join(", ")}`:""}${r.sem?` · ${r.sem} sem tanque/viveiro`:""} (${ORIGB[o.tipo]||o.tipo}${o.nome?": "+o.nome:""}).`;
 async function buscarLinkB(sil){if(!B.url)throw new Error("Cole o link dos dados de biometria.");const r=await fetch(B.url+(B.url.includes("?")?"&":"?")+"_t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("O link respondeu com erro "+r.status+".");
   const rows=U.lerTexto(await r.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!Object.keys(B.map).length||!cols.some(c=>B.map[c]))B.map=autoMapB(cols);
   if(!sil){dados={rows,cols,origem:{tipo:"link",nome:B.url}};return `${rows.length} linhas lidas do link. Confira as colunas e salve.`}
@@ -7056,10 +7056,10 @@ function uniHTML(p,rot){const us=uniP(p),ft=B.ftipo||"todas",vis=us.filter(u=>ft
   const nT=us.filter(u=>u.tipo==="tanque").length,nV=us.length-nT,sel=us.find(u=>u.id===unidade);
   const grp=t=>{const g=vis.filter(u=>u.tipo===t);return g.length?`<optgroup label="${TIPO[t]}s">${g.map(u=>`<option value="${E(u.id)}"${u.id===unidade?" selected":""}>${E(u.nome)}${u.info?" — "+E(u.info):""}</option>`).join("")}</optgroup>`:""};
   return `<div class="pj-tools chips bi-ft">${[["todas",`Todas (${us.length})`],["tanque",`🟦 Tanques (${nT})`],["viveiro",`🟫 Viveiros (${nV})`]].map(([k,t])=>`<button type="button" class="chip${ft===k?" on":""}" data-bi-ft="${k}">${t}</button>`).join("")}</div>
-   <div class="rp-grid"><label>${rot}<select class="lv-sel" id="bi-un">${grp("tanque")}${grp("viveiro")}<option value="__nova"${unidade==="__nova"?" selected":""}>➕ Nova unidade (tanque ou viveiro)…</option></select></label>
+   <div class="rp-grid"><label>${rot}<select class="lv-sel" id="bi-un">${grp("tanque")}${grp("viveiro")}<option value="__nova"${unidade==="__nova"?" selected":""}>➕ Novo tanque/viveiro…</option></select></label>
    ${unidade==="__nova"?`<label>Tipo<select class="lv-sel" id="bi-nt"><option value="tanque"${novaTipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${novaTipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></label><label>Identificação<div class="inp"><input id="bi-nn" maxlength="60" value="${E(novaNome)}" placeholder="ex.: Viveiro 3 ou Tanque T-07"></div></label>`
     :sel?`<label>${sel.tipo==="viveiro"?"Viveiro":"Tanque"} nº (opcional)${sel.q>1?`<select class="lv-sel" id="bi-num"><option value="">todos do grupo</option>${Array.from({length:sel.q},(_,i)=>`<option value="${sel.tipo==="viveiro"?"V":"T"}${i+1}"${numU===(sel.tipo==="viveiro"?"V":"T")+(i+1)?" selected":""}>${sel.tipo==="viveiro"?"V":"T"}${i+1}</option>`).join("")}</select>`:`<div class="inp"><input id="bi-num" maxlength="20" value="${E(numU)}" placeholder="ex.: 3, T-07, P2"></div>`}</label>`:""}</div>
-   ${sel?`<p class="muted bi-met">${TIPO[sel.tipo]} · ${E(sel.nome)}${sel.info?" · "+E(sel.info):""}${p===curPid()&&unis().some(u=>u.id===sel.id)?" · unidade do AquaNictemeral deste projeto":" · unidade cadastrada na biometria"}</p>`:us.length?"":`<p class="muted">Este projeto ainda não tem tanques nem viveiros cadastrados: crie em “Nova unidade”.</p>`}`}
+   ${sel?`<p class="muted bi-met">${TIPO[sel.tipo]} · ${E(sel.nome)}${sel.info?" · "+E(sel.info):""}${p===curPid()&&unis().some(u=>u.id===sel.id)?" · tanque/viveiro do AquaNictemeral deste projeto":" · tanque/viveiro cadastrado na biometria"}</p>`:us.length?"":`<p class="muted">Este projeto ainda não tem tanques nem viveiros cadastrados: crie em “Novo tanque/viveiro”.</p>`}`}
 function formHTML(p){if(!dataB)dataB=hojeS();
   return `${uniHTML(p,"Tanque ou viveiro")}<div class="rp-grid"><label>Data<div class="inp"><input type="date" id="bi-data" value="${dataB}"></div></label><label>Hora<div class="inp"><input type="time" id="bi-hora" value="${horaB}"></div></label></div>
    <div class="pj-tools chips">${[["ind","Animais individuais"],["lote","Pesagem em lote"]].map(([k,t])=>`<button type="button" class="chip${B.modo===k?" on":""}" data-bi-modo="${k}">${t}</button>`).join("")}</div>
@@ -7069,13 +7069,13 @@ function formHTML(p){if(!dataB)dataB=hojeS();
    <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-form"${busy?" disabled":""}>Salvar biometria em ${E(pNome(p))}</button></div>`}
 function mapaHTML(p){if(!dados)return "";const L=linhasParaAmostras(dados.rows,B.map);
   return `<div class="ap-box"><b>Colunas encontradas · ${dados.rows.length} linhas</b><div class="ap-cols">${dados.cols.map(c=>`<label><span title="${E(c)}">${E(c)}</span><select class="lv-sel" data-bi-col="${E(c)}"><option value="">ignorar</option>${ALV.map(([k,t])=>`<option value="${k}"${B.map[c]===k?" selected":""}>${t}</option>`).join("")}</select></label>`).join("")}</div>
-   <p class="muted">${L.amostras.length} biometria${L.amostras.length===1?"":"s"} (agrupadas por unidade, data e método)${L.ruins?` · ${L.ruins} linha${L.ruins===1?"":"s"} sem data ou sem peso/comprimento`:""}. ${L.amostras.slice(0,4).map(a=>{const s=stats(a);return `${E(a.un||"unidade escolhida")} ${dBR(a.data)}: ${s.N} animais, ${f(s.pm,1)} g`}).join(" · ")}</p>
-   <p class="muted">Vão para o projeto <b>${E(pNome(p))}</b>${Object.values(B.map).includes("projeto")?" (ou para o projeto da coluna Projeto, quando ele existir)":""}. Unidades do arquivo que o projeto ainda não tem são criadas como tanque ou viveiro pelo nome; linhas sem unidade vão para a unidade escolhida acima.</p>
+   <p class="muted">${L.amostras.length} biometria${L.amostras.length===1?"":"s"} (agrupadas por tanque/viveiro, data e método)${L.ruins?` · ${L.ruins} linha${L.ruins===1?"":"s"} sem data ou sem peso/comprimento`:""}. ${L.amostras.slice(0,4).map(a=>{const s=stats(a);return `${E(a.un||"tanque/viveiro escolhido")} ${dBR(a.data)}: ${s.N} animais, ${f(s.pm,1)} g`}).join(" · ")}</p>
+   <p class="muted">Vão para o projeto <b>${E(pNome(p))}</b>${Object.values(B.map).includes("projeto")?" (ou para o projeto da coluna Projeto, quando ele existir)":""}. Tanques/viveiros do arquivo que o projeto ainda não tem são criados como tanque ou viveiro pelo nome; linhas sem tanque/viveiro vão para o tanque/viveiro escolhido acima.</p>
    <div class="pj-btns"><button type="button" class="btn solid" data-bi="salvar-dados"${L.amostras.length?"":" disabled"}>Salvar ${L.amostras.length} biometria${L.amostras.length===1?"":"s"}</button><button type="button" class="btn" data-bi="descartar">Descartar</button></div></div>`}
 function fonteHTML(p){
   if(B.fonte==="form")return formHTML(p);
-  const un=uniHTML(p,"Unidade padrão (linhas sem unidade)");
-  if(B.fonte==="arquivo")return `${un}<p class="muted">Planilha (.xlsx, .numbers, .ods), CSV ou JSON com uma linha por animal (peso e comprimento) ou por lote (quantidade e peso total). Colunas: unidade, projeto, data (e hora), peso (g), comprimento (cm), quantidade, peso total (kg), método.</p><div class="pj-btns"><button type="button" class="btn solid" data-bi="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>${mapaHTML(p)}`;
+  const un=uniHTML(p,"Tanque/viveiro padrão (linhas sem tanque/viveiro)");
+  if(B.fonte==="arquivo")return `${un}<p class="muted">Planilha (.xlsx, .numbers, .ods), CSV ou JSON com uma linha por animal (peso e comprimento) ou por lote (quantidade e peso total). Colunas: tanque/viveiro, projeto, data (e hora), peso (g), comprimento (cm), quantidade, peso total (kg), método.</p><div class="pj-btns"><button type="button" class="btn solid" data-bi="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>${mapaHTML(p)}`;
   if(B.fonte==="colado")return `${un}<textarea class="ap-txt" id="bi-txt" rows="5" placeholder="unidade;data;peso;comprimento&#10;Viveiro 1;24/10/2026;12,4;10,8"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-bi="ler">Ler dados</button></div>${mapaHTML(p)}`;
   if(B.fonte==="link")return `${un}<div class="rp-grid"><label class="ap-url">Link (CSV ou JSON)<input data-bi-cfg="url" value="${E(B.url)}" placeholder="planilha publicada, app da câmera, servidor do contador…"></label><label>Buscar sozinho<select class="lv-sel" data-bi-cfg="min">${[[15,"a cada 15 min"],[60,"a cada 1 h"],[360,"a cada 6 h"],[1440,"1 vez por dia"]].map(([v,t])=>`<option value="${v}"${+B.min===v?" selected":""}>${t}</option>`).join("")}</select></label><label class="us-chk ap-chk"><input type="checkbox" data-bi-cfg="auto"${B.auto?" checked":""}> <span><b>Ligado</b><br><span class="muted">só traz biometrias novas</span></span></label></div><div class="pj-btns"><button type="button" class="btn solid" data-bi="buscar"${busy?" disabled":""}>Buscar agora</button></div>${mapaHTML(p)}`;
   const cfg=window.RAS_CONFIG||{};return `${un}<p>Câmeras com IA, contadores, molduras submersas, sonar ou uma automação (Make, Zapier, n8n, Node-RED, ESP32 com balança) enviam a biometria para o <b>mesmo endereço do webhook</b> do 🔌 Conectar automação. Basta incluir <code>"tipo": "biometria"</code> em cada item. Sem o campo <code>projeto</code>, a biometria entra em <b>${E(pNome(p))}</b>:</p>
@@ -7086,7 +7086,7 @@ const cadSel=(k,v,attr)=>`<select class="lv-sel bi-cad" ${attr}="${E(k)}" aria-l
 function linhasResumo(p){const ps=p==="*"?projs().map(x=>x.id):[p],L=[];for(const pp of ps)for(const u of uniP(pp)){const r=resumoUni(pp,u.id);if(r)L.push({p:pp,u,r})}return L}
 function resumoHTML(p){const linhas=linhasResumo(p);
   if(!linhas.length)return `<p class="muted">Nenhuma biometria ${p==="*"?"ainda":"neste projeto ainda"}.</p>`;
-  return `<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Unidade</th><th>Última biometria</th><th class="num">Animais</th><th class="num">Peso médio</th><th class="num">CV</th><th class="num">Compr.</th><th class="num">K</th><th class="num">Ganho/dia</th><th>Modelo da Biomassa</th><th>Próxima biometria</th></tr></thead><tbody>${linhas.map(({p:pp,u,r})=>{const s=r.s,late=r.prox&&r.prox<new Date();
+  return `<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Tanque/viveiro</th><th>Última biometria</th><th class="num">Animais</th><th class="num">Peso médio</th><th class="num">CV</th><th class="num">Compr.</th><th class="num">K</th><th class="num">Ganho/dia</th><th>Modelo da Biomassa</th><th>Próxima biometria</th></tr></thead><tbody>${linhas.map(({p:pp,u,r})=>{const s=r.s,late=r.prox&&r.prox<new Date();
     return `<tr><td><b>${E(u.nome)}</b><small>${TIPO[u.tipo]}${r.u.num?" · "+E(r.u.num):""} · ${r.n} biometria${r.n===1?"":"s"}${p==="*"?" · "+E(pNome(pp)):""}</small></td><td>${dBR(r.u.data)}${r.u.hora?" "+r.u.hora:""}<small>${E(metNome(r.u.metodo))} · ${ORIGB[(r.u.origem||{}).tipo]||""}</small></td>
      <td class="num" data-l="Animais">${s.N}</td><td class="num" data-l="Peso médio">${f(s.pm,s.pm<10?2:1)} g${s.sd!=null?`<small>± ${f(s.sd,1)}</small>`:""}</td><td class="num" data-l="CV">${s.cv!=null?f(s.cv,0)+" %":"—"}${s.cv!=null?`<small>${s.cv<=20?"uniforme":s.cv<=30?"média":"desuniforme"}</small>`:""}</td>
      <td class="num" data-l="Compr.">${s.cm!=null?f(s.cm,1)+" cm":"—"}</td><td class="num" data-l="K">${s.k!=null?f(s.k,2):"—"}${s.ab?`<small>b = ${f(s.ab.b,2)}</small>`:""}</td><td class="num" data-l="Ganho/dia">${r.gpd!=null?f(r.gpd,2)+" g":"—"}</td>
@@ -7099,15 +7099,15 @@ function projHTML(p){if(p==="*")return "";const us=uniP(p),L=us.map(u=>({u,j:pro
   return `<h3 class="bi-h">📈 Correlação e projeção · ${E(pNome(p))}</h3>
    <div class="bi-kpis"><div><b>${am.length}</b><span>biometria${am.length===1?"":"s"}</span></div><div><b>${us.length}</b><span>${nT} tanque${nT===1?"":"s"} · ${us.length-nT} viveiro${us.length-nT===1?"":"s"}</span></div><div><b>${ult.length?f(pmP,pmP<10?2:1)+" g":"—"}</b><span>peso médio atual (ponderado)</span></div><div><b>${gpdM!=null?f(gpdM,2)+" g":"—"}</b><span>ganho médio por dia</span></div>${bioT?`<div><b>${f(bioT,0)} kg</b><span>biomassa estimada</span></div>`:""}${pl.pl?`<div><b>P = ${f(pl.pl.a,4)}·C<sup>${f(pl.pl.b,2)}</sup></b><span>relação peso-comprimento do projeto (${pl.pl.n} animais, R² ${f(pl.pl.r2,2)})</span></div>`:pl.k!=null?`<div><b>K ${f(pl.k,2)}</b><span>fator de condição médio (${pl.nk} animais)</span></div>`:""}</div>
    <div class="rp-grid"><label>Peso de abate / meta (g)<div class="inp"><input id="bi-alvo" inputmode="decimal" value="${B.alvo[p]?String(B.alvo[p]).replace(".",","):""}" placeholder="ex.: 800"></div></label></div>
-   ${L.length?`<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Unidade</th><th class="num">Ganho/dia</th><th class="num">Cresc. específico</th><th class="num">Em 15 dias</th><th class="num">Em 30 dias</th><th>Meta</th><th class="num">Animais</th><th class="num">Biomassa</th></tr></thead><tbody>${L.map(({u,j})=>{const rg=w=>w[1]-w[0]<0.05*w[1]?f((w[0]+w[1])/2,1)+" g":f(w[0],0)+"–"+f(w[1],0)+" g";
+   ${L.length?`<div class="scroll"><table class="pj-tab ap-hist bi-tab"><thead><tr><th>Tanque/viveiro</th><th class="num">Ganho/dia</th><th class="num">Cresc. específico</th><th class="num">Em 15 dias</th><th class="num">Em 30 dias</th><th>Meta</th><th class="num">Animais</th><th class="num">Biomassa</th></tr></thead><tbody>${L.map(({u,j})=>{const rg=w=>w[1]-w[0]<0.05*w[1]?f((w[0]+w[1])/2,1)+" g":f(w[0],0)+"–"+f(w[1],0)+" g";
      return `<tr><td><b>${E(u.nome)}</b><small>${TIPO[u.tipo]} · ${j.n} datas em ${f(j.dias,0)} dias${j.melhor?" · melhor ajuste "+j.melhor:""}</small></td><td class="num">${f(j.gpd,2)} g<small>R² ${f(j.r2l,2)}</small></td><td class="num">${f(j.sgr,2)} %/dia<small>R² ${f(j.r2e,2)}</small></td><td class="num">${rg(j.w15)}</td><td class="num">${rg(j.w30)}</td>
       <td>${!j.alvo?`<small>informe a meta</small>`:j.wl>=j.alvo?`<span class="bi-ok">atingida</span>`:j.dAlvo?`${dCurta(Date.now()>j.dl?j.dl+j.dAlvo[0]*864e5:j.dl+j.dAlvo[0]*864e5)}${j.dAlvo[1]-j.dAlvo[0]>1?" a "+dCurta(j.dl+j.dAlvo[1]*864e5):""}<small>${f(j.dAlvo[0],0)}${j.dAlvo[1]-j.dAlvo[0]>1?"–"+f(j.dAlvo[1],0):""} dias após a última biometria</small>`:`<small class="bi-bad">sem crescimento</small>`}</td>
       <td class="num"><div class="inp bi-pop"><input data-bi-pop="${E(uk(p,u.id))}" inputmode="numeric" value="${B.pop[uk(p,u.id)]||""}" placeholder="${j.pop?f(j.pop,0):"nº"}"></div></td><td class="num">${j.bioAgora?f(j.bioAgora,0)+" kg":"—"}${j.bioAlvo?`<small>${f(j.bioAlvo,0)} kg na meta</small>`:""}</td></tr>`}).join("")}</tbody></table></div>
    <p class="muted">A projeção usa só as biometrias deste projeto e desta unidade: <b>ganho por dia</b> (reta) e <b>crescimento específico</b> (curva exponencial, SGR = 100 × ln(P2/P1) ÷ dias), a partir do último peso medido. O intervalo vai do modelo mais conservador ao mais otimista; com 3 ou mais datas o app mostra qual ajusta melhor (R²). Quanto mais biometrias no projeto, mais precisa a projeção. A biomassa usa o nº de animais informado ou o do lote da aba Biomassa.</p>`
-    :`<p class="muted">A projeção aparece quando uma unidade tiver biometrias em 2 datas diferentes.</p>`}
-   <details class="us-det"><summary>Tanques e viveiros do projeto (${us.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Unidade</th><th>Tipo</th><th>Identificação</th><th class="num">Biometrias</th></tr></thead><tbody>${us.map(u=>`<tr><td><b>${E(u.nome)}</b></td><td><select class="lv-sel bi-cad" data-bi-tipo="${E(uk(p,u.id))}"><option value="tanque"${u.tipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${u.tipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></td><td>${E(u.info||"—")}<small>${p===curPid()&&unis().some(x=>x.id===u.id)?"do AquaNictemeral":"cadastrada na biometria"}</small></td><td class="num">${amostrasU(p,u.id).length}</td></tr>`).join("")}</tbody></table></div></details>`}
+    :`<p class="muted">A projeção aparece quando um tanque/viveiro tiver biometrias em 2 datas diferentes.</p>`}
+   <details class="us-det"><summary>Tanques e viveiros do projeto (${us.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Tanque/viveiro</th><th>Tipo</th><th>Identificação</th><th class="num">Biometrias</th></tr></thead><tbody>${us.map(u=>`<tr><td><b>${E(u.nome)}</b></td><td><select class="lv-sel bi-cad" data-bi-tipo="${E(uk(p,u.id))}"><option value="tanque"${u.tipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${u.tipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></td><td>${E(u.info||"—")}<small>${p===curPid()&&unis().some(x=>x.id===u.id)?"do AquaNictemeral":"cadastrada na biometria"}</small></td><td class="num">${amostrasU(p,u.id).length}</td></tr>`).join("")}</tbody></table></div></details>`}
 function histHTML(p){const L=B.amostras.filter(a=>daP(a,p)).sort(ordem).reverse();if(!L.length)return "";
-  return `<details class="us-det"><summary>Todas as biometrias${p==="*"?"":" do projeto"} (${L.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Unidade</th><th>Método · origem</th><th class="num">Animais</th><th class="num">Peso médio</th><th></th></tr></thead><tbody>${L.map(a=>{const s=stats(a),c=conf===a.id;
+  return `<details class="us-det"><summary>Todas as biometrias${p==="*"?"":" do projeto"} (${L.length})</summary><div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Tanque/viveiro</th><th>Método · origem</th><th class="num">Animais</th><th class="num">Peso médio</th><th></th></tr></thead><tbody>${L.map(a=>{const s=stats(a),c=conf===a.id;
     return `<tr><td>${dBR(a.data)} ${a.hora||""}<small>${a.pid?E(a.pnome||pNome(a.pid)):"sem projeto"}</small></td><td>${E(a.unome||a.unidade)}<small>${TIPO[a.utipo]||""}${a.num?" · "+E(a.num):""}</small></td><td>${E(metNome(a.metodo))}<small>${ORIGB[(a.origem||{}).tipo]||""}${a.origem&&a.origem.nome?": "+E(a.origem.nome):""}${a.obs?" · "+E(a.obs):""}</small></td><td class="num">${s.N}</td><td class="num">${f(s.pm,s.pm<10?2:1)} g</td>
      <td class="pj-acts">${c?`<button type="button" class="btn warn" data-bi="del-ok" data-id="${a.id}">Confirmar</button><button type="button" class="btn" data-bi="del-nao">Voltar</button>`:`<button type="button" class="btn ap-x" data-bi="del" data-id="${a.id}">🗑 Excluir</button>`}</td></tr>`}).join("")}</tbody></table></div></details>`}
 let desenhando=false;
@@ -7121,7 +7121,7 @@ function desenha(){const p=projSel(),cp=curPid();if(projAnt!==p){projAnt=p;unida
    <p class="muted bi-met">${p==="*"?"Mostrando as biometrias de todos os projetos. Para importar, escolha um projeto.":p===cp?`As biometrias que você importar agora ficam identificadas com <b>${E(pNome(p))}</b>, correlacionadas com o AquaNictemeral, a cadência e o lote da aba Biomassa deste projeto.`:`As biometrias que você importar agora ficam identificadas com <b>${E(pNome(p))}</b> (projeto não aberto: ficam guardadas neste aparelho; a comparação com a aba Biomassa aparece quando ele for aberto).`} ${E((MET.find(m=>m[0]===B.metodo)||[])[2]||"")}</p>
    ${semP&&p!=="*"&&p!=="_local"?`<div class="pj-btns"><button type="button" class="btn" data-bi="atribuir">Identificar ${semP} biometria${semP===1?"":"s"} sem projeto como ${E(pNome(p))}</button></div>`:""}
    ${p==="*"?"":`<div class="pj-tools chips">${Object.entries(ORIGB).map(([k,t])=>`<button type="button" class="chip${B.fonte===k?" on":""}" data-bi-fonte="${k}">${t}</button>`).join("")}</div>${fonteHTML(p)}`}
-   <h3 class="bi-h">Situação por unidade</h3>${resumoHTML(p)}${projHTML(p)}${histHTML(p)}
+   <h3 class="bi-h">Situação por tanque/viveiro</h3>${resumoHTML(p)}${projHTML(p)}${histHTML(p)}
    <details class="us-det"><summary>Tipos de biometria em aquicultura</summary><ul class="bi-tipos">${MET.filter(m=>m[2]).map(m=>`<li><b>${m[1]}:</b> ${m[2]}</li>`).join("")}</ul></details>
   </div></details>`;bind()}
 function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card"),p=projSel();d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
@@ -7152,7 +7152,7 @@ function acao(a,b){const p=projImp();
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=U.ACEITA||"";i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
     i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await U.lerArquivo(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
   if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
-  if(a==="salvar-dados"){rodar(async()=>{if(unidade==="__nova"&&!novaNome.trim()&&linhasParaAmostras(dados.rows,B.map).amostras.some(x=>!x.un))throw new Error("Dê uma identificação para o novo tanque ou viveiro (usado nas linhas sem unidade).");
+  if(a==="salvar-dados"){rodar(async()=>{if(unidade==="__nova"&&!novaNome.trim()&&linhasParaAmostras(dados.rows,B.map).amostras.some(x=>!x.un))throw new Error("Dê uma identificação para o novo tanque ou viveiro (usado nas linhas sem tanque/viveiro).");
     const L=linhasParaAmostras(dados.rows,B.map).amostras.map(x=>x.un?x:{...x,num:numU}),o=dados.origem;const r=guardar(L,o,p);dados=null;return res(r,o)});return}
   if(a==="descartar"){dados=null;msg="";draw();return}
   if(a==="buscar"){rodar(()=>buscarLinkB(false));return}
@@ -7272,7 +7272,7 @@ function fontesProjeto(){const G=[];let de="";
     if(G.length)de=`os viveiros do levantamento “${p.nome||"atual"}”`}catch(e){}
   if(!G.length)try{const S=JSON.parse(localStorage.getItem("aquanictemeral.ras.v1"))||{};
     for(const u of (S.unidades||[]))if(!u.exemplo&&!u.ras&&!u.sistemaRAS&&u.id!=="ras-sistema"&&+u.volume_m3>0)G.push({name:String(u.nome||"Unidade").slice(0,24),q:"1",v:String(Math.round(+u.volume_m3)),sp:u.especie});
-    if(G.length)de="as unidades (tanques e viveiros) do AquaNictemeral"}catch(e){}
+    if(G.length)de="os tanques e viveiros do AquaNictemeral"}catch(e){}
   return {G,de}}
 function autoPreencher(){const s=st();if(!s||!s.aberto||!s.pronto||typeof tanks==="undefined")return;
   const pa=window.projAtual&&projAtual();if(!pa||autoFeito[pa.id])return;autoFeito[pa.id]=1;
@@ -7353,7 +7353,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v69";
+  const APP_VERSAO="ras-v70";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
