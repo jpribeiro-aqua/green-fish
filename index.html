@@ -894,6 +894,26 @@ button, select, input { font: inherit; color: inherit; }
 .tabs { display: flex; gap: 2px; }
 .tab { border: 0; background: transparent; padding: 10px 14px 11px; cursor: pointer; font-weight: 600; color: var(--ink-2); border-bottom: 3px solid transparent; }
 .tab[aria-selected=&quot;true&quot;] { color: var(--ink); border-bottom-color: var(--accent); }
+.u-chips-top { width: 100%; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.u-chips-top .u-chips-l { width: auto; }
+.u-seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: 999px; overflow: hidden; background: var(--bg, #f3f6f5); }
+.u-ft { border: 0; background: transparent; color: var(--ink-2); padding: 6px 14px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.u-ft + .u-ft { border-left: 1.5px solid var(--line); }
+.u-ft small { font-weight: 600; opacity: .7; }
+.u-ft[aria-pressed=&quot;true&quot;] { background: var(--ink); color: var(--bg); }
+.u-ft.ft-tanque[aria-pressed=&quot;true&quot;] { background: var(--s1); color: #fff; }
+.u-ft.ft-viveiro[aria-pressed=&quot;true&quot;] { background: #8a5a2b; color: #fff; }
+.u-ico { font-size: 13px; }
+.u-chip.t-tanque.on { background: var(--s1); border-color: var(--s1); }
+.u-chip.t-viveiro.on { background: #8a5a2b; border-color: #8a5a2b; }
+.tab-nome.t-tanque { background: var(--s1); } .tab-nome.t-viveiro { background: #8a5a2b; }
+.f-alvo { display: flex; gap: 12px; align-items: center; margin: 4px 0 12px; padding: 10px 14px; border-radius: 12px; color: #fff; background: var(--accent); box-shadow: 0 3px 10px rgba(0,0,0,.12); }
+.f-alvo.t-tanque { background: var(--s1); } .f-alvo.t-viveiro { background: #8a5a2b; }
+.f-alvo-ico { font-size: 26px; line-height: 1; }
+.f-alvo small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; opacity: .9; }
+.f-alvo b { display: block; font-size: 1.25rem; line-height: 1.2; }
+.f-alvo em { display: block; font-style: normal; font-size: .82rem; opacity: .9; }
+.panel[data-tipo=&quot;tanque&quot;] { border: 2px solid var(--s1); } .panel[data-tipo=&quot;viveiro&quot;] { border: 2px solid #8a5a2b; }
 .tab-nome { display: inline-block; margin-left: 6px; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.92em; font-weight: 700; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .u-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 14px; margin: 0 0 14px; border: 2px solid var(--accent); border-radius: 14px; background: var(--surface, #fff); }
 .u-chips-l { width: 100%; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
@@ -1129,6 +1149,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;p-dia&quot;&gt;Dia de referência&lt;/label&gt;&lt;select id=&quot;p-dia&quot;&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label&gt;Período&lt;/label&gt;&lt;div class=&quot;seg&quot; role=&quot;group&quot; aria-label=&quot;Período&quot;&gt;
         &lt;button type=&quot;button&quot; id=&quot;p-per-1&quot; aria-pressed=&quot;true&quot;&gt;Dia&lt;/button&gt;&lt;button type=&quot;button&quot; id=&quot;p-per-7&quot; aria-pressed=&quot;false&quot;&gt;7 dias&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;p-tipo&quot;&gt;Tanques/viveiros&lt;/label&gt;&lt;select id=&quot;p-tipo&quot;&gt;&lt;option value=&quot;&quot;&gt;Todos&lt;/option&gt;&lt;option value=&quot;tanque&quot;&gt;🟦 Só tanques&lt;/option&gt;&lt;option value=&quot;viveiro&quot;&gt;🟫 Só viveiros&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;p-esp&quot;&gt;Espécie&lt;/label&gt;&lt;select id=&quot;p-esp&quot;&gt;&lt;option value=&quot;&quot;&gt;Todas&lt;/option&gt;&lt;option value=&quot;tilapia&quot;&gt;Tilápia&lt;/option&gt;&lt;option value=&quot;tambaqui&quot;&gt;Tambaqui&lt;/option&gt;&lt;option value=&quot;camarao&quot;&gt;Camarão&lt;/option&gt;&lt;option value=&quot;pirarucu&quot;&gt;Pirarucu&lt;/option&gt;&lt;option value=&quot;pangasius&quot;&gt;Pangasius&lt;/option&gt;&lt;option value=&quot;curimata&quot;&gt;Curimatã&lt;/option&gt;&lt;option value=&quot;lambari&quot;&gt;Lambari&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
     &lt;/div&gt;
   &lt;/header&gt;
@@ -1217,6 +1238,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
   &lt;div class=&quot;cols&quot;&gt;
     &lt;section class=&quot;panel&quot; aria-labelledby=&quot;t-nova&quot;&gt;
       &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-nova&quot;&gt;Nova leitura&lt;/h2&gt;&lt;span class=&quot;eyebrow&quot; id=&quot;f-hint&quot;&gt;&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;f-alvo&quot; id=&quot;f-alvo&quot;&gt;&lt;/div&gt;
       &lt;div class=&quot;cad&quot;&gt;
         &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;c-passo&quot;&gt;Cadência das coletas&lt;/label&gt;
           &lt;select id=&quot;c-passo&quot;&gt;&lt;option value=&quot;1&quot;&gt;A cada 1 h (24 coletas)&lt;/option&gt;&lt;option value=&quot;2&quot;&gt;A cada 2 h (12 coletas)&lt;/option&gt;&lt;option value=&quot;3&quot;&gt;A cada 3 h (8 coletas)&lt;/option&gt;&lt;option value=&quot;4&quot;&gt;A cada 4 h (6 coletas)&lt;/option&gt;&lt;option value=&quot;6&quot;&gt;A cada 6 h (4 coletas)&lt;/option&gt;&lt;option value=&quot;p&quot;&gt;Protocolo mínimo (06, 15, 20 e 22 h)&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;
@@ -1522,6 +1544,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     if (/suspens|elevad|lona|geomembrana|caixa|fibra|alvenaria|concreto|circular/.test(n)) return &quot;suspenso&quot;;
     const tq = /\btanques?\b|\btank/.test(n), vv = /viveiro|escavad|acude|\bpond\b/.test(n);
     if (vv &amp;&amp; !tq) return &quot;viveiro&quot;; if (tq &amp;&amp; !vv) return &quot;suspenso&quot;; return null; };
+  const tipoU = (u) =&gt; (u.sistemaRAS ? &quot;sistema&quot; : estrDe(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;);
+  const TIPO_U = { tanque: [&quot;🟦&quot;, &quot;Tanque&quot;, &quot;Tanques&quot;], viveiro: [&quot;🟫&quot;, &quot;Viveiro&quot;, &quot;Viveiros&quot;], sistema: [&quot;💧&quot;, &quot;Água do sistema&quot;, &quot;Água do sistema&quot;] };
+  const passaTipo = (u) =&gt; !S.filtroTipo || tipoU(u) === S.filtroTipo || u.sistemaRAS;
   const PREF_E = { viveiro: &quot;Viveiro&quot;, suspenso: &quot;Tanque&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;Tanque RAS&quot;, bft: &quot;Tanque BFT&quot; };
   const CURTO_E = { viveiro: &quot;Viveiro escavado&quot;, suspenso: &quot;Tanque suspenso / elevado&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;RAS (recirculação)&quot;, bft: &quot;Bioflocos (BFT)&quot; };
   /* nome que acompanha a estrutura: &quot;Tanque 7&quot; vira &quot;Viveiro 7&quot; ao escolher viveiro escavado (nomes próprios ficam como estão) */
@@ -1654,13 +1679,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
   // ============================================================ PAINEL
   function diasPeriodo() { const d = diaPainel || (S.dia &amp;&amp; !futuro(S.dia) ? S.dia : ultValido(LT().map((l) =&gt; l.data))); return periodo === 1 ? [d] : Array.from({ length: 7 }, (_, i) =&gt; addDias(d, i - 6)); }
-  const unidadesFiltradas = () =&gt; S.unidades.filter((u) =&gt; !u.oculto &amp;&amp; (!filtroEsp || espDe(u).includes(filtroEsp)));
+  const unidadesFiltradas = () =&gt; S.unidades.filter((u) =&gt; !u.oculto &amp;&amp; passaTipo(u) &amp;&amp; (!filtroEsp || espDe(u).includes(filtroEsp)));
 
   function renderPainel() {
     const presentes = [&quot;tilapia&quot;, &quot;tambaqui&quot;, &quot;camarao&quot;, &quot;pirarucu&quot;, &quot;pangasius&quot;, &quot;curimata&quot;, &quot;lambari&quot;].filter((e) =&gt; S.unidades.some((u) =&gt; espDe(u).includes(e)));
     if (filtroEsp &amp;&amp; !presentes.includes(filtroEsp)) filtroEsp = &quot;&quot;;
     const dias = diasPeriodo(), dRef = dias[dias.length - 1], US = unidadesFiltradas();
     const sd = $(&quot;p-dia&quot;); sd.innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === dRef ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}${futuro(d) ? &quot; ⚠ data futura&quot; : &quot;&quot;}&lt;/option&gt;`).join(&quot;&quot;);
+    { const pt = $(&quot;p-tipo&quot;); if (pt) { pt.value = S.filtroTipo || &quot;&quot;; [...pt.options].forEach((o) =&gt; { const n = o.value ? S.unidades.filter((x) =&gt; tipoU(x) === o.value).length : S.unidades.length; o.textContent = o.textContent.replace(/ \(\d+\)$/, &quot;&quot;) + ` (${n})`; }); } }
     $(&quot;p-per-1&quot;).setAttribute(&quot;aria-pressed&quot;, periodo === 1); $(&quot;p-per-7&quot;).setAttribute(&quot;aria-pressed&quot;, periodo === 7);
     $(&quot;p-esp&quot;).innerHTML = `&lt;option value=&quot;&quot;&gt;Todas&lt;/option&gt;` + presentes.map((e) =&gt; `&lt;option value=&quot;${e}&quot;${e === filtroEsp ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão&quot;, pirarucu: &quot;Pirarucu&quot;, pangasius: &quot;Pangasius&quot;, curimata: &quot;Curimatã&quot;, lambari: &quot;Lambari&quot; }[e]}&lt;/option&gt;`).join(&quot;&quot;);
     const nL = US.reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0);
@@ -1922,11 +1948,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;u-nome&quot;).title = u.ras ? &quot;O nome vem da Calculadora&quot; : &quot;&quot;;
     $(&quot;u-sel&quot;).innerHTML = S.unidades.map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
     { const d0 = S.dia || hoje(), ch = $(&quot;u-chips&quot;);
-      if (ch) { ch.innerHTML = `&lt;span class=&quot;u-chips-l&quot;&gt;Selecione o tanque/viveiro&lt;/span&gt;` + S.unidades.map((x) =&gt; { const n = S.leituras.filter((l) =&gt; l.unidade === x.id &amp;&amp; l.data === d0 &amp;&amp; passa(l)).length, tot = S.leituras.some((l) =&gt; l.unidade === x.id &amp;&amp; passa(l));
-        return `&lt;button type=&quot;button&quot; class=&quot;u-chip${x.id === u.id ? &quot; on&quot; : &quot;&quot;}${tot ? &quot;&quot; : &quot; vaz&quot;}${x.oculto ? &quot; oc&quot; : &quot;&quot;}&quot; data-u=&quot;${x.id}&quot; aria-pressed=&quot;${x.id === u.id}&quot; title=&quot;${x.oculto ? &quot;Fora do painel: toque e use “Botar de volta no painel”&quot; : &quot;&quot;}&quot;&gt;${escO(x.nome)}${n ? `&lt;small&gt;${n}&lt;/small&gt;` : &quot;&quot;}&lt;/button&gt;`; }).join(&quot;&quot;) + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; id=&quot;u-chip-nova&quot;&gt;+ Novo tanque/viveiro&lt;/button&gt;`;
+      const cnt = (t) =&gt; S.unidades.filter((x) =&gt; tipoU(x) === t).length, ft = S.filtroTipo || &quot;&quot;;
+      if (ch) { ch.innerHTML = `&lt;div class=&quot;u-chips-top&quot;&gt;&lt;span class=&quot;u-chips-l&quot;&gt;Selecione ${ft === &quot;viveiro&quot; ? &quot;o viveiro&quot; : ft === &quot;tanque&quot; ? &quot;o tanque&quot; : &quot;o tanque ou viveiro&quot;}&lt;/span&gt;&lt;span class=&quot;u-seg&quot; role=&quot;group&quot; aria-label=&quot;Mostrar&quot;&gt;${[[&quot;&quot;, &quot;Todos&quot;, S.unidades.length], [&quot;tanque&quot;, &quot;🟦 Tanques&quot;, cnt(&quot;tanque&quot;)], [&quot;viveiro&quot;, &quot;🟫 Viveiros&quot;, cnt(&quot;viveiro&quot;)]].map(([k, t, n]) =&gt; `&lt;button type=&quot;button&quot; class=&quot;u-ft${k ? &quot; ft-&quot; + k : &quot;&quot;}&quot; data-ft=&quot;${k}&quot; aria-pressed=&quot;${ft === k}&quot;&gt;${t} &lt;small&gt;${n}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;)}&lt;/span&gt;&lt;/div&gt;` + S.unidades.filter((x) =&gt; x.id === u.id || passaTipo(x)).map((x) =&gt; { const n = S.leituras.filter((l) =&gt; l.unidade === x.id &amp;&amp; l.data === d0 &amp;&amp; passa(l)).length, tot = S.leituras.some((l) =&gt; l.unidade === x.id &amp;&amp; passa(l));
+        return `&lt;button type=&quot;button&quot; class=&quot;u-chip t-${tipoU(x)}${x.id === u.id ? &quot; on&quot; : &quot;&quot;}${tot ? &quot;&quot; : &quot; vaz&quot;}${x.oculto ? &quot; oc&quot; : &quot;&quot;}&quot; data-u=&quot;${x.id}&quot; aria-pressed=&quot;${x.id === u.id}&quot; title=&quot;${x.oculto ? &quot;Fora do painel: toque e use “Botar de volta no painel”&quot; : TIPO_U[tipoU(x)][1]}&quot;&gt;&lt;span class=&quot;u-ico&quot;&gt;${TIPO_U[tipoU(x)][0]}&lt;/span&gt;${escO(x.nome)}${n ? `&lt;small&gt;${n}&lt;/small&gt;` : &quot;&quot;}&lt;/button&gt;`; }).join(&quot;&quot;) + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; id=&quot;u-chip-nova&quot;&gt;+ Novo tanque/viveiro&lt;/button&gt;`;
         const nb = $(&quot;u-chip-nova&quot;); if (nb) nb.addEventListener(&quot;click&quot;, () =&gt; $(&quot;b-nova&quot;).click());
+        ch.querySelectorAll(&quot;.u-ft&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.filtroTipo = b.dataset.ft; const a = UA(); if (S.filtroTipo &amp;&amp; tipoU(a) !== S.filtroTipo) { const nx = S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto) || S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo); if (nx) { S.ativa = nx.id; sel = null; irUltDia(); } } salvar(); renderUnidade(); }));
         ch.querySelectorAll(&quot;.u-chip&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { if (b.dataset.u === S.ativa) return; S.ativa = b.dataset.u; sel = null; irUltDia(); salvar(); renderUnidade(); })); } }
-    $(&quot;tab-unidade&quot;).innerHTML = `Tanque/viveiro &lt;span class=&quot;tab-nome&quot;&gt;${escO(u.nome)}&lt;/span&gt;`;
+    $(&quot;tab-unidade&quot;).innerHTML = `Tanque/viveiro &lt;span class=&quot;tab-nome t-${tipoU(u)}&quot;&gt;${TIPO_U[tipoU(u)][0]} ${escO(u.nome)}&lt;/span&gt;`;
+    { const al = $(&quot;f-alvo&quot;), t = tipoU(u); if (al) { al.className = &quot;f-alvo t-&quot; + t; al.innerHTML = `&lt;span class=&quot;f-alvo-ico&quot;&gt;${TIPO_U[t][0]}&lt;/span&gt;&lt;span&gt;&lt;small&gt;${t === &quot;viveiro&quot; ? &quot;Viveiro selecionado&quot; : t === &quot;tanque&quot; ? &quot;Tanque selecionado&quot; : &quot;Água do sistema selecionada&quot;} para as leituras&lt;/small&gt;&lt;b&gt;${escO(u.nome)}&lt;/b&gt;&lt;em&gt;${u.sistemaRAS ? &quot;RAS&quot; : CURTO_E[estrDe(u)] || &quot;&quot;} · ${diaSemana(S.dia || hoje())} ${dataBR(S.dia || hoje())}&lt;/em&gt;&lt;/span&gt;`; }
+      const pn = al &amp;&amp; al.closest(&quot;.panel&quot;); if (pn) pn.dataset.tipo = t; $(&quot;u-nome&quot;).style.color = t === &quot;viveiro&quot; ? &quot;#8a5a2b&quot; : t === &quot;tanque&quot; ? &quot;var(--s1)&quot; : &quot;&quot;; }
     { const b = $(&quot;b-oc-u&quot;); if (b) { b.textContent = u.oculto ? &quot;Botar de volta no painel&quot; : &quot;Tirar do painel&quot;; b.title = u.oculto ? &quot;Volta a aparecer no Painel, nas curvas e na aba Local e viabilidade&quot; : &quot;Some do Painel, das curvas e da aba Local e viabilidade, sem apagar as leituras (dá para botar de volta)&quot;; b.classList.toggle(&quot;solid&quot;, !!u.oculto); } }
     $(&quot;u-dia&quot;).innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === (S.dia || hoje()) ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}${futuro(d) ? &quot; ⚠ data futura&quot; : &quot;&quot;}&lt;/option&gt;`).join(&quot;&quot;);
     const sc = BASE.sistemas_cultivo.find((x) =&gt; x.especie === u.especie &amp;&amp; x.sistema === u.sistema);
@@ -2107,6 +2137,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;p-per-1&quot;).addEventListener(&quot;click&quot;, () =&gt; { periodo = 1; renderPainel(); });
   $(&quot;p-per-7&quot;).addEventListener(&quot;click&quot;, () =&gt; { periodo = 7; renderPainel(); });
   $(&quot;p-esp&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { filtroEsp = e.target.value; renderPainel(); });
+  $(&quot;p-tipo&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.filtroTipo = e.target.value; salvar(); renderPainel(); });
   $(&quot;p-todos&quot;).addEventListener(&quot;click&quot;, () =&gt; { mostrarTodos = !mostrarTodos; renderAlertas(unidadesFiltradas(), diasPeriodo()); });
 
   // eventos do tanque/viveiro
@@ -7650,7 +7681,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v77";
+  const APP_VERSAO="ras-v78";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
