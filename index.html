@@ -489,7 +489,7 @@ td.lv-mc{padding:10px 2px!important;text-align:center!important}
 .lv-dm .lv-ds b{font:10px var(--f-mono);color:var(--muted);text-align:center;font-weight:400}
 .lv-dr{grid-template-columns:170px 238px repeat(4,140px)!important;column-gap:14px!important}
 .lv-dm{grid-template-columns:170px 238px!important}
-.lv-dp .pill{white-space:nowrap}.lv-ap.lv-na{opacity:.55}.lv-med{border:1px solid var(--accent,#1a6b5a);border-radius:12px;padding:10px 12px;margin:0 0 12px;background:var(--surface,#fff)}.lv-med h3{margin:0 0 6px;font-size:15px;display:flex;gap:8px;align-items:center}.lv-mr{display:flex;gap:10px;flex-wrap:wrap;font-size:13.5px;padding:3px 0;border-bottom:1px dashed var(--line,#ddd)}.lv-mr b{min-width:170px}.lv-ut{border-collapse:collapse;font-size:13px;width:100%}.lv-ut th,.lv-ut td{border-bottom:1px solid var(--line,#ddd);padding:6px 8px;text-align:left;vertical-align:top}.lv-ut tr.inapto td.g{border-left:4px solid var(--c8,#c0392b)}.lv-ut tr.restrito td.g{border-left:4px solid var(--c4,#e0a100)}.lv-ut tr.apto td.g{border-left:4px solid var(--accent,#1a6b5a)}.lv-ut td.lv-wrap{min-width:260px;max-width:520px;font-size:12.5px}.lv-dun{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0 10px;font-size:13.5px}.lv-dui{display:inline-flex;gap:6px;align-items:center}.lv-par{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}.lv-par li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}.lv-par li .pill{flex:0 0 auto;margin-top:1px}
+.lv-dp .pill{white-space:nowrap}.lv-ap.lv-na{opacity:.55}.lv-med{border:1px solid var(--accent,#1a6b5a);border-radius:12px;padding:10px 12px;margin:0 0 12px;background:var(--surface,#fff)}.lv-med h3{margin:0 0 6px;font-size:15px;display:flex;gap:8px;align-items:center}.lv-mr{display:flex;gap:10px;flex-wrap:wrap;font-size:13.5px;padding:3px 0;border-bottom:1px dashed var(--line,#ddd)}.lv-mr b{min-width:170px}.ap-slot{display:grid;gap:8px;margin:0 0 10px}.ap-slot .card{margin:0!important;box-shadow:none;border:1px solid var(--line,#ddd)}.ap-slot .card-head h2{font-size:15px}.ao-sub{border:1px solid var(--line,#ddd);border-radius:10px;padding:8px 10px;margin:0 0 8px;background:var(--surface,#fff)}.ao-sub>summary{cursor:pointer;font-weight:600;font-size:15px}.ao-sub>summary span{font-weight:400;font-size:12.5px;color:var(--muted);margin-left:6px}.ao-sub[open]>summary{margin-bottom:8px}.lv-bsm{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap}.lv-ut{border-collapse:collapse;font-size:13px;width:100%}.lv-ut th,.lv-ut td{border-bottom:1px solid var(--line,#ddd);padding:6px 8px;text-align:left;vertical-align:top}.lv-ut tr.inapto td.g{border-left:4px solid var(--c8,#c0392b)}.lv-ut tr.restrito td.g{border-left:4px solid var(--c4,#e0a100)}.lv-ut tr.apto td.g{border-left:4px solid var(--accent,#1a6b5a)}.lv-ut td.lv-wrap{min-width:260px;max-width:520px;font-size:12.5px}.lv-dun{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0 10px;font-size:13.5px}.lv-dui{display:inline-flex;gap:6px;align-items:center}.lv-par{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}.lv-par li{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}.lv-par li .pill{flex:0 0 auto;margin-top:1px}
 .lv-dp{display:grid;gap:2px;justify-items:start}
 .lv-dp em{font:normal 10px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .lv-lul{margin:12px 0 0;padding-left:18px;display:grid;gap:6px;font-size:13px}
@@ -840,10 +840,10 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
   </div>
 
   <div id="view-aqua" role="tabpanel" aria-labelledby="tab-aqua" hidden>
+    <div id="aqua-plug"></div>
+    <div id="aqua-bio"></div>
     <div id="aqua-orig"></div>
     <div id="aqua-cad"></div>
-    <div id="aqua-bio"></div>
-    <div id="aqua-plug"></div>
     <iframe id="aqua-frame" title="AquaNictemeral: monitoramento nictemeral da água" loading="eager" data-srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;pt-BR&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap&quot;&gt;&lt;script&gt;window.AQUA_KEY=&quot;aquanictemeral.ras.v1&quot;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;title&gt;AquaNictemeral&lt;/title&gt;
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
 &lt;link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;&gt;
@@ -3653,20 +3653,31 @@ function avalMed(P,k,f,est){const q=QA[k],out={};
     out.ph=[r,tx]}
   return out}
 /* ---- situação de cada tanque/viveiro pelas leituras do AquaNictemeral ---- */
-function unidadesAval(){const m=medAqua();if(!m||!m.UN)return [];
-  return m.UN.map(u=>{const f=faixaSis(ESP[u.esp],u.esp,u.it,u.est),x=avalMed(u.P,u.esp,f,u.est);
+function bioAval(b){if(!b||b.pm==null)return null;let r="apto";const t=[`peso médio ${fmt(b.pm,b.pm<10?2:1)} g em ${b.data.split("-").reverse().join("/")}`];
+  if(b.cv!=null){t.push(`CV ${fmt(b.cv,0)} %`);if(b.cv>30){r="restrito";t.push("lote desuniforme: reforce a oferta de ração e avalie classificar")}}
+  if(b.k!=null)t.push(`K ${fmt(b.k,2)}`);
+  if(b.gpd!=null){t.push(`ganho ${fmt(b.gpd,2)} g/dia`);if(b.gpd<=0){r="restrito";t.push("sem ganho de peso desde a biometria anterior")}}
+  if(b.data&&new Date(b.data+"T12:00")>new Date(Date.now()+864e5)){r=piorDe(r,"restrito");t.push("data da biometria no futuro: confira a data lançada")}
+  else if(b.prox&&new Date(b.prox)<new Date()){r=piorDe(r,"restrito");t.push("biometria atrasada")}
+  return [r,t.join(" · ")]}
+function unidadesAval(){const m=medAqua(),BM=window.bioPorNome?bioPorNome():{};const usados=new Set();
+  const UN=(m&&m.UN?m.UN:[]).slice();
+  for(const k in BM){if(!UN.some(u=>String(u.nome||"").trim().toLowerCase()===k)){const sp=(projSp()||["tilapia"])[0];UN.push({id:"bio:"+k,nome:BM[k].nome,esp:ESP[sp]?sp:"tilapia",est:sisApt().est,it:sisApt().it,P:{},n:0})}}
+  if(!UN.length)return [];
+  return UN.map(u=>{const f=faixaSis(ESP[u.esp],u.esp,u.it,u.est),x=avalMed(u.P,u.esp,f,u.est);
     const sal=u.P.salinidade?(()=>{const sc=salClass(u.P.salinidade.mean);return sc?[ESP[u.esp].sal[sc],`salinidade média ${fT(u.P.salinidade.mean)} ‰ (água ${sc})`]:null})():null;if(sal)x.sal=sal;
-    const ks=["temp","od","ph","nit","sal"].filter(p=>x[p]),res=piorDe(...ks.map(p=>x[p][0]));
-    const nomes={temp:"temperatura",od:"oxigênio",ph:"pH",nit:"amônia/nitrito",sal:"salinidade"},prob=ks.filter(p=>x[p][0]!=="apto");
+    const bv=bioAval(BM[String(u.nome||"").trim().toLowerCase()]);if(bv)x.bio=bv;
+    const ks=["temp","od","ph","nit","sal","bio"].filter(p=>x[p]),res=ks.length?piorDe(...ks.map(p=>x[p][0])):"na";
+    const nomes={temp:"temperatura",od:"oxigênio",ph:"pH",nit:"amônia/nitrito",sal:"salinidade",bio:"biometria"},prob=ks.filter(p=>x[p][0]!=="apto");
     return {...u,x,res,prob:prob.map(p=>nomes[p]),txt:prob.map(p=>x[p][1]).join(" · ")}}).sort((a,b)=>({inapto:0,restrito:1,apto:2}[a.res]-{inapto:0,restrito:1,apto:2}[b.res])||a.nome.localeCompare(b.nome,"pt"))}
-function uniHTML(){const L=unidadesAval();if(!L.length)return "";const ruins=L.filter(u=>u.res!=="apto");
+function uniHTML(){const L=unidadesAval();if(!L.length)return "";const ruins=L.filter(u=>u.res!=="apto"&&u.res!=="na");
   return `<div class="lv-med lv-uni"><h3>Situação de cada tanque/viveiro <span class="pill lv-ap">ao vivo</span></h3>
-    <p class="lv-foot">${ruins.length?`<b>${ruins.length} de ${L.length} tanque${L.length>1?"s":""}/viveiro${L.length>1?"s":""} com problema:</b> ${ruins.map(u=>esc(u.nome)).join(", ")}.`:`Todos os ${L.length} tanques/viveiros com leituras estão dentro das faixas da espécie.`} Cada tanque/viveiro é avaliado pelas suas próprias leituras (últimos 30 dias), pela espécie e pela estrutura dele.</p>
-    <div class="scroll"><table class="lv-ut"><thead><tr><th>Tanque/viveiro</th><th>Espécie · estrutura</th><th>Leituras</th><th>Temp.</th><th>Oxigênio</th><th>pH</th><th>Amônia/nitrito</th><th>Situação</th><th>O que está fora</th></tr></thead><tbody>
-    ${L.map(u=>`<tr class="${u.res}"><td class="g"><b>${esc(u.nome)}</b></td><td>${ESP[u.esp].n} · ${/^RAS/.test(ESTR_L[u.est].n)?ESTR_L[u.est].n:ESTR_L[u.est].n.toLowerCase()}</td><td>${u.n}</td><td>${pS(u.x.temp&&u.x.temp[0])}</td><td>${pS(u.x.od&&u.x.od[0])}</td><td>${pS(u.x.ph&&u.x.ph[0])}</td><td>${pS(u.x.nit&&u.x.nit[0])}</td><td>${aptPill(u.res)}</td><td class="lv-wrap">${u.txt?esc(u.txt):"—"}</td></tr>`).join("")}</tbody></table></div></div>`}
+    <p class="lv-foot">${ruins.length?`<b>${ruins.length} de ${L.length} tanque${L.length>1?"s":""}/viveiro${L.length>1?"s":""} com problema:</b> ${ruins.map(u=>esc(u.nome)).join(", ")}.`:`Todos os ${L.length} tanques/viveiros com leituras estão dentro das faixas da espécie.`} Cada tanque/viveiro é avaliado pelas suas próprias leituras do Nictemeral (últimos 30 dias) e pela última biometria, de acordo com a espécie e a estrutura dele.</p>
+    <div class="scroll"><table class="lv-ut"><thead><tr><th>Tanque/viveiro</th><th>Espécie · estrutura</th><th>Leituras</th><th>Temp.</th><th>Oxigênio</th><th>pH</th><th>Amônia/nitrito</th><th>Biometria</th><th>Situação</th><th>O que está fora</th></tr></thead><tbody>
+    ${L.map(u=>`<tr class="${u.res}"><td class="g"><b>${esc(u.nome)}</b></td><td>${ESP[u.esp].n} · ${/^RAS/.test(ESTR_L[u.est].n)?ESTR_L[u.est].n:ESTR_L[u.est].n.toLowerCase()}</td><td>${u.n}</td><td>${pS(u.x.temp&&u.x.temp[0])}</td><td>${pS(u.x.od&&u.x.od[0])}</td><td>${pS(u.x.ph&&u.x.ph[0])}</td><td>${pS(u.x.nit&&u.x.nit[0])}</td><td>${u.x.bio?`${pS(u.x.bio[0])}<small class="lv-bsm">${esc(u.x.bio[1].split(" · ").slice(0,2).join(" · "))}</small>`:pS(null)}</td><td>${u.res==="na"?pS(null):aptPill(u.res)}</td><td class="lv-wrap">${u.txt?esc(u.txt):"—"}</td></tr>`).join("")}</tbody></table></div></div>`}
 window.unidadesAval=unidadesAval;
 let AQ_RAW=null;
-setInterval(()=>{let raw="";try{raw=localStorage.getItem(AQ_KEY)||""}catch(e){}if(AQ_RAW===null){AQ_RAW=raw;return}if(raw===AQ_RAW)return;AQ_RAW=raw;PH_C=null;SIS_C=null;
+setInterval(()=>{let raw="";try{raw=(localStorage.getItem(AQ_KEY)||"")+"|"+(localStorage.getItem("greenfish-biometria-v1")||"")}catch(e){}if(AQ_RAW===null){AQ_RAW=raw;return}if(raw===AQ_RAW)return;AQ_RAW=raw;PH_C=null;SIS_C=null;
   try{const lv=document.getElementById("view-local");if(lv&&!lv.hidden)drawLocal()}catch(e){}
   try{const d=document.getElementById("view-dash");if(d&&!d.hidden&&typeof drawDash==="function")drawDash()}catch(e){}},3000);
 const nv=["extensivo","semi","intensivo","super","hiper"];
@@ -4088,7 +4099,7 @@ window.localDashHTML=function(){
   h+=`<section class="card wide"><div class="card-head"><h2>Aptidão por espécie em ${esc(LV.loc||"local do projeto")}<span>Temperatura da água em ${ESTR_L[sisApt().est].n.toLowerCase()} × água ${o.sal.orig?"de "+ORIG[o.sal.orig].toLowerCase()+" · ":""}${fmt(o.sal.v,1)} ‰ ${salClass(o.sal.v)} (${o.sal.how})</span></h2></div><div class="body">
     <div class="lv-dapt">${A.map(a=>`<div class="lv-dr"><span class="lv-dn">${a.e.n}${sp.includes(a.k)?" <small>no projeto</small>":""}</span><span class="lv-ds">${a.meses.map((m,i)=>`<i class="lv-m ${m}${a.clim[i]?" "+a.clim[i]:""}" ${tt(`${a.e.n} · ${MES[i]}`,`ar ${fmt(o.cl[i].tm,1)} °C · água ≈ ${fmt(a.w[i],1)} °C · ${m==="ot"?"faixa ótima":m==="sub"?"crescimento reduzido":m==="cr"?"risco crítico":"sem dado"}${a.clim[i]==="rf"?" · resfriar a água":a.clim[i]==="aq"?" · aquecer a água":""}`)}></i>`).join("")}</span><span class="lv-dp"><em>Temp.</em>${aptPill(a.term)}</span><span class="lv-dp"><em>Água (sal., pH)</em>${aptPill(piorDe(a.sal,a.ph))}</span><span class="lv-dp"><em>Sistema (O₂, NH₃/NO₂, estrutura, terreno)</em>${aptPill(piorDe(a.od,a.nit,a.sis,a.terr))}</span><span class="lv-dp"><em>Resultado</em>${aptPill(a.fin)}</span></div>`).join("")}
     <div class="lv-dr lv-dm"><span class="lv-dn"></span><span class="lv-ds">${MES.map(m=>`<b>${m[0]}</b>`).join("")}</span></div></div>
-    <div class="legend-row"><span><i class="lv-m ot"></i> faixa ótima</span><span><i class="lv-m sub"></i> crescimento reduzido</span><span><i class="lv-m cr"></i> risco crítico</span>${sisApt().est==="ras"?`<span><i class="lv-m ot rf"></i> RAS: resfriar a água</span><span><i class="lv-m ot aq"></i> RAS: aquecer a água</span>`:""}</div><p class="lv-foot">Sistema avaliado: <b>${ESTR_L[sisApt().est].n} · ${INT_L[sisApt().it].toLowerCase()}</b> (mude no bloco 0 de Local e viabilidade).</p>${(()=>{const U=unidadesAval();if(!U.length)return "";const r=U.filter(u=>u.res!=="apto");return `<div class="lv-dun"><b>Unidades pelas leituras do AquaNictemeral:</b> ${r.length?r.map(u=>`<span class="lv-dui">${aptPill(u.res)} ${esc(u.nome)} <small>(${u.prob.join(", ")})</small></span>`).join(""):`<span class="lv-dui">${aptPill("apto")} todas as ${U.length} dentro das faixas</span>`}</div>`})()}<ul class="lv-lul">${A.map(a=>`<li><span class="lv-ln">${a.e.n}:</span> ${leitura(o,a)}</li>`).join("")}</ul><p class="lv-foot">Altere o município e a salinidade no bloco 0 de <a href="#" data-goto="local" class="linkbtn">Local e viabilidade</a>.</p></div></section>`;
+    <div class="legend-row"><span><i class="lv-m ot"></i> faixa ótima</span><span><i class="lv-m sub"></i> crescimento reduzido</span><span><i class="lv-m cr"></i> risco crítico</span>${sisApt().est==="ras"?`<span><i class="lv-m ot rf"></i> RAS: resfriar a água</span><span><i class="lv-m ot aq"></i> RAS: aquecer a água</span>`:""}</div><p class="lv-foot">Sistema avaliado: <b>${ESTR_L[sisApt().est].n} · ${INT_L[sisApt().it].toLowerCase()}</b> (mude no bloco 0 de Local e viabilidade).</p>${(()=>{const U=unidadesAval();if(!U.length)return "";const r=U.filter(u=>u.res!=="apto"&&u.res!=="na");return `<div class="lv-dun"><b>Unidades pelas leituras do AquaNictemeral:</b> ${r.length?r.map(u=>`<span class="lv-dui">${aptPill(u.res)} ${esc(u.nome)} <small>(${u.prob.join(", ")})</small></span>`).join(""):`<span class="lv-dui">${aptPill("apto")} todas as ${U.length} dentro das faixas</span>`}</div>`})()}<ul class="lv-lul">${A.map(a=>`<li><span class="lv-ln">${a.e.n}:</span> ${leitura(o,a)}</li>`).join("")}</ul><p class="lv-foot">Altere o município e a salinidade no bloco 0 de <a href="#" data-goto="local" class="linkbtn">Local e viabilidade</a>.</p></div></section>`;
   // custo operacional
   const ops=o.ops.filter(x=>isFinite(x[2])&&x[2]>0).sort((a,b)=>b[2]-a[2]),mo=Math.max(...ops.map(x=>x[2]),1);
   h+=`<section class="card"><div class="card-head"><h2>Custo operacional anual<span>COE ${R$(o.COE)} · ${fmt(o.COE/o.prod,2)} R$/kg produzido</span></h2></div><div class="body"><div class="bars">${ops.map(x=>`<div class="bar"><div class="lb"><span>${x[0]}</span></div><div class="tr"><div class="fill" style="width:calc((100% - 110px) * ${(x[2]/mo).toFixed(4)});background:var(--accent)" ${tt(x[0],`${R$(x[2])}/ano · ${fmt(x[2]/o.COE*100,1)} % do COE`)}></div><span class="vl">${fmt(x[2]/o.COE*100,0)}<small>%</small></span></div></div>`).join("")}</div></div></section>`;
@@ -6749,7 +6760,9 @@ function hookHTML(){const sup=window.Auth&&Auth.supa&&Auth.supa(),log=sup&&Auth.
 function draw(){
   const us=unidades(),log=C.log||[];if(C.destino&&us.length&&!us.some(u=>u.id===C.destino))C.destino="";if(!C.destino&&us[0])C.destino=us[0].id;
   const st=[C.auto&&C.url?`link a cada ${C.min} min`:"",C.webhook?"webhook ativo":"",log[0]?`última importação ${new Date(log[0].em).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""].filter(Boolean).join(" · ");
-  box.innerHTML=`<details class="card wide ap-card"${aberto?" open":""}><summary class="card-head"><h2>🔌 Conectar automação<span>Importar leituras de sondas, planilhas, plataformas de IoT e automações para o AquaNictemeral${st?" · "+E(st):""}</span></h2></summary><div class="pj-body">
+  box.innerHTML=`<details class="card wide ap-card"${aberto?" open":""}><summary class="card-head"><h2>📈 Nictemeral<span>Leituras da água: origens dos dados, cadência em tempo real e importação de sondas, planilhas, IoT e automações${st?" · "+E(st):""}</span></h2></summary><div class="pj-body">
+   <div id="ap-slot" class="ap-slot"></div>
+   <h3 class="bi-h">🔌 Conectar automação · importar leituras</h3>
    <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
    <div class="pj-tools chips">${[["arquivo","Arquivo"],["colar","Colar dados"],["link","Link (atualiza sozinho)"],["webhook","Webhook (automação envia)"]].map(([k,t])=>`<button type="button" class="chip${C.fonte===k?" on":""}" data-ap-fonte="${k}" aria-pressed="${C.fonte===k}">${t}</button>`).join("")}</div>
    <div class="rp-grid"><label>Tanque/viveiro de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
@@ -6765,7 +6778,7 @@ function draw(){
     :hookHTML()}
    ${C.fonte!=="webhook"?mapaHTML():""}
    <div id="ap-histw">${log.length?histHTML(log):""}</div>
-  </div></details>`;
+  </div></details>`;{const sl=box.querySelector("#ap-slot"),o=window.__apO||(window.__apO=document.getElementById("aqua-orig")),c=window.__apC||(window.__apC=document.getElementById("aqua-cad"));if(sl){o&&sl.appendChild(o);c&&sl.appendChild(c)}}
   bind()}
 function histHTML(log){let O=null;try{const w=frame().contentWindow;O=w&&w.aquaOrigens&&w.aquaOrigens()}catch(e){}
   const temN=k=>O?((O.origens.find(o=>o.key===k)||{}).n||0):null,ICO={arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖"},fD=t=>new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
@@ -6839,24 +6852,23 @@ function drawCad(){if(!boxC)return;const L=cadLista();if(!L){boxC.innerHTML="";r
   if(temLink)lin.push({key:"link|"+C.url,tipo:"link",rotulo:"Link",nome:C.url,n:0,hoje:0,ult:"",rec:0,med:null,unidades:[]});
   const fD=s=>{const d=tsD(s);return d?d.toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):"—"};
   const sum=R.total?`${R.emDia} em dia${R.atrasadas.length?` · ${R.atrasadas.length} atrasada${R.atrasadas.length===1?"":"s"}`:""}`:"nenhuma origem contínua";
-  boxC.innerHTML=`<details class="card wide ao-card cad-card${R.atrasadas.length?" cad-late":""}"${cadAberto?" open":""}><summary class="card-head"><h2>⏱ Cadência em tempo real<span>leituras e biometria · ${E(sum)} · atualiza a cada segundo</span></h2></summary><div class="pj-body">
+  boxC.innerHTML=`<details class="card wide ao-card cad-card${R.atrasadas.length?" cad-late":""}"${cadAberto?" open":""}><summary class="card-head"><h2>⏱ Cadência em tempo real<span>leituras · ${E(sum)} · atualiza a cada segundo</span></h2></summary><div class="pj-body">
    <div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Origem</th><th>Cadência esperada</th><th>Última leitura</th><th>Situação agora</th><th class="num">Hoje</th></tr></thead><tbody>${lin.map((o,i)=>{const e=cadEstado(o),esp=e.c?Math.floor(((Date.now()-new Date().setHours(0,0,0,0))/60000)/e.c)+1:null;
      const tag=e.st==="ok"?`<span class="us-st ok">em dia</span>`:e.st==="atrasada"?`<span class="us-st bad">atrasada</span>`:e.st==="sem"?`<span class="us-st wait">sem leitura</span>`:`<span class="us-st">lote</span>`;
      const extra=o.tipo==="webhook"?`<label class="cad-sub">recolher a cada <select class="lv-sel" data-cad-hook="1">${[[15,"15 s"],[30,"30 s"],[60,"1 min"],[300,"5 min"],[900,"15 min"]].map(([v,t])=>`<option value="${v}"${(+C.hookSeg||60)===v?" selected":""}>${t}</option>`).join("")}</select>${C.webhook?"":" (ligue o recolhimento automático no Webhook)"}</label>`:o.tipo==="link"&&o.nome===C.url?`<small>${C.auto?`busca automática a cada ${C.min<60?C.min+" min":C.min/60+" h"}`:"busca automática desligada"}</small>`:"";
      return `<tr><td><b>${ICO[o.tipo]||""} ${E(o.nome?(o.nome.length>40?o.nome.slice(0,37)+"…":o.nome):o.rotulo)}</b><small>${o.nome?E(o.rotulo)+" · ":""}${o.unidades.length} tanque${o.unidades.length===1?"":"s"}/viveiro${o.unidades.length===1?"":"s"}${o.med?` · intervalo típico ${dur(o.med)}`:""}</small>${extra}</td>
       <td><select class="lv-sel" data-cad="${E(o.key)}" data-tipo="${E(o.tipo)}" data-nome="${E(o.nome)}" aria-label="Cadência esperada">${CAD_OPT.map(([v,t])=>`<option value="${v}"${e.c===v?" selected":""}>${t}</option>`).join("")}</select></td>
       <td>${fD(o.ult)}${o.rec?`<small>chegou ${new Date(o.rec).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</small>`:""}</td>
-      <td>${tag}<small data-cad-t="${i}">${E(cadTexto(o))}</small></td><td class="num">${f0c(o.hoje)}${esp&&e.st!=="lote"?`<small>de ${esp} esperadas</small>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhuma leitura ainda.</td></tr>`}</tbody></table></div>${(()=>{try{return window.bioCadHTML?bioCadHTML():""}catch(e){return ""}})()}
+      <td>${tag}<small data-cad-t="${i}">${E(cadTexto(o))}</small></td><td class="num">${f0c(o.hoje)}${esp&&e.st!=="lote"?`<small>de ${esp} esperadas</small>`:""}</td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhuma leitura ainda.</td></tr>`}</tbody></table></div>
    <p class="muted">Para cada origem, escolha de quanto em quanto tempo as leituras devem chegar. O app compara com a hora da última leitura, conta as leituras de hoje contra as esperadas e marca <b>atrasada</b> quando passa 25% da cadência sem leitura nova. Na automação (webhook) você também escolhe de quanto em quanto tempo o app recolhe o que chegou; no link, a cadência é a frequência da busca automática. Arquivos e dados colados entram em lote: mostram o intervalo típico entre as leituras.</p></div></details>`;
   const d=boxC.querySelector("details");d.addEventListener("toggle",()=>{cadAberto=d.open});
   boxC.querySelectorAll("[data-cad]").forEach(sel=>sel.addEventListener("change",()=>{const v=+sel.value;C.cad=C.cad||{};C.cad[sel.dataset.cad]=v;
     if(sel.dataset.tipo==="link"&&sel.dataset.nome===C.url&&v>0){C.min=v;C.auto=true;agendar()}
     if(sel.dataset.tipo==="webhook"&&v>0&&v<(+C.hookSeg||60)/60){C.hookSeg=Math.max(15,v*60);agendarHook()}salvar();drawCad();try{window.focoRefresh&&focoRefresh()}catch(e){}}));
   const hk=boxC.querySelector("[data-cad-hook]");hk&&hk.addEventListener("change",()=>{C.hookSeg=+hk.value;salvar();agendarHook();drawCad()});
-  try{window.bioCadBind&&bioCadBind(boxC)}catch(e){}
   clearInterval(cadTick);cadTick=setInterval(()=>{if(!document.body.contains(boxC)||document.hidden)return;let mud=false;
     boxC.querySelectorAll("[data-cad-t]").forEach(el=>{const o=lin[+el.dataset.cadT];if(!o)return;const st=cadEstado(o).st,t=cadTexto(o);if(el.textContent!==t)el.textContent=t;if(el.dataset.st&&el.dataset.st!==st)mud=true;el.dataset.st=st});
-    try{if(window.bioCadTick&&bioCadTick(boxC))mud=true}catch(e){}
+    
     if(mud)drawCad()},1000)}
 const f0c=v=>Number(v||0).toLocaleString("pt-BR");
 /* ---- origem dos dados: projeto aberto e por onde as leituras entraram; escolhe o que o AquaNictemeral processa ---- */
@@ -6864,7 +6876,7 @@ const boxO=document.getElementById("aqua-orig");let origAberto=false;
 const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥",exemplo:"🧪"};
 function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow;if(w&&w.aquaOrigens)O=w.aquaOrigens()}catch(e){}
   const pa=window.projAtual?window.projAtual():null;
-  if(!O){boxO.innerHTML=`<div class="ao-bar"><span class="ao-t">🗂 Origem dos dados</span><span class="muted">abrindo o AquaNictemeral…</span></div>`;pronto().then(w=>{if(w)drawOrig()});return}
+  if(!O){boxO.innerHTML=`<div class="ao-bar"><span class="ao-t">🗂 Origens dos dados</span><span class="muted">abrindo o AquaNictemeral…</span></div>`;pronto().then(w=>{if(w)drawOrig()});return}
   const cur=O.origens.find(o=>o.key===O.fOrig),tipoSel=!cur&&O.fOrig?O.fOrig:"",curP=O.projetos.find(p=>p.pid===O.fProj);
   const rot=o=>(ICO[o.tipo]||"")+" "+o.rotulo+(o.nome?": "+(o.nome.length>48?o.nome.slice(0,45)+"…":o.nome):"");
   const tipos=[...new Set(O.origens.map(o=>o.tipo))];
@@ -6876,7 +6888,7 @@ function drawOrig(){if(!boxO)return;let O=null;try{const w=frame().contentWindow
   if(pa)addP(pa.id,pa.nome+" (aberto)",0);try{for(const p of (window.projLista?window.projLista():[]))addP(p.id,p.nome,0)}catch(e){}
   for(const p of O.projetos)if(p.pid!=="__sem")addP(p.pid,p.pnome,p.n);addP("__sem","Sem projeto (leituras de projeto não salvo)",(O.projetos.find(p=>p.pid==="__sem")||{}).n||0);
   const resumo=O.fOrig||O.fProj?`Processando só: <b>${E([cur?rot(cur):tipoSel?(ICO[tipoSel]||"")+" "+((O.origens.find(o=>o.tipo===tipoSel)||{}).rotulo||(TODAS.find(x=>x[0]===tipoSel)||[,tipoSel])[1]):"",O.fProj?"projeto "+((PJ.find(p=>p.pid===O.fProj)||curP||{}).pnome||"").replace(" (aberto)",""):""].filter(Boolean).join(" · "))}</b> · ${O.visiveis} de ${O.total} leituras`:`Processando <b>todas as origens</b> · ${O.total} leitura${O.total===1?"":"s"}`;
-  boxO.innerHTML=`<details class="card wide ao-card"${origAberto?" open":""}><summary class="card-head"><h2>🗂 Origem dos dados<span>Projeto aberto: ${pa?E(pa.nome):"nenhum (projeto não salvo)"} · ${resumo.replace(/<[^>]+>/g,"")}</span></h2></summary><div class="pj-body">
+  boxO.innerHTML=`<details class="card wide ao-card"${origAberto?" open":""}><summary class="card-head"><h2>🗂 Origens dos dados<span>Projeto aberto: ${pa?E(pa.nome):"nenhum (projeto não salvo)"} · ${resumo.replace(/<[^>]+>/g,"")}</span></h2></summary><div class="pj-body">
    <p class="ao-res">${resumo}</p>
    <div class="ao-chips chips">${O.origens.length?O.origens.map(o=>`<button type="button" class="chip${O.fOrig===o.key?" on":""}" data-ao="${E(o.key)}" title="${E(o.nome||o.rotulo)}">${E(rot(o))} <b>${o.n}</b></button>`).join(""):`<span class="muted">Nenhuma leitura ainda.</span>`}</div>
    <div class="rp-grid"><label>Origem processada<select class="lv-sel" id="ao-orig"><option value="">Todas as origens (${O.total})</option>${optOrig}</select></label>
@@ -6950,7 +6962,7 @@ function projs(){const cp=curPid(),L=[{id:cp,nome:curNome(),aberto:true}],vis=ne
 const projSel=()=>{if(B.proj==="*")return "*";const L=projs();return B.proj&&L.some(p=>p.id===B.proj)?B.proj:curPid()};
 const projImp=()=>{const p=projSel();return p==="*"?curPid():p};
 const pNome=p=>p==="*"?"Todos os projetos":(projs().find(x=>x.id===p)||{}).nome||"Projeto";
-const daP=(a,p)=>p==="*"||(a.pid||"_local")===p;
+const daP=(a,p)=>(p==="*"||(a.pid||"_local")===p)&&visO(a);
 function projDe(v){const s=String(v||"").trim().toLowerCase();if(!s)return null;const x=projs().find(p=>p.id.toLowerCase()===s||String(p.nome).trim().toLowerCase()===s);return x?x.id:null}
 
 /* ---- unidades: tanques e viveiros do projeto ---- */
@@ -6985,7 +6997,8 @@ function reg(x,y){const n=x.length,mx=x.reduce((s,v)=>s+v,0)/n,my=y.reduce((s,v)
 function regPL(pares){const r=reg(pares.map(q=>q[0]),pares.map(q=>q[1]));return {a:Math.exp(r.a),b:r.b,r2:r.r2,n:pares.length}}
 const tsA=a=>new Date(a.data+"T"+(a.hora||"12:00")).getTime();
 const ordem=(x,y)=>(x.data+(x.hora||"")).localeCompare(y.data+(y.hora||""));
-const amostrasU=(p,uid)=>B.amostras.filter(a=>(a.pid||"_local")===p&&a.unidade===uid).sort(ordem);
+function visO(a){return !(typeof B==="object"&&B&&B.fOrigB)||((a.origem&&a.origem.tipo)||"form")===B.fOrigB}
+const amostrasU=(p,uid)=>B.amostras.filter(a=>(a.pid||"_local")===p&&a.unidade===uid&&visO(a)).sort(ordem);
 const modelo=uid=>{try{const fm=typeof feedModels==="function"?feedModels()||[]:[];return fm.find(m=>"ras-"+m.t.id===uid)||null}catch(e){return null}};
 function resumoUni(p,uid){const L=amostrasU(p,uid);if(!L.length)return null;const u=L[L.length-1],s=stats(u),ant=L.length>1?L[L.length-2]:null,sa=ant?stats(ant):null;
   const dias=ant?(new Date(u.data)-new Date(ant.data))/864e5:0,gpd=sa&&dias>0&&s.pm!=null&&sa.pm!=null?(s.pm-sa.pm)/dias:null;
@@ -7112,19 +7125,37 @@ function histHTML(p){const L=B.amostras.filter(a=>daP(a,p)).sort(ordem).reverse(
      <td class="pj-acts">${c?`<button type="button" class="btn warn" data-bi="del-ok" data-id="${a.id}">Confirmar</button><button type="button" class="btn" data-bi="del-nao">Voltar</button>`:`<button type="button" class="btn ap-x" data-bi="del" data-id="${a.id}">🗑 Excluir</button>`}</td></tr>`}).join("")}</tbody></table></div></details>`}
 let desenhando=false;
 function draw(){if(desenhando){setTimeout(draw,0);return}desenhando=true;try{desenha()}finally{desenhando=false}}
+/* ---- itens do botão Biometria: origens dos dados e cadência em tempo real ---- */
+let subO=false,subC=false,bioTick=null;
+function origBHTML(p){const todas=B.amostras.filter(a=>p==="*"||(a.pid||"_local")===p),G={};
+  for(const a of todas){const t=(a.origem&&a.origem.tipo)||"form",g=G[t]||(G[t]={n:0,N:0,us:new Set(),ult:"",nomes:{}});g.n++;g.N+=stats(a).N||0;g.us.add(a.unome||a.unidade);if((a.data||"")>g.ult)g.ult=a.data;const nm=a.origem&&a.origem.nome;if(nm)g.nomes[nm]=(g.nomes[nm]||0)+1}
+  const linhas=Object.keys(ORIGB).map(t=>{const g=G[t];return `<tr${B.fOrigB===t?' class="on"':""}><td><b>${ORIGB[t]}</b>${g&&Object.keys(g.nomes).length?`<small>${Object.entries(g.nomes).slice(0,3).map(([k,v])=>E(k.length>40?k.slice(0,37)+"…":k)+" ("+v+")").join(" · ")}</small>`:""}</td><td class="num">${g?g.n:0}</td><td class="num">${g?g.N:0}</td><td class="num">${g?g.us.size:0}</td><td>${g&&g.ult?dBR(g.ult):"—"}</td></tr>`}).join("");
+  return `<div class="rp-grid"><label>Mostrar e processar<select class="lv-sel" id="bi-forig"><option value="">Todas as origens (${todas.length})</option>${Object.entries(ORIGB).map(([k,t])=>`<option value="${k}"${B.fOrigB===k?" selected":""}>${t} (${G[k]?G[k].n:0})</option>`).join("")}</select></label></div>
+   <div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Origem</th><th class="num">Biometrias</th><th class="num">Animais</th><th class="num">Tanques/viveiros</th><th>Última</th></tr></thead><tbody>${linhas}</tbody></table></div>
+   <p class="muted">Cada biometria guarda por onde entrou e o projeto. Ao escolher uma origem, a situação por tanque/viveiro, a projeção, a cadência, o Painel e a aba Local e viabilidade passam a usar só essas biometrias.</p>`}
+function subsBio(p){const t=B.amostras.filter(a=>p==="*"||(a.pid||"_local")===p).length,R=window.bioCadResumo?bioCadResumo():{emDia:0,atrasadas:[],total:0};
+  let cad="";try{cad=window.bioCadHTML?bioCadHTML():""}catch(e){}
+  return `<details class="ao-sub" data-bsub="o"${subO?" open":""}><summary>🗂 Origens dos dados <span>${t} biometria${t===1?"":"s"}${B.fOrigB?" · mostrando só "+E(ORIGB[B.fOrigB]||B.fOrigB):" · todas as origens"}</span></summary>${origBHTML(p)}</details>
+   <details class="ao-sub" data-bsub="c"${subC?" open":""}><summary>⏱ Cadência em tempo real <span>${R.total?`${R.emDia} em dia${R.atrasadas.length?` · ${R.atrasadas.length} atrasada${R.atrasadas.length===1?"":"s"}`:""}`:"escolha a cadência de cada tanque/viveiro"} · atualiza a cada segundo</span></summary>${cad||'<p class="muted">Nenhuma biometria ainda.</p>'}</details>`}
 function desenha(){const p=projSel(),cp=curPid();if(projAnt!==p){projAnt=p;unidade="";numU="";dados=null;escNova=false}
   const late=linhasResumo(p).filter(x=>x.r.prox&&x.r.prox<new Date()).length,tot=B.amostras.filter(a=>daP(a,p)).length,PL=projs(),cnt=id=>B.amostras.filter(a=>(a.pid||"_local")===id).length,semP=cnt("_local");
   box.innerHTML=`<details class="card wide ap-card bi-card"${aberto?" open":""}><summary class="card-head"><h2>📏 Biometria<span>${E(pNome(p))} · ${tot} biometria${tot===1?"":"s"}${late?` · ${late} atrasada${late===1?"":"s"}`:""} · formulário, arquivo, colar, link ou automação</span></h2></summary><div class="pj-body">
    <div class="pj-msg" role="status" aria-live="polite">${E(msg)}</div>
+   ${subsBio(p)}
+   <h3 class="bi-h">✍️ Lançar ou importar biometria</h3>
    <div class="rp-grid"><label>Projeto em evidência<select class="lv-sel" id="bi-proj">${PL.map(x=>`<option value="${E(x.id)}"${x.id===p?" selected":""}>${x.aberto?"📂 ":""}${E(x.nome)}${x.aberto?" (aberto)":""} · ${cnt(x.id)}</option>`).join("")}<option value="*"${p==="*"?" selected":""}>Todos os projetos (só consulta) · ${B.amostras.length}</option></select></label>
     <label>Método da biometria<select class="lv-sel" data-bi-cfg="metodo">${MET.map(([k,t])=>`<option value="${k}"${B.metodo===k?" selected":""}>${t}</option>`).join("")}</select></label></div>
    <p class="muted bi-met">${p==="*"?"Mostrando as biometrias de todos os projetos. Para importar, escolha um projeto.":p===cp?`As biometrias que você importar agora ficam identificadas com <b>${E(pNome(p))}</b>, correlacionadas com o AquaNictemeral, a cadência e o lote da aba Biomassa deste projeto.`:`As biometrias que você importar agora ficam identificadas com <b>${E(pNome(p))}</b> (projeto não aberto: ficam guardadas neste aparelho; a comparação com a aba Biomassa aparece quando ele for aberto).`} ${E((MET.find(m=>m[0]===B.metodo)||[])[2]||"")}</p>
    ${semP&&p!=="*"&&p!=="_local"?`<div class="pj-btns"><button type="button" class="btn" data-bi="atribuir">Identificar ${semP} biometria${semP===1?"":"s"} sem projeto como ${E(pNome(p))}</button></div>`:""}
    ${p==="*"?"":`<div class="pj-tools chips">${Object.entries(ORIGB).map(([k,t])=>`<button type="button" class="chip${B.fonte===k?" on":""}" data-bi-fonte="${k}">${t}</button>`).join("")}</div>${fonteHTML(p)}`}
-   <h3 class="bi-h">Situação por tanque/viveiro</h3>${resumoHTML(p)}${projHTML(p)}${histHTML(p)}
+   <h3 class="bi-h">Situação por tanque/viveiro${B.fOrigB?` <small class="muted">· só ${E(ORIGB[B.fOrigB]||B.fOrigB)}</small>`:""}</h3>${resumoHTML(p)}${projHTML(p)}${histHTML(p)}
    <details class="us-det"><summary>Tipos de biometria em aquicultura</summary><ul class="bi-tipos">${MET.filter(m=>m[2]).map(m=>`<li><b>${m[1]}:</b> ${m[2]}</li>`).join("")}</ul></details>
   </div></details>`;bind()}
-function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card"),p=projSel();d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
+function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card"),p=projSel();
+  box.querySelectorAll("details[data-bsub]").forEach(x=>x.addEventListener("toggle",()=>{if(x.dataset.bsub==="o")subO=x.open;else subC=x.open}));
+  const fo=q("#bi-forig");fo&&fo.addEventListener("change",()=>{B.fOrigB=fo.value;salvar();draw();outros()});
+  try{window.bioCadBind&&bioCadBind(box)}catch(e){}
+  clearInterval(bioTick);bioTick=setInterval(()=>{if(!document.body.contains(box)||document.hidden||!subC||!aberto)return;try{if(window.bioCadTick&&bioCadTick(box))draw()}catch(e){}},1000);d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
   const pj=q("#bi-proj");pj&&pj.addEventListener("change",()=>{B.proj=pj.value===curPid()?null:pj.value;msg="";salvar();draw();outros()});
   box.querySelectorAll("[data-bi-fonte]").forEach(b=>b.addEventListener("click",()=>{B.fonte=b.dataset.biFonte;dados=null;msg="";salvar();draw()}));
   box.querySelectorAll("[data-bi-modo]").forEach(b=>b.addEventListener("click",()=>{B.modo=b.dataset.biModo;salvar();draw()}));
@@ -7188,6 +7219,7 @@ window.bioCadResumo=()=>{const R=cadRows().filter(x=>x.c);return {emDia:R.filter
 
 /* resumo para o Painel (projeto em evidência) */
 window.bioDashResumo=()=>linhasResumo(projSel()).map(({p,u,r})=>({nome:u.nome,tipo:u.tipo,projeto:pNome(p),data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
+window.bioPorNome=()=>{const M={};try{for(const {u,r} of linhasResumo(curPid()))M[String(u.nome||"").trim().toLowerCase()]={nome:u.nome,data:r.u.data,N:r.s.N,pm:r.s.pm,cv:r.s.cv,k:r.s.k,gpd:r.gpd,n:r.n,prox:r.prox}}catch(e){}return M};
 window.drawAquaBio=()=>draw();window.bioDebug={stats,linhasParaAmostras,autoMapB,B,projecao,uniP,projs,cadRows};
 salvar();agendar();draw();
 })();
@@ -7353,7 +7385,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v70";
+  const APP_VERSAO="ras-v71";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
