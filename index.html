@@ -894,6 +894,16 @@ button, select, input { font: inherit; color: inherit; }
 .tabs { display: flex; gap: 2px; }
 .tab { border: 0; background: transparent; padding: 10px 14px 11px; cursor: pointer; font-weight: 600; color: var(--ink-2); border-bottom: 3px solid transparent; }
 .tab[aria-selected=&quot;true&quot;] { color: var(--ink); border-bottom-color: var(--accent); }
+.tab-nome { display: inline-block; margin-left: 6px; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.92em; font-weight: 700; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.u-chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 14px; margin: 0 0 14px; border: 2px solid var(--accent); border-radius: 14px; background: var(--surface, #fff); }
+.u-chips-l { width: 100%; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
+.u-chip { border: 1.5px solid var(--line); background: var(--bg, #f3f6f5); color: var(--ink); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: 15px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.u-chip:hover { border-color: var(--accent); }
+.u-chip.on { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.15); font-size: 16px; }
+.u-chip.vaz { opacity: .6; }
+.u-chip small { font-size: 11px; font-weight: 700; padding: 0 6px; border-radius: 999px; background: rgba(0,0,0,.08); }
+.u-chip.on small { background: rgba(255,255,255,.25); }
+.unit.u-top h1 input { font-weight: 800; color: var(--accent); }
 .tab:hover { color: var(--ink); }
 
 /* cabeçalhos e controles */
@@ -1139,9 +1149,10 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 
 &lt;!-- ============================== UNIDADE ============================== --&gt;
 &lt;div class=&quot;wrap&quot; id=&quot;v-unidade&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;tab-unidade&quot; hidden&gt;
+  &lt;nav class=&quot;u-chips&quot; id=&quot;u-chips&quot; aria-label=&quot;Selecionar tanque/viveiro&quot;&gt;&lt;/nav&gt;
   &lt;header class=&quot;unit u-top&quot;&gt;
     &lt;div style=&quot;min-width:0&quot;&gt;
-      &lt;div class=&quot;eyebrow&quot;&gt;Tanque/viveiro de cultivo&lt;/div&gt;
+      &lt;div class=&quot;eyebrow&quot;&gt;Tanque/viveiro selecionado&lt;/div&gt;
       &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome do tanque/viveiro&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;u-meta&quot;&gt;&lt;/div&gt;
       &lt;details class=&quot;t-tab&quot; id=&quot;u-ttab&quot;&gt;&lt;/details&gt;
@@ -1779,6 +1790,11 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;u-orig&quot;).title = $(&quot;u-orig&quot;).disabled ? &quot;Num RAS a origem é a da água do sistema: escolha no tanque/viveiro Água do sistema&quot; : &quot;&quot;;
     $(&quot;u-nome&quot;).title = u.ras ? &quot;O nome vem da Calculadora&quot; : &quot;&quot;;
     $(&quot;u-sel&quot;).innerHTML = S.unidades.map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
+    { const d0 = S.dia || hoje(), ch = $(&quot;u-chips&quot;);
+      if (ch) { ch.innerHTML = `&lt;span class=&quot;u-chips-l&quot;&gt;Selecione o tanque/viveiro&lt;/span&gt;` + S.unidades.map((x) =&gt; { const n = S.leituras.filter((l) =&gt; l.unidade === x.id &amp;&amp; l.data === d0 &amp;&amp; passa(l)).length, tot = S.leituras.some((l) =&gt; l.unidade === x.id &amp;&amp; passa(l));
+        return `&lt;button type=&quot;button&quot; class=&quot;u-chip${x.id === u.id ? &quot; on&quot; : &quot;&quot;}${tot ? &quot;&quot; : &quot; vaz&quot;}&quot; data-u=&quot;${x.id}&quot; aria-pressed=&quot;${x.id === u.id}&quot;&gt;${escO(x.nome)}${n ? `&lt;small&gt;${n}&lt;/small&gt;` : &quot;&quot;}&lt;/button&gt;`; }).join(&quot;&quot;);
+        ch.querySelectorAll(&quot;.u-chip&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { if (b.dataset.u === S.ativa) return; S.ativa = b.dataset.u; sel = null; irUltDia(); salvar(); renderUnidade(); })); } }
+    $(&quot;tab-unidade&quot;).innerHTML = `Tanque/viveiro &lt;span class=&quot;tab-nome&quot;&gt;${escO(u.nome)}&lt;/span&gt;`;
     $(&quot;u-dia&quot;).innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === (S.dia || hoje()) ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}${futuro(d) ? &quot; ⚠ data futura&quot; : &quot;&quot;}&lt;/option&gt;`).join(&quot;&quot;);
     const sc = BASE.sistemas_cultivo.find((x) =&gt; x.especie === u.especie &amp;&amp; x.sistema === u.sistema);
     $(&quot;u-meta&quot;).innerHTML = `${ORIGENS[origemDe(u)] ? &quot;Origem: &quot; + ORIGENS[origemDe(u)].nome + &quot; · &quot; : &quot;&quot;}${u.sistemaRAS ? &quot;Avaliada pelo pior caso entre &quot; + espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; e &quot;) : `&lt;em&gt;${ESP[u.especie].cientifico}&lt;/em&gt;`} · ${u.sistema} · ${u.sistemaRAS ? `água comum a ${fmt(u.ras.tanques, 0)} tanques, ${fmt(u.volume_m3, 0)} m³` : u.ras ? `grupo da Calculadora: ${fmt(u.ras.tanques, 0)} × ${fmt(u.ras.volume_tanque, 0)} m³ = ${fmt(u.volume_m3, 0)} m³${u.racao_kg_dia ? ` · ração de projeto ${fmt(u.racao_kg_dia, 1)} kg/d` : &quot;&quot;}` : `densidade de referência ${sc ? sc.densidade : &quot;—&quot;}`}${u.exemplo ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${tempMetaHTML(u)}`; { const tt = $(&quot;u-ttab&quot;); if (tt) { const op = tt.open; tt.innerHTML = tempTabHTML(u); tt.open = op; } }
@@ -7403,7 +7419,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v73";
+  const APP_VERSAO="ras-v74";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
