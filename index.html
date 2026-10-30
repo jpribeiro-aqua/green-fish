@@ -3607,7 +3607,8 @@ let MED_C=null;
 function medAqua(){let raw="";try{raw=localStorage.getItem(AQ_KEY)||""}catch(e){}
   if(MED_C&&MED_C.raw===raw)return MED_C.v;let v=null;
   try{const S=JSON.parse(raw);const U=(S&&S.unidades||[]).filter(u=>!u.exemplo),ids=new Set(U.map(u=>u.id));
-    let L=(S.leituras||[]).filter(l=>ids.has(l.unidade)&&!String(l.id).startsWith("e")&&l.data);
+    const amanha=new Date(Date.now()+864e5).toISOString().slice(0,10);
+    let L=(S.leituras||[]).filter(l=>ids.has(l.unidade)&&!String(l.id).startsWith("e")&&l.data&&l.data<=amanha);
     if(L.length){L.sort((a,b)=>(a.data+(a.hora||"")).localeCompare(b.data+(b.hora||"")));
       const fim=L[L.length-1].data,ini=new Date(fim+"T12:00:00");ini.setDate(ini.getDate()-30);const iniS=ini.toISOString().slice(0,10);
       L=L.filter(l=>l.data>=iniS);const P={},PU={},PE={},NU={};
@@ -6578,6 +6579,7 @@ function lerTexto(txt){
 
 /* data e hora em vários formatos: ISO (com fuso), dd/mm/aaaa hh:mm, epoch em segundos ou ms */
 function dataHora(v){if(v==null||v==="")return null;if(v instanceof Date)return isNaN(v)?null:v;
+  if(typeof v==="number"&&v>20000&&v<80000){const ms=Math.round((v-25569)*864e5),u=new Date(ms);return new Date(u.getUTCFullYear(),u.getUTCMonth(),u.getUTCDate(),u.getUTCHours(),u.getUTCMinutes())}
   if(typeof v==="number"||/^\d{10,13}$/.test(String(v))){const n=+v;const d=new Date(n<1e12?n*1000:n);return isNaN(d)?null:d}
   const s=String(v).trim();let m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})(?:[ T,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
   if(m){const y=+m[3]<100?2000+ +m[3]:+m[3];return new Date(y,+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0))}
@@ -6590,7 +6592,7 @@ function normalizar(rows,map,agrupar){
     if(inv.dt){if(soHora(r[inv.dt])&&inv.data&&!inv.hora){d=dataHora(r[inv.data]);if(d){const hm=String(r[inv.dt]).match(/(\d{1,2})[:h](\d{2})/);d.setHours(+hm[1],+hm[2])}}else d=dataHora(r[inv.dt])}
     if(!d&&inv.data){d=dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm){d.setHours(+hm[1],+(hm[2]||0))}}}
     if(d){data=isoD(d);hora=pad(d.getHours())+":"+pad(d.getMinutes())}
-    const o={data,hora};const un=uCols.map(c=>{const v=r[c];if(v==null||v==="")return "";const t=String(typeof v==="number"?+v.toFixed(3):v).trim();return t.length<=3?c.replace(/\s*\(.*?\)/g,"").trim()+" "+t:t}).filter(Boolean).join(" · ");if(un)o.unidade=un;
+    const o={data,hora};const un=uCols.map(c=>{const v=r[c];if(v==null||v==="")return "";const t=String(typeof v==="number"?+v.toFixed(3):v).trim();return t.length<=3?c.replace(/\s*\(.*?\)/g,"").split("/")[0].trim()+" "+t:t}).filter(Boolean).join(" · ");if(un)o.unidade=un;
     if(inv.profundidade&&r[inv.profundidade])o.profundidade=/fun|bot|deep/i.test(r[inv.profundidade])?"fundo":"superfície";
     let n=0;for(const p of NUM)if(inv[p]){const v=numBR(r[inv[p]]);if(Number.isFinite(v)){o[p]=Math.round(v*1000)/1000;n++}}
     if(!data||!n){ruins++;continue}out.push(o)}
@@ -6604,12 +6606,15 @@ const XLSX_URL="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js";
 function carregaXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);if(!xlsxP)xlsxP=new Promise((ok,er)=>{const sc=document.createElement("script");sc.src=XLSX_URL;sc.onload=()=>window.XLSX?ok(window.XLSX):er(new Error("x"));sc.onerror=()=>{xlsxP=null;er(new Error("Para ler planilhas do Excel o app precisa de internet na primeira vez. Conecte e tente de novo, ou salve a planilha como CSV."))};document.head.appendChild(sc)});return xlsxP}
 async function lerPlanilha(f){const X=await carregaXLSX();const wb=X.read(new Uint8Array(await f.arrayBuffer()),{type:"array",cellNF:true,cellDates:false});
   const fmt=v=>{const d=X.SSF.parse_date_code(v);if(!d)return v;const hm=pad(d.H)+":"+pad(d.M);return v<1?hm:pad(d.d)+"/"+pad(d.m)+"/"+d.y+(d.H||d.M?" "+hm:"")};
-  for(const nome of wb.SheetNames){const ws=wb.Sheets[nome];if(!ws||!ws["!ref"])continue;const rg=X.utils.decode_range(ws["!ref"]),M=[];
+  const tabs=[];for(const nome of wb.SheetNames){const ws=wb.Sheets[nome];if(!ws||!ws["!ref"])continue;const rg=X.utils.decode_range(ws["!ref"]),M=[];
     for(let r=rg.s.r;r<=rg.e.r;r++){const lin=[];for(let c=rg.s.c;c<=rg.e.c;c++){const cel=ws[X.utils.encode_cell({r,c})];let v="";
       if(cel){if(cel.t==="n"&&cel.z&&X.SSF.is_date(cel.z))v=fmt(cel.v);else if(cel.t==="d")v=cel.v;else v=cel.v}lin.push(v)}
       if(lin.some(x=>x!==""&&x!=null))M.push(lin)}
-    const t=tabelaDe(M);if(t)return t}
-  throw new Error("A planilha não tem uma tabela com nomes de colunas na primeira linha (data, hora, OD, temperatura…).")}
+    const t=tabelaDe(M,nome);if(t&&t.length)tabs.push(t)}
+  // todas as abas (ex.: uma aba por tanque), sem repetir linhas iguais
+  const vist=new Set(),out=[];for(const t of tabs)for(const r of t){const k=JSON.stringify(r);if(vist.has(k))continue;vist.add(k);out.push(r)}
+  if(out.length)return out;
+  throw new Error("Não achei uma tabela com nomes de colunas (data, hora, OD, temperatura… ou data, peso, comprimento) na planilha.")}
 /* leitor de planilhas do Apple Numbers (.numbers): zip + IWA (snappy + protobuf), só valores das células */
 async function lerNumbers(buf){
   const u=new Uint8Array(buf),dv=new DataView(buf);
@@ -6649,8 +6654,17 @@ async function lerNumbers(buf){
   return tabelas}
 
 /* acha a linha de cabeçalho (pula títulos acima da tabela) e monta as linhas */
-function tabelaDe(M){M=M.filter(l=>l.some(x=>x!==""&&x!=null));const hi=M.findIndex(l=>l.filter(x=>typeof x==="string"&&x.trim()).length>=3);if(hi<0||M.length-hi<2)return null;
-  const h=M[hi].map((c,i)=>String(c==null?"":c).trim()||("col"+(i+1)));return M.slice(hi+1).map(l=>Object.fromEntries(h.map((c,i)=>[c,l[i]==null?"":l[i]])))}
+function tabelaDe(M,aba){M=M.filter(l=>l.some(x=>x!==""&&x!=null));
+  const txt=x=>typeof x==="string"&&x.trim()&&!/^[-+]?[\d.,]+$/.test(x.trim()),valor=x=>x!==""&&x!=null&&(typeof x==="number"||x instanceof Date||/^[-+]?[\d.,]+$|^\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}|^\d{1,2}:\d{2}/.test(String(x).trim()));
+  let hi=-1,best=0;for(let i=0;i<Math.min(M.length-1,40);i++){const s=M[i].filter(txt).length;if(s<3)continue;const prox=M.slice(i+1,i+4),nv=prox.length?Math.max(...prox.map(l=>l.filter(valor).length)):0;const sc=s+2*nv;if(nv>=2&&sc>best){best=sc;hi=i}}
+  if(hi<0)hi=M.findIndex(l=>l.filter(txt).length>=3);if(hi<0||M.length-hi<2)return null;
+  const h=M[hi].map((c,i)=>String(c==null?"":c).trim()||("col"+(i+1)));
+  // unidade: quadro acima da tabela ("Identificação do tanque/viveiro: 3") ou nome da aba ("TANQUE 3")
+  let un="";for(const l of M.slice(0,hi)){for(let j=0;j<l.length;j++){const c=String(l[j]==null?"":l[j]);if(/^(identifica|tanque|viveiro|unidade|gaiola|baia)/i.test(norm(c))&&/:\s*$/.test(c)){const v=l.slice(j+1).find(x=>x!==""&&x!=null);
+      if(v!=null&&!/^(tanque|viveiro)s?$/i.test(String(v).trim())){const t=String(v).trim();un=/^\d{1,3}$/.test(t)?(/viveiro/i.test(c)&&!/tanque/i.test(c)?"Viveiro ":"Tanque ")+t:t}break}}if(un)break}
+  if(!un&&aba&&/tanque|viveiro|gaiola|^t\s*\d/i.test(aba)){const a=aba.trim().toLowerCase();un=a.charAt(0).toUpperCase()+a.slice(1)}
+  const temU=h.some(c=>/^(unidade|tanque|viveiro|gaiola|pond|tank|local|ponto)/.test(norm(c)));
+  return M.slice(hi+1).map(l=>{const o=Object.fromEntries(h.map((c,i)=>[c,l[i]==null?"":l[i]]));if(un&&!temU)o["Unidade"]=un;return o})}
 async function lerNumbersArq(f){let ts;try{ts=await lerNumbers(await f.arrayBuffer())}catch(e){ts=[]}
   let melhor=null,nota=-1;for(const t of ts){const rows=tabelaDe(t.linhas);if(!rows||!rows.length)continue;const cols=Object.keys(rows[0]),m=autoMap(cols,rows),k=Object.values(m).filter(v=>NUM.includes(v)).length,tem=Object.values(m).some(v=>v==="dt"||v==="data");
     const sc=(tem?1000:0)+k*100+rows.length;if(sc>nota){nota=sc;melhor=rows}}
@@ -6995,20 +7009,27 @@ function plProjeto(p){const pares=[];let ks=[];for(const a of B.amostras)if(daP(
 /* ---- entrada de dados: linhas (planilha, colado, link, automação) → amostras agrupadas por projeto + unidade + data + método ---- */
 const ALV=[["unidade","Unidade (tanque ou viveiro)",["unidade","tanque","viveiro","unit","tank","pond","local","ponto"]],["projeto","Projeto",["projeto","project","fazenda","cliente"]],["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora"]],["data","Data",["data","date","dia"]],["hora","Hora",["hora","time","hour"]],
   ["peso","Peso (g)",["peso","pesog","weight","pesoindividual","pesomedio","pesomediog","pm","w","massa"]],["comprimento","Comprimento (cm)",["comprimento","comp","length","comprimentocm","ct","comprimentototal","tamanho","cm"]],
-  ["n","Quantidade de animais",["n","quantidade","qtd","numero","contagem","count","animais","individuos"]],["peso_total","Peso total do lote (kg)",["pesototal","pesototalkg","biomassa","totalkg","pesolote"]],["metodo","Método",["metodo","method","tipo","equipamento","fonte"]]];
+  ["n","Quantidade de animais",["n","quantidade","qtd","numero","contagem","count","animais","individuos","npeixesamostrados","peixesamostrados","namostrados","namostra","npeixes","peixenumero","peixen"]],["peso_total","Peso total do lote (kg)",["pesototal","pesototalkg","biomassa","totalkg","pesolote"]],["metodo","Método",["metodo","method","tipo","equipamento","fonte"]]];
 const norm=U.norm||(s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/\(.*?\)/g,"").replace(/[^a-z0-9]/g,""));
-function autoMapB(cols){const m={},us=new Set();for(const [k,,syn] of ALV)for(const c of cols){if(us.has(c))continue;const n=norm(c);if(syn.includes(n)||syn.some(s=>s.length>3&&n.startsWith(s))){m[c]=k;us.add(c);break}}return m}
+function autoMapB(cols){const m={},us=new Set();for(const c of cols)if(/estimad|racao|ganho|sobreviv|taxa|mortal|observ|condicao|aspecto|padrao/.test(norm(c)))us.add(c);
+  for(const [k,,syn] of ALV)for(const c of cols){if(us.has(c))continue;const n=norm(c);if(k==="peso"&&/total|biomassa|lote/.test(n))continue;if(syn.includes(n)||syn.some(s=>s.length>3&&n.startsWith(s))){m[c]=k;us.add(c);break}}return m}
 function metodoDe(v){const n=norm(v);if(!n)return null;const a=MET.find(([k,t])=>n.includes(norm(k))||norm(t).startsWith(n));if(a)return a[0];
   if(/camera|^ia$|intelig|xpert|visao|vision|^app/.test(n))return "visao";if(/sonar|acust|eco/.test(n))return "acustica";if(/frame|moldura|vaki|estereo/.test(n))return "moldura";if(/bandeja|tray/.test(n))return "bandeja";return "outro"}
 function linhasParaAmostras(rows,map){const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const g=new Map();let ruins=0;
+  const ptG=inv.peso_total&&/\(\s*g\b|gramas/i.test(inv.peso_total),uPre=inv.unidade?String(inv.unidade).replace(/\s*\(.*?\)/g,"").split("/")[0].trim():"";
+  // planilhas em que "Nº peixes amostrados" é o número do peixe (1, 2, 3…) e "peso total" é o peso desse peixe: um animal por linha
+  let contador=false;if(inv.n&&(inv.peso_total||inv.peso)){const seq=new Map();for(const r of rows){const k=String(r[inv.unidade]||"")+"|"+String(r[inv.data]||r[inv.dt]||"");const v=num(r[inv.n]);if(!isFinite(v))continue;if(!seq.has(k))seq.set(k,[]);seq.get(k).push(v)}
+    let ok=0,tot=0;for(const L of seq.values()){if(L.length<2)continue;tot++;if(L.every((v,i)=>v===i+1))ok++}contador=tot>0&&ok/tot>=0.6}
   for(const r of rows){let d=null;if(inv.dt)d=U.dataHora(r[inv.dt]);if(!d&&inv.data){d=U.dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm)d.setHours(+hm[1],+(hm[2]||0))}}
-    const p=inv.peso?num(r[inv.peso]):NaN,c=inv.comprimento?num(r[inv.comprimento]):NaN,n=inv.n?num(r[inv.n]):NaN,pt=inv.peso_total?num(r[inv.peso_total]):NaN;
+    let p=inv.peso?num(r[inv.peso]):NaN,c=inv.comprimento?num(r[inv.comprimento]):NaN,n=inv.n?num(r[inv.n]):NaN,pt=inv.peso_total?num(r[inv.peso_total]):NaN;
+    let idx=NaN;if(contador){idx=n;if(isFinite(pt))p=ptG||!inv.peso_total?pt:pt*1000;else if(!isFinite(p))p=NaN;n=NaN;pt=NaN}else if(ptG&&isFinite(pt))pt=pt/1000;
     if(!d||!(isFinite(p)||isFinite(c)||(isFinite(pt)&&isFinite(n)))){ruins++;continue}
     const data=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()),hora=d.getHours()||d.getMinutes()?pad(d.getHours())+":"+pad(d.getMinutes()):"";
-    const un=inv.unidade?String(r[inv.unidade]||"").trim():"",pj=inv.projeto?String(r[inv.projeto]||"").trim():"",met=(inv.metodo&&metodoDe(r[inv.metodo]))||B.metodo,k=[pj,un,data,met].join("|");
-    if(!g.has(k))g.set(k,{un,proj:pj,data,hora,metodo:met,ind:[],loteN:0,loteKg:0});const e=g.get(k);
+    let un=inv.unidade?String(r[inv.unidade]==null?"":r[inv.unidade]).trim():"";if(/^\d{1,3}$/.test(un)&&uPre&&!/^unidade$/i.test(uPre))un=uPre+" "+un;const pj=inv.projeto?String(r[inv.projeto]||"").trim():"",met=(inv.metodo&&metodoDe(r[inv.metodo]))||B.metodo,k=[pj,un,data,met].join("|");
+    if(!g.has(k))g.set(k,{un,proj:pj,data,hora,metodo:met,ind:[],loteN:0,loteKg:0,_v:new Set()});const e=g.get(k);
+    if(contador&&isFinite(idx)){const kk=idx+"|"+p+"|"+c;if(e._v.has(kk))continue;e._v.add(kk)}
     if(isFinite(pt)&&isFinite(n)&&n>0){e.loteN+=n;e.loteKg+=pt}else e.ind.push({p:isFinite(p)?Math.round(p*1000)/1000:undefined,c:isFinite(c)?Math.round(c*100)/100:undefined,n:isFinite(n)&&n>0?n:1})}
-  return {amostras:[...g.values()],ruins}}
+  return {amostras:[...g.values()].map(({_v,...a})=>a),ruins}}
 function guardar(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
   for(const a of lista){const p=(a.proj&&projDe(a.proj))||base,us=uniP(p);let u=a.uid?us.find(x=>x.id===a.uid):null;
     if(!u&&a.un){const s=String(a.un).trim().toLowerCase();u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s);if(!u){u=novaUnidade(p,a.un);if(u)criadas.push(u.nome)}}
@@ -7332,7 +7353,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v68";
+  const APP_VERSAO="ras-v69";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
