@@ -897,7 +897,7 @@ button, select, input { font: inherit; color: inherit; }
 .tab:hover { color: var(--ink); }
 
 /* cabeçalhos e controles */
-.unit { display: grid; grid-template-columns: 1fr auto; gap: 14px 24px; align-items: end; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+.unit { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, max-content); gap: 14px 24px; align-items: end; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
 .unit h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); font-weight: 700; line-height: 1.05; }
 .unit h1 input { border: 0; background: transparent; font: inherit; width: 100%; min-width: 0; padding: 0; color: var(--ink); }
 .unit h1 input:hover { box-shadow: inset 0 -1px 0 var(--line); }
@@ -907,6 +907,12 @@ button, select, input { font: inherit; color: inherit; }
 .t-tab table { border-collapse: collapse; margin-top: 6px; width: 100%; } .t-tab th, .t-tab td { border: 1px solid var(--line, #ddd); padding: 4px 6px; text-align: center; white-space: nowrap; }
 .t-tab td:first-child, .t-tab th:first-child { text-align: left; white-space: normal; } .t-tab .on { background: var(--accent-soft, #e3f1ec); font-weight: 700; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; }
+.c-av { margin: 0 0 10px; padding: 8px 12px; border: 1px solid var(--warn, #c98a1b); border-radius: 10px; background: var(--band-warn, #fbf3e4); font-size: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.unit.u-top { grid-template-columns: minmax(0, 1fr); align-items: start; }
+.unit.u-top .controls { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 12px; align-items: end; }
+.unit.u-top .controls .field, .unit.u-top .controls select { width: 100%; min-width: 0; }
+.unit.u-top .controls .btn { width: 100%; justify-content: center; }
+.unit.u-top h1 input { width: 100%; max-width: 640px; }
 .field { display: grid; gap: 3px; min-width: 0; }
 .field label { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); font-weight: 600; }
 select, input[type=number], input[type=time], input[type=text] { background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 7px 9px; min-width: 0; max-width: 100%; }
@@ -1133,10 +1139,10 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 
 &lt;!-- ============================== UNIDADE ============================== --&gt;
 &lt;div class=&quot;wrap&quot; id=&quot;v-unidade&quot; role=&quot;tabpanel&quot; aria-labelledby=&quot;tab-unidade&quot; hidden&gt;
-  &lt;header class=&quot;unit&quot;&gt;
+  &lt;header class=&quot;unit u-top&quot;&gt;
     &lt;div style=&quot;min-width:0&quot;&gt;
       &lt;div class=&quot;eyebrow&quot;&gt;Tanque/viveiro de cultivo&lt;/div&gt;
-      &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome da unidade&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
+      &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome do tanque/viveiro&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;u-meta&quot;&gt;&lt;/div&gt;
       &lt;details class=&quot;t-tab&quot; id=&quot;u-ttab&quot;&gt;&lt;/details&gt;
     &lt;/div&gt;
@@ -1179,6 +1185,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
     &lt;section class=&quot;panel&quot; aria-labelledby=&quot;t-curva&quot;&gt;
       &lt;div class=&quot;panel-head&quot;&gt;&lt;h2 id=&quot;t-curva&quot;&gt;Curva nictemeral · 24 h&lt;/h2&gt;
         &lt;div class=&quot;legend&quot;&gt;&lt;span&gt;&lt;i style=&quot;background:var(--band-ok);outline:1px solid var(--ok)&quot;&gt;&lt;/i&gt;faixa ideal&lt;/span&gt;&lt;span&gt;&lt;i style=&quot;background:var(--band-warn);outline:1px solid var(--warn)&quot;&gt;&lt;/i&gt;faixa de alerta&lt;/span&gt;&lt;span&gt;&lt;i class=&quot;sw-line&quot; style=&quot;background:var(--accent)&quot;&gt;&lt;/i&gt;leituras&lt;/span&gt;&lt;span&gt;&lt;i class=&quot;sw-line&quot; style=&quot;background:none;border-top:1px dashed var(--ink-3);height:0&quot;&gt;&lt;/i&gt;horários previstos&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;div id=&quot;c-aviso&quot;&gt;&lt;/div&gt;
       &lt;div class=&quot;charts&quot; id=&quot;charts&quot;&gt;&lt;/div&gt;
       &lt;div class=&quot;amps&quot; id=&quot;amps&quot;&gt;&lt;/div&gt;
     &lt;/section&gt;
@@ -1762,7 +1769,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const u = UA(); setSalPh();
     $(&quot;u-nome&quot;).value = u.nome; $(&quot;u-esp&quot;).value = u.especie; $(&quot;u-sis&quot;).value = u.sistema; $(&quot;u-estr&quot;).value = estrDe(u); $(&quot;u-estr&quot;).disabled = !!(u.ras || u.sistemaRAS); $(&quot;u-estr&quot;).title = u.ras || u.sistemaRAS ? &quot;Grupos da Calculadora e a água do sistema são RAS&quot; : &quot;Muda a faixa ideal de temperatura e a variação aceita no dia&quot;;
     $(&quot;u-nome&quot;).readOnly = !!u.ras;
-    excArmed = false; $(&quot;b-exc-u&quot;).hidden = !!u.ras; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir unidade&quot;; $(&quot;b-exc-u&quot;).disabled = S.unidades.length &lt; 2;
+    excArmed = false; $(&quot;b-exc-u&quot;).hidden = !!u.ras; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir tanque/viveiro&quot;; $(&quot;b-exc-u&quot;).disabled = S.unidades.length &lt; 2;
     $(&quot;b-exc-u&quot;).title = S.unidades.length &lt; 2 ? &quot;É preciso manter pelo menos um tanque/viveiro&quot; : &quot;Apaga o tanque/viveiro e todas as leituras dele&quot;;
     const opEsp = (ks) =&gt; ks.map((k) =&gt; `&lt;option value=&quot;${k}&quot;${k === u.especie ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia-do-Nilo&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão L. vannamei&quot;, pirarucu: &quot;Pirarucu&quot;, pangasius: &quot;Pangasius&quot;, curimata: &quot;Curimatã&quot;, lambari: &quot;Lambari&quot; }[k]}&lt;/option&gt;`).join(&quot;&quot;);
     if (u.sistemaRAS) { $(&quot;u-esp&quot;).innerHTML = `&lt;option&gt;Pior caso: ${espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; + &quot;)}&lt;/option&gt;`; $(&quot;u-esp&quot;).disabled = true; $(&quot;u-esp&quot;).title = &quot;A água do sistema é avaliada pelo pior caso entre as espécies dos grupos&quot;; }
@@ -1811,7 +1818,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   }
   const PAINEIS = [[&quot;od&quot;, &quot;Oxigênio dissolvido&quot;, &quot;mg/L&quot;], [&quot;ph&quot;, &quot;pH&quot;, &quot;&quot;], [&quot;temperatura&quot;, &quot;Temperatura&quot;, &quot;°C&quot;]];
   let geo = null;
+  const ultDiaU = (uid) =&gt; { const ds = S.leituras.filter((l) =&gt; l.unidade === uid &amp;&amp; passa(l)).map((l) =&gt; l.data); return ds.length ? ultValido(ds) : null; };
+  const diaVazio = (uid, d) =&gt; !S.leituras.some((l) =&gt; l.unidade === uid &amp;&amp; l.data === d &amp;&amp; passa(l));
+  function irUltDia() { const u = UA(), d = ultDiaU(u.id); if (d &amp;&amp; diaVazio(u.id, S.dia || hoje())) { S.dia = d; sel = null; salvar(); } }
   function renderCharts() {
+    { const u = UA(), d0 = S.dia || hoje(), av = $(&quot;c-aviso&quot;); if (av) { const dU = ultDiaU(u.id), n = L_U().length;
+      av.innerHTML = n ? (n &lt; 4 ? `&lt;p class=&quot;c-av&quot;&gt;${n} leitura${n === 1 ? &quot;&quot; : &quot;s&quot;} em ${dataBR(d0)}: a curva fica mais fiel com pelo menos 4 horários (06, 15, 20 e 22 h).&lt;/p&gt;` : &quot;&quot;)
+        : dU ? `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;Sem leituras de ${escO(u.nome)} em ${dataBR(d0)}.&lt;/b&gt; O último dia com leituras deste tanque/viveiro é ${diaSemana(dU)} ${dataBR(dU)}. &lt;button type=&quot;button&quot; class=&quot;btn ghost&quot; id=&quot;c-ir&quot;&gt;Ver ${dataBR(dU)}&lt;/button&gt;&lt;/p&gt;`
+        : `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;${escO(u.nome)} ainda não tem leituras.&lt;/b&gt; Lance uma leitura ao lado ou importe uma planilha no botão 📈 Nictemeral.&lt;/p&gt;`;
+      const b = $(&quot;c-ir&quot;); if (b) b.addEventListener(&quot;click&quot;, () =&gt; { S.dia = dU; sel = null; salvar(); renderUnidade(); }); } }
     const u = UA(), L = L_U(), W = svgW($(&quot;charts&quot;), 320), H = 128, m = { l: 40, r: 12, t: 20, b: 16 };
     const x = (min) =&gt; m.l + (W - m.l - m.r) * min / 1440; geo = { W, x }; let out = &quot;&quot;;
     PAINEIS.forEach(([p, nome, un], idx) =&gt; {
@@ -1934,7 +1949,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     window.scrollTo({ top: 0 });
   }
   $(&quot;tab-painel&quot;).addEventListener(&quot;click&quot;, () =&gt; irPara(&quot;painel&quot;));
-  $(&quot;tab-unidade&quot;).addEventListener(&quot;click&quot;, () =&gt; irPara(&quot;unidade&quot;));
+  $(&quot;tab-unidade&quot;).addEventListener(&quot;click&quot;, () =&gt; { irUltDia(); irPara(&quot;unidade&quot;); });
   $(&quot;tab-unidade&quot;).addEventListener(&quot;keydown&quot;, (e) =&gt; { if (e.key === &quot;ArrowRight&quot;) { $(&quot;tab-painel&quot;).focus(); irPara(&quot;painel&quot;); } });
   $(&quot;tab-painel&quot;).addEventListener(&quot;keydown&quot;, (e) =&gt; { if (e.key === &quot;ArrowLeft&quot;) { $(&quot;tab-unidade&quot;).focus(); irPara(&quot;unidade&quot;); } });
 
@@ -1959,7 +1974,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;c-ini&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(), c = cadDe(u); u.cad = { passo: c.passo, inicio: Number(e.target.value) }; salvar(); renderSlots(); renderCharts(); });
   $(&quot;b-limpar&quot;).addEventListener(&quot;click&quot;, () =&gt; { renderForm(); $(&quot;f-msg&quot;).textContent = &quot;&quot;; });
   $(&quot;u-nome&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { UA().nome = e.target.value.trim() || &quot;Tanque/viveiro sem nome&quot;; salvar(); renderHead(); });
-  $(&quot;u-sel&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.ativa = e.target.value; sel = null; salvar(); renderUnidade(); });
+  $(&quot;u-sel&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.ativa = e.target.value; sel = null; irUltDia(); salvar(); renderUnidade(); });
   $(&quot;u-dia&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { S.dia = e.target.value; sel = null; salvar(); renderUnidade(); });
   $(&quot;u-esp&quot;).addEventListener(&quot;change&quot;, (e) =&gt; { const u = UA(); if (u.sistemaRAS) return; u.especie = e.target.value; salvar();
     if (S.ras &amp;&amp; u.ras) { try { if (window.parent &amp;&amp; window.parent !== window &amp;&amp; typeof window.parent.aquaSetEspecie === &quot;function&quot;) window.parent.aquaSetEspecie(u.id, u.especie); } catch (err) {} }
@@ -1977,7 +1992,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     S.ativa = S.unidades[0].id; sel = null; diaPainel = null; salvar(); renderRodape(); renderUnidade();
     $(&quot;f-msg&quot;).textContent = `${u.nome} excluída.`; $(&quot;f-msg&quot;).className = &quot;msg&quot;;
   });
-  $(&quot;b-exc-u&quot;).addEventListener(&quot;blur&quot;, () =&gt; { if (excArmed) { excArmed = false; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir unidade&quot;; } });
+  $(&quot;b-exc-u&quot;).addEventListener(&quot;blur&quot;, () =&gt; { if (excArmed) { excArmed = false; $(&quot;b-exc-u&quot;).textContent = &quot;Excluir tanque/viveiro&quot;; } });
   $(&quot;b-nova&quot;).addEventListener(&quot;click&quot;, () =&gt; { const id = &quot;u&quot; + Date.now(); S.unidades.push({ id, nome: &quot;Tanque/viveiro &quot; + (S.unidades.length + 1), especie: UA().especie, sistema: UA().sistema, volume_m3: 1000, racao_kg_dia: 10 });
     S.ativa = id; S.dia = hoje(); sel = null; salvar(); renderUnidade(); $(&quot;u-nome&quot;).focus(); $(&quot;u-nome&quot;).select(); $(&quot;f-msg&quot;).textContent = &quot;Tanque/viveiro criado. Dê um nome e lance a primeira leitura.&quot;; $(&quot;f-msg&quot;).className = &quot;msg&quot;; });
   $(&quot;b-exemplo&quot;).addEventListener(&quot;click&quot;, () =&gt; {
@@ -7388,7 +7403,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v72";
+  const APP_VERSAO="ras-v73";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
