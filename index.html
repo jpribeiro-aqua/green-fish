@@ -1286,11 +1286,13 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const fmt = (v, d) =&gt; (v === null || v === undefined || Number.isNaN(v) ? &quot;—&quot; : Number(v).toLocaleString(&quot;pt-BR&quot;, { minimumFractionDigits: d, maximumFractionDigits: d }));
   const DEC = { temperatura: 1, od: 1, od_saturacao: 0, ph: 2, co2: 1, alcalinidade: 0, dureza: 0, tan: 2, nh3: 3, nitrito: 2, nitrato: 1, salinidade: 1, transparencia: 0, clorofila_a: 0, ss_imhoff: 1, sst: 0, vibrio: 0 };
   const curto = { temperatura: &quot;Temperatura&quot;, od: &quot;OD&quot;, od_saturacao: &quot;Saturação O₂&quot;, ph: &quot;pH&quot;, co2: &quot;CO₂ livre&quot;, alcalinidade: &quot;Alcalinidade&quot;, dureza: &quot;Dureza&quot;, tan: &quot;Amônia total&quot;, nh3: &quot;NH₃ (tóxica)&quot;, nitrito: &quot;Nitrito&quot;, nitrato: &quot;Nitrato&quot;, salinidade: &quot;Salinidade&quot;, transparencia: &quot;Secchi&quot;, clorofila_a: &quot;Clorofila-a&quot;, ss_imhoff: &quot;Sól. sediment.&quot;, sst: &quot;SST&quot;, vibrio: &quot;Vibrio&quot; };
-  const dataBR = (d) =&gt; { const [a, m, dd] = d.split(&quot;-&quot;); return `${dd}/${m}`; };
+  const dataBR = (d) =&gt; { const [a, m, dd] = d.split(&quot;-&quot;); return `${dd}/${m}` + (a !== String(new Date().getFullYear()) ? `/${a}` : &quot;&quot;); };
   const diaSemana = (d) =&gt; [&quot;dom&quot;, &quot;seg&quot;, &quot;ter&quot;, &quot;qua&quot;, &quot;qui&quot;, &quot;sex&quot;, &quot;sáb&quot;][new Date(d + &quot;T12:00:00&quot;).getDay()];
   const isoDia = (dt) =&gt; dt.getFullYear() + &quot;-&quot; + String(dt.getMonth() + 1).padStart(2, &quot;0&quot;) + &quot;-&quot; + String(dt.getDate()).padStart(2, &quot;0&quot;);
   const hoje = () =&gt; isoDia(new Date());
   const addDias = (d, n) =&gt; { const t = new Date(d + &quot;T12:00:00&quot;); t.setDate(t.getDate() + n); return isoDia(t); };
+  const futuro = (d) =&gt; !!d &amp;&amp; d &gt; addDias(hoje(), 1);
+  const ultValido = (ds) =&gt; { const v = (ds || []).filter((d) =&gt; d &amp;&amp; !futuro(d)).sort(); return v.length ? v[v.length - 1] : hoje(); };
 
   // --------------------------------------------------- campos por sistema
   const POND = [&quot;extensivo&quot;, &quot;semi-intensivo&quot;, &quot;intensivo&quot;], CLOSED = [&quot;superintensivo&quot;, &quot;hiperintensivo&quot;];
@@ -1582,14 +1584,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const svgW = (el, min = 280) =&gt; Math.max(min, el.clientWidth || 600);
 
   // ============================================================ PAINEL
-  function diasPeriodo() { const d = diaPainel || S.dia || hoje(); return periodo === 1 ? [d] : Array.from({ length: 7 }, (_, i) =&gt; addDias(d, i - 6)); }
+  function diasPeriodo() { const d = diaPainel || (S.dia &amp;&amp; !futuro(S.dia) ? S.dia : ultValido(LT().map((l) =&gt; l.data))); return periodo === 1 ? [d] : Array.from({ length: 7 }, (_, i) =&gt; addDias(d, i - 6)); }
   const unidadesFiltradas = () =&gt; S.unidades.filter((u) =&gt; !filtroEsp || espDe(u).includes(filtroEsp));
 
   function renderPainel() {
     const presentes = [&quot;tilapia&quot;, &quot;tambaqui&quot;, &quot;camarao&quot;, &quot;pirarucu&quot;, &quot;pangasius&quot;, &quot;curimata&quot;, &quot;lambari&quot;].filter((e) =&gt; S.unidades.some((u) =&gt; espDe(u).includes(e)));
     if (filtroEsp &amp;&amp; !presentes.includes(filtroEsp)) filtroEsp = &quot;&quot;;
     const dias = diasPeriodo(), dRef = dias[dias.length - 1], US = unidadesFiltradas();
-    const sd = $(&quot;p-dia&quot;); sd.innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === dRef ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}&lt;/option&gt;`).join(&quot;&quot;);
+    const sd = $(&quot;p-dia&quot;); sd.innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === dRef ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}${futuro(d) ? &quot; ⚠ data futura&quot; : &quot;&quot;}&lt;/option&gt;`).join(&quot;&quot;);
     $(&quot;p-per-1&quot;).setAttribute(&quot;aria-pressed&quot;, periodo === 1); $(&quot;p-per-7&quot;).setAttribute(&quot;aria-pressed&quot;, periodo === 7);
     $(&quot;p-esp&quot;).innerHTML = `&lt;option value=&quot;&quot;&gt;Todas&lt;/option&gt;` + presentes.map((e) =&gt; `&lt;option value=&quot;${e}&quot;${e === filtroEsp ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão&quot;, pirarucu: &quot;Pirarucu&quot;, pangasius: &quot;Pangasius&quot;, curimata: &quot;Curimatã&quot;, lambari: &quot;Lambari&quot; }[e]}&lt;/option&gt;`).join(&quot;&quot;);
     const nL = US.reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0);
@@ -1628,6 +1630,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     [0, 12, 24].forEach((h) =&gt; (s += `&lt;text class=&quot;lbl&quot; x=&quot;${x(h * 60)}&quot; y=&quot;${H - 2}&quot; text-anchor=&quot;${h ? (h === 24 ? &quot;end&quot; : &quot;middle&quot;) : &quot;start&quot;}&quot;&gt;${String(h).padStart(2, &quot;0&quot;)}h&lt;/text&gt;`));
     if (pts.length) {
       s += `&lt;path class=&quot;line&quot; d=&quot;${pts.map((l, i) =&gt; (i ? &quot;L&quot; : &quot;M&quot;) + x(Core.minutos(l.hora)).toFixed(1) + &quot; &quot; + y(l.od).toFixed(1)).join(&quot; &quot;)}&quot;/&gt;`;
+      pts.forEach((l) =&gt; (s += `&lt;circle class=&quot;dot&quot; r=&quot;2.2&quot; cx=&quot;${x(Core.minutos(l.hora)).toFixed(1)}&quot; cy=&quot;${y(l.od).toFixed(1)}&quot; fill=&quot;currentColor&quot;/&gt;`));
       const mn = pts.reduce((a, b) =&gt; (b.od &lt; a.od ? b : a)); s += `&lt;circle class=&quot;end&quot; r=&quot;4&quot; cx=&quot;${x(Core.minutos(mn.hora))}&quot; cy=&quot;${y(mn.od)}&quot;/&gt;`;
     } else s += `&lt;text class=&quot;lbl&quot; x=&quot;${W / 2}&quot; y=&quot;${H / 2}&quot; text-anchor=&quot;middle&quot;&gt;sem leituras de OD&lt;/text&gt;`;
     return s + &quot;&lt;/svg&gt;&quot;;
@@ -1644,7 +1647,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
           ${kv(&quot;OD previsto 06:00&quot;, m.odPrev !== undefined ? fmt(m.odPrev, 1) + &quot; mg/L&quot; : &quot;—&quot;, m.odPrevSt)}
           ${kv(&quot;Δ pH em 24 h&quot;, m.dph !== undefined ? fmt(m.dph, 2) : &quot;—&quot;, m.dphSt === &quot;sem_faixa&quot; ? &quot;ideal&quot; : m.dphSt)}
           ${kv(&quot;NH₃ pior horário&quot;, m.nh3 !== undefined ? fmt(m.nh3, 3) + &quot; mg/L&quot; : &quot;—&quot;, m.nh3St)}&lt;/div&gt;
-        &lt;span class=&quot;foot&quot;&gt;${m.n} leituras em ${dataBR(dRef)}&lt;/span&gt;&lt;/button&gt;`; }).join(&quot;&quot;)
+        &lt;span class=&quot;foot&quot;&gt;${m.n} leitura${m.n === 1 ? &quot;&quot; : &quot;s&quot;} em ${dataBR(dRef)}${m.n &gt; 0 &amp;&amp; m.n &lt; 4 ? &quot; · poucos horários para a curva de 24 h (mínimo: 06, 15, 20 e 22 h)&quot; : &quot;&quot;}&lt;/span&gt;&lt;/button&gt;`; }).join(&quot;&quot;)
       : &#x27;&lt;p class=&quot;foot&quot;&gt;Nenhum tanque/viveiro para esta espécie. Crie um na aba Tanque/viveiro.&lt;/p&gt;&#x27;;
     el.querySelectorAll(&quot;.ucard&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.ativa = b.dataset.u; S.dia = dRef; sel = null; salvar(); irPara(&quot;unidade&quot;); }));
   }
@@ -1655,7 +1658,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       const cur = r[x.p]; if (!cur || STORD[x.st] &gt; STORD[cur.st] || (x.st === cur.st &amp;&amp; Math.abs(dirU(u, x.p, x.v)) &amp;&amp; ((x.p === &quot;od&quot; &amp;&amp; x.v &lt; cur.v) || (x.p !== &quot;od&quot; &amp;&amp; x.v &gt; cur.v)))) r[x.p] = { ...x, hora: l.hora, data: l.data }; } return { u, r }; });
     const cols = MCOLS.filter((p) =&gt; agg.some((a) =&gt; a.r[p]));
     if (!cols.length) { // sem leituras no dia/período escolhido: explica e oferece o último dia com dados
-      const ids = new Set(US.map((u) =&gt; u.id)), ult = S.leituras.filter((l) =&gt; ids.has(l.unidade) &amp;&amp; passa(l)).map((l) =&gt; l.data).sort().pop();
+      const ids = new Set(US.map((u) =&gt; u.id)), ult = S.leituras.filter((l) =&gt; ids.has(l.unidade) &amp;&amp; passa(l)).map((l) =&gt; l.data).filter((d) =&gt; !futuro(d)).sort().pop();
       $(&quot;p-matriz&quot;).innerHTML = `&lt;tbody&gt;&lt;tr&gt;&lt;td class=&quot;foot&quot; style=&quot;text-align:left;padding:14px&quot;&gt;Nenhuma leitura ${periodo === 1 ? &quot;em &quot; + dataBR(dias[0]) : &quot;de &quot; + dataBR(dias[0]) + &quot; a &quot; + dataBR(dias[dias.length - 1])}${S.fOrig || S.fProj ? &quot; para a origem/projeto selecionado&quot; : &quot;&quot;}, por isso a matriz está sem parâmetros. ${ult ? `&lt;button type=&quot;button&quot; class=&quot;btn&quot; id=&quot;m-ult&quot;&gt;Ver ${dataBR(ult)}, último dia com leituras&lt;/button&gt;` : &quot;Lance ou importe leituras para ver a matriz.&quot;}&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;`;
       const bu = $(&quot;m-ult&quot;); if (bu) bu.addEventListener(&quot;click&quot;, () =&gt; { diaPainel = ult; renderPainel(); });
       $(&quot;p-mleg&quot;).innerHTML = &quot;&quot;; return;
@@ -1769,7 +1772,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;u-orig&quot;).title = $(&quot;u-orig&quot;).disabled ? &quot;Num RAS a origem é a da água do sistema: escolha no tanque/viveiro Água do sistema&quot; : &quot;&quot;;
     $(&quot;u-nome&quot;).title = u.ras ? &quot;O nome vem da Calculadora&quot; : &quot;&quot;;
     $(&quot;u-sel&quot;).innerHTML = S.unidades.map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
-    $(&quot;u-dia&quot;).innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === (S.dia || hoje()) ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}&lt;/option&gt;`).join(&quot;&quot;);
+    $(&quot;u-dia&quot;).innerHTML = diasDisponiveis().map((d) =&gt; `&lt;option value=&quot;${d}&quot;${d === (S.dia || hoje()) ? &quot; selected&quot; : &quot;&quot;}&gt;${diaSemana(d)} ${dataBR(d)}${futuro(d) ? &quot; ⚠ data futura&quot; : &quot;&quot;}&lt;/option&gt;`).join(&quot;&quot;);
     const sc = BASE.sistemas_cultivo.find((x) =&gt; x.especie === u.especie &amp;&amp; x.sistema === u.sistema);
     $(&quot;u-meta&quot;).innerHTML = `${ORIGENS[origemDe(u)] ? &quot;Origem: &quot; + ORIGENS[origemDe(u)].nome + &quot; · &quot; : &quot;&quot;}${u.sistemaRAS ? &quot;Avaliada pelo pior caso entre &quot; + espDe(u).map((e) =&gt; ESP[e].nome_comum).join(&quot; e &quot;) : `&lt;em&gt;${ESP[u.especie].cientifico}&lt;/em&gt;`} · ${u.sistema} · ${u.sistemaRAS ? `água comum a ${fmt(u.ras.tanques, 0)} tanques, ${fmt(u.volume_m3, 0)} m³` : u.ras ? `grupo da Calculadora: ${fmt(u.ras.tanques, 0)} × ${fmt(u.ras.volume_tanque, 0)} m³ = ${fmt(u.volume_m3, 0)} m³${u.racao_kg_dia ? ` · ração de projeto ${fmt(u.racao_kg_dia, 1)} kg/d` : &quot;&quot;}` : `densidade de referência ${sc ? sc.densidade : &quot;—&quot;}`}${u.exemplo ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${tempMetaHTML(u)}`; { const tt = $(&quot;u-ttab&quot;); if (tt) { const op = tt.open; tt.innerHTML = tempTabHTML(u); tt.open = op; } }
     $(&quot;ver&quot;).textContent = BASE.versao;
@@ -2041,7 +2044,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       if (S.exemplo) { S.leituras = S.leituras.filter((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) || !uns.has(l.unidade)); }
       uns.forEach((id) =&gt; { const u = uniById(id); if (u) u.exemplo = false; });
       if (S.exemplo &amp;&amp; !S.leituras.some((l) =&gt; String(l.id).startsWith(&quot;e&quot;))) S.exemplo = false;
-      S.dia = r.dias[r.dias.length - 1]; if (uns.size === 1) S.ativa = [...uns][0]; else if (r.criadas.length) S.ativa = [...uns][0];
+      S.dia = ultValido(r.dias); if (uns.size === 1) S.ativa = [...uns][0]; else if (r.criadas.length) S.ativa = [...uns][0];
       diaPainel = null; sel = null; salvar(); renderRodape();
       if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade();
     }
@@ -2075,7 +2078,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
         for (let i = Math.max(1, a.length - 40); i &lt; a.length; i++) { const d = (new Date(a[i]) - new Date(a[i - 1])) / 60000; if (d &gt; 0 &amp;&amp; d &lt; 2880) dif.push(d); } }
       dif.sort((x, y) =&gt; x - y); const r = { ...e, med: dif.length ? dif[Math.floor(dif.length / 2)] : null, unidades: us }; delete r.por; return r; }); };
   window.aquaFiltroOrigem = (fo, fp) =&gt; { S.fOrig = fo || &quot;&quot;; S.fProj = fp || &quot;&quot;; diaPainel = null; sel = null;
-    const ds = LT().map((l) =&gt; l.data).sort(); if (ds.length &amp;&amp; !ds.includes(S.dia)) S.dia = ds[ds.length - 1];
+    const ds = LT().map((l) =&gt; l.data).sort(); if (ds.length &amp;&amp; (!ds.includes(S.dia) || futuro(S.dia))) S.dia = ultValido(ds);
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
 
   // --------------------------------------------------- vínculo com o Sistema RAS Multitanques
@@ -7385,7 +7388,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v71";
+  const APP_VERSAO="ras-v72";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
