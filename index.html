@@ -904,6 +904,7 @@ button, select, input { font: inherit; color: inherit; }
 .u-ft.ft-tanque[aria-pressed=&quot;true&quot;] { background: var(--s1); color: #fff; }
 .u-ft.ft-viveiro[aria-pressed=&quot;true&quot;] { background: #8a5a2b; color: #fff; }
 .u-ico { font-size: 13px; }
+.u-conv-b { border: 1px dashed var(--accent) !important; border-radius: 999px; }
 .u-chip.t-tanque.on { background: var(--s1); border-color: var(--s1); }
 .u-chip.t-viveiro.on { background: #8a5a2b; border-color: #8a5a2b; }
 .tab-nome.t-tanque { background: var(--s1); } .tab-nome.t-viveiro { background: #8a5a2b; }
@@ -1547,11 +1548,17 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const tipoU = (u) =&gt; (u.sistemaRAS ? &quot;sistema&quot; : estrDe(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;);
   const TIPO_U = { tanque: [&quot;🟦&quot;, &quot;Tanque&quot;, &quot;Tanques&quot;], viveiro: [&quot;🟫&quot;, &quot;Viveiro&quot;, &quot;Viveiros&quot;], sistema: [&quot;💧&quot;, &quot;Água do sistema&quot;, &quot;Água do sistema&quot;] };
   const passaTipo = (u) =&gt; !S.filtroTipo || tipoU(u) === S.filtroTipo || u.sistemaRAS;
+  const numDe = (nome) =&gt; { const m = String(nome || &quot;&quot;).trim().toLowerCase().normalize(&quot;NFD&quot;).replace(/[\u0300-\u036f]/g, &quot;&quot;).match(/^(?:tanque\s*\/\s*viveiro|viveiro\s*\/\s*tanque|viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|t|v)\s*[-:no#.]*\s*0*(\d{1,4}[a-z]?)$/); return m ? m[1] : null; };
+  const ambiguo = (nome) =&gt; /tanque\s*\/\s*viveiro|viveiro\s*\/\s*tanque/i.test(String(nome || &quot;&quot;));
   const PREF_E = { viveiro: &quot;Viveiro&quot;, suspenso: &quot;Tanque&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;Tanque RAS&quot;, bft: &quot;Tanque BFT&quot; };
   const CURTO_E = { viveiro: &quot;Viveiro escavado&quot;, suspenso: &quot;Tanque suspenso / elevado&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;RAS (recirculação)&quot;, bft: &quot;Bioflocos (BFT)&quot; };
   /* nome que acompanha a estrutura: &quot;Tanque 7&quot; vira &quot;Viveiro 7&quot; ao escolher viveiro escavado (nomes próprios ficam como estão) */
   function nomePorEstr(nome, k) { const m = String(nome || &quot;&quot;).trim().match(/^(?:viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|bioflocos?|tanque\/viveiro)\s*[-–:nº°#.]*\s*(\S.*)$/i);
     return m &amp;&amp; PREF_E[k] ? PREF_E[k] + &quot; &quot; + m[1] : null; }
+  function converterTipo(de, para) { let n = 0; const k = para === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;suspenso&quot;;
+    for (const u of S.unidades) { if (u.ras || u.sistemaRAS || tipoU(u) !== de) continue; u.estrutura = k; u.estrFonte = &quot;usuario&quot;; const nv = nomePorEstr(u.nome, k);
+      if (nv &amp;&amp; nv !== u.nome &amp;&amp; !S.unidades.some((x) =&gt; x !== u &amp;&amp; String(x.nome || &quot;&quot;).trim().toLowerCase() === nv.toLowerCase())) { const velho = u.nome; u.nome = nv; try { parent.bioRenomear &amp;&amp; parent.bioRenomear(velho, nv, k); } catch (e) {} } else { try { parent.bioRenomear &amp;&amp; parent.bioRenomear(u.nome, u.nome, k); } catch (e) {} } n++; }
+    S.filtroTipo = para; salvar(); renderUnidade(); const f = $(&quot;f-msg&quot;); if (f) { f.textContent = `${n} ${de === &quot;tanque&quot; ? &quot;tanque(s) virou(viraram) viveiro(s)&quot; : &quot;viveiro(s) virou(viraram) tanque(s)&quot;}: estrutura e nome trocados, leituras e biometrias continuam ligadas.`; f.className = &quot;msg ok&quot;; } }
   function migrarEstr() { let mud = false; for (const u of S.unidades) if (!u.ras &amp;&amp; !u.sistemaRAS &amp;&amp; !u.estrutura &amp;&amp; u.importada) { const k = estrTxt(u.nome); if (k) { u.estrutura = k; u.estrFonte = &quot;nome&quot;; mud = true; } } if (mud) salvar(); }
   function tempFaixa(esp, sis, estr) {
     const f0 = Core.faixa(BASE, esp, &quot;temperatura&quot;); if (!f0) return null; const f = { ...f0 }, alvo = ALVO_T[esp] ?? (f0.ideal_min + f0.ideal_max) / 2, E = ESTR[estr] || ESTR.viveiro, mot = [];
@@ -1950,8 +1957,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     { const d0 = S.dia || hoje(), ch = $(&quot;u-chips&quot;);
       const cnt = (t) =&gt; S.unidades.filter((x) =&gt; tipoU(x) === t).length, ft = S.filtroTipo || &quot;&quot;;
       if (ch) { ch.innerHTML = `&lt;div class=&quot;u-chips-top&quot;&gt;&lt;span class=&quot;u-chips-l&quot;&gt;Selecione ${ft === &quot;viveiro&quot; ? &quot;o viveiro&quot; : ft === &quot;tanque&quot; ? &quot;o tanque&quot; : &quot;o tanque ou viveiro&quot;}&lt;/span&gt;&lt;span class=&quot;u-seg&quot; role=&quot;group&quot; aria-label=&quot;Mostrar&quot;&gt;${[[&quot;&quot;, &quot;Todos&quot;, S.unidades.length], [&quot;tanque&quot;, &quot;🟦 Tanques&quot;, cnt(&quot;tanque&quot;)], [&quot;viveiro&quot;, &quot;🟫 Viveiros&quot;, cnt(&quot;viveiro&quot;)]].map(([k, t, n]) =&gt; `&lt;button type=&quot;button&quot; class=&quot;u-ft${k ? &quot; ft-&quot; + k : &quot;&quot;}&quot; data-ft=&quot;${k}&quot; aria-pressed=&quot;${ft === k}&quot;&gt;${t} &lt;small&gt;${n}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;)}&lt;/span&gt;&lt;/div&gt;` + S.unidades.filter((x) =&gt; x.id === u.id || passaTipo(x)).map((x) =&gt; { const n = S.leituras.filter((l) =&gt; l.unidade === x.id &amp;&amp; l.data === d0 &amp;&amp; passa(l)).length, tot = S.leituras.some((l) =&gt; l.unidade === x.id &amp;&amp; passa(l));
-        return `&lt;button type=&quot;button&quot; class=&quot;u-chip t-${tipoU(x)}${x.id === u.id ? &quot; on&quot; : &quot;&quot;}${tot ? &quot;&quot; : &quot; vaz&quot;}${x.oculto ? &quot; oc&quot; : &quot;&quot;}&quot; data-u=&quot;${x.id}&quot; aria-pressed=&quot;${x.id === u.id}&quot; title=&quot;${x.oculto ? &quot;Fora do painel: toque e use “Botar de volta no painel”&quot; : TIPO_U[tipoU(x)][1]}&quot;&gt;&lt;span class=&quot;u-ico&quot;&gt;${TIPO_U[tipoU(x)][0]}&lt;/span&gt;${escO(x.nome)}${n ? `&lt;small&gt;${n}&lt;/small&gt;` : &quot;&quot;}&lt;/button&gt;`; }).join(&quot;&quot;) + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; id=&quot;u-chip-nova&quot;&gt;+ Novo tanque/viveiro&lt;/button&gt;`;
+        return `&lt;button type=&quot;button&quot; class=&quot;u-chip t-${tipoU(x)}${x.id === u.id ? &quot; on&quot; : &quot;&quot;}${tot ? &quot;&quot; : &quot; vaz&quot;}${x.oculto ? &quot; oc&quot; : &quot;&quot;}&quot; data-u=&quot;${x.id}&quot; aria-pressed=&quot;${x.id === u.id}&quot; title=&quot;${x.oculto ? &quot;Fora do painel: toque e use “Botar de volta no painel”&quot; : TIPO_U[tipoU(x)][1]}&quot;&gt;&lt;span class=&quot;u-ico&quot;&gt;${TIPO_U[tipoU(x)][0]}&lt;/span&gt;${escO(x.nome)}${n ? `&lt;small&gt;${n}&lt;/small&gt;` : &quot;&quot;}&lt;/button&gt;`; }).join(&quot;&quot;) + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; id=&quot;u-chip-nova&quot;&gt;+ Novo tanque/viveiro&lt;/button&gt;` + (ft &amp;&amp; cnt(ft) ? (() =&gt; { const para = ft === &quot;tanque&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;, nn = S.unidades.filter((x) =&gt; tipoU(x) === ft &amp;&amp; !x.ras &amp;&amp; !x.sistemaRAS).length; return nn ? `&lt;button type=&quot;button&quot; class=&quot;mc-a u-conv-b&quot; id=&quot;u-conv&quot; data-de=&quot;${ft}&quot; data-para=&quot;${para}&quot; data-q=&quot;Confirmar: transformar ${nn} ${ft === &quot;tanque&quot; ? &quot;tanque(s)&quot; : &quot;viveiro(s)&quot;} em ${para === &quot;viveiro&quot; ? &quot;viveiro(s) escavado(s)&quot; : &quot;tanque(s) suspenso(s)&quot;}&quot;&gt;⇄ Transformar ${ft === &quot;tanque&quot; ? &quot;estes tanques em viveiros&quot; : &quot;estes viveiros em tanques&quot;}&lt;/button&gt;` : &quot;&quot;; })() : &quot;&quot;);
         const nb = $(&quot;u-chip-nova&quot;); if (nb) nb.addEventListener(&quot;click&quot;, () =&gt; $(&quot;b-nova&quot;).click());
+        const cv = $(&quot;u-conv&quot;); if (cv) cv.addEventListener(&quot;click&quot;, () =&gt; { if (cv.dataset.ok !== &quot;1&quot;) { cv.dataset.ok = &quot;1&quot;; cv.textContent = cv.dataset.q; return; } converterTipo(cv.dataset.de, cv.dataset.para); });
         ch.querySelectorAll(&quot;.u-ft&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.filtroTipo = b.dataset.ft; const a = UA(); if (S.filtroTipo &amp;&amp; tipoU(a) !== S.filtroTipo) { const nx = S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto) || S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo); if (nx) { S.ativa = nx.id; sel = null; irUltDia(); } } salvar(); renderUnidade(); }));
         ch.querySelectorAll(&quot;.u-chip&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { if (b.dataset.u === S.ativa) return; S.ativa = b.dataset.u; sel = null; irUltDia(); salvar(); renderUnidade(); })); } }
     $(&quot;tab-unidade&quot;).innerHTML = `Tanque/viveiro &lt;span class=&quot;tab-nome t-${tipoU(u)}&quot;&gt;${TIPO_U[tipoU(u)][0]} ${escO(u.nome)}&lt;/span&gt;`;
@@ -2218,18 +2226,23 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   let rz; window.addEventListener(&quot;resize&quot;, () =&gt; { clearTimeout(rz); rz = setTimeout(() =&gt; (aba === &quot;painel&quot; ? renderPainel() : renderCharts()), 140); });
 
   // --------------------------------------------------- plugin de automação (página-mãe): tanques/viveiros e importação de leituras
-  window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null }));
+  window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null, tipo: tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot; }));
   window.aquaImport = (lista, op) =&gt; {
     op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
     const PS = ORDEM.concat([&quot;od_saturacao&quot;, &quot;nh3&quot;]), dias = new Set(), uns = new Set();
-    const porNome = (v) =&gt; { if (v == null || v === &quot;&quot;) return null; const s = String(v).trim().toLowerCase(); return S.unidades.find((u) =&gt; String(u.id).toLowerCase() === s || String(u.nome || &quot;&quot;).trim().toLowerCase() === s) || null; };
+    const pref = op.tipoNum === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;;
+    const porNome = (v) =&gt; { if (v == null || v === &quot;&quot;) return null; const s = String(v).trim().toLowerCase(); const ex = S.unidades.find((u) =&gt; String(u.id).toLowerCase() === s || String(u.nome || &quot;&quot;).trim().toLowerCase() === s); if (ex) return ex;
+      /* mesmo número com outro nome (a planilha diz &quot;Tanque 7&quot; e o sistema já chama de &quot;Viveiro 7&quot;): as leituras vão para ele */
+      const n = numDe(v); if (!n) return null; const cs = S.unidades.filter((u) =&gt; !u.sistemaRAS &amp;&amp; numDe(u.nome) === n); if (cs.length === 1) return cs[0];
+      const quer = /^\s*viveiro/i.test(v) ? &quot;viveiro&quot; : /^\s*tanque(?!\s*\/)/i.test(v) ? &quot;tanque&quot; : pref; return cs.find((u) =&gt; tipoU(u) === quer) || null; };
+    const nomeNovo = (v) =&gt; { const n = numDe(v); return ambiguo(v) &amp;&amp; n ? (pref === &quot;viveiro&quot; ? &quot;Viveiro &quot; : &quot;Tanque &quot;) + n : String(v).slice(0, 60); };
     for (const it of Array.isArray(lista) ? lista : []) {
       let u = porNome(it.unidade);
       if (!u &amp;&amp; op.criar &amp;&amp; it.unidade) { const tpl = uniById(op.destino) || {};
-        u = { id: &quot;u&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nome: String(it.unidade).slice(0, 60), especie: op.especie || (tpl.sistemaRAS ? (tpl.especies || [])[0] : tpl.especie) || &quot;tilapia&quot;, sistema: &quot;semi-intensivo&quot;, volume_m3: 1000, racao_kg_dia: 10, importada: true };
+        u = { id: &quot;u&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nome: nomeNovo(it.unidade), especie: op.especie || (tpl.sistemaRAS ? (tpl.especies || [])[0] : tpl.especie) || &quot;tilapia&quot;, sistema: &quot;semi-intensivo&quot;, volume_m3: 1000, racao_kg_dia: 10, importada: true };
         S.unidades.push(u); r.criadas.push(u.nome); }
       if (!u) u = uniById(op.destino);
-      if (u &amp;&amp; !u.ras &amp;&amp; !u.sistemaRAS) { const ke = estrTxt(it.estrutura), kn = ke ? null : (!u.estrutura || u.estrFonte === &quot;nome&quot; ? estrTxt(it.unidade) : null), k = ke || kn;
+      if (u &amp;&amp; !u.ras &amp;&amp; !u.sistemaRAS) { const ke = estrTxt(it.estrutura), kn = ke ? null : (!u.estrutura || u.estrFonte === &quot;nome&quot; ? estrTxt(ambiguo(it.unidade) ? u.nome : it.unidade) : null), k = ke || kn;
         if (k &amp;&amp; k !== u.estrutura) { u.estrutura = k; u.estrFonte = ke ? &quot;dados&quot; : &quot;nome&quot;; (r.estr = r.estr || {})[u.nome] = CURTO_E[k]; } }
       if (!u || !/^\d{4}-\d{2}-\d{2}$/.test(it.data || &quot;&quot;) || !/^\d{2}:\d{2}$/.test(it.hora || &quot;&quot;)) { r.ignoradas++; continue; }
       const prof = it.profundidade || &quot;superfície&quot;, vals = {};
@@ -3869,11 +3882,12 @@ function bioAval(b){if(!b||b.pm==null)return null;let r="apto";const t=[`peso m�
 function unidadesAval(){const m=medAqua(),BM=window.bioPorNome?bioPorNome():{};const usados=new Set();
   const UN=(m&&m.UN?m.UN:[]).slice();
   let OC=new Set();try{const A=JSON.parse(localStorage.getItem(AQ_KEY)||"{}");OC=new Set((A.unidades||[]).filter(u=>u.oculto).map(u=>String(u.nome||"").trim().toLowerCase()))}catch(e){}
-  for(const k in BM){if(OC.has(k))continue;if(!UN.some(u=>String(u.nome||"").trim().toLowerCase()===k)){const sp=(projSp()||["tilapia"])[0];UN.push({id:"bio:"+k,nome:BM[k].nome,esp:ESP[sp]?sp:"tilapia",est:sisApt().est,it:sisApt().it,P:{},n:0})}}
+  for(const k in BM){if(OC.has(k))continue;if(!UN.some(u=>String(u.nome||"").trim().toLowerCase()===k||(window.numN&&numN(k)&&numN(u.nome)===numN(k)))){const sp=(projSp()||["tilapia"])[0];UN.push({id:"bio:"+k,nome:BM[k].nome,esp:ESP[sp]?sp:"tilapia",est:sisApt().est,it:sisApt().it,P:{},n:0})}}
   if(!UN.length)return [];
   return UN.map(u=>{const f=faixaSis(ESP[u.esp],u.esp,u.it,u.est),x=avalMed(u.P,u.esp,f,u.est);
     const sal=u.P.salinidade?(()=>{const sc=salClass(u.P.salinidade.mean);return sc?[ESP[u.esp].sal[sc],`salinidade média ${fT(u.P.salinidade.mean)} ‰ (água ${sc})`]:null})():null;if(sal)x.sal=sal;
-    const bv=bioAval(BM[String(u.nome||"").trim().toLowerCase()]);if(bv)x.bio=bv;
+    const bk=String(u.nome||"").trim().toLowerCase(),bn=window.numN?numN(u.nome):null,bkey=BM[bk]?bk:bn?Object.keys(BM).find(k=>numN(k)===bn&&!UN.some(z=>z!==u&&String(z.nome||"").trim().toLowerCase()===k)):null;
+    const bv=bioAval(bkey?BM[bkey]:null);if(bv)x.bio=bv;
     const ks=["temp","od","ph","nit","sal","bio"].filter(p=>x[p]),res=ks.length?piorDe(...ks.map(p=>x[p][0])):"na";
     const nomes={temp:"temperatura",od:"oxigênio",ph:"pH",nit:"amônia/nitrito",sal:"salinidade",bio:"biometria"},prob=ks.filter(p=>x[p][0]!=="apto");
     return {...u,x,res,prob:prob.map(p=>nomes[p]),txt:prob.map(p=>x[p][1]).join(" · ")}}).sort((a,b)=>({inapto:0,restrito:1,apto:2}[a.res]-{inapto:0,restrito:1,apto:2}[b.res])||a.nome.localeCompare(b.nome,"pt"))}
@@ -6881,7 +6895,7 @@ function tabelaDe(M,aba){M=M.filter(l=>l.some(x=>x!==""&&x!=null));
   const h=M[hi].map((c,i)=>String(c==null?"":c).trim()||("col"+(i+1)));
   // unidade: quadro acima da tabela ("Identificação do tanque/viveiro: 3") ou nome da aba ("TANQUE 3")
   let un="";for(const l of M.slice(0,hi)){for(let j=0;j<l.length;j++){const c=String(l[j]==null?"":l[j]);if(/^(identifica|tanque|viveiro|unidade|gaiola|baia)/i.test(norm(c))&&/:\s*$/.test(c)){const v=l.slice(j+1).find(x=>x!==""&&x!=null);
-      if(v!=null&&!/^(tanque|viveiro)s?$/i.test(String(v).trim())){const t=String(v).trim();un=/^\d{1,3}$/.test(t)?(/viveiro/i.test(c)&&!/tanque/i.test(c)?"Viveiro ":"Tanque ")+t:t}break}}if(un)break}
+      if(v!=null&&!/^(tanque|viveiro)s?$/i.test(String(v).trim())){const t=String(v).trim();un=/^\d{1,3}$/.test(t)?(/viveiro/i.test(c)&&!/tanque/i.test(c)?"Viveiro ":/tanque/i.test(c)&&!/viveiro/i.test(c)?"Tanque ":"Tanque/Viveiro ")+t:t}break}}if(un)break}
   if(!un&&aba&&/tanque|viveiro|gaiola|^t\s*\d/i.test(aba)){const a=aba.trim().toLowerCase();un=a.charAt(0).toUpperCase()+a.slice(1)}
   const temU=h.some(c=>/^(unidade|tanque|viveiro|gaiola|pond|tank|local|ponto)/.test(norm(c)));
   return M.slice(hi+1).map(l=>{const o=Object.fromEntries(h.map((c,i)=>[c,l[i]==null?"":l[i]]));if(un&&!temU)o["Unidade"]=un;return o})}
@@ -6905,6 +6919,8 @@ function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w
 const IDB=(()=>{let p;const db=()=>p||(p=new Promise((ok,er)=>{const r=indexedDB.open("greenfish-aquaauto",1);r.onupgradeneeded=()=>r.result.createObjectStore("imp");r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)}));
   const tx=(m,f)=>db().then(d=>new Promise((ok,er)=>{const t=d.transaction("imp",m),q=f(t.objectStore("imp"));t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>er(t.error)}));
   return {put:(k,v)=>tx("readwrite",st=>st.put(v,k)),get:k=>tx("readonly",st=>st.get(k)),del:k=>tx("readwrite",st=>st.delete(k))}})();
+window.tipoNumero=()=>{const v=C.tipoNum||"auto";if(v!=="auto")return v;try{const us=frame().contentWindow.aquaUnidades().filter(u=>!u.ras);const nv=us.filter(u=>u.tipo==="viveiro").length;return nv>us.length-nv?"viveiro":"tanque"}catch(e){return "tanque"}};
+window.setTipoNumero=v=>{C.tipoNum=v;salvar()};
 const chaveLog=l=>l.key||(()=>{const o=String(l.origem||"");if(/^arquivo /.test(o))return "arquivo|"+o.slice(8);return o==="colado"?"colado":o==="link"?"link":o==="webhook"?"webhook":o})();
 
 /* ---- 📁 arquivos do projeto: a cópia de cada planilha/importação fica guardada no projeto (vai junto ao salvar na nuvem)
@@ -6969,7 +6985,7 @@ let histConf=null;
 async function importar(lista,origem){const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu. Abra a aba e tente de novo.");
   const sal=lista.map(o=>o.salinidade).filter(v=>typeof v==="number"),esp=sal.length&&sal.reduce((a,b)=>a+b,0)/sal.length>5?"camarao":undefined;
   const tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:"";
-  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp,tipo,nome});
+  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp,tipo,nome,tipoNum:window.tipoNumero()});
   const id="imp"+Date.now().toString(36),key=tipo+(nome?"|"+String(nome).slice(0,120):"");
   C.log.unshift({id,em:Date.now(),origem,tipo,nome,key,n:lista.length,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias,criadas:r.criadas});
   const sai=C.log.slice(30);C.log=C.log.slice(0,30);salvar();sai.forEach(l=>l.id&&IDB.del(l.id).catch(()=>{}));
@@ -7036,6 +7052,7 @@ function draw(){
    <div class="pj-tools chips">${[["arquivo","Arquivo"],["colar","Colar dados"],["link","Link (atualiza sozinho)"],["webhook","Webhook (automação envia)"]].map(([k,t])=>`<button type="button" class="chip${C.fonte===k?" on":""}" data-ap-fonte="${k}" aria-pressed="${C.fonte===k}">${t}</button>`).join("")}</div>
    <div class="rp-grid"><label>Tanque/viveiro de destino<select class="lv-sel" data-ap-cfg="destino">${us.length?us.map(u=>`<option value="${E(u.id)}"${u.id===C.destino?" selected":""}>${E(u.nome)}</option>`).join(""):`<option value="">(abra o AquaNictemeral abaixo)</option>`}</select></label>
     <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="criar"${C.criar!==false?" checked":""}> <span><b>Criar os tanques/viveiros que não existem</b><br><span class="muted">pelo nome da coluna de tanque/viveiro (ex.: Viveiro 1 · Ponto A)</span></span></label>
+    <label>Na planilha, “tanque/viveiro” sem dizer qual é<select class="lv-sel" data-ap-cfg="tipoNum">${[["auto",`Automático (${window.tipoNumero()==="viveiro"?"viveiros":"tanques"}, a maioria do projeto)`],["viveiro","🟫 São viveiros"],["tanque","🟦 São tanques"]].map(([k,t])=>`<option value="${k}"${(C.tipoNum||"auto")===k?" selected":""}>${t}</option>`).join("")}</select></label>
     <label class="us-chk ap-chk"><input type="checkbox" data-ap-cfg="agrupar"${C.agrupar?" checked":""}> <span><b>Juntar as medições da mesma hora</b><br><span class="muted">média por hora, para sondas que medem a cada poucos minutos</span></span></label></div>
    ${C.fonte==="arquivo"?`<p class="muted">Planilha do Excel (.xlsx, .xls), Numbers (.numbers), LibreOffice (.ods), CSV, TXT ou JSON exportado da sonda, do datalogger, do app do sensor ou da planilha. A primeira linha precisa ter os nomes das colunas (data, hora, OD, temperatura, pH…).</p><div class="pj-btns"><button type="button" class="btn solid" data-ap="arquivo"${busy?" disabled":""}>Escolher arquivo</button></div>`
     :C.fonte==="colar"?`<textarea class="ap-txt" id="ap-txt" rows="5" placeholder="data;hora;OD;temperatura;pH&#10;24/10/2026;06:00;4,8;27,9;7,2"></textarea><div class="pj-btns"><button type="button" class="btn solid" data-ap="ler">Ler dados</button></div>`
@@ -7183,7 +7200,7 @@ ARQ.registrar("leituras",{
   contar:k=>{try{const w=frame().contentWindow,O=w&&w.aquaOrigens&&w.aquaOrigens();return O?((O.origens.find(o=>o.key===k)||{}).n||0):0}catch(e){return 0}},
   apagar:async k=>{const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu.");const n=w.aquaApagarOrigem(k);try{w.aquaFiltroOrigem("","")}catch(e){}drawOrig();return n},
   ver:async k=>{const w=await pronto();if(w)w.aquaFiltroOrigem(k,"");drawOrig();const f=frame();f&&f.scrollIntoView({behavior:"smooth",block:"start"})},
-  processar:async(it,L)=>{const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu.");const r=w.aquaImport(L,{...it.op,criar:it.op.criar!==false,tipo:it.fonte,nome:it.nome});drawOrig();
+  processar:async(it,L)=>{const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu.");const r=w.aquaImport(L,{...it.op,criar:it.op.criar!==false,tipo:it.fonte,nome:it.nome,tipoNum:window.tipoNumero()});drawOrig();
     return `${it.nome||"Dados"} processado no projeto: ${resumo(r)}`}});
 /* importações antigas (histórico com cópia neste aparelho) passam para os arquivos do projeto */
 (async()=>{try{for(const l of (C.log||[]).slice().reverse()){if(!l.id)continue;const k=chaveLog(l);if(ARQ.existe("leituras",k))continue;const g=await IDB.get(l.id).catch(()=>null);if(g&&g.lista&&g.lista.length)await ARQ.add({tipo:"leituras",key:k,nome:l.nome||"",fonte:l.tipo||k.split("|")[0],lista:g.lista,op:g.op||{}})}}catch(e){}})();
@@ -7311,7 +7328,7 @@ function autoMapB(cols){const m={},us=new Set();for(const c of cols)if(/estimad|
 function metodoDe(v){const n=norm(v);if(!n)return null;const a=MET.find(([k,t])=>n.includes(norm(k))||norm(t).startsWith(n));if(a)return a[0];
   if(/camera|^ia$|intelig|xpert|visao|vision|^app/.test(n))return "visao";if(/sonar|acust|eco/.test(n))return "acustica";if(/frame|moldura|vaki|estereo/.test(n))return "moldura";if(/bandeja|tray/.test(n))return "bandeja";return "outro"}
 function linhasParaAmostras(rows,map){const inv={};for(const c in map)if(map[c])inv[map[c]]=c;const g=new Map();let ruins=0;
-  const ptG=inv.peso_total&&/\(\s*g\b|gramas/i.test(inv.peso_total),uPre=inv.unidade?String(inv.unidade).replace(/\s*\(.*?\)/g,"").split("/")[0].trim():"";
+  const ptG=inv.peso_total&&/\(\s*g\b|gramas/i.test(inv.peso_total),uPre=inv.unidade?(()=>{const h=String(inv.unidade).replace(/\s*\(.*?\)/g,"");return /tanque/i.test(h)&&/viveiro/i.test(h)?(window.tipoNumero&&tipoNumero()==="viveiro"?"Viveiro":"Tanque"):h.split("/")[0].trim()})():"";
   // planilhas em que "Nº peixes amostrados" é o número do peixe (1, 2, 3…) e "peso total" é o peso desse peixe: um animal por linha
   let contador=false;if(inv.n&&(inv.peso_total||inv.peso)){const seq=new Map();for(const r of rows){const k=String(r[inv.unidade]||"")+"|"+String(r[inv.data]||r[inv.dt]||"");const v=num(r[inv.n]);if(!isFinite(v))continue;if(!seq.has(k))seq.set(k,[]);seq.get(k).push(v)}
     let ok=0,tot=0;for(const L of seq.values()){if(L.length<2)continue;tot++;if(L.every((v,i)=>v===i+1))ok++}contador=tot>0&&ok/tot>=0.6}
@@ -7325,9 +7342,13 @@ function linhasParaAmostras(rows,map){const inv={};for(const c in map)if(map[c])
     if(contador&&isFinite(idx)){const kk=idx+"|"+p+"|"+c;if(e._v.has(kk))continue;e._v.add(kk)}
     if(isFinite(pt)&&isFinite(n)&&n>0){e.loteN+=n;e.loteKg+=pt}else e.ind.push({p:isFinite(p)?Math.round(p*1000)/1000:undefined,c:isFinite(c)?Math.round(c*100)/100:undefined,n:isFinite(n)&&n>0?n:1})}
   return {amostras:[...g.values()].map(({_v,...a})=>a),ruins}}
+const numN=nome=>{const x=String(nome||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").match(/^(?:tanque\s*\/\s*viveiro|viveiro\s*\/\s*tanque|viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|t|v)\s*[-:no#.]*\s*0*(\d{1,4}[a-z]?)$/);return x?x[1]:null};
+window.numN=numN;
 function guardar(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
   for(const a of lista){const p=(a.proj&&projDe(a.proj))||base,us=uniP(p);let u=a.uid?us.find(x=>x.id===a.uid):null;
-    if(!u&&a.un){const s=String(a.un).trim().toLowerCase();u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s);if(!u){u=novaUnidade(p,a.un);if(u)criadas.push(u.nome)}}
+    if(!u&&a.un){const s=String(a.un).trim().toLowerCase();u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s);
+      if(!u){const n=numN(a.un);if(n){const cs=us.filter(x=>numN(x.nome)===n);u=cs.length===1?cs[0]:cs.find(x=>x.tipo===(/^\s*viveiro/i.test(a.un)?"viveiro":/^\s*tanque/i.test(a.un)?"tanque":(window.tipoNumero?tipoNumero():"tanque")))||null}}
+      if(!u){u=novaUnidade(p,a.un);if(u)criadas.push(u.nome)}}
     if(!u&&p===base){if(padrao===undefined)padrao=unidadeEscolhida(p);u=padrao}
     if(!u){sem++;continue}
     B.amostras.push({id:"b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),unidade:u.id,unome:u.nome,utipo:u.tipo||detectTipo(u),num:a.num||"",data:a.data,hora:a.hora,metodo:a.metodo||B.metodo,origem,ind:a.ind||[],loteN:a.loteN||0,loteKg:a.loteKg||0,obs:a.obs||"",rec:Date.now(),...(p!=="_local"?{pid:p,pnome:pNome(p)}:{})});novas++}
@@ -7681,7 +7702,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v78";
+  const APP_VERSAO="ras-v79";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
