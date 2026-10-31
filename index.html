@@ -1400,7 +1400,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const POND = [&quot;extensivo&quot;, &quot;semi-intensivo&quot;, &quot;intensivo&quot;], CLOSED = [&quot;superintensivo&quot;, &quot;hiperintensivo&quot;];
   function camposU(u) {
     if (S.ras &amp;&amp; u.sistemaRAS) return [[&quot;Água do sistema&quot;, [&quot;temperatura&quot;, &quot;od&quot;, &quot;ph&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;dureza&quot;, &quot;tan&quot;, &quot;nitrito&quot;, &quot;nitrato&quot;].concat(espDe(u).includes(&quot;camarao&quot;) ? [&quot;salinidade&quot;] : [])], [&quot;Sólidos&quot;, [&quot;ss_imhoff&quot;, &quot;sst&quot;]]];
-    if (S.ras &amp;&amp; u.ras) return [[&quot;Neste grupo de tanques&quot;, [&quot;temperatura&quot;, &quot;od&quot;]]];
+    if (S.ras &amp;&amp; u.ras) return [[&quot;Neste grupo de tanques&quot;, [&quot;temperatura&quot;, &quot;od&quot;]], [&quot;Química da água · se medir neste grupo&quot;, [&quot;ph&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;dureza&quot;, &quot;tan&quot;, &quot;nitrito&quot;, &quot;nitrato&quot;].concat(u.especie === &quot;camarao&quot; ? [&quot;salinidade&quot;] : [])], [&quot;Sólidos&quot;, [&quot;ss_imhoff&quot;, &quot;sst&quot;]]];
     return camposDe(u.especie, u.sistema);
   }
   function camposDe(esp, sis) {
@@ -1537,7 +1537,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     for (const l of g) mapa.set(l.data + &quot; &quot; + l.hora, { ...l, _g: l.id });
     for (const l of brutas(SYS_ID, dias)) { const k = l.data + &quot; &quot; + l.hora;
       const b = mapa.get(k) || { id: &quot;s:&quot; + l.id + &quot;:&quot; + uid, unidade: uid, data: l.data, hora: l.hora, profundidade: l.profundidade };
-      for (const p of SYS) if (typeof l[p] === &quot;number&quot;) b[p] = l[p];
+      for (const p of SYS) if (typeof l[p] === &quot;number&quot; &amp;&amp; typeof b[p] !== &quot;number&quot;) b[p] = l[p];
       b._s = l.id; mapa.set(k, b); }
     const out = [...mapa.values()].sort(ordH);
     // amônia medida num horário sem temperatura do grupo: usa a temperatura do grupo mais próxima no mesmo dia
@@ -2056,7 +2056,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       for (const p of ps) { const f = fx(u, p);
         const ph = f ? (f.ideal_min !== null &amp;&amp; f.ideal_max !== null ? (f.ideal_min === 0 ? &quot;≤ &quot; + fmt(f.ideal_max, DEC[p]) : fmt(f.ideal_min, DEC[p]) + &quot;–&quot; + fmt(f.ideal_max, DEC[p])) : f.ideal_min !== null ? &quot;≥ &quot; + fmt(f.ideal_min, DEC[p]) : &quot;&quot;) : &quot;&quot;;
         h += `&lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;f-${p}&quot;&gt;${curto[p]} &lt;span class=&quot;unit-lbl&quot;&gt;${PN[p].unidade}&lt;/span&gt;&lt;/label&gt;&lt;input id=&quot;f-${p}&quot; type=&quot;number&quot; step=&quot;any&quot; inputmode=&quot;decimal&quot; placeholder=&quot;ideal ${ph}&quot;&gt;&lt;/div&gt;`; } }
-    if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) h += `&lt;p class=&quot;foot&quot; style=&quot;grid-column:1/-1&quot;&gt;pH, CO₂, amônia, nitrito e alcalinidade são da água do sistema: lance uma vez no tanque/viveiro &lt;b&gt;Água do sistema&lt;/b&gt;. Eles aparecem aqui avaliados para ${ESP[u.especie].nome_comum}, com a temperatura deste grupo.&lt;/p&gt;`;
+    if (S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS) h += `&lt;p class=&quot;foot&quot; style=&quot;grid-column:1/-1&quot;&gt;No RAS a água é comum: pH, CO₂, amônia, nitrito e alcalinidade podem ser lançados uma vez na &lt;b&gt;Água do sistema&lt;/b&gt; e valem para todos os grupos. Se você medir num grupo, lance aqui: o valor deste grupo tem prioridade sobre o da Água do sistema. Tudo é avaliado para ${ESP[u.especie].nome_comum}, com a temperatura deste grupo.&lt;/p&gt;`;
     if (S.ras &amp;&amp; u.sistemaRAS) h += `&lt;p class=&quot;foot&quot; style=&quot;grid-column:1/-1&quot;&gt;Estes valores valem para todos os grupos de tanques. Cada grupo os avalia pelos limites da própria espécie; aqui vale o pior caso.&lt;/p&gt;`;
     $(&quot;form&quot;).innerHTML = h; $(&quot;f-hint&quot;).textContent = `${nomeEsp(u)} · ${u.sistema}`; setSalPh();
   }
@@ -7822,7 +7822,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v84";
+  const APP_VERSAO="ras-v85";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
