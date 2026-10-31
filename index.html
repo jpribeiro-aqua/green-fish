@@ -1708,7 +1708,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
   // ============================================================ PAINEL
   function diasPeriodo() { const d = diaPainel || (S.dia &amp;&amp; !futuro(S.dia) ? S.dia : ultValido(LT().map((l) =&gt; l.data))); return periodo === 1 ? [d] : Array.from({ length: 7 }, (_, i) =&gt; addDias(d, i - 6)); }
-  const unidadesFiltradas = () =&gt; S.unidades.filter((u) =&gt; !u.oculto &amp;&amp; passaTipo(u) &amp;&amp; (!filtroEsp || espDe(u).includes(filtroEsp)));
+  const unidadesFiltradas = () =&gt; { if (S.grupoSo &amp;&amp; uniById(S.grupoSo)) return S.unidades.filter((u) =&gt; u.id === S.grupoSo); return S.unidades.filter((u) =&gt; !u.oculto &amp;&amp; passaTipo(u) &amp;&amp; (!filtroEsp || espDe(u).includes(filtroEsp))); };
+  window.aquaSoGrupo = (id) =&gt; { const novo = id &amp;&amp; uniById(id) ? id : &quot;&quot;; if ((S.grupoSo || &quot;&quot;) === novo) return; S.grupoSo = novo; if (novo) { S.ativa = novo; try { mcHL = new Set([novo]); mcAuto = false; } catch (e) {} } else { try { mcAuto = true; mcHL = null; } catch (e) {} } salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
+  window.aquaGrupoTodos = () =&gt; { S.grupoSo = &quot;&quot;; S.focoGrupo = &quot;&quot;; try { mcAuto = true; mcHL = null; } catch (e) {} salvar(); irPara(&quot;painel&quot;); };
 
   function renderPainel() {
     const presentes = [&quot;tilapia&quot;, &quot;tambaqui&quot;, &quot;camarao&quot;, &quot;pirarucu&quot;, &quot;pangasius&quot;, &quot;curimata&quot;, &quot;lambari&quot;].filter((e) =&gt; S.unidades.some((u) =&gt; espDe(u).includes(e)));
@@ -1719,7 +1721,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;p-per-1&quot;).setAttribute(&quot;aria-pressed&quot;, periodo === 1); $(&quot;p-per-7&quot;).setAttribute(&quot;aria-pressed&quot;, periodo === 7);
     $(&quot;p-esp&quot;).innerHTML = `&lt;option value=&quot;&quot;&gt;Todas&lt;/option&gt;` + presentes.map((e) =&gt; `&lt;option value=&quot;${e}&quot;${e === filtroEsp ? &quot; selected&quot; : &quot;&quot;}&gt;${{ tilapia: &quot;Tilápia&quot;, tambaqui: &quot;Tambaqui&quot;, camarao: &quot;Camarão&quot;, pirarucu: &quot;Pirarucu&quot;, pangasius: &quot;Pangasius&quot;, curimata: &quot;Curimatã&quot;, lambari: &quot;Lambari&quot; }[e]}&lt;/option&gt;`).join(&quot;&quot;);
     const nL = US.reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0);
-    $(&quot;p-titulo&quot;).textContent = S.ras ? &quot;Grupos de tanques do RAS&quot; : &quot;Todas as unidades&quot;;
+    $(&quot;p-titulo&quot;).textContent = S.grupoSo &amp;&amp; uniById(S.grupoSo) ? &quot;Só &quot; + uniById(S.grupoSo).nome : S.ras ? &quot;Grupos de tanques do RAS&quot; : &quot;Todas as unidades&quot;;
     $(&quot;p-meta&quot;).innerHTML = `${S.ras ? &quot;vinculado à Calculadora · &quot; : &quot;&quot;}${US.length} tanque(s)/viveiro(s) · ${periodo === 1 ? diaSemana(dRef) + &quot; &quot; + dataBR(dRef) : dataBR(dias[0]) + &quot; a &quot; + dataBR(dRef)} · ${nL} leituras${S.exemplo &amp;&amp; LT().some((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${S.fOrig || S.fProj ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;só &#x27; + escO([S.fOrig ? (ORIG[S.fOrig.split(&quot;|&quot;)[0]] || S.fOrig) + (S.fOrig.includes(&quot;|&quot;) ? &quot;: &quot; + S.fOrig.split(&quot;|&quot;).slice(1).join(&quot;|&quot;) : &quot;&quot;) : &quot;&quot;, S.fProj ? &quot;projeto &quot; + (S.fProj === &quot;__sem&quot; ? &quot;sem projeto&quot; : ((S.leituras.find((l) =&gt; l.pid === S.fProj) || {}).pnome || &quot;&quot;)) : &quot;&quot;].filter(Boolean).join(&quot; · &quot;)) + &quot;&lt;/span&gt;&quot; : &quot;&quot;}`;
     renderKPIs(US, dias, dRef); renderMulti(US, dias, dRef); renderUCards(US, dRef); renderMatriz(US, dias); renderTrends(US, dRef); renderDist(US, dias); renderCad(US, dias); renderAlertas(US, dias);
   }
@@ -1798,7 +1800,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
 
   // ---------------- dashboard do grupo do RAS escolhido na Calculadora: dados de projeto × leituras
-  window.aquaFocoGrupo = (id) =&gt; { if (!uniById(id)) return false; S.ativa = id; S.focoGrupo = id; try { mcHL = new Set([id]); mcAuto = false; } catch (e) {} S.filtroTipo = &quot;&quot;; sel = null; irUltDia(); salvar(); irPara(&quot;unidade&quot;);
+  window.aquaFocoGrupo = (id) =&gt; { if (!uniById(id)) return false; S.ativa = id; S.focoGrupo = id; S.grupoSo = id; try { mcHL = new Set([id]); mcAuto = false; } catch (e) {} S.filtroTipo = &quot;&quot;; sel = null; irUltDia(); salvar(); irPara(&quot;unidade&quot;);
     setTimeout(() =&gt; { const d = $(&quot;g-dash&quot;); if (d &amp;&amp; !d.hidden) d.scrollIntoView({ behavior: &quot;smooth&quot;, block: &quot;start&quot; }); }, 120); return true; };
   function gdSerie(u, p, dias) { return dias.map((d) =&gt; { const vs = leituras(u.id, [d]).map((l) =&gt; (p === &quot;nh3&quot; ? (typeof l.nh3 === &quot;number&quot; ? l.nh3 : (typeof l.tan === &quot;number&quot; &amp;&amp; typeof l.ph === &quot;number&quot; ? Core.nh3(l.tan, l.ph, l.temperatura ?? 28, salUni(u.id)) : undefined)) : l[p])).filter((v) =&gt; typeof v === &quot;number&quot;);
     return vs.length ? { d, min: Math.min(...vs), max: Math.max(...vs), med: vs.reduce((a, b) =&gt; a + b, 0) / vs.length, n: vs.length } : { d }; }); }
@@ -2592,7 +2594,18 @@ function card(n,title,sub,body){
   return `<section class="card" id="etapa-${n}"><div class="card-head"><i class="n">${n}</i><h2>${title}<span>${sub}</span></h2></div>${body}</section>`;
 }
 
-function render(){
+/* com um grupo escolhido nas abas de destino, o app calcula e mostra só esse grupo (Todos = sistema inteiro) */
+const GRP_FILTRA=["bio","dash","local","repro","topo"];
+let dashStateAll=null;
+function grpSel(){try{const s=localStorage.getItem(KEY+"-grupo-aqua")||"";return tanks.some(t=>String(t.id)===s)?s:""}catch(e){return ""}}
+function grpViewAtual(){const t=document.querySelector('.tab[aria-selected="true"]');return t?t.dataset.view:"calc"}
+function grpAtivo(){return GRP_FILTRA.includes(grpViewAtual())&&!!grpSel()}
+function grpI(i){return window.__grpIdx?window.__grpIdx[i]:i}
+function grpWrap(fn){return function(...a){if(!window.__grpIdx||window.__grpSwap)return fn.apply(this,a);const all=tanks;tanks=window.__grpIdx.map(i=>all[i]).filter(Boolean);window.__grpSwap=true;try{return fn.apply(this,a)}finally{tanks=all;window.__grpSwap=false}}}
+function render(){if(window.__grpSwap)return renderCore();window.__grpIdx=null;renderCore();dashStateAll=dashState;
+  if(grpAtivo()){const all=tanks,s=grpSel(),idx=[];all.forEach((t,i)=>{if(String(t.id)===s)idx.push(i)});window.__grpIdx=idx;tanks=idx.map(i=>all[i]);window.__grpSwap=true;try{renderCore()}finally{tanks=all;window.__grpSwap=false}}
+  try{window.drawGrpBar&&drawGrpBar()}catch(e){}}
+function renderCore(){
   const p={},errs=[];
   ids.forEach(i=>{const el=document.getElementById(i);p[i]=parse(el.value);const e=check(i,p[i]);el.parentElement.classList.toggle("bad",!!e);el.setAttribute("aria-invalid",String(!!e));el.title=e?`Valor inválido: ${e}`:"";if(e)errs.push(`${fieldName(i)}: ${e}`)});
 
@@ -2600,7 +2613,7 @@ function render(){
   const groups=tanks.map((t,i)=>{
     const q=parse(t.q),v=parse(t.v);
     const okQ=isFinite(q)&&q>=0&&Number.isInteger(q),okV=isFinite(v)&&v>=0;
-    const el=tanksEl.children[i];
+    const el=window.__grpSwap?null:tanksEl.children[i];
     if(el){
       el.querySelector(".stepper").classList.toggle("bad",!okQ);
       el.querySelector('[data-k="v"]').parentElement.classList.toggle("bad",!okV);
@@ -3311,12 +3324,12 @@ function drawBioChart(box,models,cap,now){
 bioEl.addEventListener("input",e=>{
   const el=e.target;
   const keep=()=>{const id=el.id,pos=el.selectionStart;save();drawBio();const ne=document.getElementById(id);if(ne&&ne!==document.activeElement){ne.focus();try{ne.setSelectionRange(pos,pos)}catch(_){}}};
-  if(el.dataset.fk){lotOf(tanks[+el.closest("tr").dataset.i])[el.dataset.fk]=el.value;keep();return}
+  if(el.dataset.fk){lotOf(tanks[grpI(+el.closest("tr").dataset.i)])[el.dataset.fk]=el.value;keep();return}
   if(el.dataset.ft){const i=+el.closest("tr").dataset.r,T=FEEDT[feedSp]||(FEEDT[feedSp]={}),o=T[i]||(T[i]={});o[el.dataset.ft]=el.value;keep();return}
-  if(el.dataset.pk){const L=planOf(lotOf(tanks[+el.closest("tr").dataset.i]));L[el.dataset.pk]=el.value;
+  if(el.dataset.pk){const L=planOf(lotOf(tanks[grpI(+el.closest("tr").dataset.i)]));L[el.dataset.pk]=el.value;
     const id=el.id,pos=el.selectionStart;save();drawBio();const ne=document.getElementById(id);if(ne){ne.focus();try{ne.setSelectionRange(pos,pos)}catch(_){}}return}
-  if(el.dataset.lk){const i=+el.closest("tr").dataset.i;lotOf(tanks[i])[el.dataset.lk]=el.value;
-    if(el.dataset.lk==="sp"||el.dataset.lk==="alvo"){const t=tanks[i],sp=SPECIES[t.lot.sp],alvo=t.lot.alvo.trim()===""?sp.alvo:parse(t.lot.alvo),g=dashState.groups[i];
+  if(el.dataset.lk){const i=grpI(+el.closest("tr").dataset.i);lotOf(tanks[i])[el.dataset.lk]=el.value;
+    if(el.dataset.lk==="sp"||el.dataset.lk==="alvo"){const t=tanks[i],sp=SPECIES[t.lot.sp],alvo=t.lot.alvo.trim()===""?sp.alvo:parse(t.lot.alvo),g=dashState.groups[window.__grpIdx?window.__grpIdx.indexOf(i):i];
       const nIn=el.closest("tr").querySelector('[data-lk="n"]'),aIn=el.closest("tr").querySelector('[data-lk="alvo"]');
       if(g&&alvo>0) nIn.placeholder=f0(fl(dashState.p.DM*g.v/(alvo/1000)));aIn.placeholder="padrão "+f0(sp.alvo);const th=document.querySelector("#lots thead th:nth-child(5)");if(th&&th.firstChild)th.firstChild.textContent=(tanks.some(x=>x.lot&&x.lot.sp==="camarao")?"Animais":"Peixes")+" por tanque"}
     if(el.dataset.lk==="w0"&&tanks[i].lot.sp==="camarao"){const sm=el.closest("td").querySelector("[data-shph]");if(sm)sm.innerHTML=shTag(parse(el.value))}
@@ -3330,10 +3343,10 @@ bioEl.addEventListener("click",e=>{
   const fs=e.target.closest("[data-fsp]");if(fs){feedSp=fs.dataset.fsp;save();drawBio();return}
   if(e.target.closest("#feed-reset")){delete FEEDT[feedSp];save();drawBio();return}
   const pm=e.target.closest("[data-pm]");
-  if(pm){const i=+pm.closest("tr").dataset.i;planOf(lotOf(tanks[i])).pmode=pm.dataset.pm;save();drawBio();const ne=document.querySelector(`#plan tr[data-i="${i}"] input[data-pk]`);if(ne)ne.focus();return}
+  if(pm){const i0=+pm.closest("tr").dataset.i,i=grpI(i0);planOf(lotOf(tanks[i])).pmode=pm.dataset.pm;save();drawBio();const ne=document.querySelector(`#plan tr[data-i="${i0}"] input[data-pk]`);if(ne)ne.focus();return}
   const pb=e.target.closest("[data-plan]");
-  if(pb){lotOf(tanks[+pb.closest("tr").dataset.i]).n=pb.dataset.plan;save();drawBioEditor();drawBio();return}
-  if(e.target.closest("#plan-all")){document.querySelectorAll("#plan [data-plan]").forEach(b=>{lotOf(tanks[+b.closest("tr").dataset.i]).n=b.dataset.plan});save();drawBioEditor();drawBio();return}
+  if(pb){lotOf(tanks[grpI(+pb.closest("tr").dataset.i)]).n=pb.dataset.plan;save();drawBioEditor();drawBio();return}
+  if(e.target.closest("#plan-all")){document.querySelectorAll("#plan [data-plan]").forEach(b=>{lotOf(tanks[grpI(+b.closest("tr").dataset.i)]).n=b.dataset.plan});save();drawBioEditor();drawBio();return}
   if(e.target.closest("#bio-now,#bio-today")){bioRef=null;document.getElementById("bio-ref").value=isoD(new Date());drawBio()}
 });
 // tempo real: recalcula a cada minuto enquanto a aba estiver aberta e na data de hoje
@@ -3417,7 +3430,7 @@ function setView(v){
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
   dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}
   try{localStorage.setItem(KEY+"-view",v)}catch(e){}
-  hideTip();window.drawPjGate&&drawPjGate(v);window.drawFocoBar&&drawFocoBar(v);window.drawGrpBar&&drawGrpBar(v);drawDash();
+  hideTip();window.drawPjGate&&drawPjGate(v);window.drawFocoBar&&drawFocoBar(v);if(window.__grpIdx||(GRP_FILTRA.includes(v)&&grpSel()))render();if(v==="aqua"){(async()=>{for(let i=0;i<40;i++){try{const w=aquaFrame.contentWindow;if(w&&w.aquaSoGrupo){w.aquaSoGrupo(grpSel()?"ras-"+grpSel():"");return}}catch(e){}await new Promise(r=>setTimeout(r,250))}})()}window.drawGrpBar&&drawGrpBar(v);drawDash();
   if(v==="bio"){drawBioEditor();drawBio()}
   feedEl.hidden=v!=="racao";if(v==="racao")drawFeedDash();
   document.getElementById("view-local").hidden=v!=="local";if(v==="local"&&window.drawLocal)drawLocal();
@@ -3451,8 +3464,8 @@ function loadAqua(){
 }
 // cada grupo de tanques vira um tanque/viveiro do AquaNictemeral (id, nome, cor e espécie do lote; volume e ração de projeto do grupo)
 function aquaGroups(){
-  if(!dashState) return null;
-  const {p,r,groups,ok}=dashState;
+  const DS=dashStateAll||dashState;if(!DS) return null;
+  const {p,r,groups,ok}=DS;
   return tanks.map((t,i)=>{const g=groups[i];if(!g)return null;const L=lotOf(t),s=p.perEsp&&r.BM>0?g.bm/r.BM:(p.V>0?g.vol/p.V:0);
     return {id:"ras-"+t.id,nome:label(t),especie:SPECIES[L.sp]?L.sp:"tilapia",cor:t.c,tanques:g.q,volume_tanque:g.v,volume_m3:g.vol,racao_kg_dia:ok?r.QR*s:null,biomassa:ok&&r.BM>0?r.BM*s:null,np:ok&&r.NP?r.NP*s:null,pnat:ok&&isFinite(r.PNAT)?r.PNAT*s:null,pbr:p.PBR||null}}).filter(Boolean);
 }
@@ -3474,19 +3487,21 @@ function focarGrupoEm(v,t){const nome=label(t);
     document.querySelectorAll(".grp-flash").forEach(e=>e.classList.remove("grp-flash"));
     const blocos=[...new Set(cands.map(e=>e.closest("tr,li,.card,.lot,.fd-card,.bio-card,section,fieldset,article")||e))].slice(0,6);
     blocos.forEach(b=>b.classList.add("grp-flash"));if(blocos[0])blocos[0].scrollIntoView({behavior:"smooth",block:"center"});
-    grpToast(`📌 <b>${esc(nome)}</b> ${blocos.length?"em destaque nesta aba":"selecionado (esta aba mostra o sistema todo)"}`)},450)}
+    grpToast(`📌 Processando só <b>${esc(nome)}</b> nesta aba · toque em Todos para o sistema inteiro`)},450)}
 function grpToast(h){let n=document.getElementById("grp-aviso");if(!n){n=document.createElement("div");n.id="grp-aviso";document.body.appendChild(n)}n.innerHTML=h;n.className="on";clearTimeout(n._t);n._t=setTimeout(()=>{n.className="";document.querySelectorAll(".grp-flash").forEach(e=>e.classList.remove("grp-flash"))},6000)}
-async function abrirGrpAq(id,v){v=v||"aqua";try{localStorage.setItem(grpK(),String(id));localStorage.setItem(grpK()+"-dest",v)}catch(e){}drawGrpAq();const t=tanks.find(x=>String(x.id)===String(id));if(!t)return;window.grupoSelecionado=t.id;setView(v);drawGrpBar(v);focarGrupoEm(v,t)}
+async function abrirGrpAq(id,v){v=v||"aqua";try{localStorage.setItem(grpK(),String(id));localStorage.setItem(grpK()+"-dest",v)}catch(e){}drawGrpAq();const t=tanks.find(x=>String(x.id)===String(id));if(!t)return;window.grupoSelecionado=t.id;setView(v);render();drawGrpBar(v);focarGrupoEm(v,t)}
+drawBio=grpWrap(drawBio);drawBioEditor=grpWrap(drawBioEditor);drawDash=grpWrap(drawDash);drawPlan=grpWrap(drawPlan);
+setTimeout(()=>{if(window.drawLocal&&!window.drawLocal.__g){const f=grpWrap(window.drawLocal);f.__g=1;window.drawLocal=f}},0);
 /* barra de grupos nas abas de destino (como no Arraçoamento): troca de grupo sem voltar à Calculadora */
 const GRP_BAR_VIEWS=["aqua","bio","dash","local","repro","topo"];
 function drawGrpBar(v){const b=document.getElementById("grp-bar");if(!b)return;if(!v){const t=document.querySelector('.tab[aria-selected="true"]');v=t?t.dataset.view:""}
   if(!GRP_BAR_VIEWS.includes(v)||!tanks.length){b.hidden=true;b.innerHTML="";return}let sel="";try{sel=localStorage.getItem(grpK())||""}catch(e){}if(sel&&!tanks.some(t=>String(t.id)===sel))sel="";
-  b.hidden=false;b.dataset.view=v;b.innerHTML=`<span class="grp-bar-l">📌 Grupo</span><button type="button" class="grp-bar-b${sel?"":" on"}" data-gb="all" aria-pressed="${!sel}">Todos</button>${tanks.map(t=>`<button type="button" class="grp-bar-b${String(t.id)===sel?" on":""}" data-gb="${t.id}" aria-pressed="${String(t.id)===sel}" style="--gc:var(--c${t.c+1})"><i></i>${esc(label(t))}</button>`).join("")}`}
+  b.hidden=false;b.dataset.view=v;b.innerHTML=`<span class="grp-bar-l">📌 ${sel?"Só o grupo":"Todos os grupos"}</span><button type="button" class="grp-bar-b${sel?"":" on"}" data-gb="all" aria-pressed="${!sel}">Todos</button>${tanks.map(t=>`<button type="button" class="grp-bar-b${String(t.id)===sel?" on":""}" data-gb="${t.id}" aria-pressed="${String(t.id)===sel}" style="--gc:var(--c${t.c+1})"><i></i>${esc(label(t))}</button>`).join("")}`}
 window.drawGrpBar=drawGrpBar;
 document.addEventListener("click",e=>{const x=e.target.closest&&e.target.closest("[data-gb]");if(!x)return;e.preventDefault();const bar=document.getElementById("grp-bar"),v=bar&&bar.dataset.view;if(!v)return;
   if(x.dataset.gb==="all"){try{localStorage.removeItem(grpK())}catch(er){}window.grupoSelecionado=null;document.querySelectorAll(".grp-flash").forEach(el=>el.classList.remove("grp-flash"));
-    if(v==="aqua"){try{const w=aquaFrame.contentWindow;w.document.getElementById("tab-painel").click()}catch(er){}}drawGrpBar(v);drawGrpAq();grpToast("📌 Mostrando <b>todos os grupos</b>");return}
-  const t=tanks.find(y=>String(y.id)===x.dataset.gb);if(!t)return;try{localStorage.setItem(grpK(),String(t.id))}catch(er){}window.grupoSelecionado=t.id;drawGrpBar(v);drawGrpAq();focarGrupoEm(v,t)});
+    if(v==="aqua"){try{const w=aquaFrame.contentWindow;w.aquaGrupoTodos&&w.aquaGrupoTodos()}catch(er){}}render();drawGrpBar(v);drawGrpAq();grpToast("📌 Processando <b>todos os grupos</b> ao mesmo tempo");return}
+  const t=tanks.find(y=>String(y.id)===x.dataset.gb);if(!t)return;try{localStorage.setItem(grpK(),String(t.id))}catch(er){}window.grupoSelecionado=t.id;render();drawGrpBar(v);drawGrpAq();focarGrupoEm(v,t)});
 setTimeout(()=>{try{drawGrpAq();drawGrpBar()}catch(e){}},0);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-grp],[data-grp-go]");if(!b)return;e.preventDefault();
   if(b.dataset.grp){try{localStorage.setItem(grpK(),String(b.dataset.grp))}catch(er){}window.grupoSelecionado=b.dataset.grp;drawGrpAq();return}
@@ -3679,7 +3694,7 @@ setInterval(()=>{if(bioRef===null&&!feedEl.hidden&&document.visibilityState!=="h
 let rzf;new ResizeObserver(()=>{clearTimeout(rzf);rzf=setTimeout(()=>{if(!feedEl.hidden)drawFeedDash()},80)}).observe(feedEl);
 
 /* ---------- Guarda a última configuração neste navegador ---------- */
-function save(){try{localStorage.setItem(KEY,JSON.stringify({tanks,bio:{rit:bioRitmo,mort:bioMort,plan:planDays,pmode:planMode,pw:planW,feed:{met:feedMet,sp:feedSp,t:FEEDT}},p:Object.fromEntries(ids.map(i=>[i,document.getElementById(i).value])),round:document.getElementById("round").checked,perEsp:document.getElementById("perEsp").checked}))}catch(e){}}
+function save(){if(window.__grpSwap)return;try{localStorage.setItem(KEY,JSON.stringify({tanks,bio:{rit:bioRitmo,mort:bioMort,plan:planDays,pmode:planMode,pw:planW,feed:{met:feedMet,sp:feedSp,t:FEEDT}},p:Object.fromEntries(ids.map(i=>[i,document.getElementById(i).value])),round:document.getElementById("round").checked,perEsp:document.getElementById("perEsp").checked}))}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return;
   // configurações salvas antes de id/cor existirem recebem os valores na ordem da lista
   if(Array.isArray(s.tanks)) tanks=s.tanks.map((t,i)=>({id:Number.isInteger(t.id)?t.id:i,c:Number.isInteger(t.c)?t.c:Math.min(i,MAXC),name:String(t.name??""),q:String(t.q??""),v:String(t.v??""),
@@ -4097,7 +4112,7 @@ const APT={apto:["Apto",""],restrito:["Apto com restrição","late"],inapto:["In
 const aptPill=v=>`<span class="pill lv-ap ${APT[v][1]}">${APT[v][0]}</span>`;
 const pS=v=>!v||v==="na"?`<span class="pill lv-ap lv-na" title="não se aplica">—</span>`:`<span class="pill lv-ap ${APT[v][1]}" title="${APT[v][0]}">${{apto:"Apto",restrito:"Restrito",inapto:"Inapto"}[v]}</span>`;
 const aptPillN=v=>!v||v==="na"?`<span class="pill lv-ap lv-na">não se aplica</span>`:aptPill(v);
-function projSp(){const by={};if(dashState&&dashState.ok)tanks.forEach((t,i)=>{const g=dashState.groups[i];if(g&&g.vol>0){const s=lotOf(t).sp;by[s]=(by[s]||0)+g.vol}});
+function projSp(){const by={},DS=window.__grpIdx&&!window.__grpSwap?dashStateAll:dashState;if(DS&&DS.ok)tanks.forEach((t,i)=>{const g=DS.groups[i];if(g&&g.vol>0){const s=lotOf(t).sp;by[s]=(by[s]||0)+g.vol}});
   const k=Object.keys(by).sort((a,b)=>by[b]-by[a]);return k.length?k:["tilapia"]}
 
 /* ---------- cálculos ---------- */
@@ -7807,7 +7822,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v83";
+  const APP_VERSAO="ras-v84";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
