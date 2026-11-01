@@ -892,6 +892,7 @@ body.has-bnav .imp-box{bottom:76px}
     <div id="aqua-bio"></div>
     <div id="aqua-orig"></div>
     <div id="aqua-cad"></div>
+    <div id="aqua-nicdash" hidden></div>
     <div id="aqua-biodash" hidden></div>
     <iframe id="aqua-frame" title="AquaNictemeral: monitoramento nictemeral da água" loading="eager" data-srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;pt-BR&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;&lt;link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&amp;family=Barlow:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap&quot;&gt;&lt;script&gt;window.AQUA_KEY=&quot;aquanictemeral.ras.v1&quot;&lt;/script&gt;&lt;/head&gt;&lt;body&gt;&lt;title&gt;AquaNictemeral&lt;/title&gt;
 &lt;meta name=&quot;claude:viewport-fit-sides&quot; content=&quot;cover&quot;&gt;
@@ -2389,6 +2390,23 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const mt = metricasDia(u, dia), L = mt.L || [], ult = L[L.length - 1] || {};
     return { id: u.id, nome: u.nome || u.id, especie: u.especie, dia, dias: dias.length, n: mt.n, odMin: mt.odMin, odMinHora: mt.odMinHora, odMinSt: mt.odMinSt, odPrev: mt.odPrev, odPrevSt: mt.odPrevSt, dph: mt.dph, nh3: mt.nh3, nh3St: mt.nh3St, st: mt.st, temp: ult.temperatura, ph: ult.ph, hora: ult.hora, exemplo: !!u.exemplo };
   });
+  // relatório das nictemerais para a página-mãe: cada coleta contínua (pode atravessar a meia-noite) de cada tanque/viveiro
+  window.aquaRelatorio = () =&gt; { const out = [], ts = (l) =&gt; new Date(l.data + &quot;T&quot; + (String(l.hora || &quot;00:00&quot;).length === 4 ? &quot;0&quot; + l.hora : l.hora || &quot;00:00&quot;)).getTime();
+    for (const u of S.unidades) { if (u.oculto) continue; const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []);
+      const dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].filter((d) =&gt; /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); if (!dias.length) continue;
+      const T = leituras(u.id, dias).map((l) =&gt; ({ ...l, _t: ts(l) })).filter((l) =&gt; isFinite(l._t)).sort((a, b) =&gt; a._t - b._t), G = [];
+      for (const l of T) { const g = G[G.length - 1]; if (g &amp;&amp; l._t - g[g.length - 1]._t &lt;= 6 * 36e5 &amp;&amp; l._t - g[0]._t &lt;= 30 * 36e5) g.push(l); else G.push([l]); }
+      for (const L of G) { const num = (p) =&gt; L.map((l) =&gt; l[p]).filter((v) =&gt; typeof v === &quot;number&quot;), mm = (p) =&gt; { const v = num(p); return v.length ? [Math.min(...v), Math.max(...v), v.reduce((a, b) =&gt; a + b, 0) / v.length] : null; };
+        const od = L.filter((l) =&gt; typeof l.od === &quot;number&quot;), mn = od.length ? od.reduce((a, b) =&gt; (b.od &lt; a.od ? b : a)) : null, mx = od.length ? od.reduce((a, b) =&gt; (b.od &gt; a.od ? b : a)) : null;
+        const ph = mm(&quot;ph&quot;), lim = fx(u, &quot;ph&quot;)?.amplitude_max_24h, dph = ph ? ph[1] - ph[0] : null;
+        let nh3 = null, nh3St = null; const tans = num(&quot;tan&quot;), phs = L.filter((l) =&gt; typeof l.ph === &quot;number&quot;); if (tans.length &amp;&amp; phs.length) { const pk = phs.reduce((a, b) =&gt; (b.ph &gt; a.ph ? b : a)); nh3 = Core.nh3(Math.max(...tans), pk.ph, pk.temperatura ?? 28, salUni(u.id)); nh3St = cls(u, &quot;nh3&quot;, nh3); }
+        const ev = L.flatMap((l) =&gt; avaliar(l, u).map((x) =&gt; x.st)), fora = ev.filter((x) =&gt; x !== &quot;ideal&quot; &amp;&amp; x !== &quot;sem_faixa&quot;).length, odMinSt = mn ? cls(u, &quot;od&quot;, mn.od) : null;
+        const dphSt = dph == null || L.length &lt; 2 ? null : lim == null ? &quot;sem_faixa&quot; : dph &lt;= lim ? &quot;ideal&quot; : &quot;alerta&quot;;
+        out.push({ id: u.id, nome: u.nome || u.id, especie: (ESP[u.especie] || {}).nome_comum || u.especie || &quot;&quot;, tipo: tipoU(u), sistema: !!u.sistemaRAS,
+          data: L[0].data, dataFim: L[L.length - 1].data, n: L.length, ini: L[0].hora, fim: L[L.length - 1].hora, horas: (L[L.length - 1]._t - L[0]._t) / 36e5,
+          odMin: mn ? mn.od : null, odMinHora: mn ? mn.hora : null, odMinData: mn ? mn.data : null, odMinSt, odMax: mx ? mx.od : null, odMaxHora: mx ? mx.hora : null,
+          temp: mm(&quot;temperatura&quot;), ph, sal: mm(&quot;salinidade&quot;), dph, dphSt, nh3, nh3St, st: pior(ev.concat(nh3St ? [nh3St] : [])), aval: ev.length, fora, exemplo: L.every((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) }); } }
+    return out; };
   window.aquaAbrir = (id, dia) =&gt; { if (uniById(id)) { S.ativa = id; if (dia) S.dia = dia; sel = null; salvar(); irPara(&quot;unidade&quot;); } };
 
   // origem dos dados: lista as origens e projetos com quantas leituras cada um tem, e escolhe quais o AquaNictemeral processa
@@ -6951,7 +6969,7 @@ const PASSOS=c=>[`Lendo ${c.linhas!=null?(c.tipo==="bio"?c.linhas+" biometria"+(
 function draw(){const h=host();clearTimeout(tMin);
   if(!cur){h.hidden=true;h.innerHTML="";return}h.hidden=false;const c=cur,T=TIPO[c.tipo]||TIPO.agua;
   const ic=c.st==="proc"?'<span class="imp-spin" aria-hidden="true"></span>':c.st==="ok"?"✅":c.st==="erro"?"⚠️":"📥";
-  const tit=c.st==="proc"?`Processando ${T.n.toLowerCase()}…`:c.st==="ok"?`${T.n}: importação concluída`:c.st==="erro"?"A importação não foi concluída":`${T.n}: dados recebidos`;
+  const tit=c.st==="proc"?`Processando ${T.n.toLowerCase()}…`:c.st==="ok"?`${T.n}: importação concluída`:c.st==="erro"?(c.recusado?"Arquivo recusado: tipo de dado errado":"A importação não foi concluída"):`${T.n}: dados recebidos`;
   h.className="imp-box imp-"+c.st+(min?" imp-min":"");
   if(min){h.innerHTML=`<button type="button" class="imp-pill" data-imp="abrir" title="Abrir detalhes da importação">${ic} <span>${E(tit)}${c.salvo?" · "+E(c.projeto):""}</span></button>`;return}
   const H=rd();
@@ -6967,6 +6985,7 @@ function base(o){const p=proj();return {tipo:o.tipo||"agua",origem:o.origem||"ar
 const auto=o=>o.origem==="webhook"||o.origem==="link"&&o.auto;
 window.IMP={
   recebido(o){cur={...base(o),st:"receb",passo:0};min=false;draw()},
+  recusar(o){const c={...base(o),st:"erro",passo:0,recusado:true,erro:o.motivo||"Dados recusados."};cur=c;min=false;wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"erro",curto:"recusado: "+String(c.erro).slice(0,50)}].concat(rd()));draw()},
   processar(o){const c={...base(o),st:"proc",passo:0};const silent=auto(o)&&cur&&cur.st==="proc";if(!silent){cur=c;min=auto(o)}draw();
     let fim=null;const anim=()=>{if(cur!==c)return;if(c.passo<PASSOS(c).length-(fim?0:1)){c.passo++;draw();setTimeout(anim,fim?260:420)}else if(fim)fim()};setTimeout(anim,260);
     return {ok(r){const L=[];if(r.criadas&&r.criadas.length)L.push(`<b>${r.criadas.length}</b> tanque${r.criadas.length===1?"":"s"}/viveiro${r.criadas.length===1?"":"s"} novo${r.criadas.length===1?"":"s"}: ${E(r.criadas.slice(0,6).join(", "))}${r.criadas.length>6?"…":""}`);
@@ -6978,6 +6997,59 @@ window.IMP={
         const curto=c.tipo==="agua"?`${r.novas||0} novas, ${r.atualizadas||0} atualizadas`:`${r.novas||0} biometrias`;
         fim=()=>{c.passo=PASSOS(c).length;c.st="ok";c.res=L.join("<br>");wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"ok",curto}].concat(rd()));if(cur===c)draw()};if(cur!==c)fim()},
       erro(e){fim=()=>{c.st="erro";c.erro=String(e&&(e.message||e)||e);wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"erro",curto:c.erro.slice(0,60)}].concat(rd()));if(cur===c)draw()};fim()}}}};
+})();
+</script>
+
+<script>
+/* ---------- Relatório das nictemerais: aparece quando o botão 📈 Nictemeral está aberto (só leituras de água; biometria fica no botão 📏 Biometria) ---------- */
+(function(){
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f=(v,k)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:k,maximumFractionDigits:k}):"—";
+const dBR=s=>s?s.split("-").reverse().join("/"):"—";
+const ST={ideal:["ideal","ok"],alerta:["alerta","warn"],critico:["crítico","crit"],letal:["letal","crit"],sem_faixa:["sem faixa",""]};
+let filtro="",soReais=true;
+function dados(){try{const w=document.getElementById("aqua-frame").contentWindow;return w&&w.aquaRelatorio?w.aquaRelatorio():null}catch(e){return null}}
+const proj=()=>{try{const p=window.projAtual&&projAtual();return p?p.nome:""}catch(e){return ""}};
+function csv(R){const q=v=>{v=v==null?"":String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v},n=(v,k)=>typeof v==="number"&&isFinite(v)?v.toFixed(k).replace(".",","):"";
+  const L=[["Data início","Data fim","Tanque/viveiro","Espécie","Leituras","Início","Fim","Duração (h)","OD mín (mg/L)","Hora OD mín","OD máx (mg/L)","Hora OD máx","Temp mín (°C)","Temp máx (°C)","ΔT (°C)","pH mín","pH máx","ΔpH","Salinidade média","NH3 (mg/L)","Avaliações fora da faixa","Situação"]];
+  for(const r of R)L.push([r.data,r.dataFim||r.data,r.nome,r.especie,r.n,r.ini,r.fim,n(r.horas,1),n(r.odMin,2),r.odMinHora||"",n(r.odMax,2),r.odMaxHora||"",r.temp?n(r.temp[0],1):"",r.temp?n(r.temp[1],1):"",r.temp?n(r.temp[1]-r.temp[0],1):"",r.ph?n(r.ph[0],2):"",r.ph?n(r.ph[1],2):"",n(r.dph,2),r.sal?n(r.sal[2],1):"",n(r.nh3,3),r.fora+"/"+r.aval,(ST[r.st]||[r.st])[0]]);
+  return "﻿"+L.map(r=>r.map(q).join(";")).join("\r\n")}
+const per=r=>r.dataFim&&r.dataFim!==r.data?`${dBR(r.data).slice(0,5)} → ${dBR(r.dataFim)}`:dBR(r.data);
+function alertas(R){const A=[];
+  for(const r of R){const it=[];let g="";const sob=c=>{if(c==="crit"||!g||g==="info")g=c};
+    if(r.odMinSt==="critico"||r.odMinSt==="letal"){it.push(`OD crítico: mínimo de ${f(r.odMin,1)} mg/L às ${E(r.odMinHora)}${r.odMinData&&r.odMinData!==r.data?" de "+dBR(r.odMinData):""} (aerar e reduzir a ração nesse horário)`);sob("crit")}
+    else if(r.odMinSt==="alerta"){it.push(`OD em alerta: mínimo de ${f(r.odMin,1)} mg/L às ${E(r.odMinHora)}`);sob("warn")}
+    if(r.dphSt==="alerta"){it.push(`pH oscilou ${f(r.dph,2)} no ciclo (fitoplâncton intenso ou baixa alcalinidade)`);sob("warn")}
+    if(r.nh3St&&r.nh3St!=="ideal"&&r.nh3St!=="sem_faixa"){it.push(`NH₃ estimada ${f(r.nh3,3)} mg/L`);sob(r.nh3St==="alerta"?"warn":"crit")}
+    if(r.n<4||r.horas<18){it.push(`ciclo incompleto: ${r.n} leitura${r.n===1?"":"s"} em ${f(r.horas,0)} h (${E(r.ini)} a ${E(r.fim)}); a nictemeral pede leituras de dia e de noite por ~24 h`);if(!g)g="info"}
+    if(it.length)A.push([g,`${E(r.nome)} · ${per(r)}`,it.join(" · ")])}
+  const o={crit:0,warn:1,info:2};return A.sort((a,b)=>o[a[0]]-o[b[0]])}
+function html(R0){const R=R0.filter(r=>(!soReais||!r.exemplo)&&(!filtro||r.id===filtro)).sort((a,b)=>b.data.localeCompare(a.data)||a.nome.localeCompare(b.nome)),U=[...new Map(R0.filter(r=>!soReais||!r.exemplo).map(r=>[r.id,r.nome])).entries()];
+  const nEx=R0.filter(r=>r.exemplo).length,dias=[...new Set(R.map(r=>r.data))].sort(),odm=R.filter(r=>typeof r.odMin==="number").reduce((a,b)=>!a||b.odMin<a.odMin?b:a,null);
+  const tAmp=R.filter(r=>r.temp).reduce((a,b)=>!a||b.temp[1]-b.temp[0]>a.temp[1]-a.temp[0]?b:a,null),pAmp=R.filter(r=>r.dph!=null).reduce((a,b)=>!a||b.dph>a.dph?b:a,null);
+  const crit=R.filter(r=>r.st==="critico"||r.st==="letal").length,A=alertas(R),nL=R.reduce((t,r)=>t+r.n,0);
+  const kp=(t,v,s,c)=>`<div class="bd-kpi${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
+  return `<section class="bd-wrap">
+   <div class="bd-head"><div><small>AquaNictemeral · Nictemeral (só leituras de água)</small><h2>Relatório das nictemerais</h2><p>${proj()?E(proj())+" · ":""}${R.length} nictemera${R.length===1?"l":"is"} (coletas de ~24 h por tanque/viveiro) · ${nL} leituras${dias.length?` · ${dBR(dias[0])}${dias.length>1?" a "+dBR(dias[dias.length-1]):""}`:""}. Biometrias não entram aqui: ficam no botão 📏 Biometria. As curvas de cada dia estão no painel logo abaixo.</p></div>
+    <div class="bd-act"><button type="button" class="btn" data-nd="csv"${R.length?"":" disabled"}>⬇ Baixar relatório (CSV)</button></div></div>
+   <div class="bd-leg"><button type="button" class="chip${filtro?"":" on"}" data-nd-u="">Todos</button>${U.map(([id,n])=>`<button type="button" class="chip${filtro===id?" on":""}" data-nd-u="${E(id)}">${E(n)}</button>`).join("")}${nEx?`<label class="ap-conf" style="margin-left:auto"><input type="checkbox" data-nd-ex${soReais?"":" checked"}> mostrar dados de exemplo (${nEx})</label>`:""}</div>
+   ${R.length?"":`<div class="bd-vazio">Nenhuma nictemeral ${filtro?"neste tanque/viveiro":"ainda"}. Importe leituras de água (OD, temperatura, pH…) no botão 📈 Nictemeral acima.</div>`}
+   ${R.length?`<div class="bd-kpis">${kp("Nictemerais",R.length,`${U.length} tanque${U.length===1?"":"s"}/viveiro${U.length===1?"":"s"} · ${dias.length} campanha${dias.length===1?"":"s"} de coleta`)}${kp("OD mínimo",odm?f(odm.odMin,1)+" mg/L":"—",odm?`${E(odm.nome)} · ${dBR(odm.odMinData||odm.data)} às ${E(odm.odMinHora)}`:"",odm&&(odm.odMinSt==="critico"||odm.odMinSt==="letal")?"crit":odm&&odm.odMinSt==="alerta"?"warn":"")}${kp("Maior amplitude de temperatura",tAmp?f(tAmp.temp[1]-tAmp.temp[0],1)+" °C":"—",tAmp?`${E(tAmp.nome)} · ${dBR(tAmp.data)}`:"")}${kp("Maior amplitude de pH",pAmp?f(pAmp.dph,2):"—",pAmp?`${E(pAmp.nome)} · ${dBR(pAmp.data)}`:"",pAmp&&pAmp.dphSt==="alerta"?"warn":"")}${kp("Nictemerais com situação crítica",crit,crit?"veja os alertas":"nenhuma",crit?"crit":"")}</div>
+   <div class="card bd-card"><div class="card-head"><h2>Resultados por nictemeral<span>Cada coleta contínua de um tanque/viveiro (pode atravessar a meia-noite) · mais recentes primeiro</span></h2></div>
+    <div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Tanque/viveiro</th><th class="num">Leituras</th><th>Horário (duração)</th><th class="num">OD mín</th><th class="num">OD máx</th><th class="num">Temp. mín–máx</th><th class="num">pH mín–máx</th><th class="num">Salinidade</th><th>Situação</th></tr></thead><tbody>
+    ${R.slice(0,200).map(r=>`<tr><td>${per(r)}</td><td><b>${E(r.nome)}</b>${r.especie?`<small> · ${E(r.especie)}</small>`:""}</td><td class="num">${r.n}</td><td>${E(r.ini)}–${E(r.fim)} <small>(${f(r.horas,0)} h)</small></td><td class="num">${r.odMin!=null?`<span class="bd-tag ${(ST[r.odMinSt]||[])[1]||""}">${f(r.odMin,1)}</span><small> ${E(r.odMinHora)}</small>`:"—"}</td><td class="num">${r.odMax!=null?f(r.odMax,1)+`<small> ${E(r.odMaxHora)}</small>`:"—"}</td><td class="num">${r.temp?f(r.temp[0],1)+"–"+f(r.temp[1],1)+" °C":"—"}</td><td class="num">${r.ph?f(r.ph[0],2)+"–"+f(r.ph[1],2):"—"}</td><td class="num">${r.sal?f(r.sal[2],1):"—"}</td><td><span class="bd-tag ${(ST[r.st]||[])[1]||""}">${(ST[r.st]||[r.st])[0]}</span>${r.aval?`<small> ${r.fora}/${r.aval} fora</small>`:""}</td></tr>`).join("")}</tbody></table></div>
+    ${R.length>200?`<p class="muted">Mostrando 200 de ${R.length}; o CSV traz todas.</p>`:""}</div>
+   <div class="card bd-card"><div class="card-head"><h2>Alertas das nictemerais<span>Oxigênio, pH, amônia e nictemerais incompletas</span></h2></div>
+    ${A.length?`<ul class="bd-al">${A.slice(0,40).map(([c,t,d])=>`<li class="${c==="info"?"":c}"${c==="info"?' style="border-left-color:var(--line)"':""}><b>${t}</b><span>${d}</span></li>`).join("")}</ul>${A.length>40?`<p class="muted">+${A.length-40} alertas no CSV/tabela.</p>`:""}`:'<p class="muted">Nenhum alerta: todas as nictemerais dentro das faixas da espécie.</p>'}</div>`:""}
+  </section>`}
+function aberto(){const d=document.querySelector("#aqua-plug details.ap-card");return !!(d&&d.open)}
+function draw(){const el=document.getElementById("aqua-nicdash");if(!el)return;if(!aberto()||document.getElementById("view-aqua").hidden){el.hidden=true;el.innerHTML="";return}
+  const R=dados();if(!R){el.hidden=false;el.innerHTML='<div class="bd-vazio">Abrindo o AquaNictemeral…</div>';setTimeout(draw,600);return}
+  el.hidden=false;el.innerHTML=html(R);
+  el.querySelectorAll("[data-nd-u]").forEach(b=>b.addEventListener("click",()=>{filtro=b.dataset.ndU;draw()}));
+  const ex=el.querySelector("[data-nd-ex]");ex&&ex.addEventListener("change",()=>{soReais=!ex.checked;draw()});
+  const c=el.querySelector('[data-nd="csv"]');c&&c.addEventListener("click",()=>{const R2=dados().filter(r=>(!soReais||!r.exemplo)&&(!filtro||r.id===filtro)),blob=new Blob([csv(R2)],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="relatorio_nictemerais_"+String(proj()||"sem_projeto").replace(/[^\wÀ-ú-]+/g,"_")+"_"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)})}
+window.drawNicDash=draw;
 })();
 </script>
 
@@ -7145,7 +7217,7 @@ async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="
   for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function"){impWrap(w);return w}}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
 function impWrap(w){if(w.__impWrap||!window.IMP)return;const o=w.aquaImport;w.__impWrap=1;w.aquaImport=(lista,op)=>{op=op||{};const h=IMP.processar({tipo:"agua",origem:op.tipo||(/^arquivo/.test(op.origem||"")?"arquivo":op.origem)||"arquivo",nome:op.nome||"",linhas:(lista||[]).length,auto:op.tipo==="link"&&!!C.auto});
   try{const r=o(lista,op);let us=[];try{const U=w.aquaUnidades?w.aquaUnidades():[];us=(r.unidades||[]).map(id=>{const u=U.find(x=>x.id===id||x.nome===id);return u?u.nome:String(id)})}catch(e){}let gs="";try{gs=localStorage.getItem(grpK())||""}catch(e){}const fora=gs&&(r.unidades||[]).some(id=>String(id)!=="ras-"+gs);
-  h.ok({...r,unidades:us,aviso:fora?"O filtro “Só o grupo” estava ligado e escondia estes tanques/viveiros: foi trocado para Todos.":""});if(fora)setTimeout(()=>{const a=document.querySelector('#grp-bar [data-gb="all"]');if(a)a.click();else{try{localStorage.removeItem(grpK())}catch(e){}try{w.aquaGrupoTodos&&w.aquaGrupoTodos()}catch(e){}}},50);return r}catch(e){h.erro(e);throw e}}}
+  setTimeout(()=>{try{window.drawNicDash&&drawNicDash()}catch(e){}},400);h.ok({...r,unidades:us,aviso:fora?"O filtro “Só o grupo” estava ligado e escondia estes tanques/viveiros: foi trocado para Todos.":""});if(fora)setTimeout(()=>{const a=document.querySelector('#grp-bar [data-gb="all"]');if(a)a.click();else{try{localStorage.removeItem(grpK())}catch(e){}try{w.aquaGrupoTodos&&w.aquaGrupoTodos()}catch(e){}}},50);return r}catch(e){h.erro(e);throw e}}}
 function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
 /* cópia das leituras de cada importação (IndexedDB), para processar de novo quando precisar */
 const IDB=(()=>{let p;const db=()=>p||(p=new Promise((ok,er)=>{const r=indexedDB.open("greenfish-aquaauto",1);r.onupgradeneeded=()=>r.result.createObjectStore("imp");r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)}));
@@ -7297,7 +7369,7 @@ function draw(){
    ${C.fonte!=="webhook"?mapaHTML():""}
    <div id="ap-histw"></div>
   </div></details>`;{const sl=box.querySelector("#ap-slot"),o=window.__apO||(window.__apO=document.getElementById("aqua-orig")),c=window.__apC||(window.__apC=document.getElementById("aqua-cad"));if(sl){o&&sl.appendChild(o);c&&sl.appendChild(c)}}
-  bind()}
+  bind();try{window.drawNicDash&&drawNicDash()}catch(e){}}
 function histHTML(log){let O=null;try{const w=frame().contentWindow;O=w&&w.aquaOrigens&&w.aquaOrigens()}catch(e){}
   const temN=k=>O?((O.origens.find(o=>o.key===k)||{}).n||0):null,ICO={arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖"},fD=t=>new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
   const per=d=>d&&d.length?(d.length>1?`${d[0].split("-").reverse().join("/")} a ${d[d.length-1].split("-").reverse().join("/")}`:d[0].split("-").reverse().join("/")):"";
@@ -7312,7 +7384,7 @@ function histHTML(log){let O=null;try{const w=frame().contentWindow;O=w&&w.aquaO
    <p class="muted"><b>Processar só esta</b> mostra no AquaNictemeral apenas as leituras daquela importação (o painel vai para as datas dela). <b>Excluir</b> tira a importação da lista (e a cópia guardada): escolha se as leituras dela ficam no AquaNictemeral ou saem junto. <b>Reprocessar</b> lança de novo as leituras guardadas da importação: recria leituras apagadas ou alteradas e os tanques/viveiros que faltarem, sem duplicar. O app guarda uma cópia de cada importação neste aparelho (as importações anteriores a esta versão não têm cópia: para elas, escolha o arquivo de novo).</p></details>`}
 function bind(){
   box.querySelectorAll("[data-ap-conf]").forEach(i=>i.addEventListener("change",()=>{C.conferir=i.checked;salvar();draw()}));
-  const d=box.querySelector("details.ap-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto&&!unidades().length)pronto().then(()=>draw())});
+  const d=box.querySelector("details.ap-card");d.addEventListener("toggle",()=>{aberto=d.open;if(aberto){const bd=document.querySelector("#aqua-bio details.bi-card");if(bd&&bd.open)bd.open=false}try{window.drawNicDash&&drawNicDash()}catch(e){}if(aberto&&!unidades().length)pronto().then(()=>{draw();try{window.drawNicDash&&drawNicDash()}catch(e){}})});
   box.querySelectorAll("[data-ap-fonte]").forEach(b=>b.addEventListener("click",()=>{C.fonte=b.dataset.apFonte;salvar();msg="";if(C.fonte==="webhook"&&!chave&&window.Auth&&Auth.supa&&Auth.supa()&&Auth.ok())Auth.aquaChave(false,true).then(t=>{chave=t||"";draw()}).catch(()=>{});draw()}));
   box.querySelectorAll("[data-ap-cfg]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.apCfg;C[k]=i.type==="checkbox"?i.checked:k==="min"?+i.value:i.value.trim();salvar();if(k==="auto"||k==="min"||k==="url")agendar();if(k==="webhook")agendarHook();draw()}));
   box.querySelectorAll("[data-ap-col]").forEach(s=>s.addEventListener("change",()=>{C.map[s.dataset.apCol]=s.value;salvar();draw()}));
@@ -7322,8 +7394,8 @@ async function rodar(fn){if(busy)return;busy=true;draw();try{msg=await fn()||msg
 function acao(a,b){
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=ACEITA;i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
     i.addEventListener("change",()=>{const f=i.files[0];i.remove();if(!f)return;
-    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"arquivo "+f.name};{const nA=C.conferir?null:normalizar(rows,C.map,C.agrupar);if(nA&&nA.lista.length){const r=await importar(nA.lista,dados.origem);dados=null;return f.name+" importado: "+resumo(r,nA.brutas)}}window.IMP&&IMP.recebido({tipo:"agua",origem:"arquivo",nome:f.name,linhas:rows.length});return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
-  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"colado"};{const nA=C.conferir?null:normalizar(rows,C.map,C.agrupar);if(nA&&nA.lista.length){const r=await importar(nA.lista,"colado");dados=null;return "Importado: "+resumo(r,nA.brutas)}}window.IMP&&IMP.recebido({tipo:"agua",origem:"colado",linhas:rows.length});return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
+    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"arquivo "+f.name};if(!Object.values(C.map).some(v=>NUM.includes(v))&&cols.some(c=>/peso|comprim|biomass|quantidade|n[ºo°]?\.?\s*de\s*(peixes|animais|camar)|peso.?total|lote/i.test(c))){const mo="Este arquivo é de biometria (peso/comprimento dos animais), não de leituras de água. Nada foi gravado no Nictemeral: use o botão 📏 Biometria.";window.IMP&&IMP.recusar({tipo:"agua",origem:"arquivo",nome:f.name,linhas:rows.length,motivo:mo});dados=null;throw new Error(mo)}{const nA=C.conferir?null:normalizar(rows,C.map,C.agrupar);if(nA&&nA.lista.length){const r=await importar(nA.lista,dados.origem);dados=null;return f.name+" importado: "+resumo(r,nA.brutas)}}window.IMP&&IMP.recebido({tipo:"agua",origem:"arquivo",nome:f.name,linhas:rows.length});return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"colado"};if(!Object.values(C.map).some(v=>NUM.includes(v))&&cols.some(c=>/peso|comprim|biomass|quantidade|n[ºo°]?\.?\s*de\s*(peixes|animais|camar)|peso.?total|lote/i.test(c))){const mo="Este arquivo é de biometria (peso/comprimento dos animais), não de leituras de água. Nada foi gravado no Nictemeral: use o botão 📏 Biometria.";window.IMP&&IMP.recusar({tipo:"agua",origem:"colado",nome:"",linhas:rows.length,motivo:mo});dados=null;throw new Error(mo)}{const nA=C.conferir?null:normalizar(rows,C.map,C.agrupar);if(nA&&nA.lista.length){const r=await importar(nA.lista,"colado");dados=null;return "Importado: "+resumo(r,nA.brutas)}}window.IMP&&IMP.recebido({tipo:"agua",origem:"colado",linhas:rows.length});return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
   if(a==="importar"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar);const r=await importar(n.lista,dados.origem);dados=null;return "Importado: "+resumo(r,n.brutas)});return}
   if(a==="limpar"){dados=null;msg="";draw();return}
   if(a==="guardar-so"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar),origem=dados.origem,tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:"";
@@ -7758,7 +7830,7 @@ function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card"),p=projSel
   box.querySelectorAll("details[data-bsub]").forEach(x=>x.addEventListener("toggle",()=>{if(x.dataset.bsub==="o")subO=x.open;else subC=x.open}));
   const fo=q("#bi-forig");fo&&fo.addEventListener("change",()=>{B.fOrigB=fo.value;salvar();draw();outros()});
   try{window.bioCadBind&&bioCadBind(box)}catch(e){}
-  clearInterval(bioTick);bioTick=setInterval(()=>{if(!document.body.contains(box)||document.hidden||!subC||!aberto)return;try{if(window.bioCadTick&&bioCadTick(box))draw()}catch(e){}},1000);d.addEventListener("toggle",()=>{aberto=d.open;drawBD();if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
+  clearInterval(bioTick);bioTick=setInterval(()=>{if(!document.body.contains(box)||document.hidden||!subC||!aberto)return;try{if(window.bioCadTick&&bioCadTick(box))draw()}catch(e){}},1000);d.addEventListener("toggle",()=>{aberto=d.open;if(aberto){const pd=document.querySelector("#aqua-plug details.ap-card");if(pd&&pd.open)pd.open=false}drawBD();if(aberto&&!unis().length&&U.pronto)U.pronto().then(()=>draw())});
   const pj=q("#bi-proj");pj&&pj.addEventListener("change",()=>{B.proj=pj.value===curPid()?null:pj.value;msg="";salvar();draw();outros()});
   box.querySelectorAll("[data-bi-fonte]").forEach(b=>b.addEventListener("click",()=>{B.fonte=b.dataset.biFonte;dados=null;msg="";salvar();draw()}));
   box.querySelectorAll("[data-bi-modo]").forEach(b=>b.addEventListener("click",()=>{B.modo=b.dataset.biModo;salvar();draw()}));
@@ -7784,8 +7856,8 @@ function acao(a,b){const p=projImp();
       if(!am.ind.length)throw new Error("Digite pelo menos um peso (um animal por linha).")}
     guardar([am],{tipo:"form",nome:""},p);const s=stats(am);return `Biometria salva em ${pNome(p)}: ${TIPO[u.tipo]} ${u.nome}${numU?" ("+numU+")":""}, ${s.N} animais, peso médio ${f(s.pm,1)} g${s.cv!=null?`, CV ${f(s.cv,0)} %`:""}.`});return}
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=U.ACEITA||"";i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
-    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await U.lerArquivo(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};{const LA=B.conferir?[]:linhasParaAmostras(rows,B.map).amostras;if(LA.length&&LA.every(x=>x.un)){const o=dados.origem,pp=projImp(),r=guardar(LA,o,pp);dados=null;ARQ.add({tipo:"biometria",key:(o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):""),nome:o.nome||"",fonte:o.tipo,lista:LA,op:{origem:o}}).catch(()=>{});return res(r,o)}}window.IMP&&IMP.recebido({tipo:"bio",origem:"arquivo",nome:fl.name,linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
-  if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};{const LA=B.conferir?[]:linhasParaAmostras(rows,B.map).amostras;if(LA.length&&LA.every(x=>x.un)){const o=dados.origem,pp=projImp(),r=guardar(LA,o,pp);dados=null;ARQ.add({tipo:"biometria",key:(o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):""),nome:o.nome||"",fonte:o.tipo,lista:LA,op:{origem:o}}).catch(()=>{});return res(r,o)}}window.IMP&&IMP.recebido({tipo:"bio",origem:"colado",linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
+    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await U.lerArquivo(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};if(!Object.values(B.map).some(v=>["peso","comprimento","n","peso_total"].includes(v))&&cols.some(c=>/(^|[^a-z])od([^a-z]|$)|oxig|temperat|(^|[^a-z])ph([^a-z]|$)|salin|am[ôo]nia|nitrit|condut|alcalin/i.test(c))){const mo="Este arquivo é de leituras de água (OD, temperatura, pH…), não de biometria. Nada foi gravado na Biometria: use o botão 📈 Nictemeral.";window.IMP&&IMP.recusar({tipo:"bio",origem:"arquivo",nome:fl.name,linhas:rows.length,motivo:mo,projeto:pNome(projImp()),salvo:projImp()!=="_local"});dados=null;throw new Error(mo)}{const LA=B.conferir?[]:linhasParaAmostras(rows,B.map).amostras;if(LA.length&&LA.every(x=>x.un)){const o=dados.origem,pp=projImp(),r=guardar(LA,o,pp);dados=null;ARQ.add({tipo:"biometria",key:(o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):""),nome:o.nome||"",fonte:o.tipo,lista:LA,op:{origem:o}}).catch(()=>{});return res(r,o)}}window.IMP&&IMP.recebido({tipo:"bio",origem:"arquivo",nome:fl.name,linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};if(!Object.values(B.map).some(v=>["peso","comprimento","n","peso_total"].includes(v))&&cols.some(c=>/(^|[^a-z])od([^a-z]|$)|oxig|temperat|(^|[^a-z])ph([^a-z]|$)|salin|am[ôo]nia|nitrit|condut|alcalin/i.test(c))){const mo="Este arquivo é de leituras de água (OD, temperatura, pH…), não de biometria. Nada foi gravado na Biometria: use o botão 📈 Nictemeral.";window.IMP&&IMP.recusar({tipo:"bio",origem:"colado",nome:"",linhas:rows.length,motivo:mo,projeto:pNome(projImp()),salvo:projImp()!=="_local"});dados=null;throw new Error(mo)}{const LA=B.conferir?[]:linhasParaAmostras(rows,B.map).amostras;if(LA.length&&LA.every(x=>x.un)){const o=dados.origem,pp=projImp(),r=guardar(LA,o,pp);dados=null;ARQ.add({tipo:"biometria",key:(o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):""),nome:o.nome||"",fonte:o.tipo,lista:LA,op:{origem:o}}).catch(()=>{});return res(r,o)}}window.IMP&&IMP.recebido({tipo:"bio",origem:"colado",linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
   if(a==="salvar-dados"){rodar(async()=>{if(unidade==="__nova"&&!novaNome.trim()&&linhasParaAmostras(dados.rows,B.map).amostras.some(x=>!x.un))throw new Error("Dê uma identificação para o novo tanque ou viveiro (usado nas linhas sem tanque/viveiro).");
     const L=linhasParaAmostras(dados.rows,B.map).amostras.map(x=>x.un?x:{...x,num:numU}),o=dados.origem;const r=guardar(L,o,p);dados=null;
     ARQ.add({tipo:"biometria",key:(o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):""),nome:o.nome||"",fonte:o.tipo,lista:L,op:{origem:o}}).catch(()=>{});return res(r,o)});return}
@@ -8004,7 +8076,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v89";
+  const APP_VERSAO="ras-v90";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
