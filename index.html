@@ -1771,6 +1771,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const nL = US.reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0);
     $(&quot;p-titulo&quot;).textContent = S.grupoSo &amp;&amp; uniById(S.grupoSo) ? &quot;Só &quot; + uniById(S.grupoSo).nome : S.ras ? &quot;Grupos de tanques do RAS&quot; : &quot;Todas as unidades&quot;;
     $(&quot;p-meta&quot;).innerHTML = `${S.ras ? &quot;vinculado à Calculadora · &quot; : &quot;&quot;}${US.length} tanque(s)/viveiro(s) · ${periodo === 1 ? diaSemana(dRef) + &quot; &quot; + dataBR(dRef) : dataBR(dias[0]) + &quot; a &quot; + dataBR(dRef)} · ${nL} leituras${S.exemplo &amp;&amp; LT().some((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;dados de exemplo&lt;/span&gt;&#x27; : &quot;&quot;}${S.fOrig || S.fProj ? &#x27; · &lt;span class=&quot;example-flag&quot;&gt;só &#x27; + escO([S.fOrig ? (ORIG[S.fOrig.split(&quot;|&quot;)[0]] || S.fOrig) + (S.fOrig.includes(&quot;|&quot;) ? &quot;: &quot; + S.fOrig.split(&quot;|&quot;).slice(1).join(&quot;|&quot;) : &quot;&quot;) : &quot;&quot;, S.fProj ? &quot;projeto &quot; + (S.fProj === &quot;__sem&quot; ? &quot;sem projeto&quot; : ((S.leituras.find((l) =&gt; l.pid === S.fProj) || {}).pnome || &quot;&quot;)) : &quot;&quot;].filter(Boolean).join(&quot; · &quot;)) + &quot;&lt;/span&gt;&quot; : &quot;&quot;}`;
+    { const esc = S.grupoSo &amp;&amp; uniById(S.grupoSo) ? S.unidades.filter((u) =&gt; u.id !== S.grupoSo).reduce((a, u) =&gt; a + leituras(u.id, dias).length, 0) : 0;
+      if (esc) { $(&quot;p-meta&quot;).insertAdjacentHTML(&quot;beforeend&quot;, ` · &lt;button type=&quot;button&quot; class=&quot;mc-a u-conv-b&quot; id=&quot;p-ver-todos&quot;&gt;⚠️ ${esc} leitura${esc === 1 ? &quot;&quot; : &quot;s&quot;} de outros tanques/viveiros escondida${esc === 1 ? &quot;&quot; : &quot;s&quot;} pelo filtro do grupo · mostrar todos&lt;/button&gt;`); const bt = $(&quot;p-ver-todos&quot;); bt &amp;&amp; bt.addEventListener(&quot;click&quot;, () =&gt; { try { const a = parent.document.querySelector(&#x27;#grp-bar [data-gb=&quot;all&quot;]&#x27;); if (a) { a.click(); return; } } catch (e) {} window.aquaGrupoTodos(); }); } }
     renderKPIs(US, dias, dRef); renderMulti(US, dias, dRef); renderUCards(US, dRef); renderMatriz(US, dias); renderTrends(US, dRef); renderDist(US, dias); renderCad(US, dias); renderAlertas(US, dias);
   }
 
@@ -6972,6 +6974,7 @@ window.IMP={
         else L.push(`<b>${r.novas||0}</b> biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"}${r.sem?` · <b>${r.sem}</b> sem tanque/viveiro`:""}${r.semPeso?` · <span class="imp-tag w">${r.semPeso} sem peso</span>`:""}`);
         if(r.unidades&&r.unidades.length)L.push(`Tanques/viveiros: ${E(r.unidades.slice(0,8).join(", "))}${r.unidades.length>8?"…":""}`);
         if(r.dias&&r.dias.length){const d=[...r.dias].sort(),f=s=>s.split("-").reverse().join("/");L.push(`Período: ${f(d[0])}${d.length>1?" a "+f(d[d.length-1]):""} (${d.length} dia${d.length===1?"":"s"})`)}
+        if(r.aviso)L.push(`<span class="imp-tag w">filtro</span> ${E(r.aviso)}`);
         const curto=c.tipo==="agua"?`${r.novas||0} novas, ${r.atualizadas||0} atualizadas`:`${r.novas||0} biometrias`;
         fim=()=>{c.passo=PASSOS(c).length;c.st="ok";c.res=L.join("<br>");wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"ok",curto}].concat(rd()));if(cur===c)draw()};if(cur!==c)fim()},
       erro(e){fim=()=>{c.st="erro";c.erro=String(e&&(e.message||e)||e);wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"erro",curto:c.erro.slice(0,60)}].concat(rd()));if(cur===c)draw()};fim()}}}};
@@ -7141,7 +7144,8 @@ const frame=()=>document.getElementById("aqua-frame");
 async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="function")loadAqua();
   for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function"){impWrap(w);return w}}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
 function impWrap(w){if(w.__impWrap||!window.IMP)return;const o=w.aquaImport;w.__impWrap=1;w.aquaImport=(lista,op)=>{op=op||{};const h=IMP.processar({tipo:"agua",origem:op.tipo||(/^arquivo/.test(op.origem||"")?"arquivo":op.origem)||"arquivo",nome:op.nome||"",linhas:(lista||[]).length,auto:op.tipo==="link"&&!!C.auto});
-  try{const r=o(lista,op);let us=[];try{const U=w.aquaUnidades?w.aquaUnidades():[];us=(r.unidades||[]).map(id=>{const u=U.find(x=>x.id===id||x.nome===id);return u?u.nome:String(id)})}catch(e){}h.ok({...r,unidades:us});return r}catch(e){h.erro(e);throw e}}}
+  try{const r=o(lista,op);let us=[];try{const U=w.aquaUnidades?w.aquaUnidades():[];us=(r.unidades||[]).map(id=>{const u=U.find(x=>x.id===id||x.nome===id);return u?u.nome:String(id)})}catch(e){}let gs="";try{gs=localStorage.getItem(grpK())||""}catch(e){}const fora=gs&&(r.unidades||[]).some(id=>String(id)!=="ras-"+gs);
+  h.ok({...r,unidades:us,aviso:fora?"O filtro “Só o grupo” estava ligado e escondia estes tanques/viveiros: foi trocado para Todos.":""});if(fora)setTimeout(()=>{const a=document.querySelector('#grp-bar [data-gb="all"]');if(a)a.click();else{try{localStorage.removeItem(grpK())}catch(e){}try{w.aquaGrupoTodos&&w.aquaGrupoTodos()}catch(e){}}},50);return r}catch(e){h.erro(e);throw e}}}
 function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
 /* cópia das leituras de cada importação (IndexedDB), para processar de novo quando precisar */
 const IDB=(()=>{let p;const db=()=>p||(p=new Promise((ok,er)=>{const r=indexedDB.open("greenfish-aquaauto",1);r.onupgradeneeded=()=>r.result.createObjectStore("imp");r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)}));
@@ -8000,7 +8004,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v88";
+  const APP_VERSAO="ras-v89";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
