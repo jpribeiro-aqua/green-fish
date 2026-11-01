@@ -719,6 +719,23 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.gfh{--h:var(--accent);border-radius:16px;padding:18px 20px;margin:0 0 14px;background:linear-gradient(135deg,color-mix(in srgb,var(--h) 14%,var(--surface)) 0%,var(--surface) 60%);border:1.5px solid color-mix(in srgb,var(--h) 45%,var(--line));box-shadow:0 6px 22px rgba(0,0,0,.07)}
+.gfh-ok{--h:#1baf7a}.gfh-warn{--h:#e09a00}.gfh-crit{--h:#d33f2e}.gfh-info{--h:var(--accent)}
+.gfh-top{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.gfh-ico{font-size:34px;width:58px;height:58px;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--h) 18%,var(--surface));flex:none}
+.gfh-tt{flex:1;min-width:220px}.gfh-tt small{font:700 11.5px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--h)}.gfh-tt h2{margin:4px 0 6px;font:700 clamp(20px,2.6vw,28px)/1.15 var(--f-display);color:var(--ink)}.gfh-tt p{margin:0;color:var(--muted);font-size:14px;max-width:80ch}
+.gfh-badge{background:var(--h);color:#fff;font:700 13px var(--f-body);padding:7px 14px;border-radius:999px;white-space:nowrap;align-self:center}
+.gfh-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:16px 0 0}
+.hk{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}.hk-i{font-size:22px;line-height:1}.hk-l{display:block;font:700 11px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.hk b{display:block;font:700 22px var(--f-mono);margin:2px 0}.hk small{color:var(--muted);font-size:12px;line-height:1.35;display:block}
+.hk-crit{border-color:#d33f2e;box-shadow:inset 4px 0 0 #d33f2e}.hk-warn{border-color:#e09a00;box-shadow:inset 4px 0 0 #e09a00}.hk-ok{box-shadow:inset 4px 0 0 #1baf7a}
+.gfh-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px;margin-top:12px}@media (max-width:820px){.gfh-grid{grid-template-columns:1fr}}
+.gfh-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.gfh-card h3{margin:0 0 10px;font-size:14px}
+.gfh-bars{display:grid;gap:7px}.hb{display:grid;grid-template-columns:minmax(110px,1.3fr) 2fr auto;gap:8px;align-items:center;font-size:13px}.hb-n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hb-t{height:14px;background:var(--bg);border-radius:7px;overflow:hidden}.hb-t b{display:block;height:100%;border-radius:7px}.hb-ok{background:#1baf7a}.hb-warn{background:#e09a00}.hb-crit{background:#d33f2e}.hb-v{font:600 12.5px var(--f-mono);white-space:nowrap}.hb-v small{color:var(--muted);font-weight:400}
+.gfh-todo{margin:0;padding-left:20px;display:grid;gap:7px;font-size:13.5px}.gfh-todo li::marker{font-weight:700;color:var(--h)}.gfh-todo li.crit{color:#a32a1c}.gfh-todo li.crit::marker{color:#d33f2e}
+.gfh-how{margin-top:12px;font-size:13.5px}.gfh-how summary{cursor:pointer;font-weight:600}.gfh-how p{margin:6px 0;color:var(--muted)}.gfh-sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:-1px}.gfh-sw.ok{background:#1baf7a}.gfh-sw.warn{background:#e09a00}.gfh-sw.crit{background:#d33f2e}
+.gfh-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.gfh-act .btn{text-decoration:none}
+.gfh-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-top:14px}.ht{display:grid;gap:2px;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;font:inherit;color:inherit;transition:transform .12s,box-shadow .12s}.ht:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.1)}.ht-i{font-size:26px}.ht-t{font:700 12px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.ht b{font:700 22px var(--f-mono)}.ht small{color:var(--muted);font-size:12px}.ht-go{font-size:11.5px;color:var(--accent);font-weight:700;margin-top:4px}
+.ht-ok{border-top:5px solid #1baf7a}.ht-warn{border-top:5px solid #e09a00}.ht-crit{border-top:5px solid #d33f2e}.ht-info{border-top:5px solid var(--accent)}
+
 .gf-bg{fill:var(--bg)}.gf-band{fill:rgba(27,175,122,.16)}.gf-grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}.gf-n{font:600 12px var(--f-body);fill:var(--ink)}.gf-u{font:10.5px var(--f-mono);fill:var(--muted)}.gf-v{font:600 11px var(--f-mono)}.gf-sel{display:flex;gap:8px;align-items:center;font-size:13px;margin:0 0 8px;flex-wrap:wrap}.gf-sel select{max-width:100%}.gf-corr{width:auto!important;border-collapse:collapse;font:12px var(--f-mono)}.gf-corr th{font:600 11.5px var(--f-body);padding:4px 6px;text-align:center;white-space:nowrap}.gf-corr tbody th{text-align:right}.gf-c,.gf-d{width:58px;height:34px;text-align:center;border:1px solid var(--surface)}.gf-d{color:var(--muted)}.gf-sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px}.gf-fortes{margin:6px 0 0;padding-left:18px;font-size:13px}
 .grp-bar-sep{width:1px;align-self:stretch;background:var(--line,#ddd);margin:0 4px}.grp-bar-t small{opacity:.7;font-weight:600}.grp-bar-t.proc{border-color:var(--accent,#1a6b5a);box-shadow:inset 0 0 0 1px var(--accent,#1a6b5a)}.grp-bar-t.on{background:var(--accent,#1a6b5a);border-color:var(--accent,#1a6b5a);color:#fff}.gb-led{width:8px!important;height:8px!important;border-radius:50%;background:#2ecc71!important;box-shadow:0 0 0 3px rgba(46,204,113,.25);animation:gbled 1.6s ease-in-out infinite}@keyframes gbled{50%{box-shadow:0 0 0 6px rgba(46,204,113,0)}}
 .ap-conf{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:13px;margin:6px 0}.ap-conf small{color:var(--muted)}
@@ -2807,12 +2824,77 @@ const focoPode=a=>!window.abaPermitida||abaPermitida(a);
 const focoVe=a=>(!foco||foco===a)&&focoPode(a);
 const focoNome=a=>(FOCOS.find(x=>x[0]===a)||[])[1]||"";
 function setFoco(a){foco=a||"";try{localStorage.setItem(FOCO_K,foco)}catch(e){}const t=document.querySelector('.tab[aria-selected="true"]');drawFocoBar(t?t.dataset.view:"dash");drawDash()}
+/* ---------- Painel: destaque grande e explicado da aba em evidência ---------- */
+const HERO_T={ok:["Tudo dentro do ideal","ok"],warn:["Atenção","warn"],crit:["Situação crítica","crit"],info:["Informação","info"]};
+function heroBars(L,fmtv){if(!L.length)return "";const mx=Math.max(...L.map(x=>x.v))||1;return `<div class="gfh-bars">${L.map(x=>`<div class="hb"><span class="hb-n" title="${esc(x.n)}">${esc(x.n)}</span><span class="hb-t"><b class="hb-${x.c||"ok"}" style="width:${Math.max(3,x.v/mx*100)}%"></b></span><span class="hb-v">${fmtv(x.v)}${x.s?`<small> ${esc(x.s)}</small>`:""}</span></div>`).join("")}</div>`}
+function heroBox(o){const T=HERO_T[o.tone]||HERO_T.info;
+  return `<section class="gfh gfh-${T[1]}"><div class="gfh-top"><div class="gfh-ico" aria-hidden="true">${o.ico}</div><div class="gfh-tt"><small>${o.foco?"📌 Em evidência no Painel":"Visão geral"} · ${esc(o.aba)}</small><h2>${o.titulo}</h2><p>${o.sub}</p></div><span class="gfh-badge">${o.badge||T[0]}</span></div>
+   ${o.kpis&&o.kpis.length?`<div class="gfh-kpis">${o.kpis.map(k=>`<div class="hk hk-${k.c||"n"}"><span class="hk-i">${k.i||""}</span><div><span class="hk-l">${k.l}</span><b>${k.v}</b>${k.d?`<small>${k.d}</small>`:""}</div></div>`).join("")}</div>`:""}
+   ${o.chart||o.todo?`<div class="gfh-grid">${o.chart?`<div class="gfh-card"><h3>${o.chartT||""}</h3>${o.chart}</div>`:""}${o.todo?`<div class="gfh-card"><h3>✅ O que fazer agora</h3><ol class="gfh-todo">${o.todo.map(t=>`<li class="${t[0]}">${t[1]}</li>`).join("")}</ol></div>`:""}</div>`:""}
+   ${o.como?`<details class="gfh-how"><summary>📖 Como ler este painel</summary><div>${o.como}</div></details>`:""}
+   <div class="gfh-act">${o.goto?`<a href="#" class="btn solid" data-goto="${o.goto}">Abrir a aba ${esc(o.aba)}</a>`:""}${o.foco?`<a href="#" class="btn" data-foco="">Ver todas as abas no Painel</a>`:""}</div></section>`}
+function heroAqua(eF){let R=null,S=null;try{const w=aquaFrame.contentWindow;R=w&&w.aquaRelatorio?w.aquaRelatorio():null;S=w&&w.aquaResumo?w.aquaResumo():null}catch(e){}
+  if(!R)return heroBox({foco:eF,aba:"AquaNictemeral",ico:"📈",tone:"info",titulo:"Carregando as leituras da água…",sub:"O AquaNictemeral está abrindo.",goto:"aqua"});
+  const reais=R.filter(r=>!r.exemplo),U=reais.length?reais:R,ex=!reais.length&&R.length;
+  if(!U.length)return heroBox({foco:eF,aba:"AquaNictemeral",ico:"📈",tone:"info",titulo:"Ainda não há leituras de água",sub:"Importe uma planilha da sonda ou lance as leituras para ver aqui a situação de cada tanque/viveiro.",todo:[["info","Abra o AquaNictemeral, toque em <b>📈 Nictemeral</b> e importe o arquivo de leituras (OD, temperatura, pH…)."]],goto:"aqua"});
+  const ult={};for(const r of U){const k=r.id;if(!ult[k]||r.data+r.ini>ult[k].data+ult[k].ini)ult[k]=r}const L=Object.values(ult);
+  const crit=L.filter(r=>r.st==="critico"||r.st==="letal"),alr=L.filter(r=>r.st==="alerta"),odm=L.filter(r=>r.odMin!=null).sort((a,b)=>a.odMin-b.odMin)[0];
+  const tone=crit.length?"crit":alr.length?"warn":"ok",dBR=s=>s?s.split("-").reverse().join("/"):"—",cOD=s=>s==="critico"||s==="letal"?"crit":s==="alerta"?"warn":"ok";
+  const ultD=L.map(r=>r.dataFim||r.data).sort().pop(),todo=[];
+  for(const r of L){if(r.odMinSt==="critico"||r.odMinSt==="letal")todo.push(["crit",`<b>${esc(r.nome)}</b>: oxigênio caiu para <b>${n(r.odMin,1)} mg/L</b> às ${esc(r.odMinHora)}. Ligue a aeração antes desse horário e reduza a ração da noite.`]);
+    else if(r.odMinSt==="alerta")todo.push(["warn",`<b>${esc(r.nome)}</b>: OD de ${n(r.odMin,1)} mg/L às ${esc(r.odMinHora)}, perto do limite. Acompanhe a madrugada.`]);
+    if(r.dphSt==="alerta")todo.push(["warn",`<b>${esc(r.nome)}</b>: pH variou ${n(r.dph,2)} no dia. Meça a alcalinidade e avalie calagem.`]);
+    if(r.nh3St&&r.nh3St!=="ideal"&&r.nh3St!=="sem_faixa")todo.push(["crit",`<b>${esc(r.nome)}</b>: amônia tóxica estimada ${n(r.nh3,3)} mg/L. Reduza a ração e renove água.`]);
+    if(r.n<4||r.horas<18)todo.push(["info",`<b>${esc(r.nome)}</b>: nictemeral incompleta (${r.n} leituras em ${n(r.horas,0)} h). Meça de 3 em 3 h por 24 h.`])}
+  if(!todo.length)todo.push(["ok","Nenhuma ação urgente. Mantenha a rotina de leituras (madrugada e fim da tarde são os horários críticos)."]);
+  return heroBox({foco:eF,aba:"AquaNictemeral",ico:"📈",tone,badge:tone==="crit"?`${crit.length} em situação crítica`:tone==="warn"?`${alr.length} em alerta`:"Água no ideal",
+    titulo:tone==="crit"?`Água: ${crit.length} de ${L.length} tanque${L.length===1?"":"s"}/viveiro${L.length===1?"":"s"} em situação crítica`:tone==="warn"?`Água: ${alr.length} de ${L.length} em alerta, nenhum crítico`:`Água dentro do ideal nos ${L.length} tanques/viveiros`,
+    sub:`Última nictemeral de cada tanque/viveiro${ultD?` (mais recente em ${dBR(ultD)})`:""}, comparada com a faixa ideal da espécie.${ex?" <b>Mostrando dados de exemplo</b>: importe as suas leituras.":""}`,
+    kpis:[{i:"🫧",l:"Menor oxigênio",v:odm?`${n(odm.odMin,1)} mg/L`:"—",d:odm?`${esc(odm.nome)} às ${esc(odm.odMinHora)} · abaixo de 3–4 mg/L o peixe/camarão sofre`:"",c:odm?cOD(odm.odMinSt):"n"},
+      {i:"🌡",l:"Temperatura",v:(()=>{const t=L.filter(r=>r.temp);return t.length?`${n(Math.min(...t.map(r=>r.temp[0])),1)}–${n(Math.max(...t.map(r=>r.temp[1])),1)} °C`:"—"})(),d:"faixa de todas as últimas nictemerais"},
+      {i:"🧪",l:"pH",v:(()=>{const t=L.filter(r=>r.ph);return t.length?`${n(Math.min(...t.map(r=>r.ph[0])),2)}–${n(Math.max(...t.map(r=>r.ph[1])),2)}`:"—"})(),d:"oscilação grande indica muito fitoplâncton ou pouca alcalinidade"},
+      {i:"📋",l:"Nictemerais registradas",v:String(U.length),d:`${L.length} tanque${L.length===1?"":"s"}/viveiro${L.length===1?"":"s"} · ${U.reduce((t,r)=>t+r.n,0)} leituras`}],
+    chartT:"🫧 Menor oxigênio da última nictemeral (mg/L)",chart:heroBars(L.filter(r=>r.odMin!=null).sort((a,b)=>a.odMin-b.odMin).slice(0,10).map(r=>({n:r.nome,v:r.odMin,c:cOD(r.odMinSt),s:r.odMinHora})),v=>n(v,1)),
+    todo:todo.slice(0,6),goto:"aqua",
+    como:`<p><b>Nictemeral</b> é a série de leituras de um dia inteiro (24 h). O oxigênio é mais baixo no fim da madrugada (respiração sem fotossíntese) e mais alto no fim da tarde.</p><p>As cores seguem a faixa da espécie: <span class="gfh-sw ok"></span> ideal · <span class="gfh-sw warn"></span> alerta · <span class="gfh-sw crit"></span> crítico. O detalhe de cada tanque/viveiro, as curvas de todos os parâmetros, a correlação e a sazonalidade estão no botão 📈 Nictemeral da aba AquaNictemeral.</p>`})}
+function heroCalc(eF){if(!dashState||!dashState.ok)return heroBox({foco:eF,aba:"Calculadora",ico:"🧮",tone:"warn",titulo:"Complete a Calculadora do RAS",sub:"Informe a quantidade e o volume dos tanques e os parâmetros do sistema para ver o dimensionamento.",goto:"calc"});
+  const {p,r,groups,nTanks}=dashState,G=groups.filter(g=>g.vol>0);
+  return heroBox({foco:eF,aba:"Calculadora",ico:"🧮",tone:"ok",badge:"Dimensionado",titulo:`RAS com ${f0(nTanks)} tanque${nTanks===1?"":"s"} e ${n(p.V,0)} m³ de água suporta até ${n(r.BM,0)} kg de peixe`,
+    sub:"Recirculação: a água passa pelos filtros e volta aos tanques. Estes números dizem o tamanho de cada peça para a biomassa planejada.",
+    kpis:[{i:"🐟",l:"Biomassa máxima",v:`${n(r.BM,0)} kg`,d:`${f0(Math.floor(r.NP))} peixes no fim do ciclo`},{i:"🍽",l:"Ração por dia",v:`${n(r.QR)} kg/d`,d:"no pico da biomassa; dela vem a amônia que o filtro precisa tirar"},
+      {i:"🦠",l:"Mídia do filtro biológico",v:`${n(r.VM)} m³`,d:`a mídia abriga as bactérias que transformam amônia em nitrato (${n(p.AS,0)} m²/m³)`},{i:"💧",l:"Vazão do filtro biológico",v:`${f0(r.VNh)} L/h`,d:`filtro mecânico: ${f0(r.FAFMh)} L/h`}],
+    chartT:"💧 Volume de água por grupo de tanques (m³)",chart:heroBars(G.map(g=>({n:g.name||"Grupo",v:g.vol,s:`${f0(g.q)} tanque${g.q===1?"":"s"}`})),v=>n(v,0)),
+    todo:[["info","Confira se a <b>densidade</b> de cada grupo está dentro do recomendado para a espécie (aba Biomassa)."],["info","Use a vazão do filtro biológico para escolher a <b>bomba</b> de recirculação."],["info","Para ver um grupo só, toque nele na barra 📌 do topo."]],goto:"calc",
+    como:`<p>A <b>biomassa máxima</b> é o peso total de animais que o sistema aguenta. A partir dela o app calcula a ração, a amônia produzida (16 % de nitrogênio na proteína) e o tamanho do filtro biológico e das vazões.</p>`})}
+function heroLotes(eF,rac){const fms=feedModels()||[],now=typeof bioRef!=="undefined"&&bioRef!==null?bioRef:Date.now();let bio=0,ani=0,gan=0,ra=0;const L=[];
+  for(const mo of fms){const v=mo.ok?mo.at(now):{};if(v.on){bio+=v.bio;ani+=v.n;gan+=v.gain;ra+=v.feed;L.push({n:mo.name,bio:v.bio,feed:v.feed,w:v.w,ph:v.phase||""})}}
+  const aba=rac?"Arraçoamento":"Biomassa",ico=rac?"🍽":"🐟",go=rac?"racao":"bio";
+  if(!fms.length||!L.length)return heroBox({foco:eF,aba,ico,tone:"info",titulo:"Nenhum lote ativo agora",sub:"Cadastre o povoamento (data, espécie, quantidade e peso inicial) de cada grupo na aba Biomassa para acompanhar o crescimento e a ração.",goto:"bio"});
+  const incomp=fms.filter(m=>!m.ok).length;
+  return heroBox({foco:eF,aba,ico,tone:incomp?"warn":"ok",badge:incomp?`${incomp} lote${incomp===1?"":"s"} incompleto${incomp===1?"":"s"}`:`${L.length} lote${L.length===1?"":"s"} ativo${L.length===1?"":"s"}`,
+    titulo:rac?`Ração de hoje: ${n(ra,1)} kg para ${n(bio,0)} kg de animais`:`Biomassa agora: ${n(bio,0)} kg em ${L.length} lote${L.length===1?"":"s"}`,
+    sub:rac?"Quantidade diária estimada pela curva de crescimento de cada lote e pela tabela de alimentação da espécie.":"Peso total estimado hoje pela curva de crescimento de cada lote (ajuste com as biometrias).",
+    kpis:[{i:"⚖️",l:"Biomassa total",v:`${n(bio,0)} kg`,d:"soma dos lotes ativos"},{i:"🐟",l:"Animais",v:f0(ani),d:"descontada a mortalidade estimada"},{i:"📈",l:"Ganho por dia",v:`${n(gan,1)} kg/d`,d:"quanto a biomassa cresce por dia"},{i:"🍽",l:"Ração por dia",v:`${n(ra,1)} kg/d`,d:bio?`${n(ra/bio*100,1)} % da biomassa`:""}],
+    chartT:rac?"🍽 Ração diária por lote (kg/d)":"⚖️ Biomassa por lote (kg)",chart:heroBars(L.sort((a,b)=>(rac?b.feed-a.feed:b.bio-a.bio)).map(x=>({n:x.n,v:rac?x.feed:x.bio,s:`${n(x.w,x.w<10?1:0)} g · ${x.ph}`})),v=>n(v,rac?1:0)),
+    todo:[incomp?["warn",`${incomp} lote${incomp===1?"":"s"} com dados incompletos: complete o povoamento na aba Biomassa.`]:null,["info","Faça <b>biometrias</b> a cada 15 dias para corrigir o peso estimado (botão 📏 Biometria no AquaNictemeral)."],rac?["info","Divida a ração do dia nos tratos e reduza quando o OD da madrugada estiver baixo."]:["info","Compare a biomassa com o limite da Calculadora para não passar da densidade."]].filter(Boolean),goto:go,
+    como:`<p>Cada lote cresce por uma curva da espécie, ajustada pela temperatura e pelas biometrias lançadas. A ração do dia sai da biomassa × taxa de alimentação da fase.</p>`})}
+function heroGeral(eF,a){const D={local:["📍","Local e viabilidade","Clima, água, aptidão da espécie e custos do local do projeto."],repro:["🐟","Reprodução","Protocolos de indução, desova, incubação e o plantel de reprodutores."],topo:["🗺","Levantamentos e projetos","Topografia, viveiros projetados e terraplenagem."]}[a];if(!D)return "";
+  return heroBox({foco:eF,aba:D[1],ico:D[0],tone:"info",badge:"Em evidência",titulo:D[1],sub:D[2]+" Os números e gráficos detalhados estão logo abaixo.",goto:a})}
+function heroVisao(){const tiles=[];
+  try{const w=aquaFrame.contentWindow,R=w&&w.aquaRelatorio?w.aquaRelatorio().filter(r=>!r.exemplo):[];if(R.length){const ult={};R.forEach(r=>{if(!ult[r.id]||r.data>ult[r.id].data)ult[r.id]=r});const L=Object.values(ult),c=L.filter(r=>r.st==="critico"||r.st==="letal").length,al=L.filter(r=>r.st==="alerta").length;tiles.push(["aqua","📈","AquaNictemeral",c?`${c} crítico${c===1?"":"s"}`:al?`${al} em alerta`:"água no ideal",c?"crit":al?"warn":"ok",`${L.length} tanques/viveiros`])}else tiles.push(["aqua","📈","AquaNictemeral","sem leituras","info","importe as leituras"])}catch(e){}
+  if(dashState&&dashState.ok)tiles.push(["calc","🧮","Calculadora",`${n(dashState.r.BM,0)} kg`,"ok","biomassa máxima do RAS"]);
+  const fms=feedModels()||[];let bio=0,ra=0;fms.forEach(m=>{const v=m.ok?m.at(Date.now()):{};if(v.on){bio+=v.bio;ra+=v.feed}});if(fms.length){tiles.push(["bio","🐟","Biomassa",`${n(bio,0)} kg`,bio?"ok":"info","biomassa estimada hoje"]);tiles.push(["racao","🍽","Arraçoamento",`${n(ra,1)} kg/d`,ra?"ok":"info","ração de hoje"])}
+  if(!tiles.length)return "";
+  return `<section class="gfh gfh-info gfh-geral"><div class="gfh-top"><div class="gfh-ico">📊</div><div class="gfh-tt"><small>Visão geral · todas as abas</small><h2>Resumo do projeto</h2><p>Toque num cartão para pôr a aba em evidência e ver o painel explicado dela.</p></div></div>
+   <div class="gfh-tiles">${tiles.map(([a,i,t,v,c,d])=>`<button type="button" class="ht ht-${c}" data-foco="${a}"><span class="ht-i">${i}</span><span class="ht-t">${t}</span><b>${v}</b><small>${d}</small><span class="ht-go">📌 pôr em evidência</span></button>`).join("")}</div></section>`}
+function heroHTML(){try{if(!foco)return heroVisao();const f=foco;
+  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);return heroGeral(true,f)}catch(e){return ""}}
 function focoRender(blocos){
   if(foco&&!focoPode(foco))foco="";
   const ord=a=>FOCOS.findIndex(x=>x[0]===a);
   const vis=blocos.filter(([a,h])=>h&&focoVe(a)).sort((x,y)=>ord(x[0])-ord(y[0]));
-  if(foco&&!vis.length)return `<section class="card wide"><div class="note">A aba <b>${esc(focoNome(foco))}</b> ainda não tem dados para mostrar no Painel. <a href="#" data-goto="${foco}">Abrir a aba ${esc(focoNome(foco))}</a> ou <a href="#" data-foco="">mostrar todas as abas</a>.</div></section>`;
-  return vis.map(b=>b[1]).join("");
+  if(foco&&!vis.length)return heroHTML()+`<section class="card wide"><div class="note">A aba <b>${esc(focoNome(foco))}</b> ainda não tem dados para mostrar no Painel. <a href="#" data-goto="${foco}">Abrir a aba ${esc(focoNome(foco))}</a> ou <a href="#" data-foco="">mostrar todas as abas</a>.</div></section>`;
+  return heroHTML()+vis.map(b=>b[1]).join("");
 }
 function focoOutros(){const B=[];
   if(focoVe("local")&&window.localDashHTML)B.push(["local",localDashHTML()]);
@@ -8171,7 +8253,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v93";
+  const APP_VERSAO="ras-v94";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
