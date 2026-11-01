@@ -7054,6 +7054,28 @@ const dBR=s=>s?s.split("-").reverse().join("/"):"—";
 const ST={ideal:["ideal","ok"],alerta:["alerta","warn"],critico:["crítico","crit"],letal:["letal","crit"],sem_faixa:["sem faixa",""]};
 let filtro="",soReais=true,selN="";
 const chave=r=>r.id+"|"+r.data+"|"+r.ini,fxT=t=>{const d=new Date(t);return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+function sazHTML(R){const pts=R.flatMap(x=>x.pts||[]);if(!pts.length)return "";const keys=[...new Set(R.flatMap(x=>x.params||[]))],meta={};R.forEach(x=>(x.params||[]).forEach(p=>{meta[p]=x.meta[p]}));
+  const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"],chuv=m=>m<=5,st=a=>{const n=a.length;if(!n)return null;const m=a.reduce((s,v)=>s+v,0)/n,dp=n>1?Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(n-1)):0;return {n,m,dp,mn:Math.min(...a),mx:Math.max(...a)}};
+  const mesesCom=new Set(pts.map(q=>new Date(q.t).getMonth())),anos=[...new Set(pts.map(q=>new Date(q.t).getFullYear()))].sort();
+  const W=760,LB=150,Rt=40,RH=60,G=10,T=6,Bx=24,ks=keys.filter(k=>pts.some(q=>typeof q[k]==="number")),H=T+ks.length*(RH+G)+Bx,cx=m=>LB+(m+.5)*(W-LB-Rt)/12;let g="";
+  g+=`<rect x="${LB}" y="${T}" width="${(W-LB-Rt)/2}" height="${H-T-Bx}" fill="rgba(42,120,214,.06)"/><text x="${cx(2.5)}" y="${H-Bx+2}" text-anchor="middle" class="gf-u" dy="-4">chuvoso</text><text x="${cx(8.5)}" y="${H-Bx+2}" text-anchor="middle" class="gf-u" dy="-4">estiagem</text>`;
+  ks.forEach((k,i)=>{const y0=T+i*(RH+G),M=MES.map((_,m)=>st(pts.filter(q=>typeof q[k]==="number"&&new Date(q.t).getMonth()===m).map(q=>q[k])));const ok=M.filter(Boolean),d=(meta[k]||{}).d??1,b=(meta[k]||{}).a||[];
+    let lo=Math.min(...ok.map(s=>s.mn).concat(b.filter(v=>v!=null))),hi=Math.max(...ok.map(s=>s.mx).concat(b.filter(v=>v!=null)));if(hi===lo){lo-=1;hi+=1}const pad=(hi-lo)*.1;lo-=pad;hi+=pad;const Y=v=>y0+RH-(v-lo)/(hi-lo)*RH,cor=`var(--c${i%8+1})`;
+    g+=`<rect x="${LB}" y="${y0}" width="${W-LB-Rt}" height="${RH}" class="gf-bg" fill-opacity=".6"/>`;
+    if(b[0]!=null||b[1]!=null){const a=b[0]!=null?Math.max(lo,b[0]):lo,c=b[1]!=null?Math.min(hi,b[1]):hi;if(c>a)g+=`<rect x="${LB}" y="${Y(c)}" width="${W-LB-Rt}" height="${Y(a)-Y(c)}" class="gf-band"/>`}
+    g+=`<text x="${LB-8}" y="${y0+22}" text-anchor="end" class="gf-n">${E((meta[k]||{}).n||k)}</text><text x="${LB-8}" y="${y0+38}" text-anchor="end" class="gf-u">${E((meta[k]||{}).u||"")}</text>`;
+    M.forEach((s,m)=>{if(!s)return;g+=`<line x1="${cx(m)}" x2="${cx(m)}" y1="${Y(s.mx)}" y2="${Y(s.mn)}" stroke="${cor}" stroke-width="6" stroke-linecap="round" opacity=".35"><title>${MES[m]}: mín ${f(s.mn,d)} · máx ${f(s.mx,d)}</title></line><circle cx="${cx(m)}" cy="${Y(s.m)}" r="4.5" fill="${cor}"><title>${MES[m]}: média ${f(s.m,d)} ${E((meta[k]||{}).u||"")} (${s.n} leituras)</title></circle>`});
+    const seq=M.map((s,m)=>s?[cx(m),Y(s.m)]:null);let seg=[];seq.forEach(p=>{if(p)seg.push(p);else{if(seg.length>1)g+=`<polyline fill="none" stroke="${cor}" stroke-width="1.5" points="${seg.map(q=>q.join(",")).join(" ")}"/>`;seg=[]}});if(seg.length>1)g+=`<polyline fill="none" stroke="${cor}" stroke-width="1.5" points="${seg.map(q=>q.join(",")).join(" ")}"/>`});
+  MES.forEach((n,m)=>{g+=`<text x="${cx(m)}" y="${H-6}" text-anchor="middle" class="gf-u"${mesesCom.has(m)?' style="font-weight:700;fill:var(--ink)"':""}>${n}</text>`});
+  const tab=ks.map(k=>{const d=(meta[k]||{}).d??1,c=st(pts.filter(q=>typeof q[k]==="number"&&chuv(new Date(q.t).getMonth())).map(q=>q[k])),s=st(pts.filter(q=>typeof q[k]==="number"&&!chuv(new Date(q.t).getMonth())).map(q=>q[k]));
+    let tt=null;if(c&&s&&c.n>1&&s.n>1){const se=Math.sqrt(c.dp**2/c.n+s.dp**2/s.n);if(se>0)tt=(c.m-s.m)/se}
+    const fm=x=>x?`${f(x.m,d)} ± ${f(x.dp,d)}<small> (${f(x.mn,d)}–${f(x.mx,d)}; n=${x.n})</small>`:"—";
+    return `<tr><td><b>${E((meta[k]||{}).n||k)}</b> <small>${E((meta[k]||{}).u||"")}</small></td><td class="num">${fm(c)}</td><td class="num">${fm(s)}</td><td class="num">${c&&s?(c.m-s.m>0?"+":"")+f(c.m-s.m,d):"—"}</td><td>${tt==null?"—":Math.abs(tt)>=2?`<span class="bd-tag warn">diferença provável</span><small> t=${f(tt,1)}</small>`:`<span class="bd-tag">parecidos</span><small> t=${f(tt,1)}</small>`}</td></tr>`}).join("");
+  return `<div class="card bd-card"><div class="card-head"><h2>Sazonalidade do ano<span>Todas as leituras ${filtro?"deste tanque/viveiro":"do filtro"} agrupadas por mês (${anos.join(", ")}) · média (ponto) e mín–máx (barra) · ${mesesCom.size} de 12 meses com leituras</span></h2></div>
+   <div class="bd-cw"><svg viewBox="0 0 ${W} ${H}" class="bd-svg" role="img" aria-label="Sazonalidade mensal de todos os parâmetros">${g}</svg></div>
+   <h3 class="bi-h">Período chuvoso × estiagem</h3>
+   <div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Parâmetro</th><th class="num">Chuvoso (jan–jun)</th><th class="num">Estiagem (jul–dez)</th><th class="num">Diferença</th><th>Comparação</th></tr></thead><tbody>${tab}</tbody></table></div>
+   <p class="muted">Períodos do Maranhão: chuvoso de janeiro a junho e estiagem de julho a dezembro. Média ± desvio padrão (mín–máx; n = leituras). “Diferença provável” quando |t de Welch| ≥ 2, indicativo: confirme com teste estatístico e mais campanhas. ${mesesCom.size<12?`Faltam leituras em ${12-mesesCom.size} meses: faça nictemerais ao longo do ano para fechar o ciclo sazonal.`:""}</p></div>`}
 function curvasHTML(R){if(!R.length)return "";const r=R.find(x=>chave(x)===selN)||R[0],cor=i=>`var(--c${i%8+1})`;
   const rows=(r.params||[]).map((p,i)=>({nome:r.meta[p].n,unid:r.meta[p].u,banda:r.meta[p].a,dec:r.meta[p].d,cor:cor(i),pts:(r.pts||[]).filter(x=>typeof x[p]==="number").map(x=>[x.t,x[p]])}));
   const keys=[...new Set(R.flatMap(x=>x.params||[]))],names={};R.forEach(x=>(x.params||[]).forEach(p=>{names[p]=x.meta[p].n}));const pts=R.flatMap(x=>x.pts||[]);
@@ -7092,6 +7114,7 @@ function html(R0){const R=R0.filter(r=>(!soReais||!r.exemplo)&&(!filtro||r.id===
     ${R.slice(0,200).map(r=>`<tr><td>${per(r)}</td><td><b>${E(r.nome)}</b>${r.especie?`<small> · ${E(r.especie)}</small>`:""}</td><td class="num">${r.n}</td><td>${E(r.ini)}–${E(r.fim)} <small>(${f(r.horas,0)} h)</small></td><td class="num">${r.odMin!=null?`<span class="bd-tag ${(ST[r.odMinSt]||[])[1]||""}">${f(r.odMin,1)}</span><small> ${E(r.odMinHora)}</small>`:"—"}</td><td class="num">${r.odMax!=null?f(r.odMax,1)+`<small> ${E(r.odMaxHora)}</small>`:"—"}</td><td class="num">${r.temp?f(r.temp[0],1)+"–"+f(r.temp[1],1)+" °C":"—"}</td><td class="num">${r.ph?f(r.ph[0],2)+"–"+f(r.ph[1],2):"—"}</td><td class="num">${r.sal?f(r.sal[2],1):"—"}</td><td><span class="bd-tag ${(ST[r.st]||[])[1]||""}">${(ST[r.st]||[r.st])[0]}</span>${r.aval?`<small> ${r.fora}/${r.aval} fora</small>`:""}</td></tr>`).join("")}</tbody></table></div>
     ${R.length>200?`<p class="muted">Mostrando 200 de ${R.length}; o CSV traz todas.</p>`:""}</div>
    ${curvasHTML(R)}
+   ${sazHTML(R)}
    <div class="card bd-card"><div class="card-head"><h2>Alertas das nictemerais<span>Oxigênio, pH, amônia e nictemerais incompletas</span></h2></div>
     ${A.length?`<ul class="bd-al">${A.slice(0,40).map(([c,t,d])=>`<li class="${c==="info"?"":c}"${c==="info"?' style="border-left-color:var(--line)"':""}><b>${t}</b><span>${d}</span></li>`).join("")}</ul>${A.length>40?`<p class="muted">+${A.length-40} alertas no CSV/tabela.</p>`:""}`:'<p class="muted">Nenhum alerta: todas as nictemerais dentro das faixas da espécie.</p>'}</div>`:""}
   </section>`}
@@ -8148,7 +8171,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v92";
+  const APP_VERSAO="ras-v93";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
