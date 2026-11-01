@@ -719,6 +719,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.gf-bg{fill:var(--bg)}.gf-band{fill:rgba(27,175,122,.16)}.gf-grid{stroke:var(--line);stroke-width:1;stroke-dasharray:2 3}.gf-n{font:600 12px var(--f-body);fill:var(--ink)}.gf-u{font:10.5px var(--f-mono);fill:var(--muted)}.gf-v{font:600 11px var(--f-mono)}.gf-sel{display:flex;gap:8px;align-items:center;font-size:13px;margin:0 0 8px;flex-wrap:wrap}.gf-sel select{max-width:100%}.gf-corr{width:auto!important;border-collapse:collapse;font:12px var(--f-mono)}.gf-corr th{font:600 11.5px var(--f-body);padding:4px 6px;text-align:center;white-space:nowrap}.gf-corr tbody th{text-align:right}.gf-c,.gf-d{width:58px;height:34px;text-align:center;border:1px solid var(--surface)}.gf-d{color:var(--muted)}.gf-sw{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px}.gf-fortes{margin:6px 0 0;padding-left:18px;font-size:13px}
 .grp-bar-sep{width:1px;align-self:stretch;background:var(--line,#ddd);margin:0 4px}.grp-bar-t small{opacity:.7;font-weight:600}.grp-bar-t.proc{border-color:var(--accent,#1a6b5a);box-shadow:inset 0 0 0 1px var(--accent,#1a6b5a)}.grp-bar-t.on{background:var(--accent,#1a6b5a);border-color:var(--accent,#1a6b5a);color:#fff}.gb-led{width:8px!important;height:8px!important;border-radius:50%;background:#2ecc71!important;box-shadow:0 0 0 3px rgba(46,204,113,.25);animation:gbled 1.6s ease-in-out infinite}@keyframes gbled{50%{box-shadow:0 0 0 6px rgba(46,204,113,0)}}
 .ap-conf{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:13px;margin:6px 0}.ap-conf small{color:var(--muted)}
 .imp-box{position:fixed;right:16px;bottom:16px;z-index:80;width:min(440px,calc(100vw - 32px));max-height:min(80vh,640px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:12px 14px;font-size:13px}
@@ -2412,8 +2413,17 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
         out.push({ id: u.id, nome: u.nome || u.id, especie: (ESP[u.especie] || {}).nome_comum || u.especie || &quot;&quot;, tipo: tipoU(u), sistema: !!u.sistemaRAS,
           data: L[0].data, dataFim: L[L.length - 1].data, n: L.length, ini: L[0].hora, fim: L[L.length - 1].hora, horas: (L[L.length - 1]._t - L[0]._t) / 36e5,
           odMin: mn ? mn.od : null, odMinHora: mn ? mn.hora : null, odMinData: mn ? mn.data : null, odMinSt, odMax: mx ? mx.od : null, odMaxHora: mx ? mx.hora : null,
-          temp: mm(&quot;temperatura&quot;), ph, sal: mm(&quot;salinidade&quot;), dph, dphSt, nh3, nh3St, st: pior(ev.concat(nh3St ? [nh3St] : [])), aval: ev.length, fora, exemplo: L.every((l) =&gt; fonteDe(l) === &quot;exemplo&quot;) }); } }
+          temp: mm(&quot;temperatura&quot;), ph, sal: mm(&quot;salinidade&quot;), dph, dphSt, nh3, nh3St, st: pior(ev.concat(nh3St ? [nh3St] : [])), aval: ev.length, fora, exemplo: L.every((l) =&gt; fonteDe(l) === &quot;exemplo&quot;), ...serieP(u, L) }); } }
     return out; };
+  // séries de todos os parâmetros medidos (para as curvas correlacionadas da página-mãe)
+  function serieP(u, L) { const PS = ORDEM.concat([&quot;od_saturacao&quot;]).filter((p) =&gt; L.some((l) =&gt; typeof l[p] === &quot;number&quot;)), meta = {};
+    for (const p of PS) { const f = fx(u, p) || {}; meta[p] = { n: curto[p] || p, u: f.unidade || &quot;&quot;, a: [f.ideal_min ?? null, f.ideal_max ?? null], d: DEC[p] ?? 1 }; }
+    return { params: PS, meta, pts: L.map((l) =&gt; { const o = { t: l._t }; for (const p of PS) if (typeof l[p] === &quot;number&quot;) o[p] = l[p]; return o; }) }; }
+  // médias diárias da água por tanque/viveiro (para cruzar com a biometria)
+  window.aquaDiario = () =&gt; { const out = {}; for (const u of S.unidades) { const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []);
+      const dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].filter((d) =&gt; /^\d{4}-\d{2}-\d{2}$/.test(d)); if (!dias.length) continue; const D = {};
+      for (const d of dias) { const L = leituras(u.id, [d]), r = {}; for (const p of [&quot;temperatura&quot;, &quot;od&quot;, &quot;ph&quot;, &quot;salinidade&quot;, &quot;tan&quot;]) { const v = L.map((l) =&gt; l[p]).filter((x) =&gt; typeof x === &quot;number&quot;); if (v.length) r[p] = p === &quot;od&quot; ? Math.min(...v) : v.reduce((a, b) =&gt; a + b, 0) / v.length; } D[d] = r; }
+      out[u.id] = D; } return out; };
   window.aquaAbrir = (id, dia) =&gt; { if (uniById(id)) { S.ativa = id; if (dia) S.dia = dia; sel = null; salvar(); irPara(&quot;unidade&quot;); } };
 
   // origem dos dados: lista as origens e projetos com quantas leituras cada um tem, e escolhe quais o AquaNictemeral processa
@@ -7013,13 +7023,43 @@ window.IMP={
 </script>
 
 <script>
+/* ---- gráficos compartilhados: curvas de todos os parâmetros (pequenos múltiplos no mesmo eixo de tempo) e matriz de correlação ---- */
+window.GFCH=(function(){const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const fN=(v,k)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:k,maximumFractionDigits:k}):"—";
+  function multi(rows,o){rows=rows.filter(r=>r.pts.length);if(!rows.length)return '<div class="bd-vazio">Sem medidas para desenhar.</div>';o=o||{};
+    const W=760,LB=150,R=60,RH=64,G=10,T=6,Bx=26,H=T+rows.length*(RH+G)+Bx,all=rows.flatMap(r=>r.pts.map(p=>p[0]));let t0=Math.min(...all),t1=Math.max(...all);if(t1===t0){t0-=36e5;t1+=36e5}
+    const X=t=>LB+(t-t0)/(t1-t0)*(W-LB-R);let g="";
+    rows.forEach((r,i)=>{const y0=T+i*(RH+G),vs=r.pts.map(p=>p[1]).concat((r.banda||[]).filter(v=>v!=null&&isFinite(v)));let lo=Math.min(...vs),hi=Math.max(...vs);if(hi===lo){lo-=1;hi+=1}const pad=(hi-lo)*.12;lo-=pad;hi+=pad;const Y=v=>y0+RH-(v-lo)/(hi-lo)*RH;
+      g+=`<rect x="${LB}" y="${y0}" width="${W-LB-R}" height="${RH}" class="gf-bg"/>`;
+      if(r.banda&&(r.banda[0]!=null||r.banda[1]!=null)){const a=r.banda[0]!=null?Math.max(lo,r.banda[0]):lo,b=r.banda[1]!=null?Math.min(hi,r.banda[1]):hi;if(b>a)g+=`<rect x="${LB}" y="${Y(b)}" width="${W-LB-R}" height="${Y(a)-Y(b)}" class="gf-band"><title>faixa ideal da espécie</title></rect>`}
+      const mn=Math.min(...r.pts.map(p=>p[1])),mx=Math.max(...r.pts.map(p=>p[1]));
+      g+=`<text x="${LB-8}" y="${y0+20}" text-anchor="end" class="gf-n">${E(r.nome)}</text><text x="${LB-8}" y="${y0+36}" text-anchor="end" class="gf-u">${E(r.unid||"")}</text><text x="${LB-8}" y="${y0+52}" text-anchor="end" class="gf-u">${fN(mn,r.dec)}–${fN(mx,r.dec)}</text>`;
+      g+=`<polyline fill="none" stroke="${r.cor}" stroke-width="2" points="${r.pts.map(p=>X(p[0])+","+Y(p[1])).join(" ")}"/>`+r.pts.map(p=>`<circle cx="${X(p[0])}" cy="${Y(p[1])}" r="3" fill="${r.cor}"><title>${E(r.nome)} · ${E(o.fx?o.fx(p[0]):"")} · ${fN(p[1],r.dec)} ${E(r.unid||"")}</title></circle>`).join("");
+      const ul=r.pts[r.pts.length-1];g+=`<text x="${W-R+6}" y="${Y(ul[1])+4}" class="gf-v" fill="${r.cor}">${fN(ul[1],r.dec)}</text>`});
+    const nT=6;for(let i=0;i<=nT;i++){const t=t0+(t1-t0)*i/nT;g+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${H-Bx}" class="gf-grid"/><text x="${X(t)}" y="${H-8}" text-anchor="middle" class="gf-u">${E(o.fx?o.fx(t):"")}</text>`}
+    return `<div class="bd-cw"><svg viewBox="0 0 ${W} ${H}" class="bd-svg" role="img" aria-label="Curvas de todos os parâmetros no mesmo eixo de tempo">${g}</svg></div>`}
+  function pearson(a,b){const n=a.length;if(n<4)return null;const ma=a.reduce((s,v)=>s+v,0)/n,mb=b.reduce((s,v)=>s+v,0)/n;let sab=0,saa=0,sbb=0;for(let i=0;i<n;i++){sab+=(a[i]-ma)*(b[i]-mb);saa+=(a[i]-ma)**2;sbb+=(b[i]-mb)**2}return saa&&sbb?sab/Math.sqrt(saa*sbb):null}
+  function corr(keys,names,rows){keys=keys.filter(k=>rows.filter(r=>typeof r[k]==="number").length>=4);if(keys.length<2)return '<p class="muted">São precisos pelo menos 2 parâmetros medidos juntos 4 vezes ou mais para calcular a correlação.</p>';
+    const M={},fortes=[];for(const a of keys)for(const b of keys){if(a===b)continue;const P=rows.filter(r=>typeof r[a]==="number"&&typeof r[b]==="number");const r=pearson(P.map(x=>x[a]),P.map(x=>x[b]));M[a+"|"+b]={r,n:P.length};if(r!=null&&Math.abs(r)>=.7&&a<b)fortes.push([a,b,r,P.length])}
+    const cel=(a,b)=>{if(a===b)return '<td class="gf-d">—</td>';const c=M[a+"|"+b];if(!c||c.r==null)return '<td class="gf-c">·</td>';const al=Math.min(.85,Math.abs(c.r)*.85+.05),bg=c.r>=0?`rgba(42,120,214,${al})`:`rgba(235,104,52,${al})`;return `<td class="gf-c" style="background:${bg};color:${Math.abs(c.r)>.55?"#fff":"inherit"}" title="r = ${fN(c.r,2)} (n = ${c.n})">${fN(c.r,2)}</td>`};
+    return `<div class="scroll"><table class="gf-corr"><thead><tr><th></th>${keys.map(k=>`<th>${E(names[k]||k)}</th>`).join("")}</tr></thead><tbody>${keys.map(a=>`<tr><th>${E(names[a]||a)}</th>${keys.map(b=>cel(a,b)).join("")}</tr>`).join("")}</tbody></table></div>
+     <p class="muted">r de Pearson entre cada par de medidas tomadas juntas: <span class="gf-sw" style="background:rgba(42,120,214,.7)"></span> sobem juntas · <span class="gf-sw" style="background:rgba(235,104,52,.7)"></span> uma sobe e a outra desce · perto de 0 = sem relação. Correlação não prova causa.</p>
+     ${fortes.length?`<ul class="gf-fortes">${fortes.sort((x,y)=>Math.abs(y[2])-Math.abs(x[2])).slice(0,8).map(([a,b,r,n])=>`<li><b>${E(names[a]||a)}</b> e <b>${E(names[b]||b)}</b>: ${r>0?"sobem e descem juntas":"variam em sentidos opostos"} (r = ${fN(r,2)}, ${n} pares)</li>`).join("")}</ul>`:""}`}
+  return {multi,corr,pearson}})();
 /* ---------- Relatório das nictemerais: aparece quando o botão 📈 Nictemeral está aberto (só leituras de água; biometria fica no botão 📏 Biometria) ---------- */
 (function(){
 const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const f=(v,k)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:k,maximumFractionDigits:k}):"—";
 const dBR=s=>s?s.split("-").reverse().join("/"):"—";
 const ST={ideal:["ideal","ok"],alerta:["alerta","warn"],critico:["crítico","crit"],letal:["letal","crit"],sem_faixa:["sem faixa",""]};
-let filtro="",soReais=true;
+let filtro="",soReais=true,selN="";
+const chave=r=>r.id+"|"+r.data+"|"+r.ini,fxT=t=>{const d=new Date(t);return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")};
+function curvasHTML(R){if(!R.length)return "";const r=R.find(x=>chave(x)===selN)||R[0],cor=i=>`var(--c${i%8+1})`;
+  const rows=(r.params||[]).map((p,i)=>({nome:r.meta[p].n,unid:r.meta[p].u,banda:r.meta[p].a,dec:r.meta[p].d,cor:cor(i),pts:(r.pts||[]).filter(x=>typeof x[p]==="number").map(x=>[x.t,x[p]])}));
+  const keys=[...new Set(R.flatMap(x=>x.params||[]))],names={};R.forEach(x=>(x.params||[]).forEach(p=>{names[p]=x.meta[p].n}));const pts=R.flatMap(x=>x.pts||[]);
+  return `<div class="card bd-card"><div class="card-head"><h2>Curvas de todos os parâmetros<span>Todas as medidas da nictemeral no mesmo eixo de horário · faixa verde = ideal da espécie</span></h2></div>
+   <label class="gf-sel">Nictemeral <select class="lv-sel" data-nd-sel>${R.slice(0,200).map(x=>`<option value="${E(chave(x))}"${x===r?" selected":""}>${E(x.nome)} · ${per(x)} (${x.n} leituras)</option>`).join("")}</select></label>${GFCH.multi(rows,{fx:fxT})}</div>
+   <div class="card bd-card"><div class="card-head"><h2>Correlação entre os parâmetros<span>Todas as leituras ${filtro?"deste tanque/viveiro":"do filtro"} (${pts.length}) · como cada medida varia com as outras</span></h2></div>${GFCH.corr(keys,names,pts)}</div>`}
 function dados(){try{const w=document.getElementById("aqua-frame").contentWindow;return w&&w.aquaRelatorio?w.aquaRelatorio():null}catch(e){return null}}
 const proj=()=>{try{const p=window.projAtual&&projAtual();return p?p.nome:""}catch(e){return ""}};
 function csv(R){const q=v=>{v=v==null?"":String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v},n=(v,k)=>typeof v==="number"&&isFinite(v)?v.toFixed(k).replace(".",","):"";
@@ -7051,6 +7091,7 @@ function html(R0){const R=R0.filter(r=>(!soReais||!r.exemplo)&&(!filtro||r.id===
     <div class="scroll"><table class="pj-tab ap-hist"><thead><tr><th>Data</th><th>Tanque/viveiro</th><th class="num">Leituras</th><th>Horário (duração)</th><th class="num">OD mín</th><th class="num">OD máx</th><th class="num">Temp. mín–máx</th><th class="num">pH mín–máx</th><th class="num">Salinidade</th><th>Situação</th></tr></thead><tbody>
     ${R.slice(0,200).map(r=>`<tr><td>${per(r)}</td><td><b>${E(r.nome)}</b>${r.especie?`<small> · ${E(r.especie)}</small>`:""}</td><td class="num">${r.n}</td><td>${E(r.ini)}–${E(r.fim)} <small>(${f(r.horas,0)} h)</small></td><td class="num">${r.odMin!=null?`<span class="bd-tag ${(ST[r.odMinSt]||[])[1]||""}">${f(r.odMin,1)}</span><small> ${E(r.odMinHora)}</small>`:"—"}</td><td class="num">${r.odMax!=null?f(r.odMax,1)+`<small> ${E(r.odMaxHora)}</small>`:"—"}</td><td class="num">${r.temp?f(r.temp[0],1)+"–"+f(r.temp[1],1)+" °C":"—"}</td><td class="num">${r.ph?f(r.ph[0],2)+"–"+f(r.ph[1],2):"—"}</td><td class="num">${r.sal?f(r.sal[2],1):"—"}</td><td><span class="bd-tag ${(ST[r.st]||[])[1]||""}">${(ST[r.st]||[r.st])[0]}</span>${r.aval?`<small> ${r.fora}/${r.aval} fora</small>`:""}</td></tr>`).join("")}</tbody></table></div>
     ${R.length>200?`<p class="muted">Mostrando 200 de ${R.length}; o CSV traz todas.</p>`:""}</div>
+   ${curvasHTML(R)}
    <div class="card bd-card"><div class="card-head"><h2>Alertas das nictemerais<span>Oxigênio, pH, amônia e nictemerais incompletas</span></h2></div>
     ${A.length?`<ul class="bd-al">${A.slice(0,40).map(([c,t,d])=>`<li class="${c==="info"?"":c}"${c==="info"?' style="border-left-color:var(--line)"':""}><b>${t}</b><span>${d}</span></li>`).join("")}</ul>${A.length>40?`<p class="muted">+${A.length-40} alertas no CSV/tabela.</p>`:""}`:'<p class="muted">Nenhum alerta: todas as nictemerais dentro das faixas da espécie.</p>'}</div>`:""}
   </section>`}
@@ -7059,6 +7100,7 @@ function draw(){const el=document.getElementById("aqua-nicdash");if(!el)return;i
   const R=dados();if(!R){el.hidden=false;el.innerHTML='<div class="bd-vazio">Abrindo o AquaNictemeral…</div>';setTimeout(draw,600);return}
   el.hidden=false;el.innerHTML=html(R);
   el.querySelectorAll("[data-nd-u]").forEach(b=>b.addEventListener("click",()=>{filtro=b.dataset.ndU;draw()}));
+  const sl=el.querySelector("[data-nd-sel]");sl&&sl.addEventListener("change",()=>{selN=sl.value;draw()});
   const ex=el.querySelector("[data-nd-ex]");ex&&ex.addEventListener("change",()=>{soReais=!ex.checked;draw()});
   const c=el.querySelector('[data-nd="csv"]');c&&c.addEventListener("click",()=>{const R2=dados().filter(r=>(!soReais||!r.exemplo)&&(!filtro||r.id===filtro)),blob=new Blob([csv(R2)],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="relatorio_nictemerais_"+String(proj()||"sem_projeto").replace(/[^\wÀ-ú-]+/g,"_")+"_"+new Date().toISOString().slice(0,10)+".csv";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)})}
 window.drawNicDash=draw;
@@ -7786,6 +7828,22 @@ function bdCSV(D){const q=v=>{v=v==null?"":String(v);return /[;"\n]/.test(v)?'"'
   for(const a of [...D.am].sort((x,y)=>(y.data||"").localeCompare(x.data||""))){const s=stats(a),o=a.origem||{};
     L.push([a.data,a.hora||"",a.unome||a.unidade,a.metodo||"",(ORIGB[o.tipo]||o.tipo||"")+(o.nome?" · "+o.nome:""),s.N||0,n(s.pm,2),n(s.cv,1),n(s.cm,1),n(s.k,3),!(s.pm>0)?"sem peso":a.data>hojeS()?"data no futuro":"ok"])}
   return "﻿"+L.map(r=>r.map(q).join(";")).join("\r\n")}
+let bdMedU="";
+function bdAgua(){try{const w=document.getElementById("aqua-frame").contentWindow;return (w&&w.aquaDiario&&w.aquaDiario())||{}}catch(e){return {}}}
+function bdMedidas(p,D){const ok=D.S.filter(s=>s.pts.length);if(!ok.length)return "";const s=ok.find(x=>x.k===bdMedU)||ok.find(x=>bdFoco.includes(x.k))||ok[0],[pp,uid]=[s.k.split("|")[0],s.k.split("|").slice(1).join("|")];
+  const AG=bdAgua(),ts=d=>new Date(d+"T12:00").getTime(),fx=t=>new Date(t).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"}),hj=hojeS();
+  const am=amostrasU(pp,uid).filter(a=>a.data&&a.data<=hj).map(a=>({a,s:stats(a)})).filter(x=>x.s.pm>0),cor=i=>`var(--c${i%8+1})`;
+  const t0=am.length?ts(am[0].a.data)-7*864e5:0,t1=am.length?ts(am[am.length-1].a.data):0,ag=AG[uid]||{},dAg=Object.keys(ag).filter(d=>ts(d)>=t0&&ts(d)<=t1+864e5).sort();
+  const M=[["pm","Peso médio","g",1],["cm","Comprimento","cm",1],["cv","Uniformidade (CV)","%",0],["k","Fator K","",3],["N","Animais amostrados","",0]],AQ=[["temperatura","Temperatura (média do dia)","°C",1],["od","OD mínimo do dia","mg/L",1],["ph","pH (média do dia)","",2],["salinidade","Salinidade (média)","‰",1],["tan","Amônia total","mg/L",2]];
+  const rows=M.map(([k,n,u,d],i)=>({nome:n,unid:u,dec:d,cor:cor(i),pts:am.filter(x=>typeof x.s[k]==="number"&&isFinite(x.s[k])).map(x=>[ts(x.a.data),x.s[k]])})).concat(AQ.map(([k,n,u,d],i)=>({nome:n,unid:u,dec:d,cor:cor(i+5),pts:dAg.filter(x=>typeof ag[x][k]==="number").map(x=>[ts(x),ag[x][k]])})));
+  // correlação: cada biometria de todos os tanques/viveiros × média da água nos 7 dias antes
+  const CR=[];for(const x of ok){const [p2,u2]=[x.k.split("|")[0],x.k.split("|").slice(1).join("|")],A2=AG[u2]||{},L=amostrasU(p2,u2).filter(a=>a.data&&a.data<=hj).map(a=>({a,s:stats(a)})).filter(y=>y.s.pm>0);
+    L.forEach((y,i)=>{const o={pm:y.s.pm,cm:y.s.cm,cv:y.s.cv,k:y.s.k};if(i>0){const dd=(ts(y.a.data)-ts(L[i-1].a.data))/864e5;if(dd>0)o.gpd=(y.s.pm-L[i-1].s.pm)/dd}
+      const t=ts(y.a.data),ds=Object.keys(A2).filter(d=>ts(d)<=t&&ts(d)>t-7*864e5);for(const [k] of AQ){const v=ds.map(d=>A2[d][k]).filter(z=>typeof z==="number");if(v.length)o[k]=v.reduce((a,b)=>a+b,0)/v.length}CR.push(o)})}
+  const names={pm:"Peso médio",cm:"Comprimento",cv:"CV",k:"Fator K",gpd:"Ganho/dia",temperatura:"Temperatura",od:"OD mínimo",ph:"pH",salinidade:"Salinidade",tan:"Amônia"};
+  return `<div class="card bd-card"><div class="card-head"><h2>Curvas de todas as medidas<span>Biometria e água do mesmo tanque/viveiro no mesmo eixo de datas${dAg.length?"":" · sem leituras de água neste período (importe no 📈 Nictemeral para cruzar)"}</span></h2></div>
+   <label class="gf-sel">Tanque/viveiro <select class="lv-sel" data-bd-med>${ok.map(x=>`<option value="${E(x.k)}"${x===s?" selected":""}>${E(x.nome)} (${x.pts.length} biometria${x.pts.length===1?"":"s"} com peso)</option>`).join("")}</select></label>${GFCH.multi(rows,{fx})}</div>
+   <div class="card bd-card"><div class="card-head"><h2>Correlação entre as medidas<span>Cada biometria (${CR.length}) com a média da água nos 7 dias anteriores · todos os tanques/viveiros</span></h2></div>${GFCH.corr(["pm","cm","cv","k","gpd","temperatura","od","ph","salinidade","tan"],names,CR)}</div>`}
 function bdHTML(p){const D=bdDados(p),A=bdAlertas(D),kp=(t,v,s,c)=>`<div class="bd-kpi${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
   const R=D.ult.map(s=>({nome:s.nome,cor:s.cor,pm:s.r.s.pm,cv:s.r.s.cv}));
   const hist=[...D.am].sort((x,y)=>(y.data||"").localeCompare(x.data||"")||(y.rec||0)-(x.rec||0)).slice(0,60);
@@ -7798,6 +7856,7 @@ function bdHTML(p){const D=bdDados(p),A=bdAlertas(D),kp=(t,v,s,c)=>`<div class="
      <div class="bd-leg">${D.S.map(s=>`<button type="button" class="chip${bdFoco.includes(s.k)?" on":""}" data-bd-k="${E(s.k)}"><i style="background:${s.cor}"></i>${E(s.nome)}${s.pts.length?"":" · sem peso"}</button>`).join("")}${bdFoco.length?`<button type="button" class="chip" data-bd="limpa">Limpar destaque</button>`:""}</div>
      <div class="bd-cw">${bdCurvas(D.S)}</div></div>
     <div class="card bd-card"><div class="card-head"><h2>Peso médio atual<span>Última biometria de cada tanque/viveiro</span></h2></div>${bdBarras(R)}</div></div>
+   ${window.GFCH?bdMedidas(p,D):""}
    <div class="card bd-card"><div class="card-head"><h2>Relatório e alertas<span>Qualidade dos dados, uniformidade, ganho de peso e cadência</span></h2></div>
     ${A.length?`<ul class="bd-al">${A.map(([c,t,d])=>`<li class="${c}"><b>${t}</b><span>${d}</span></li>`).join("")}</ul>`:`<p class="muted">Nenhum alerta: dados completos e lotes dentro do esperado.</p>`}</div>
    <div class="card bd-card"><div class="card-head"><h2>Situação por tanque/viveiro<span>Mesma tabela do botão Biometria</span></h2></div>${resumoHTML(p)}</div>
@@ -7808,6 +7867,7 @@ function drawBD(){if(!bdEl)return;const fr=document.getElementById("aqua-frame")
   if(!aberto){if(!bdEl.hidden){bdEl.hidden=true;bdEl.innerHTML=""}if(fr)fr.style.display="";return}
   if(fr)fr.style.display="none";bdEl.hidden=false;const p=projSel();bdEl.innerHTML=bdHTML(p);
   bdEl.querySelectorAll("[data-bd-k]").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.bdK,i=bdFoco.indexOf(k);if(i>=0)bdFoco.splice(i,1);else bdFoco.push(k);drawBD()}));
+  const bm=bdEl.querySelector("[data-bd-med]");bm&&bm.addEventListener("change",()=>{bdMedU=bm.value;drawBD()});
   bdEl.querySelectorAll("[data-bd]").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.bd==="limpa"){bdFoco=[];drawBD();return}
     if(b.dataset.bd==="csv"){const blob=new Blob([bdCSV(bdDados(p))],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="relatorio_biometria_"+String(pNome(p)).replace(/[^\wÀ-ú-]+/g,"_")+"_"+hojeS()+".csv";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}}))}
 window.drawBioDashAqua=drawBD;
@@ -8088,7 +8148,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v91";
+  const APP_VERSAO="ras-v92";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
