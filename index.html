@@ -719,6 +719,22 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.imp-box{position:fixed;right:16px;bottom:16px;z-index:80;width:min(440px,calc(100vw - 32px));max-height:min(80vh,640px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:12px 14px;font-size:13px}
+.imp-box.imp-erro{border-top-color:#c0392b}.imp-box.imp-receb{border-top-color:var(--warn)}
+.imp-box.imp-min{width:auto;max-width:calc(100vw - 32px);padding:0;border-top-width:1px;border-radius:999px}
+.imp-pill{border:0;background:none;font:600 13px var(--f-body);color:var(--ink);padding:8px 14px;cursor:pointer;display:flex;gap:6px;align-items:center;max-width:calc(100vw - 40px)}.imp-pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.imp-hd{display:flex;gap:10px;align-items:flex-start;font-size:20px}.imp-hd>div{flex:1;display:flex;flex-direction:column;font-size:14px}.imp-hd small{font-size:12px;color:var(--muted)}
+.imp-x{border:0;background:none;font-size:16px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:6px}.imp-x:hover{background:var(--bg)}
+.imp-dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:10px 0}.imp-dl dt{font:600 11px var(--f-body);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding-top:2px}.imp-dl dd{margin:0}
+.imp-tag{font:600 11px var(--f-body);padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}.imp-tag.w{background:var(--warn-soft);color:var(--warn)}
+.imp-steps{list-style:none;margin:6px 0;padding:0;display:grid;gap:4px}.imp-steps li{color:var(--muted)}.imp-steps li.ok{color:var(--accent);font-weight:600}.imp-steps li.on{color:var(--ink);font-weight:600}.imp-steps li.bad{color:#c0392b;font-weight:600}
+.imp-esp{background:var(--warn-soft);border-radius:8px;padding:8px 10px;margin:6px 0}
+.imp-res{background:var(--accent-soft);border-radius:8px;padding:8px 10px;margin:8px 0;line-height:1.5}.imp-res.bad{background:#fde8e6;color:#a32a1c}
+.imp-bt{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.imp-hist{list-style:none;margin:8px 0 0;padding:8px 0 0;display:grid;gap:6px;border-top:1px solid var(--line)}.imp-hist li{display:grid}.imp-hist small{color:var(--muted)}
+.imp-spin{width:18px;height:18px;border:3px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;animation:impg .8s linear infinite;flex:none;margin-top:2px}@keyframes impg{to{transform:rotate(360deg)}}
+body.has-bnav .imp-box{bottom:76px}
+
 .bd-wrap{display:grid;gap:12px}
 .bd-head{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
 .bd-head small{font:600 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
@@ -6902,6 +6918,66 @@ draw();iniciar();
 })();
 </script>
 <script>
+/* ---------- Central de importação: mostra, para qualquer origem, o que está sendo processado, para onde vai e com qual projeto ---------- */
+(function(){
+const HK="greenfish-imp-hist",E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rd=()=>{try{return JSON.parse(localStorage.getItem(HK))||[]}catch(e){return []}},wr=v=>{try{localStorage.setItem(HK,JSON.stringify(v.slice(0,12)))}catch(e){}};
+const ORIG={arquivo:"📄 Arquivo",colado:"📋 Texto colado",link:"🔗 Link",webhook:"🤖 Automação (webhook)",form:"✍️ Formulário",projeto:"🗂 Arquivos do projeto",reproc:"🔁 Reprocessamento"};
+const TIPO={agua:{n:"Leituras de água",i:"📈",dest:"AquaNictemeral: curvas 24 h, Painel, matriz e alertas de cada tanque/viveiro",ver:"Ver no AquaNictemeral"},
+            bio:{n:"Biometria (pesos dos animais)",i:"📏",dest:"Painel da biometria, aba Biomassa e Arraçoamento (crescimento e ração)",ver:"Ver o Painel da biometria"}};
+const proj=()=>{try{const p=window.projAtual&&projAtual();return p?{nome:p.nome,salvo:true}:{nome:"Projeto não salvo",salvo:false}}catch(e){return {nome:"Projeto não salvo",salvo:false}}};
+let el=null,cur=null,min=false,tMin=null,verHist=false;
+function host(){if(el&&document.body.contains(el))return el;el=document.createElement("aside");el.id="imp-box";el.setAttribute("aria-live","polite");el.setAttribute("role","status");document.body.appendChild(el);
+  el.addEventListener("click",e=>{const b=e.target.closest("[data-imp]");if(!b)return;const a=b.dataset.imp;
+    if(a==="fechar"){cur=null;min=false;verHist=false;draw();return}
+    if(a==="min"){min=true;draw();return}
+    if(a==="abrir"){min=false;draw();return}
+    if(a==="hist"){verHist=!verHist;draw();return}
+    if(a==="ver"){const t=b.dataset.t;try{setView("aqua")}catch(er){}
+      setTimeout(()=>{try{if(t==="bio"){const d=document.querySelector("#aqua-bio details.bi-card");if(d&&!d.open){d.open=true;d.dispatchEvent(new Event("toggle"))}(document.getElementById("aqua-biodash")||d).scrollIntoView({behavior:"smooth",block:"start"})}
+        else{const d=document.querySelector("#aqua-bio details.bi-card");if(d&&d.open){d.open=false;d.dispatchEvent(new Event("toggle"))}const f=document.getElementById("aqua-frame");f&&f.scrollIntoView({behavior:"smooth",block:"start"})}}catch(er){}},150);min=true;draw()}});
+  return el}
+const hora=t=>new Date(t).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+function linhaInfo(c){const T=TIPO[c.tipo]||TIPO.agua;return `<dl class="imp-dl">
+   <dt>Origem</dt><dd>${E(ORIG[c.origem]||c.origem||"—")}${c.nome?` · <b>${E(String(c.nome).length>60?String(c.nome).slice(0,57)+"…":c.nome)}</b>`:""}${c.linhas!=null?` · ${c.linhas} linha${c.linhas===1?"":"s"}`:""}</dd>
+   <dt>Tipo de dado</dt><dd>${T.i} ${T.n}</dd>
+   <dt>Vai para</dt><dd>${E(T.dest)}</dd>
+   <dt>Projeto</dt><dd>${c.salvo?`<b>${E(c.projeto)}</b>`:`<b>Nenhum projeto aberto</b> <span class="imp-tag w">não salvo</span>`}</dd>
+   <dt>Armazenado</dt><dd>${c.salvo?`neste aparelho e no projeto «${E(c.projeto)}», que é salvo sozinho na sua conta · cópia em 🗂 Arquivos do projeto`:"só neste aparelho. Crie ou abra um projeto para guardar na sua conta e compartilhar."}</dd></dl>`}
+const PASSOS=c=>[`Lendo ${c.linhas!=null?(c.tipo==="bio"?c.linhas+" biometria"+(c.linhas===1?"":"s")+" (amostra por tanque/viveiro e data)":c.linhas+" linha"+(c.linhas===1?"":"s")):"os dados"}`,"Reconhecendo colunas, datas e tanques/viveiros",`Gravando em ${c.tipo==="bio"?"Biometria":"AquaNictemeral"}`,c.salvo?`Correlacionando com o projeto «${c.projeto}»`:"Correlacionando com os dados deste aparelho (sem projeto aberto)"];
+function draw(){const h=host();clearTimeout(tMin);
+  if(!cur){h.hidden=true;h.innerHTML="";return}h.hidden=false;const c=cur,T=TIPO[c.tipo]||TIPO.agua;
+  const ic=c.st==="proc"?'<span class="imp-spin" aria-hidden="true"></span>':c.st==="ok"?"✅":c.st==="erro"?"⚠️":"📥";
+  const tit=c.st==="proc"?`Processando ${T.n.toLowerCase()}…`:c.st==="ok"?`${T.n}: importação concluída`:c.st==="erro"?"A importação não foi concluída":`${T.n}: dados recebidos`;
+  h.className="imp-box imp-"+c.st+(min?" imp-min":"");
+  if(min){h.innerHTML=`<button type="button" class="imp-pill" data-imp="abrir" title="Abrir detalhes da importação">${ic} <span>${E(tit)}${c.salvo?" · "+E(c.projeto):""}</span></button>`;return}
+  const H=rd();
+  h.innerHTML=`<div class="imp-hd">${ic}<div><b>${E(tit)}</b><small>${hora(c.em)} · ${c.salvo?"projeto "+E(c.projeto):"sem projeto aberto"}</small></div><button type="button" class="imp-x" data-imp="min" title="Minimizar">–</button><button type="button" class="imp-x" data-imp="fechar" title="Fechar">✕</button></div>
+   ${linhaInfo(c)}
+   ${c.st==="receb"?`<p class="imp-esp">⏸ Aguardando você conferir as colunas e tocar em <b>${c.tipo==="bio"?"Salvar":"Importar"}</b>. Nada foi gravado ainda.</p>`:
+     `<ol class="imp-steps">${PASSOS(c).map((p,i)=>`<li class="${i<c.passo?"ok":i===c.passo&&c.st==="proc"?"on":c.st==="erro"&&i===c.passo?"bad":""}">${i<c.passo?"✓":i===c.passo&&c.st==="proc"?"…":c.st==="erro"&&i===c.passo?"✕":"○"} ${E(p)}</li>`).join("")}</ol>`}
+   ${c.st==="ok"&&c.res?`<div class="imp-res">${c.res}</div>`:""}${c.st==="erro"?`<div class="imp-res bad">${E(c.erro)}</div>`:""}
+   <div class="imp-bt">${c.st==="ok"?`<button type="button" class="btn solid" data-imp="ver" data-t="${c.tipo}">${T.ver}</button>`:""}${H.length?`<button type="button" class="btn" data-imp="hist">${verHist?"Ocultar":"Últimas importações"} (${H.length})</button>`:""}</div>
+   ${verHist&&H.length?`<ul class="imp-hist">${H.map(x=>`<li><b>${x.st==="ok"?"✅":"⚠️"} ${E((TIPO[x.tipo]||TIPO.agua).n)}</b> · ${E(ORIG[x.origem]||x.origem)}${x.nome?" · "+E(String(x.nome).slice(0,40)):""}<small>${new Date(x.em).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})} · ${x.projeto&&x.projeto!=="Projeto não salvo"?"projeto "+E(x.projeto):"sem projeto aberto"} · ${E(x.curto||"")}</small></li>`).join("")}</ul>`:""}`;
+  if(c.st==="ok")tMin=setTimeout(()=>{if(cur===c&&!verHist){min=true;draw()}},20000)}
+function base(o){const p=proj();return {tipo:o.tipo||"agua",origem:o.origem||"arquivo",nome:o.nome||"",linhas:o.linhas,projeto:o.projeto||p.nome,salvo:o.projeto?o.salvo!==false&&o.projeto!=="Projeto não salvo":p.salvo,em:Date.now()}}
+const auto=o=>o.origem==="webhook"||o.origem==="link"&&o.auto;
+window.IMP={
+  recebido(o){cur={...base(o),st:"receb",passo:0};min=false;draw()},
+  processar(o){const c={...base(o),st:"proc",passo:0};const silent=auto(o)&&cur&&cur.st==="proc";if(!silent){cur=c;min=auto(o)}draw();
+    let fim=null;const anim=()=>{if(cur!==c)return;if(c.passo<PASSOS(c).length-(fim?0:1)){c.passo++;draw();setTimeout(anim,fim?260:420)}else if(fim)fim()};setTimeout(anim,260);
+    return {ok(r){const L=[];if(r.criadas&&r.criadas.length)L.push(`<b>${r.criadas.length}</b> tanque${r.criadas.length===1?"":"s"}/viveiro${r.criadas.length===1?"":"s"} novo${r.criadas.length===1?"":"s"}: ${E(r.criadas.slice(0,6).join(", "))}${r.criadas.length>6?"…":""}`);
+        if(c.tipo==="agua")L.push(`<b>${r.novas||0}</b> leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"} · <b>${r.atualizadas||0}</b> atualizada${r.atualizadas===1?"":"s"}${r.ignoradas?` · <b>${r.ignoradas}</b> ignorada${r.ignoradas===1?"":"s"} (sem data ou valor)`:""}`);
+        else L.push(`<b>${r.novas||0}</b> biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"}${r.sem?` · <b>${r.sem}</b> sem tanque/viveiro`:""}${r.semPeso?` · <span class="imp-tag w">${r.semPeso} sem peso</span>`:""}`);
+        if(r.unidades&&r.unidades.length)L.push(`Tanques/viveiros: ${E(r.unidades.slice(0,8).join(", "))}${r.unidades.length>8?"…":""}`);
+        if(r.dias&&r.dias.length){const d=[...r.dias].sort(),f=s=>s.split("-").reverse().join("/");L.push(`Período: ${f(d[0])}${d.length>1?" a "+f(d[d.length-1]):""} (${d.length} dia${d.length===1?"":"s"})`)}
+        const curto=c.tipo==="agua"?`${r.novas||0} novas, ${r.atualizadas||0} atualizadas`:`${r.novas||0} biometrias`;
+        fim=()=>{c.passo=PASSOS(c).length;c.st="ok";c.res=L.join("<br>");wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"ok",curto}].concat(rd()));if(cur===c)draw()};if(cur!==c)fim()},
+      erro(e){fim=()=>{c.st="erro";c.erro=String(e&&(e.message||e)||e);wr([{tipo:c.tipo,origem:c.origem,nome:c.nome,projeto:c.projeto,em:c.em,st:"erro",curto:c.erro.slice(0,60)}].concat(rd()));if(cur===c)draw()};fim()}}}};
+})();
+</script>
+
+<script>
 /* ---------- AquaNictemeral · plugin de automação: importar leituras de arquivos, links, sensores e webhooks ---------- */
 (function(){
 const box=document.getElementById("aqua-plug");if(!box)return;
@@ -7062,7 +7138,9 @@ const ACEITA=".numbers,.csv,.txt,.tsv,.json,.xlsx,.xlsm,.xls,.ods,text/csv,text/
 /* ponte com o AquaNictemeral (iframe) */
 const frame=()=>document.getElementById("aqua-frame");
 async function pronto(){const f=frame();if(!f)return null;if(typeof loadAqua==="function")loadAqua();
-  for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function")return w}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
+  for(let i=0;i<40;i++){try{const w=f.contentWindow;if(w&&typeof w.aquaImport==="function"){impWrap(w);return w}}catch(e){}await new Promise(r=>setTimeout(r,250))}return null}
+function impWrap(w){if(w.__impWrap||!window.IMP)return;const o=w.aquaImport;w.__impWrap=1;w.aquaImport=(lista,op)=>{op=op||{};const h=IMP.processar({tipo:"agua",origem:op.tipo||(/^arquivo/.test(op.origem||"")?"arquivo":op.origem)||"arquivo",nome:op.nome||"",linhas:(lista||[]).length,auto:op.tipo==="link"&&!!C.auto});
+  try{const r=o(lista,op);let us=[];try{const U=w.aquaUnidades?w.aquaUnidades():[];us=(r.unidades||[]).map(id=>{const u=U.find(x=>x.id===id||x.nome===id);return u?u.nome:String(id)})}catch(e){}h.ok({...r,unidades:us});return r}catch(e){h.erro(e);throw e}}}
 function unidades(){try{const w=frame().contentWindow;return w&&w.aquaUnidades?w.aquaUnidades():[]}catch(e){return []}}
 /* cópia das leituras de cada importação (IndexedDB), para processar de novo quando precisar */
 const IDB=(()=>{let p;const db=()=>p||(p=new Promise((ok,er)=>{const r=indexedDB.open("greenfish-aquaauto",1);r.onupgradeneeded=()=>r.result.createObjectStore("imp");r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)}));
@@ -7238,8 +7316,8 @@ async function rodar(fn){if(busy)return;busy=true;draw();try{msg=await fn()||msg
 function acao(a,b){
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=ACEITA;i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
     i.addEventListener("change",()=>{const f=i.files[0];i.remove();if(!f)return;
-    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"arquivo "+f.name};return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
-  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"colado"};return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
+    rodar(async()=>{const rows=await lerArquivo(f),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!rows.length)throw new Error(f.name+" não tem linhas de dados.");C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"arquivo "+f.name};window.IMP&&IMP.recebido({tipo:"agua",origem:"arquivo",nome:f.name,linhas:rows.length});return `${f.name}: ${rows.length} linhas lidas. Confira as colunas e importe.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#ap-txt")||{}).value||"";rodar(async()=>{const rows=lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];C.map=autoMap(cols,rows);salvar();dados={rows,cols,origem:"colado"};window.IMP&&IMP.recebido({tipo:"agua",origem:"colado",linhas:rows.length});return `${rows.length} linhas lidas. Confira as colunas e importe.`});return}
   if(a==="importar"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar);const r=await importar(n.lista,dados.origem);dados=null;return "Importado: "+resumo(r,n.brutas)});return}
   if(a==="limpar"){dados=null;msg="";draw();return}
   if(a==="guardar-so"){rodar(async()=>{const n=normalizar(dados.rows,C.map,C.agrupar),origem=dados.origem,tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:"";
@@ -7493,7 +7571,9 @@ function linhasParaAmostras(rows,map){const inv={};for(const c in map)if(map[c])
   return {amostras:[...g.values()].map(({_v,...a})=>a),ruins}}
 const numN=nome=>{const x=String(nome||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").match(/^(?:tanque\s*\/\s*viveiro|viveiro\s*\/\s*tanque|viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|t|v)\s*[-:no#.]*\s*0*(\d{1,4}[a-z]?)$/);return x?x[1]:null};
 window.numN=numN;
-function guardar(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
+function guardar(lista,origem,p0){const pg=p0||projImp(),n0=B.amostras.length,h=window.IMP&&IMP.processar({tipo:"bio",origem:(origem&&origem.tipo)||"form",nome:(origem&&origem.nome)||"",linhas:(lista||[]).length,projeto:pNome(pg),salvo:pg!=="_local"});
+  try{const r=guardar0(lista,origem,p0),nv=B.amostras.slice(n0);h&&h.ok({...r,unidades:[...new Set(nv.map(a=>a.unome||a.unidade))],dias:[...new Set(nv.map(a=>a.data).filter(Boolean))],semPeso:nv.filter(a=>!(stats(a).pm>0)).length});return r}catch(e){h&&h.erro(e);throw e}}
+function guardar0(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
   for(const a of lista){const p=(a.proj&&projDe(a.proj))||base,us=uniP(p);let u=a.uid?us.find(x=>x.id===a.uid):null;
     if(!u&&a.un){const s=String(a.un).trim().toLowerCase();u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s);
       if(!u){const n=numN(a.un);if(n){const cs=us.filter(x=>numN(x.nome)===n);u=cs.length===1?cs[0]:cs.find(x=>x.tipo===(/^\s*viveiro/i.test(a.un)?"viveiro":/^\s*tanque/i.test(a.un)?"tanque":(window.tipoNumero?tipoNumero():"tanque")))||null}}
@@ -7506,7 +7586,7 @@ function outros(){try{window.focoRefresh&&focoRefresh()}catch(e){}try{window.dra
 const res=(r,o)=>`${r.novas} biometria${r.novas===1?"":"s"} salva${r.novas===1?"":"s"} no projeto ${pNome(r.p)}${r.criadas.length?` · tanque${r.criadas.length===1?"":"s"}/viveiro${r.criadas.length===1?"":"s"} novo${r.criadas.length===1?"":"s"}: ${r.criadas.join(", ")}`:""}${r.sem?` · ${r.sem} sem tanque/viveiro`:""} (${ORIGB[o.tipo]||o.tipo}${o.nome?": "+o.nome:""}).`;
 async function buscarLinkB(sil){if(!B.url)throw new Error("Cole o link dos dados de biometria.");const r=await fetch(B.url+(B.url.includes("?")?"&":"?")+"_t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("O link respondeu com erro "+r.status+".");
   const rows=U.lerTexto(await r.text()),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];if(!Object.keys(B.map).length||!cols.some(c=>B.map[c]))B.map=autoMapB(cols);
-  if(!sil){dados={rows,cols,origem:{tipo:"link",nome:B.url}};return `${rows.length} linhas lidas do link. Confira as colunas e salve.`}
+  if(!sil){dados={rows,cols,origem:{tipo:"link",nome:B.url}};window.IMP&&IMP.recebido({tipo:"bio",origem:"link",nome:B.url,linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${rows.length} linhas lidas do link. Confira as colunas e salve.`}
   const p=projImp(),ja=new Set(B.amostras.filter(a=>a.origem&&a.origem.tipo==="link").map(a=>(a.pid||"_local")+"|"+a.unome+"|"+a.data+"|"+a.metodo)),
     L=linhasParaAmostras(rows,B.map).amostras.filter(a=>!ja.has([(a.proj&&projDe(a.proj))||p,a.un||(uniP(p).find(x=>x.id===unidade)||{}).nome,a.data,a.metodo].join("|")));
   return L.length?res(guardar(L,{tipo:"link",nome:B.url}),{tipo:"link",nome:B.url}):"Link sem biometrias novas."}
@@ -7698,8 +7778,8 @@ function acao(a,b){const p=projImp();
       if(!am.ind.length)throw new Error("Digite pelo menos um peso (um animal por linha).")}
     guardar([am],{tipo:"form",nome:""},p);const s=stats(am);return `Biometria salva em ${pNome(p)}: ${TIPO[u.tipo]} ${u.nome}${numU?" ("+numU+")":""}, ${s.N} animais, peso médio ${f(s.pm,1)} g${s.cv!=null?`, CV ${f(s.cv,0)} %`:""}.`});return}
   if(a==="arquivo"){const i=document.createElement("input");i.type="file";i.accept=U.ACEITA||"";i.style.cssText="position:fixed;left:-9999px;opacity:0";document.body.appendChild(i);
-    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await U.lerArquivo(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
-  if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
+    i.addEventListener("change",()=>{const fl=i.files[0];i.remove();if(!fl)return;rodar(async()=>{const rows=await U.lerArquivo(fl),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"arquivo",nome:fl.name}};window.IMP&&IMP.recebido({tipo:"bio",origem:"arquivo",nome:fl.name,linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${fl.name}: ${rows.length} linhas lidas. Confira as colunas e salve.`})});i.click();return}
+  if(a==="ler"){const t=(box.querySelector("#bi-txt")||{}).value||"";rodar(async()=>{const rows=U.lerTexto(t),cols=[...new Set(rows.flatMap(o=>Object.keys(o)))];B.map=autoMapB(cols);salvar();dados={rows,cols,origem:{tipo:"colado",nome:""}};window.IMP&&IMP.recebido({tipo:"bio",origem:"colado",linhas:rows.length,projeto:pNome(projImp()),salvo:projImp()!=="_local"});return `${rows.length} linhas lidas. Confira as colunas e salve.`});return}
   if(a==="salvar-dados"){rodar(async()=>{if(unidade==="__nova"&&!novaNome.trim()&&linhasParaAmostras(dados.rows,B.map).amostras.some(x=>!x.un))throw new Error("Dê uma identificação para o novo tanque ou viveiro (usado nas linhas sem tanque/viveiro).");
     const L=linhasParaAmostras(dados.rows,B.map).amostras.map(x=>x.un?x:{...x,num:numU}),o=dados.origem;const r=guardar(L,o,p);dados=null;
     ARQ.add({tipo:"biometria",key:(o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):""),nome:o.nome||"",fonte:o.tipo,lista:L,op:{origem:o}}).catch(()=>{});return res(r,o)});return}
@@ -7918,7 +7998,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v86";
+  const APP_VERSAO="ras-v87";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
