@@ -719,6 +719,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.grp-bar-sep{width:1px;align-self:stretch;background:var(--line,#ddd);margin:0 4px}.grp-bar-t small{opacity:.7;font-weight:600}.grp-bar-t.proc{border-color:var(--accent,#1a6b5a);box-shadow:inset 0 0 0 1px var(--accent,#1a6b5a)}.grp-bar-t.on{background:var(--accent,#1a6b5a);border-color:var(--accent,#1a6b5a);color:#fff}.gb-led{width:8px!important;height:8px!important;border-radius:50%;background:#2ecc71!important;box-shadow:0 0 0 3px rgba(46,204,113,.25);animation:gbled 1.6s ease-in-out infinite}@keyframes gbled{50%{box-shadow:0 0 0 6px rgba(46,204,113,0)}}
 .ap-conf{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:13px;margin:6px 0}.ap-conf small{color:var(--muted)}
 .imp-box{position:fixed;right:16px;bottom:16px;z-index:80;width:min(440px,calc(100vw - 32px));max-height:min(80vh,640px);overflow:auto;background:var(--surface);border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,.18);padding:12px 14px;font-size:13px}
 .imp-box.imp-erro{border-top-color:#c0392b}.imp-box.imp-receb{border-top-color:var(--warn)}
@@ -1559,7 +1560,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       v1.leituras.forEach((l) =&gt; ex.leituras.push({ ...l, unidade: id, data: v1.data || hoje() })); ex.ativa = id; S = ex;
     } else S = gerarExemplo();
   }
-  const salvar = () =&gt; { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} try { window.parent &amp;&amp; window.parent !== window &amp;&amp; window.parent.drawAquaOrig &amp;&amp; window.parent.drawAquaOrig(); } catch (e) {} };
+  const salvar = () =&gt; { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} try { window.parent &amp;&amp; window.parent !== window &amp;&amp; window.parent.drawAquaOrig &amp;&amp; window.parent.drawAquaOrig(); } catch (e) {} clearTimeout(window.__gbT); window.__gbT = setTimeout(() =&gt; { try { window.parent &amp;&amp; window.parent !== window &amp;&amp; window.parent.drawGrpBar &amp;&amp; window.parent.drawGrpBar(); } catch (e) {} }, 120); };
   // origem de cada leitura (como entrou) e projeto aberto no Sistema RAS na hora do lançamento
   const ORIG = { manual: &quot;Digitadas no sistema&quot;, arquivo: &quot;Arquivo&quot;, colado: &quot;Dados colados&quot;, link: &quot;Link&quot;, webhook: &quot;Automação (webhook)&quot;, importado: &quot;Importadas (antes do registro de origem)&quot;, exemplo: &quot;Dados de exemplo&quot; };
   const escO = (x) =&gt; String(x).replace(/[&amp;&lt;&gt;&quot;]/g, (c) =&gt; ({ &quot;&amp;&quot;: &quot;&amp;amp;&quot;, &quot;&lt;&quot;: &quot;&amp;lt;&quot;, &quot;&gt;&quot;: &quot;&amp;gt;&quot;, &#x27;&quot;&#x27;: &quot;&amp;quot;&quot; }[c]));
@@ -2343,6 +2344,12 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   let rz; window.addEventListener(&quot;resize&quot;, () =&gt; { clearTimeout(rz); rz = setTimeout(() =&gt; (aba === &quot;painel&quot; ? renderPainel() : renderCharts()), 140); });
 
   // --------------------------------------------------- plugin de automação (página-mãe): tanques/viveiros e importação de leituras
+  // tipos (tanque/viveiro) para a barra de grupos da página-mãe: o que o Painel está processando agora
+  window.aquaTipos = () =&gt; { const c = { tanque: [0, 0], viveiro: [0, 0] }; for (const u of S.unidades) { if (u.oculto || u.sistemaRAS) continue; const t = tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;; c[t][0]++; if (S.leituras.some((l) =&gt; l.unidade === u.id)) c[t][1]++; }
+    return { filtro: S.filtroTipo || &quot;&quot;, grupo: S.grupoSo || &quot;&quot;, tanques: c.tanque[0], tanquesL: c.tanque[1], viveiros: c.viveiro[0], viveirosL: c.viveiro[1] }; };
+  window.aquaFiltroTipo = (t) =&gt; { S.filtroTipo = t === &quot;tanque&quot; || t === &quot;viveiro&quot; ? t : &quot;&quot;; S.grupoSo = &quot;&quot;; S.focoGrupo = &quot;&quot;; try { mcAuto = true; mcHL = null; } catch (e) {}
+    const a = UA(); if (S.filtroTipo &amp;&amp; a &amp;&amp; tipoU(a) !== S.filtroTipo) { const nx = S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto &amp;&amp; S.leituras.some((l) =&gt; l.unidade === x.id)) || S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto); if (nx) { S.ativa = nx.id; sel = null; } }
+    salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return S.filtroTipo; };
   window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null, tipo: tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot; }));
   window.aquaImport = (lista, op) =&gt; {
     op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
@@ -3563,9 +3570,14 @@ setTimeout(()=>{if(window.drawLocal&&!window.drawLocal.__g){const f=grpWrap(wind
 /* barra de grupos nas abas de destino (como no Arraçoamento): troca de grupo sem voltar à Calculadora */
 const GRP_BAR_VIEWS=["aqua","bio","dash","local","repro","topo"];
 function drawGrpBar(v){const b=document.getElementById("grp-bar");if(!b)return;if(!v){const t=document.querySelector('.tab[aria-selected="true"]');v=t?t.dataset.view:""}
-  if(!GRP_BAR_VIEWS.includes(v)||!tanks.length){b.hidden=true;b.innerHTML="";return}let sel="";try{sel=localStorage.getItem(grpK())||""}catch(e){}if(sel&&!tanks.some(t=>String(t.id)===sel))sel="";
-  b.hidden=false;b.dataset.view=v;b.innerHTML=`<span class="grp-bar-l">📌 ${sel?"Só o grupo":"Todos os grupos"}</span><button type="button" class="grp-bar-b${sel?"":" on"}" data-gb="all" aria-pressed="${!sel}">Todos</button>${tanks.map(t=>`<button type="button" class="grp-bar-b${String(t.id)===sel?" on":""}" data-gb="${t.id}" aria-pressed="${String(t.id)===sel}" style="--gc:var(--c${t.c+1})"><i></i>${esc(label(t))}</button>`).join("")}`}
+  let AT=null;if(v==="aqua"){try{const w=aquaFrame.contentWindow;AT=w&&w.aquaTipos?w.aquaTipos():null}catch(e){}}
+  if(!GRP_BAR_VIEWS.includes(v)||(!tanks.length&&!(AT&&(AT.tanques||AT.viveiros)))){b.hidden=true;b.innerHTML="";return}let sel="";try{sel=localStorage.getItem(grpK())||""}catch(e){}if(sel&&!tanks.some(t=>String(t.id)===sel))sel="";
+  b.hidden=false;b.dataset.view=v;b.innerHTML=`<span class="grp-bar-l">📌 ${sel?"Só o grupo":"Todos os grupos"}</span><button type="button" class="grp-bar-b${sel?"":" on"}" data-gb="all" aria-pressed="${!sel}">Todos</button>${tanks.map(t=>`<button type="button" class="grp-bar-b${String(t.id)===sel?" on":""}" data-gb="${t.id}" aria-pressed="${String(t.id)===sel}" style="--gc:var(--c${t.c+1})"><i></i>${esc(label(t))}</button>`).join("")}${AT?(()=>{const so=AT.grupo||sel,ft=AT.filtro,tp=[["tanque","🟦","Tanques",AT.tanques,AT.tanquesL],["viveiro","🟫","Viveiros",AT.viveiros,AT.viveirosL]].filter(x=>x[3]);if(!tp.length)return "";
+    return `<span class="grp-bar-sep"></span><span class="grp-bar-l">No painel</span>${tp.map(([k,ic,n,q,qL])=>{const liga=so?(k==="tanque"):(!ft||ft===k),proc=liga&&qL>0;return `<button type="button" class="grp-bar-b grp-bar-t${ft===k&&!so?" on":""}${proc?" proc":""}" data-gt="${k}" aria-pressed="${ft===k&&!so}" title="${proc?`${n} sendo processados no Painel do AquaNictemeral (${qL} com leituras)`:liga?`${n} no Painel, ainda sem leituras`:`${n} fora do Painel: toque para processar só ${n.toLowerCase()}`}">${proc?'<i class="gb-led"></i>':""}${ic} ${n} <small>${q}</small></button>`}).join("")}`})():""}`}
 window.drawGrpBar=drawGrpBar;
+document.addEventListener("click",e=>{const x=e.target.closest&&e.target.closest("[data-gt]");if(!x)return;e.preventDefault();let at=null;try{at=aquaFrame.contentWindow.aquaTipos()}catch(er){}
+  const t=x.dataset.gt,novo=at&&at.filtro===t&&!at.grupo?"":t;try{localStorage.removeItem(grpK())}catch(er){}window.grupoSelecionado=null;
+  try{const w=aquaFrame.contentWindow;w.aquaFiltroTipo&&w.aquaFiltroTipo(novo)}catch(er){}render();drawGrpBar("aqua");drawGrpAq();grpToast(novo?`📌 Processando só <b>${novo==="viveiro"?"viveiros":"tanques"}</b> no AquaNictemeral`:"📌 Processando <b>tanques e viveiros</b> no AquaNictemeral")});
 document.addEventListener("click",e=>{const x=e.target.closest&&e.target.closest("[data-gb]");if(!x)return;e.preventDefault();const bar=document.getElementById("grp-bar"),v=bar&&bar.dataset.view;if(!v)return;
   if(x.dataset.gb==="all"){try{localStorage.removeItem(grpK())}catch(er){}window.grupoSelecionado=null;document.querySelectorAll(".grp-flash").forEach(el=>el.classList.remove("grp-flash"));
     if(v==="aqua"){try{const w=aquaFrame.contentWindow;w.aquaGrupoTodos&&w.aquaGrupoTodos()}catch(er){}}render();drawGrpBar(v);drawGrpAq();grpToast("📌 Processando <b>todos os grupos</b> ao mesmo tempo");return}
@@ -8076,7 +8088,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v90";
+  const APP_VERSAO="ras-v91";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
