@@ -1913,12 +1913,22 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
      &lt;ul class=&quot;gd-cor&quot;&gt;${corr.map((t) =&gt; `&lt;li&gt;${t}&lt;/li&gt;`).join(&quot;&quot;)}&lt;/ul&gt;
      &lt;p class=&quot;gd-nota&quot;&gt;Barras: mínimo a máximo de cada dia, na cor da situação; linha: média do dia; faixa verde: ideal da espécie. Amônia produzida = ração × proteína × 0,092 (ou o PNAT da Calculadora); O₂ ≈ 0,3 kg por kg de ração. Leituras da Água do sistema completam as do grupo.&lt;/p&gt;`; }
   // ---------------- curvas de todos os tanques/viveiros (uma por medida; destaque até 8 com cor fixa, demais em cinza)
-  let mcParam = &quot;*&quot;, mcHL = null, mcAuto = true, mcPer = &quot;tudo&quot;, mcArgs = null; const mcCor = {};
+  let mcParam = &quot;*&quot;, mcHL = null, mcAuto = true, mcPer = &quot;tudo&quot;, mcArgs = null, mcModo = null, mcPioresInfo = &quot;&quot;; const mcCor = {};
   const MC_PS = [&quot;od&quot;, &quot;temperatura&quot;, &quot;ph&quot;, &quot;od_saturacao&quot;, &quot;tan&quot;, &quot;nh3&quot;, &quot;nitrito&quot;, &quot;nitrato&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;dureza&quot;, &quot;salinidade&quot;, &quot;transparencia&quot;, &quot;clorofila_a&quot;, &quot;sst&quot;, &quot;ss_imhoff&quot;, &quot;vibrio&quot;];
   const mcNome = (p) =&gt; ({ od: &quot;Oxigênio dissolvido&quot;, temperatura: &quot;Temperatura&quot;, ph: &quot;pH&quot;, od_saturacao: &quot;Saturação de O₂&quot;, tan: &quot;Amônia total&quot;, nh3: &quot;Amônia tóxica (NH₃)&quot;, co2: &quot;CO₂ livre&quot;, ss_imhoff: &quot;Sólidos sedimentáveis&quot;, sst: &quot;Sólidos suspensos&quot;, clorofila_a: &quot;Clorofila-a&quot; }[p] || (PN[p] ? PN[p].nome : p));
   const mcUn = (p) =&gt; { const u = PN[p] ? PN[p].unidade : &quot;&quot;; return u &amp;&amp; u !== &quot;—&quot; ? u : &quot;&quot;; };
   const mcDec = (p) =&gt; (p === &quot;ph&quot; ? 2 : [&quot;tan&quot;, &quot;nh3&quot;, &quot;nitrito&quot;].includes(p) ? 3 : 1);
   function mcCorDe(id) { if (mcCor[id] != null) return `var(--s${mcCor[id] + 1})`; const usados = new Set(Object.values(mcCor)); for (let i = 0; i &lt; 8; i++) if (!usados.has(i)) { mcCor[id] = i; return `var(--s${i + 1})`; } return &quot;var(--ink-3)&quot;; }
+  // piores no período mostrado: pior situação de cada tanque/viveiro; no empate (mais da metade no pior nível), fica a metade com menor OD
+  function mcPiores(US, dias) {
+    const r = US.map((u) =&gt; { let st = 0, od = Infinity, odD = &quot;&quot;; for (const d of dias) { const m = metricasDia(u, d); if (!m || !m.n) continue; st = Math.max(st, STORD[m.st] || 0); if (typeof m.odMin === &quot;number&quot; &amp;&amp; m.odMin &lt; od) { od = m.odMin; odD = d + &quot; &quot; + (m.odMinHora || &quot;&quot;); } } return { u, st, od, odD }; }).filter((x) =&gt; x.st &gt; 0 || x.od &lt; Infinity);
+    if (!r.length) return { sel: [], txt: &quot;nenhum tanque/viveiro com leituras&quot; };
+    const mx = Math.max(...r.map((x) =&gt; x.st)); let sel = r.filter((x) =&gt; x.st === mx).sort((a, b) =&gt; a.od - b.od);
+    if (mx &lt;= STORD.ideal) sel = r.sort((a, b) =&gt; a.od - b.od).slice(0, 1);
+    else if (sel.length &gt; 1 &amp;&amp; sel.length &gt; r.length / 2) sel = sel.slice(0, Math.max(1, Math.floor(r.length / 2)));
+    sel = sel.slice(0, 8); const nomeSt = Object.keys(STORD).find((k) =&gt; STORD[k] === mx) || &quot;&quot;;
+    return { sel: sel.map((x) =&gt; x.u), txt: `${mx &lt;= STORD.ideal ? &quot;nenhum fora do ideal; destacado o de menor OD&quot; : `situação ${STLBL[nomeSt] || nomeSt}`} · ${sel.map((x) =&gt; `${x.u.nome}${x.od &lt; Infinity ? ` (OD mín. ${fmt(x.od, 1)} mg/L em ${dataBR(x.odD.slice(0, 10))} ${x.odD.slice(11)})` : &quot;&quot;}`).join(&quot;, &quot;)}` };
+  }
   function mcLivra() { for (const id in mcCor) if (!mcHL || !mcHL.has(id)) delete mcCor[id]; }
   function renderMulti(US, dias0, dRef) {
     const grid = $(&quot;mc-grid&quot;), bar = $(&quot;mc-bar&quot;), leg = $(&quot;mc-leg&quot;); if (!grid) return;
@@ -1931,26 +1941,28 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     const tem = (p) =&gt; US.filter((u) =&gt; L[u.id].some((l) =&gt; typeof l[p] === &quot;number&quot;)).length;
     const PS = MC_PS.filter((p) =&gt; tem(p) &gt; 0);
     const comDados = US.filter((u) =&gt; L[u.id].length);
+    if (mcModo === &quot;piores&quot;) { const pz = mcPiores(comDados, dias); mcHL = new Set(pz.sel.map((u) =&gt; u.id)); mcAuto = false; mcPioresInfo = pz.txt; } else mcPioresInfo = &quot;&quot;;
     if (!mcHL || mcAuto) { mcAuto = true; const ruim = comDados.map((u) =&gt; ({ u, st: STORD[metricasDia(u, dRef).st] || 0 })).sort((a, b) =&gt; b.st - a.st); mcHL = new Set(ruim.slice(0, Math.min(8, ruim.length)).map((x) =&gt; x.u.id)); }
     for (const id of [...mcHL]) if (!US.some((u) =&gt; u.id === id)) mcHL.delete(id);
     mcLivra(); [...mcHL].forEach((id) =&gt; mcCorDe(id));
     if (mcParam !== &quot;*&quot; &amp;&amp; !PS.includes(mcParam)) mcParam = &quot;*&quot;;
     const nLe = comDados.reduce((t, u) =&gt; t + L[u.id].length, 0);
-    $(&quot;mc-sub&quot;).textContent = `${mcPer === &quot;tudo&quot; ? `Todas as ${nLe} leituras` : `${nLe} leituras`} de ${comDados.length} de ${US.length} tanque(s)/viveiro(s) ${semana ? `de ${dataBR(dias[0])} a ${dataBR(dias[dias.length - 1])}${mcPer === &quot;tudo&quot; ? ` (${dias.length} dias com leituras, lado a lado)` : &quot;&quot;}` : `em ${diaSemana(dias[0])} ${dataBR(dias[0])}`} · em destaque: ${mcHL.size} (máx. 8) · os demais aparecem em cinza. Toque numa curva ou no nome para destacar.`;
+    $(&quot;mc-sub&quot;).textContent = `${mcPer === &quot;tudo&quot; ? `Todas as ${nLe} leituras` : `${nLe} leituras`} de ${comDados.length} de ${US.length} tanque(s)/viveiro(s) ${semana ? `de ${dataBR(dias[0])} a ${dataBR(dias[dias.length - 1])}${mcPer === &quot;tudo&quot; ? ` (${dias.length} dias com leituras, lado a lado)` : &quot;&quot;}` : `em ${diaSemana(dias[0])} ${dataBR(dias[0])}`} · ${mcModo === &quot;piores&quot; ? `⚠️ só os piores em destaque — ${mcPioresInfo}` : `em destaque: ${mcHL.size} (máx. 8)`} · os demais aparecem em cinza. Toque numa curva ou no nome para destacar.`;
     bar.innerHTML = `&lt;span class=&quot;lbl&quot;&gt;Período&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p mc-per&quot; data-per=&quot;tudo&quot; aria-pressed=&quot;${mcPer === &quot;tudo&quot;}&quot;&gt;Todas as datas&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p mc-per&quot; data-per=&quot;painel&quot; aria-pressed=&quot;${mcPer !== &quot;tudo&quot;}&quot;&gt;${dias0.length &gt; 1 ? &quot;7 dias&quot; : &quot;Só o dia&quot;} do painel&lt;/button&gt;&lt;span class=&quot;lbl&quot; style=&quot;margin-left:8px&quot;&gt;Medidas&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p&quot; data-p=&quot;*&quot; aria-pressed=&quot;${mcParam === &quot;*&quot;}&quot;&gt;Todas&lt;small&gt;${PS.length}&lt;/small&gt;&lt;/button&gt;` + PS.map((p) =&gt; `&lt;button type=&quot;button&quot; class=&quot;mc-p&quot; data-p=&quot;${p}&quot; aria-pressed=&quot;${mcParam === p}&quot;&gt;${mcNome(p)}&lt;small&gt;${tem(p)}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;);
     leg.innerHTML = `&lt;span class=&quot;lbl&quot; style=&quot;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-right:4px&quot;&gt;Tanques/viveiros&lt;/span&gt;` + US.map((u) =&gt; { const on = mcHL.has(u.id); return `&lt;button type=&quot;button&quot; class=&quot;mc-u${on ? &quot; on&quot; : &quot;&quot;}${L[u.id].length ? &quot;&quot; : &quot; semd&quot;}&quot; data-u=&quot;${u.id}&quot; aria-pressed=&quot;${on}&quot;&gt;&lt;i style=&quot;${on ? `background:${mcCorDe(u.id)}` : &quot;&quot;}&quot;&gt;&lt;/i&gt;${escO(u.nome)}&lt;/button&gt;`; }).join(&quot;&quot;)
-      + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;ruins&quot;&gt;Destacar os piores&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;limpar&quot;&gt;Limpar destaque&lt;/button&gt;`;
+      + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;ruins&quot; aria-pressed=&quot;${mcModo === &quot;piores&quot;}&quot;${mcModo === &quot;piores&quot; ? &#x27; style=&quot;background:var(--crit);color:#fff;border-color:var(--crit)&quot;&#x27; : &quot;&quot;}&gt;⚠️ Destacar só os piores&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;todos&quot;&gt;Destacar todos&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;limpar&quot;&gt;Limpar destaque&lt;/button&gt;`;
     bar.querySelectorAll(&quot;.mc-p&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { if (b.dataset.per) mcPer = b.dataset.per; else mcParam = b.dataset.p; renderMulti(US, dias0, dRef); }));
     leg.querySelectorAll(&quot;.mc-u&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { mcToggle(b.dataset.u); renderMulti(US, dias0, dRef); }));
-    leg.querySelector(&#x27;[data-mc=&quot;limpar&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = new Set(); mcAuto = false; renderMulti(US, dias0, dRef); });
-    leg.querySelector(&#x27;[data-mc=&quot;ruins&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = null; renderMulti(US, dias0, dRef); });
+    leg.querySelector(&#x27;[data-mc=&quot;limpar&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = new Set(); mcAuto = false; mcModo = null; renderMulti(US, dias0, dRef); });
+    leg.querySelector(&#x27;[data-mc=&quot;todos&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcModo = null; mcAuto = false; mcLivra(); mcHL = new Set(comDados.slice(0, 8).map((u) =&gt; u.id)); renderMulti(US, dias0, dRef); });
+    leg.querySelector(&#x27;[data-mc=&quot;ruins&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcModo = mcModo === &quot;piores&quot; ? null : &quot;piores&quot;; if (!mcModo) mcHL = null; renderMulti(US, dias0, dRef); });
     if (!PS.length) { grid.className = &quot;mc-grid um&quot;; grid.innerHTML = `&lt;div class=&quot;mc-vazio&quot;&gt;Nenhuma leitura ${semana ? &quot;nestes 7 dias&quot; : &quot;neste dia&quot;}. Escolha outro dia de referência acima ou importe leituras no botão 📈 Nictemeral.&lt;/div&gt;`; return; }
     const lista = mcParam === &quot;*&quot; ? PS : [mcParam];
     grid.className = &quot;mc-grid&quot; + (lista.length === 1 ? &quot; um&quot; : &quot;&quot;);
     grid.innerHTML = lista.map((p) =&gt; `&lt;div class=&quot;mc-c&quot; data-p=&quot;${p}&quot;&gt;&lt;div class=&quot;mc-h&quot;&gt;&lt;b&gt;${mcNome(p)}${mcUn(p) ? ` &lt;small style=&quot;font-weight:500;color:var(--ink-3)&quot;&gt;(${mcUn(p)})&lt;/small&gt;` : &quot;&quot;}&lt;/b&gt;&lt;span&gt;${tem(p)} tanque(s)&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;mc-s&quot;&gt;&lt;/div&gt;&lt;div class=&quot;tip&quot; hidden&gt;&lt;/div&gt;&lt;/div&gt;`).join(&quot;&quot;);
     grid.querySelectorAll(&quot;.mc-c&quot;).forEach((c) =&gt; mcChart(c, c.dataset.p, US, L, dias, lista.length === 1));
   }
-  function mcToggle(id) { mcAuto = false; if (mcHL.has(id)) mcHL.delete(id); else { if (mcHL.size &gt;= 8) { const pri = [...mcHL][0]; mcHL.delete(pri); delete mcCor[pri]; } mcHL.add(id); } }
+  function mcToggle(id) { mcAuto = false; mcModo = null; if (mcHL.has(id)) mcHL.delete(id); else { if (mcHL.size &gt;= 8) { const pri = [...mcHL][0]; mcHL.delete(pri); delete mcCor[pri]; } mcHL.add(id); } }
   function mcChart(card, p, US, L, dias, grande) {
     const box = card.querySelector(&quot;.mc-s&quot;), tip = card.querySelector(&quot;.tip&quot;), D = dias.length, span = D * 1440;
     const W = svgW(box, 300), H = grande ? 300 : 200, m = { l: 40, r: 14, t: 12, b: 24 };
@@ -8367,7 +8379,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v97";
+  const APP_VERSAO="ras-v98";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
