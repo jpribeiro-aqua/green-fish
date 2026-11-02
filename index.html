@@ -719,6 +719,9 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.bx-hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.4fr);gap:18px;padding:18px}.bx-big{background:linear-gradient(135deg,#0f6e4f,#1baf7a);color:#fff;border-radius:16px;padding:18px 20px;display:grid;gap:8px;align-content:start}.bx-big small{font:700 12px var(--f-body);letter-spacing:.06em;text-transform:uppercase;opacity:.92}.bx-n{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.bx-n b{font:700 clamp(34px,6vw,54px)/1 var(--f-mono);font-variant-numeric:tabular-nums}.bx-n span{font:700 20px var(--f-body);opacity:.9}.bx-big p{margin:0;font-size:13px;line-height:1.45}.bx-big .meter{background:rgba(255,255,255,.25)}.bx-big .meter>div{background:#fff}.bx-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.bx-t{display:grid;gap:3px;align-content:start;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--surface);color:inherit;text-decoration:none;box-shadow:inset 4px 0 0 var(--line)}a.bx-t[data-goto]:hover{border-color:var(--ink)}.bx-t.ok{box-shadow:inset 4px 0 0 #1baf7a}.bx-t.warn{box-shadow:inset 4px 0 0 #e09a00;border-color:#e09a00}.bx-t.crit{box-shadow:inset 4px 0 0 #d33f2e;border-color:#d33f2e}.bx-ti{font-size:20px}.bx-tl{font:700 11px var(--f-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}.bx-t b{font:700 18px var(--f-mono)}.bx-t small{color:var(--muted);font-size:12px;line-height:1.35}.bx-kpis{margin:0}.bx-hot{color:#d33f2e!important;font-weight:700}.bx-warn{color:#b87800!important;font-weight:700}
+.bx-fw{display:grid;gap:22px}.bx-g h3{margin:0 0 8px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:16px}.bx-g h3 small{font-weight:400;color:var(--muted);font-size:13px}.bx-steps{display:flex;gap:3px;margin:0 0 10px;min-width:0;overflow:hidden;border-radius:10px}.bx-s{min-width:56px;padding:7px 8px;background:var(--bg);border:1px solid var(--line);display:grid;gap:1px;font-size:11px;overflow:hidden}.bx-s b{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bx-s small{color:var(--muted);white-space:nowrap}.bx-feita{opacity:.55}.bx-agora{background:#1baf7a;color:#fff;border-color:#0f6e4f}.bx-agora small{color:#e8fff4}.bx-ft tr.bx-r-agora td{background:rgba(27,175,122,.13)}.bx-ft tr.bx-r-feita td{opacity:.6}
+@media(max-width:760px){.bx-hero{grid-template-columns:1fr;padding:12px}}
 .gfh{--h:var(--accent);border-radius:16px;padding:18px 20px;margin:0 0 14px;background:linear-gradient(135deg,color-mix(in srgb,var(--h) 14%,var(--surface)) 0%,var(--surface) 60%);border:1.5px solid color-mix(in srgb,var(--h) 45%,var(--line));box-shadow:0 6px 22px rgba(0,0,0,.07)}
 .gfh-ok{--h:#1baf7a}.gfh-warn{--h:#e09a00}.gfh-crit{--h:#d33f2e}.gfh-info{--h:var(--accent)}
 .gfh-top{display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap}.gfh-ico{font-size:34px;width:58px;height:58px;display:grid;place-items:center;border-radius:14px;background:color-mix(in srgb,var(--h) 18%,var(--surface));flex:none}
@@ -3190,14 +3193,19 @@ function lotModel(t,g,p,rit,mort){
   if(!(Number.isInteger(nT)&&nT>=0)) errs.push("peixes por tanque");
   const ok=!errs.length&&g.q>0;
   const d0=ok?dayOf(sp,w0):0;
-  const harvest=ok?start+(dayOf(sp,alvo)-d0)/rit*DAY:null;
+  const harvest0=ok?start+(dayOf(sp,alvo)-d0)/rit*DAY:null;
+  // biometria do tanque RAS: o peso medido substitui o da curva a partir da data dela
+  let cal=null;if(ok&&window.bioUltRAS){try{const b=bioUltRAS(t.id);if(b&&b.pm>0&&b.ts>=start&&b.ts<=Math.max(harvest0,start)+120*DAY){const eb=(b.ts-start)/DAY;cal={...b,eb,db:dayOf(sp,b.pm),esp:wAt(sp,d0+eb*rit)}}}catch(e){}}
+  const harvest=!ok?null:cal?(cal.pm>=alvo?cal.ts+DAY:cal.ts+(dayOf(sp,alvo)-cal.db)/rit*DAY):harvest0;
   const cap=(g.dm??p.DM)*g.vol;
-  const val=e=>{
-    const dd=d0+e*rit,w=wAt(sp,dd);
+  const valF=(e,uc)=>{
+    const dd=uc&&cal&&e>=cal.eb?cal.db+(e-cal.eb)*rit:d0+e*rit,w=wAt(sp,dd);
     const gpd=(wAt(sp,dd+.5)-wAt(sp,dd-.5))*rit,n=nT*g.q*Math.pow(1-mort,e/30),fca=bandOf(sp.fca,w);
     const fr=feedRow(L.sp,w),feedF=n*gpd*fca/1000*adj,feedT=n*w/1000*fr.pv/100*rit*adj;
     return {on:true,e,w,n,bio:n*w/1000,gpd,fca,fr,feedF,feedT,feed:feedMet==="fca"?feedF:feedT,gain:n*gpd/1000,phase:bandOf(sp.phases,w)};
   };
+  const val=e=>valF(e,true);
+  const at0=ms=>(!ok||ms<start||ms>=harvest0)?{on:false,w:0,n:0,bio:0}:valF((ms-start)/DAY,false);
   const at=ms=>{
     if(!ok||ms<start) return {on:false,pre:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
     if(ms>=harvest) return {on:false,done:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
@@ -3206,7 +3214,7 @@ function lotModel(t,g,p,rit,mort){
   // primeiro dia em que a biomassa do grupo alcança a capacidade (DM × volume do grupo)
   let dmAt=null;
   if(ok&&cap>0) for(let ms=start;ms<harvest;ms+=DAY/4){if(at(ms).bio>=cap){dmAt=ms;break}}
-  return {t,g,sp,L,start,w0,alvo,nT,nDef,ok,errs,harvest,cap,at,val,dmAt,adj};
+  return {t,g,sp,L,start,w0,alvo,nT,nDef,ok,errs,harvest,cap,at,val,dmAt,adj,cal,at0,harvest0};
 }
 
 /* ---------- Arraçoamento: tabela por fase e tamanho ---------- */
@@ -3369,6 +3377,98 @@ function drawBioEditor(){
   document.getElementById("bio-rit").value=bioRitmo;document.getElementById("bio-mort").value=bioMort;
 }
 
+/* ---------- v96: biomassa em tempo real ligada às outras abas, inicial × final e plano de fases ---------- */
+const BX_RIT=t=>t>=28&&t<=32?100:t>32&&t<=34?85:t>34?60:t>=26?85:t>=25?75:t>=23?55:35;
+function bxAgua(){try{const w=aquaFrame.contentWindow,R=w&&w.aquaRelatorio?w.aquaRelatorio():null;if(!R||!R.length)return null;
+  const reais=R.filter(r=>!r.exemplo),U=reais.length?reais:R,ult={};for(const r of U){if(!ult[r.id]||r.data+r.ini>ult[r.id].data+ult[r.id].ini)ult[r.id]=r}
+  const L=Object.values(ult),ts=L.map(r=>r.temp&&r.temp[2]).filter(v=>typeof v==="number"),od=L.filter(r=>typeof r.odMin==="number").sort((a,b)=>a.odMin-b.odMin)[0];
+  const tm=ts.length?ts.reduce((a,v)=>a+v,0)/ts.length:null,dia=L.map(r=>r.dataFim||r.data).sort().pop();
+  return {tm,od,dia,ex:!reais.length,crit:L.filter(r=>r.st==="critico"||r.st==="letal").length,n:L.length}}catch(e){return null}}
+// biomassa total e a taxa (kg por segundo) para o contador ao vivo
+function bxTot(models,now){let b=0,b1=0;for(const m of models){if(!m.ok)continue;b+=m.at(now).bio;b1+=m.at(now+3600e3).bio}return {bio:b,rate:(b1-b)/3600}}
+let bxTimer=null;
+function bxTick(){clearInterval(bxTimer);const el=document.getElementById("bx-num");if(!el)return;const b0=+el.dataset.b,r=+el.dataset.r,t0=+el.dataset.t;
+  if(el.dataset.live!=="1")return;
+  bxTimer=setInterval(()=>{const e=document.getElementById("bx-num");if(!e||!document.body.contains(e)){clearInterval(bxTimer);return}
+    const v=b0+r*(Date.now()-t0)/1000;e.textContent=fmt(v,3);const g=document.getElementById("bx-sec");if(g)g.textContent=fmt(Math.abs(r)*1000,r*1000<1?3:1)},1000)}
+function bxLiveHTML(models,now,live,cap,p){
+  const ms=models.filter(m=>m.ok),T=bxTot(ms,now),st=ms.map(m=>({m,s:m.at(now)})),on=st.filter(x=>x.s.on);
+  const feed=on.reduce((a,x)=>a+x.s.feed,0),gain=on.reduce((a,x)=>a+x.s.gain,0),occ=cap>0?T.bio/cap:0,pct=T.bio>0?feed/T.bio*100:0;
+  const A=bxAgua(),ritU=bioParams().rit*100,ritS=A&&A.tm!=null?BX_RIT(A.tm):null;
+  const fm=(window.feedModels&&dashState&&dashState.ok)?1:0;
+  const cal=ms.filter(m=>m.cal);
+  const tile=(ico,t,v,d,go,c)=>`<a href="#" class="bx-t ${c||""}" ${go?`data-goto="${go}"`:""}><span class="bx-ti">${ico}</span><span class="bx-tl">${t}</span><b>${v}</b><small>${d}</small></a>`;
+  let odTxt="sem leituras",odC="",odD="importe as leituras no AquaNictemeral";
+  if(A&&A.od){const o=A.od.odMin;odTxt=`OD mín. ${fmt(o,1)} mg/L`;odC=o<3?"crit":o<4?"warn":"ok";
+    odD=o<3?`${esc(A.od.nome)} às ${esc(A.od.odMinHora||"")}: suspenda o trato da madrugada e do começo da manhã até o OD passar de 4 mg/L`:o<4?`${esc(A.od.nome)}: reduza de 20 a 30% a ração dos tratos cedo`:`água com oxigênio para a ração calculada`}
+  const temTxt=A&&A.tm!=null?`${fmt(A.tm,1)} °C`:"—",temD=ritS==null?"sem temperatura no AquaNictemeral":ritS===Math.round(ritU)?`ritmo de ${f0(ritU)}% já combina com a água`:`a água pede ritmo de ${ritS}% (usando ${f0(ritU)}%)`;
+  return `<section class="card wide bx"><div class="bx-hero">
+    <div class="bx-big"><small>${live?"🟢 Biomassa total agora · ao vivo":"Biomassa total na data simulada"}</small>
+      <div class="bx-n"><b id="bx-num" data-b="${T.bio}" data-r="${T.rate}" data-t="${Date.now()}" data-live="${live?1:0}">${fmt(T.bio,3)}</b><span>kg</span></div>
+      <p>${live?`Crescendo <b id="bx-sec">${fmt(Math.abs(T.rate)*1000,T.rate*1000<1?3:1)}</b> g por segundo · ${n(gain,1)} kg por dia`:`Ganho na data: ${n(gain,1)} kg/dia`} · ${f0(on.reduce((a,x)=>a+x.s.n,0))} animais em ${on.length} grupo${on.length===1?"":"s"}${cal.length?` · ${cal.length} grupo${cal.length===1?"":"s"} corrigido${cal.length===1?"":"s"} pela biometria`:""}</p>
+      <div class="meter big${occ>=1?" hot":""}" role="img" aria-label="Ocupação ${fmt(occ*100,1)}%"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
+      <p class="bx-occ"><b>${fmt(occ*100,1)}%</b> da biomassa máxima do sistema (${n(cap,0)} kg) · folga ${n(Math.max(0,cap-T.bio),0)} kg</p></div>
+    <div class="bx-tiles">
+      ${tile("🍽","Arraçoamento",`${fk(feed)}/dia`,`${fmt(pct,2)}% da biomassa · ${on.length?on.map(x=>`${esc(x.m.name)}: ${x.s.fr.fase}`).join(" · "):"sem lotes"}`,"racao")}
+      ${tile("🧮","Calculadora",`${n(cap,0)} kg`,`biomassa máxima (DM × volume) · ocupação ${fmt(occ*100,0)}%`,"calc",occ>=1?"crit":occ>=.85?"warn":"")}
+      ${tile("📈","AquaNictemeral",odTxt,odD,"aqua",odC)}
+      ${tile("🌡","Temperatura × crescimento",temTxt,temD+(ritS!=null&&ritS!==Math.round(ritU)?` <button type="button" class="linkbtn" data-bx-rit="${ritS}">usar ${ritS}%</button>`:""),"",ritS!=null&&ritS<Math.round(ritU)?"warn":"")}
+      ${tile("📏","Biometria",cal.length?`${cal.length} de ${ms.length} grupos`:"sem biometria",cal.length?cal.map(m=>`${esc(m.name)}: ${fw(m.cal.pm)} g em ${fmtDs(m.cal.ts)} (${m.cal.pm>=m.cal.esp?"+":""}${fmt((m.cal.pm/m.cal.esp-1)*100,0)}% da curva)`).join(" · "):"lance uma biometria dos tanques RAS para corrigir o peso e a fase","aqua")}
+    </div></div>
+    <div class="card-foot">A biomassa vem dos lotes (peso da curva de crescimento × animais vivos). Quando há biometria do tanque, o peso medido substitui o da curva a partir daquela data, e a fase, a ração e a despesca são recalculadas. A ração do dia segue a fase de cada lote; o ritmo de crescimento e a água do AquaNictemeral mudam a velocidade da curva.</div></section>`}
+
+// biomassa inicial (povoamento), agora, final (despesca) e máxima suportada, por grupo e por tanque
+function bxIFHTML(models,now,cap,live){
+  const ms=models.filter(m=>m.ok);if(!ms.length)return "";
+  const R=ms.map(m=>{const cyc=(m.harvest-m.start)/DAY,i=m.val(0),f=m.val(Math.max(0,cyc-1e-6)),s=m.at(now),q=m.g.q||1;let pk=0;
+    for(let e=0;e<cyc;e+=Math.max(.25,cyc/400)){const v=m.val(e);if(v.bio>pk)pk=v.bio}pk=Math.max(pk,f.bio);
+    return {m,q,cap:m.cap,i,f,s,pk,cyc}});
+  // pico da soma no tempo (biomassa máxima total atingida)
+  const x0=Math.min(...ms.map(m=>m.start)),x1=Math.max(...ms.map(m=>m.harvest));let pico=0,pd=x0;
+  for(let t=x0;t<=x1;t+=Math.max(DAY/4,(x1-x0)/600)){const v=ms.reduce((a,m)=>a+m.at(t).bio,0);if(v>pico){pico=v;pd=t}}
+  const sI=R.reduce((a,r)=>a+r.i.bio,0),sF=R.reduce((a,r)=>a+r.f.bio,0),sA=R.reduce((a,r)=>a+(r.s.on?r.s.bio:0),0),sC=R.reduce((a,r)=>a+r.cap,0),sQ=R.reduce((a,r)=>a+r.q,0);
+  const oc=(v,c)=>c>0?`<small class="${v/c>=1?"bx-hot":v/c>=.85?"bx-warn":""}">${fmt(v/c*100,0)}% da máx.</small>`:"";
+  const k=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d}</small></div></div>`;
+  return `<section class="card wide"><div class="card-head"><h2>Biomassa inicial, final e máxima<span>Total do sistema, por grupo e por tanque · do povoamento à despesca</span></h2></div>
+   <div class="body"><div class="gfh-kpis bx-kpis">
+     ${k("Biomassa máxima total (capacidade)",`${n(sC,0)} kg`,`DM × volume dos ${f0(sQ)} tanques · ${n(cap,0)} kg na Calculadora`)}
+     ${k("Biomassa total inicial",`${n(sI,0)} kg`,`soma dos povoamentos · ${fmt(sC>0?sI/sC*100:0,0)}% da capacidade`)}
+     ${k(live?"Biomassa total agora":"Biomassa total na data",`${n(sA,0)} kg`,`${fmt(sC>0?sA/sC*100:0,0)}% da capacidade`,sC>0&&sA/sC>=1?"crit":"ok")}
+     ${k("Biomassa total final",`${n(sF,0)} kg`,`soma das despescas · ${fmt(sC>0?sF/sC*100:0,0)}% da capacidade`,sC>0&&sF/sC>1?"crit":"")}
+     ${k("Pico da biomassa total",`${n(pico,0)} kg`,`em ${fmtD(pd)} (grupos somados no mesmo dia)`,sC>0&&pico/sC>1?"crit":sC>0&&pico/sC>=.85?"warn":"")}
+   </div></div>
+   <div class="scroll"><table class="lot bx-if"><thead><tr><th>Grupo</th><th>Máxima<small>capacidade</small></th><th>Inicial<small>povoamento</small></th><th>${live?"Agora":"Na data"}</th><th>Final<small>despesca</small></th><th>Pico do grupo</th><th>Ganho no ciclo</th></tr></thead><tbody>${R.map(r=>{const c=(v,o)=>`<td><b>${n(v,0)} kg</b><small>${n(v/r.q,v/r.q<10?1:0)} kg por tanque</small>${o||""}</td>`;
+     return `<tr><td class="g"><b><i class="sw" style="background:${r.m.color}"></i> ${esc(r.m.name)}</b><small>${r.m.sp.name} · ${f0(r.q)} tanque${r.q===1?"":"s"} · ${fmtDs(r.m.start)} → ${fmtDs(r.m.harvest)}</small></td>
+       ${c(r.cap)}${c(r.i.bio,`<small>${fw(r.i.w)} g · ${f0(r.i.n)} animais</small>`)}${r.s.on?c(r.s.bio,`<small>${fw(r.s.w)} g · ${r.s.fr.fase}</small>`+oc(r.s.bio,r.cap)):`<td class="off">${r.s.pre?"ainda não povoado":"despescado"}</td>`}
+       ${c(r.f.bio,`<small>${fw(r.f.w)} g · ${f0(r.f.n)} animais</small>`+oc(r.f.bio,r.cap))}${c(r.pk,oc(r.pk,r.cap))}
+       <td><b>${n(r.f.bio-r.i.bio,0)} kg</b><small>${f0(Math.ceil(r.cyc))} dias</small></td></tr>`}).join("")}</tbody>
+   <tfoot><tr><td><b>Sistema</b><small>${f0(sQ)} tanques</small></td><td><b>${n(sC,0)} kg</b></td><td><b>${n(sI,0)} kg</b></td><td><b>${n(sA,0)} kg</b></td><td><b>${n(sF,0)} kg</b></td><td><b>${n(pico,0)} kg</b><small>${fmtDs(pd)}</small></td><td><b>${n(sF-sI,0)} kg</b></td></tr></tfoot></table></div>
+   <div class="card-foot">Máxima = densidade máxima (DM) × volume do grupo. Inicial = peso de povoamento × animais povoados. Final = peso de despesca × animais vivos na despesca (com a mortalidade da aba). O pico do sistema soma os grupos no mesmo dia; ele pode ser menor que a soma das finais quando as despescas não coincidem.</div></section>`}
+
+// plano por fase, em ordem crescente de tamanho, com a fase atual em destaque
+function bxFases(m,now){const cyc=(m.harvest-m.start)/DAY,F=[],e0=(now-m.start)/DAY;let cur=null;
+  for(let e=0;e<cyc;e+=1){const h=Math.min(1,cyc-e),v=m.val(e+h/2),i=v.fr.i;
+    if(!cur||cur.i!==i){cur={i,fr:v.fr,e0:e,w0:m.val(e).w,b0:m.val(e).bio,kg:0,tr:trOf(m,v.fr),pv:[],sum:0};F.push(cur)}
+    cur.e1=e+h;cur.w1=m.val(Math.min(e+h,cyc-1e-6)).w;cur.b1=m.val(Math.min(e+h,cyc-1e-6)).bio;cur.kg+=v.feed*h;cur.pv.push(v.bio>0?v.feed/v.bio*100:0)}
+  const rows=FEED[m.L.sp]||FEED.tilapia;
+  return F.map(f=>({...f,ms0:m.start+f.e0*DAY,ms1:m.start+f.e1*DAY,dias:f.e1-f.e0,st:e0>=f.e1?"feita":e0>=f.e0?"agora":"futura",de:f.i?rows[f.i-1].ate:0,ate:rows[f.i].ate,
+    pvM:f.pv.length?f.pv.reduce((a,v)=>a+v,0)/f.pv.length:0}))}
+function bxFasesHTML(models,now){
+  const ms=models.filter(m=>m.ok);if(!ms.length)return "";
+  const fx=v=>v===Infinity?"∞":fmt(v,v<1?2:v<10?1:0);
+  return `<section class="card wide"><div class="card-head"><h2>Arraçoamento por fase de crescimento<span>Cada espécie com a sua tabela · fases em ordem crescente de tamanho · a fase atual de cada lote em destaque</span></h2></div>
+   <div class="body bx-fw">${ms.map(m=>{const F=bxFases(m,now),a=F.find(f=>f.st==="agora"),tot=F.reduce((s,f)=>s+f.kg,0);
+     return `<div class="bx-g"><h3><i class="sw" style="background:${m.color}"></i> ${esc(m.name)} <small>${m.sp.name} · ${a?`agora em <b>${a.fr.fase}</b> (${fw(m.at(now).w)} g)`:m.at(now).pre?"aguardando povoamento":"despescado"}${m.cal?` · peso corrigido pela biometria de ${fmtDs(m.cal.ts)}`:""}</small></h3>
+     <div class="bx-steps">${F.map((f,j)=>`<div class="bx-s bx-${f.st}" style="flex:${Math.max(1,f.dias).toFixed(1)}" title="${f.fr.fase}: ${fmtD(f.ms0)} a ${fmtD(f.ms1)}"><b>${f.fr.fase}</b><small>${fw(f.w0)}→${fw(f.w1)} g</small></div>`).join("")}</div>
+     <div class="scroll"><table class="lot bx-ft"><thead><tr><th>#</th><th class="l">Fase</th><th>Tamanho<small>da tabela · no lote</small></th><th>Período<small>início → fim</small></th><th class="l">Ração<small>proteína · grânulo</small></th><th>% da biomassa<small>por dia</small></th><th>Tratos</th><th>Biomassa<small>início → fim</small></th><th>Ração na fase</th></tr></thead><tbody>
+     ${F.map((f,j)=>`<tr class="bx-r-${f.st}"><td>${j+1}</td><td class="l"><b>${f.fr.fase}</b><small>${f.st==="agora"?"◀ fase atual":f.st==="feita"?"concluída":"próxima"}</small></td>
+       <td><b>${fx(f.de)}–${fx(f.ate)} g</b><small>lote: ${fw(f.w0)} → ${fw(f.w1)} g</small></td>
+       <td><b>${fmtDs(f.ms0)} → ${fmtDs(f.ms1)}</b><small>${f0(Math.max(1,Math.round(f.dias)))} dias</small></td>
+       <td class="l"><b>${f.fr.pb}% PB</b><small>${esc(f.fr.gr)}</small></td><td><b>${fmt(f.pvM,1)}%</b><small>tabela ${fmt(f.fr.pv,1)}%</small></td><td><b>${f.tr}</b><small>${hrs(f.tr)}</small></td>
+       <td><b>${n(f.b0,0)} → ${n(f.b1,0)} kg</b><small>${n(f.b0/(m.g.q||1),0)} → ${n(f.b1/(m.g.q||1),0)} kg por tanque</small></td><td><b>${fk(f.kg)}</b><small>${f0(Math.ceil(f.kg/25-1e-9))} sacos de 25 kg</small></td></tr>`).join("")}</tbody>
+     <tfoot><tr><td></td><td class="l"><b>Ciclo</b></td><td></td><td><b>${fmtDs(m.start)} → ${fmtDs(m.harvest)}</b></td><td></td><td></td><td></td><td><b>${n(F.length?F[0].b0:0,0)} → ${n(F.length?F[F.length-1].b1:0,0)} kg</b></td><td><b>${fk(tot)}</b></td></tr></tfoot></table></div></div>`}).join("")}</div>
+   <div class="card-foot">A fase muda pelo <b>peso médio</b> do lote, não pela data: quando o peixe ou camarão passa do limite de tamanho da fase, entram a proteína, a granulometria, a % da biomassa e os tratos da fase seguinte (tabela de arraçoamento da espécie, editável na aba Biomassa). Com biometria, o peso medido define a fase atual e o resto da projeção.</div></section>`}
+
 function drawBio(){
   if(!dashState||bioEl.hidden) return;
   drawPlan();
@@ -3402,6 +3502,7 @@ function drawBio(){
     ${kpi(live?"Ganho de biomassa hoje":"Ganho de biomassa na data",n(tot.gain,1),"kg/d")}
     ${kpi("Próxima despesca",next?fmtDs(next.harvest):"—",next?esc(next.name):"")}
   </section>`;
+  h=bxLiveHTML(models,now,live,cap,p)+h+bxIFHTML(models,now,cap,live);
   h+=`<section class="card wide"><div class="card-head"><h2>Ocupação do sistema<span>Biomassa atual × biomassa máxima (${p.perEsp?"Σ DM da espécie × volume do grupo":"DM × V"} = ${n(cap,0)} kg)</span></h2></div><div class="body">
     <div class="meter big${occ>=1?" hot":""}" role="img" aria-label="Ocupação de ${fmt(occ*100,1)} %"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
     <div class="flow-foot"><span>${live?"Agora":"Na data"}: <b>${n(tot.bio,0)} kg</b> de <b>${n(cap,0)} kg</b></span><span>Folga: <b>${n(Math.max(0,cap-tot.bio),0)} kg</b></span>${alertM.length?`<span>Primeiro grupo a atingir a densidade máxima: <b>${esc(alertM.sort((a,b)=>a.dmAt-b.dmAt)[0].name)}</b>, em ${fmtD(alertM[0].dmAt)}</span>`:`<span>Nenhum grupo atinge a densidade máxima antes da despesca.</span>`}</div>
@@ -3445,7 +3546,8 @@ function drawBio(){
       <div class="dens"><span>Densidade ${fmt(dens,1)} de ${n(dmg,0)} kg/m³</span><div class="meter${o>=1?" hot":""}"><div style="width:${Math.min(100,o*100).toFixed(2)}%"></div></div></div>
       ${tail}${m.L.sp==="camarao"&&(m.g.dm??p.DM)>9?`<div class="warnline">A densidade máxima usada neste grupo (${n(m.g.dm??p.DM,0)} kg/m³) é alta para camarão: em superintensivo usa-se de 3 a 6 kg/m³, e acima de 9 kg/m³ só com oxigênio suplementar.</div>`:""}</div>`}).join("");
   h+=`<section class="card wide"><div class="card-head"><h2>Situação de cada grupo<span>Valores médios do lote ${live?"neste momento":"na data simulada"}</span></h2></div><div class="body"><div class="cards">${cards}</div></div></section>`;
-  out.innerHTML=h;
+  h+=bxFasesHTML(models,now);
+  out.innerHTML=h;bxTick();
   drawBioChart(document.getElementById("bio-chart"),models.filter(m=>m.ok),cap,now);
   drawFeed(models,now);
 }
@@ -3511,6 +3613,7 @@ bioEl.addEventListener("input",e=>{
   if(el.id==="bio-mort"){bioMort=el.value;save();drawBio()}
 });
 bioEl.addEventListener("click",e=>{
+  const br=e.target.closest("[data-bx-rit]");if(br){e.preventDefault();e.stopPropagation();bioRitmo=br.dataset.bxRit;const ri=document.getElementById("bio-rit");if(ri)ri.value=bioRitmo;save();drawBio();return}
   const fm=e.target.closest("[data-fm]");if(fm){feedMet=fm.dataset.fm;save();drawBio();return}
   const fs=e.target.closest("[data-fsp]");if(fs){feedSp=fs.dataset.fsp;save();drawBio();return}
   if(e.target.closest("#feed-reset")){delete FEEDT[feedSp];save();drawBio();return}
@@ -3738,7 +3841,7 @@ function drawFeedDash(){
   document.getElementById("fd-groups").innerHTML=`<button type="button" class="btn" data-fg="all" aria-pressed="${fdGroup==="all"}">Todos</button>`+okAll.map(m=>`<button type="button" class="btn" data-fg="${m.t.id}" aria-pressed="${String(m.t.id)===fdGroup}"><i class="sw" style="background:${m.color}"></i>${esc(m.name)}</button>`).join("");
   const ms=okAll.filter(m=>fdGroup==="all"||String(m.t.id)===fdGroup);
   if(!ms.length){out.innerHTML=`<section class="card wide"><div class="note">Nenhum lote válido. Preencha a tabela “Lotes nos tanques” na <a href="#" data-goto="bio">aba Biomassa</a>.</div></section>`;return}
-  out.innerHTML=feedBlock(ms,now,live,"fd-chart");
+  out.innerHTML=feedBlock(ms,now,live,"fd-chart")+bxFasesHTML(ms,now);
   drawFeedChart(document.getElementById("fd-chart"),ms,now);
 }
 
@@ -7770,7 +7873,7 @@ const amostrasU=(p,uid)=>B.amostras.filter(a=>(a.pid||"_local")===p&&a.unidade==
 const modelo=uid=>{try{const fm=typeof feedModels==="function"?feedModels()||[]:[];return fm.find(m=>"ras-"+m.t.id===uid)||null}catch(e){return null}};
 function resumoUni(p,uid){const L=amostrasU(p,uid);if(!L.length)return null;const u=L[L.length-1],s=stats(u),ant=L.length>1?L[L.length-2]:null,sa=ant?stats(ant):null;
   const dias=ant?(new Date(u.data)-new Date(ant.data))/864e5:0,gpd=sa&&dias>0&&s.pm!=null&&sa.pm!=null?(s.pm-sa.pm)/dias:null;
-  let esp=null,pop=null;if(p===curPid()){const m=modelo(uid);if(m&&m.ok){const v=m.at(new Date(u.data+"T12:00").getTime());if(v.on){esp=v.w;pop=v.n}}}
+  let esp=null,pop=null;if(p===curPid()){const m=modelo(uid);if(m&&m.ok){const v=(m.at0||m.at)(new Date(u.data+"T12:00").getTime());if(v.on){esp=v.w;pop=v.n}}}
   const cad=+B.cad[uk(p,uid)]||0,prox=cad?new Date(tsA(u)+cad*864e5):null;
   return {u,s,n:L.length,gpd,esp,dif:esp&&s.pm?(s.pm/esp-1)*100:null,bio:pop&&s.pm?pop*s.pm/1000:null,pop,cad,prox}}
 
@@ -7981,6 +8084,7 @@ function drawBD(){if(!bdEl)return;const fr=document.getElementById("aqua-frame")
   bdEl.querySelectorAll("[data-bd]").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.bd==="limpa"){bdFoco=[];drawBD();return}
     if(b.dataset.bd==="csv"){const blob=new Blob([bdCSV(bdDados(p))],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="relatorio_biometria_"+String(pNome(p)).replace(/[^\wÀ-ú-]+/g,"_")+"_"+hojeS()+".csv";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}}))}
 window.drawBioDashAqua=drawBD;
+window.bioUltRAS=tid=>{try{const L=amostrasU(curPid(),"ras-"+tid);for(let i=L.length-1;i>=0;i--){const s=stats(L[i]);if(s.pm>0)return {ts:tsA(L[i]),pm:s.pm,data:L[i].data,N:s.N}}}catch(e){}return null};
 function draw(){if(desenhando){setTimeout(draw,0);return}desenhando=true;try{desenha()}finally{desenhando=false}}
 /* ---- itens do botão Biometria: origens dos dados e cadência em tempo real ---- */
 let subO=false,subC=false,bioTick=null;
@@ -8258,7 +8362,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v95";
+  const APP_VERSAO="ras-v96";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
