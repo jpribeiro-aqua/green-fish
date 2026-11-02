@@ -1913,15 +1913,19 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
      &lt;ul class=&quot;gd-cor&quot;&gt;${corr.map((t) =&gt; `&lt;li&gt;${t}&lt;/li&gt;`).join(&quot;&quot;)}&lt;/ul&gt;
      &lt;p class=&quot;gd-nota&quot;&gt;Barras: mínimo a máximo de cada dia, na cor da situação; linha: média do dia; faixa verde: ideal da espécie. Amônia produzida = ração × proteína × 0,092 (ou o PNAT da Calculadora); O₂ ≈ 0,3 kg por kg de ração. Leituras da Água do sistema completam as do grupo.&lt;/p&gt;`; }
   // ---------------- curvas de todos os tanques/viveiros (uma por medida; destaque até 8 com cor fixa, demais em cinza)
-  let mcParam = &quot;*&quot;, mcHL = null, mcAuto = true; const mcCor = {};
+  let mcParam = &quot;*&quot;, mcHL = null, mcAuto = true, mcPer = &quot;tudo&quot;, mcArgs = null; const mcCor = {};
   const MC_PS = [&quot;od&quot;, &quot;temperatura&quot;, &quot;ph&quot;, &quot;od_saturacao&quot;, &quot;tan&quot;, &quot;nh3&quot;, &quot;nitrito&quot;, &quot;nitrato&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;dureza&quot;, &quot;salinidade&quot;, &quot;transparencia&quot;, &quot;clorofila_a&quot;, &quot;sst&quot;, &quot;ss_imhoff&quot;, &quot;vibrio&quot;];
   const mcNome = (p) =&gt; ({ od: &quot;Oxigênio dissolvido&quot;, temperatura: &quot;Temperatura&quot;, ph: &quot;pH&quot;, od_saturacao: &quot;Saturação de O₂&quot;, tan: &quot;Amônia total&quot;, nh3: &quot;Amônia tóxica (NH₃)&quot;, co2: &quot;CO₂ livre&quot;, ss_imhoff: &quot;Sólidos sedimentáveis&quot;, sst: &quot;Sólidos suspensos&quot;, clorofila_a: &quot;Clorofila-a&quot; }[p] || (PN[p] ? PN[p].nome : p));
   const mcUn = (p) =&gt; { const u = PN[p] ? PN[p].unidade : &quot;&quot;; return u &amp;&amp; u !== &quot;—&quot; ? u : &quot;&quot;; };
   const mcDec = (p) =&gt; (p === &quot;ph&quot; ? 2 : [&quot;tan&quot;, &quot;nh3&quot;, &quot;nitrito&quot;].includes(p) ? 3 : 1);
   function mcCorDe(id) { if (mcCor[id] != null) return `var(--s${mcCor[id] + 1})`; const usados = new Set(Object.values(mcCor)); for (let i = 0; i &lt; 8; i++) if (!usados.has(i)) { mcCor[id] = i; return `var(--s${i + 1})`; } return &quot;var(--ink-3)&quot;; }
   function mcLivra() { for (const id in mcCor) if (!mcHL || !mcHL.has(id)) delete mcCor[id]; }
-  function renderMulti(US, dias, dRef) {
+  function renderMulti(US, dias0, dRef) {
     const grid = $(&quot;mc-grid&quot;), bar = $(&quot;mc-bar&quot;), leg = $(&quot;mc-leg&quot;); if (!grid) return;
+    mcArgs = [US, dias0, dRef]; let dias = dias0;
+    if (mcPer === &quot;tudo&quot;) { const ids = new Set(US.map((u) =&gt; u.id)); if (S.ras) ids.add(SYS_ID);
+      const ds = [...new Set(LT().filter((l) =&gt; ids.has(l.unidade)).map((l) =&gt; l.data))].filter((d) =&gt; /^\d{4}-\d{2}-\d{2}$/.test(d) &amp;&amp; !futuro(d)).sort();
+      if (ds.length) dias = ds.slice(-120); }
     const semana = dias.length &gt; 1, D = dias.length, span = D * 1440;
     const L = {}; US.forEach((u) =&gt; (L[u.id] = leituras(u.id, dias).map((l) =&gt; ({ ...l, nh3: typeof l.nh3 === &quot;number&quot; ? l.nh3 : (typeof l.tan === &quot;number&quot; &amp;&amp; typeof l.ph === &quot;number&quot; &amp;&amp; typeof l.temperatura === &quot;number&quot; ? Core.nh3 ? Core.nh3(l.tan, l.ph, l.temperatura) : undefined : undefined) }))));
     const tem = (p) =&gt; US.filter((u) =&gt; L[u.id].some((l) =&gt; typeof l[p] === &quot;number&quot;)).length;
@@ -1931,14 +1935,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     for (const id of [...mcHL]) if (!US.some((u) =&gt; u.id === id)) mcHL.delete(id);
     mcLivra(); [...mcHL].forEach((id) =&gt; mcCorDe(id));
     if (mcParam !== &quot;*&quot; &amp;&amp; !PS.includes(mcParam)) mcParam = &quot;*&quot;;
-    $(&quot;mc-sub&quot;).textContent = `${comDados.length} de ${US.length} tanque(s)/viveiro(s) com leituras ${semana ? `de ${dataBR(dias[0])} a ${dataBR(dRef)}` : `em ${diaSemana(dRef)} ${dataBR(dRef)}`} · em destaque: ${mcHL.size} (máx. 8) · os demais aparecem em cinza. Toque numa curva ou no nome para destacar.`;
-    bar.innerHTML = `&lt;span class=&quot;lbl&quot;&gt;Medidas&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p&quot; data-p=&quot;*&quot; aria-pressed=&quot;${mcParam === &quot;*&quot;}&quot;&gt;Todas&lt;small&gt;${PS.length}&lt;/small&gt;&lt;/button&gt;` + PS.map((p) =&gt; `&lt;button type=&quot;button&quot; class=&quot;mc-p&quot; data-p=&quot;${p}&quot; aria-pressed=&quot;${mcParam === p}&quot;&gt;${mcNome(p)}&lt;small&gt;${tem(p)}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;);
+    const nLe = comDados.reduce((t, u) =&gt; t + L[u.id].length, 0);
+    $(&quot;mc-sub&quot;).textContent = `${mcPer === &quot;tudo&quot; ? `Todas as ${nLe} leituras` : `${nLe} leituras`} de ${comDados.length} de ${US.length} tanque(s)/viveiro(s) ${semana ? `de ${dataBR(dias[0])} a ${dataBR(dias[dias.length - 1])}${mcPer === &quot;tudo&quot; ? ` (${dias.length} dias com leituras, lado a lado)` : &quot;&quot;}` : `em ${diaSemana(dias[0])} ${dataBR(dias[0])}`} · em destaque: ${mcHL.size} (máx. 8) · os demais aparecem em cinza. Toque numa curva ou no nome para destacar.`;
+    bar.innerHTML = `&lt;span class=&quot;lbl&quot;&gt;Período&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p mc-per&quot; data-per=&quot;tudo&quot; aria-pressed=&quot;${mcPer === &quot;tudo&quot;}&quot;&gt;Todas as datas&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p mc-per&quot; data-per=&quot;painel&quot; aria-pressed=&quot;${mcPer !== &quot;tudo&quot;}&quot;&gt;${dias0.length &gt; 1 ? &quot;7 dias&quot; : &quot;Só o dia&quot;} do painel&lt;/button&gt;&lt;span class=&quot;lbl&quot; style=&quot;margin-left:8px&quot;&gt;Medidas&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;mc-p&quot; data-p=&quot;*&quot; aria-pressed=&quot;${mcParam === &quot;*&quot;}&quot;&gt;Todas&lt;small&gt;${PS.length}&lt;/small&gt;&lt;/button&gt;` + PS.map((p) =&gt; `&lt;button type=&quot;button&quot; class=&quot;mc-p&quot; data-p=&quot;${p}&quot; aria-pressed=&quot;${mcParam === p}&quot;&gt;${mcNome(p)}&lt;small&gt;${tem(p)}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;);
     leg.innerHTML = `&lt;span class=&quot;lbl&quot; style=&quot;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-right:4px&quot;&gt;Tanques/viveiros&lt;/span&gt;` + US.map((u) =&gt; { const on = mcHL.has(u.id); return `&lt;button type=&quot;button&quot; class=&quot;mc-u${on ? &quot; on&quot; : &quot;&quot;}${L[u.id].length ? &quot;&quot; : &quot; semd&quot;}&quot; data-u=&quot;${u.id}&quot; aria-pressed=&quot;${on}&quot;&gt;&lt;i style=&quot;${on ? `background:${mcCorDe(u.id)}` : &quot;&quot;}&quot;&gt;&lt;/i&gt;${escO(u.nome)}&lt;/button&gt;`; }).join(&quot;&quot;)
       + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;ruins&quot;&gt;Destacar os piores&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; data-mc=&quot;limpar&quot;&gt;Limpar destaque&lt;/button&gt;`;
-    bar.querySelectorAll(&quot;.mc-p&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { mcParam = b.dataset.p; renderMulti(US, dias, dRef); }));
-    leg.querySelectorAll(&quot;.mc-u&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { mcToggle(b.dataset.u); renderMulti(US, dias, dRef); }));
-    leg.querySelector(&#x27;[data-mc=&quot;limpar&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = new Set(); mcAuto = false; renderMulti(US, dias, dRef); });
-    leg.querySelector(&#x27;[data-mc=&quot;ruins&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = null; renderMulti(US, dias, dRef); });
+    bar.querySelectorAll(&quot;.mc-p&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { if (b.dataset.per) mcPer = b.dataset.per; else mcParam = b.dataset.p; renderMulti(US, dias0, dRef); }));
+    leg.querySelectorAll(&quot;.mc-u&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { mcToggle(b.dataset.u); renderMulti(US, dias0, dRef); }));
+    leg.querySelector(&#x27;[data-mc=&quot;limpar&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = new Set(); mcAuto = false; renderMulti(US, dias0, dRef); });
+    leg.querySelector(&#x27;[data-mc=&quot;ruins&quot;]&#x27;).addEventListener(&quot;click&quot;, () =&gt; { mcHL = null; renderMulti(US, dias0, dRef); });
     if (!PS.length) { grid.className = &quot;mc-grid um&quot;; grid.innerHTML = `&lt;div class=&quot;mc-vazio&quot;&gt;Nenhuma leitura ${semana ? &quot;nestes 7 dias&quot; : &quot;neste dia&quot;}. Escolha outro dia de referência acima ou importe leituras no botão 📈 Nictemeral.&lt;/div&gt;`; return; }
     const lista = mcParam === &quot;*&quot; ? PS : [mcParam];
     grid.className = &quot;mc-grid&quot; + (lista.length === 1 ? &quot; um&quot; : &quot;&quot;);
@@ -1965,13 +1970,13 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     s += `&lt;g class=&quot;grid&quot;&gt;${ticks.map((t) =&gt; `&lt;line x1=&quot;${m.l}&quot; x2=&quot;${W - m.r}&quot; y1=&quot;${y(t)}&quot; y2=&quot;${y(t)}&quot;/&gt;`).join(&quot;&quot;)}&lt;/g&gt;`;
     s += ticks.map((t) =&gt; `&lt;text x=&quot;${m.l - 6}&quot; y=&quot;${y(t) + 3.5}&quot; text-anchor=&quot;end&quot;&gt;${fmt(t, p === &quot;ph&quot; ? 1 : t &lt; 1 &amp;&amp; t &gt; 0 ? 2 : 0)}&lt;/text&gt;`).join(&quot;&quot;);
     if (D === 1) s += [0, 6, 12, 18, 24].map((h) =&gt; `&lt;text x=&quot;${x(h * 60)}&quot; y=&quot;${H - 6}&quot; text-anchor=&quot;${h === 0 ? &quot;start&quot; : h === 24 ? &quot;end&quot; : &quot;middle&quot;}&quot;&gt;${String(h).padStart(2, &quot;0&quot;)}h&lt;/text&gt;`).join(&quot;&quot;);
-    else { const cw = (W - m.l - m.r) / D, passo = cw &lt; 34 ? 2 : 1; s += dias.map((d, i) =&gt; `&lt;line x1=&quot;${x(i * 1440)}&quot; x2=&quot;${x(i * 1440)}&quot; y1=&quot;${m.t}&quot; y2=&quot;${H - m.b}&quot; stroke=&quot;var(--line)&quot; stroke-dasharray=&quot;2 3&quot;/&gt;${i % passo ? &quot;&quot; : `&lt;text x=&quot;${x(i * 1440 + 720)}&quot; y=&quot;${H - 6}&quot; text-anchor=&quot;middle&quot;&gt;${cw &gt; 78 ? diaSemana(d) + &quot; &quot; : &quot;&quot;}${dataBR(d).slice(0, 5)}&lt;/text&gt;`}`).join(&quot;&quot;); }
+    else { const cw = (W - m.l - m.r) / D, passo = Math.max(1, Math.ceil(44 / cw)); s += dias.map((d, i) =&gt; i % passo ? &quot;&quot; : `&lt;line x1=&quot;${x(i * 1440)}&quot; x2=&quot;${x(i * 1440)}&quot; y1=&quot;${m.t}&quot; y2=&quot;${H - m.b}&quot; stroke=&quot;var(--line)&quot; stroke-dasharray=&quot;2 3&quot;/&gt;${i % passo ? &quot;&quot; : `&lt;text x=&quot;${x(i * 1440 + 720)}&quot; y=&quot;${H - 6}&quot; text-anchor=&quot;middle&quot;&gt;${cw &gt; 78 ? diaSemana(d) + &quot; &quot; : &quot;&quot;}${d.slice(8, 10) + &quot;/&quot; + d.slice(5, 7) + (dias[0].slice(0, 4) !== dias[D - 1].slice(0, 4) ? &quot;/&quot; + d.slice(2, 4) : &quot;&quot;)}&lt;/text&gt;`}`).join(&quot;&quot;); }
     const path = (pts) =&gt; pts.map((q, k) =&gt; (k ? &quot;L&quot; : &quot;M&quot;) + x(q.t).toFixed(1) + &quot; &quot; + y(q.v).toFixed(1)).join(&quot; &quot;);
     s += ser.filter((r) =&gt; !mcHL.has(r.u.id)).map((r) =&gt; `&lt;path class=&quot;bg-ln&quot; d=&quot;${path(r.pts)}&quot;/&gt;${r.pts.length === 1 ? `&lt;circle r=&quot;2.5&quot; cx=&quot;${x(r.pts[0].t)}&quot; cy=&quot;${y(r.pts[0].v)}&quot; fill=&quot;var(--ink-3)&quot; opacity=&quot;.4&quot;/&gt;` : &quot;&quot;}`).join(&quot;&quot;);
     s += ser.filter((r) =&gt; mcHL.has(r.u.id)).map((r) =&gt; { const c = mcCorDe(r.u.id); return `&lt;path class=&quot;hl-ln&quot; stroke=&quot;${c}&quot; d=&quot;${path(r.pts)}&quot;/&gt;` + r.pts.map((q) =&gt; `&lt;circle class=&quot;hl-mk&quot; r=&quot;${r.pts.length &gt; 40 ? 2.5 : 4}&quot; fill=&quot;${c}&quot; cx=&quot;${x(q.t).toFixed(1)}&quot; cy=&quot;${y(q.v).toFixed(1)}&quot;/&gt;`).join(&quot;&quot;); }).join(&quot;&quot;);
     s += `&lt;path class=&quot;near&quot; d=&quot;&quot; hidden/&gt;&lt;line class=&quot;cross&quot; x1=&quot;0&quot; x2=&quot;0&quot; y1=&quot;${m.t}&quot; y2=&quot;${H - m.b}&quot; hidden/&gt;&lt;rect x=&quot;${m.l - 6}&quot; y=&quot;0&quot; width=&quot;${W - m.l - m.r + 12}&quot; height=&quot;${H}&quot; fill=&quot;transparent&quot;/&gt;&lt;/svg&gt;`;
     box.innerHTML = s;
-    const svg = box.querySelector(&quot;svg&quot;), cr = svg.querySelector(&quot;.cross&quot;), nr = svg.querySelector(&quot;.near&quot;), tol = D === 1 ? 90 : 360;
+    const svg = box.querySelector(&quot;svg&quot;), cr = svg.querySelector(&quot;.cross&quot;), nr = svg.querySelector(&quot;.near&quot;), tol = D === 1 ? 90 : Math.max(360, span / 60);
     const perto = (r, t) =&gt; { let b = null, bd = Infinity; for (const q of r.pts) { const dd = Math.abs(q.t - t); if (dd &lt; bd) { bd = dd; b = q; } } return bd &lt;= tol ? b : null; };
     const achar = (e) =&gt; { const rc = svg.getBoundingClientRect(), sx = (e.clientX - rc.left) * W / rc.width, sy = (e.clientY - rc.top) * H / rc.height; const t = Math.max(0, Math.min(span, (sx - m.l) / (W - m.l - m.r) * span));
       let best = null, bd = Infinity; for (const r of ser) { const q = perto(r, t); if (q) { const dd = Math.abs(y(q.v) - sy); if (dd &lt; bd) { bd = dd; best = r; } } } return { t, best, rc, sx }; };
@@ -1988,7 +1993,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       if (!best &amp;&amp; !linhas.length) h += `&lt;div class=&quot;mut&quot;&gt;sem leitura perto deste horário&lt;/div&gt;`;
       tip.innerHTML = h; tip.hidden = false; const cw = card.clientWidth; let left = sx / W * rc.width + 16; if (left + 220 &gt; cw) left -= 252; tip.style.left = Math.max(4, left) + &quot;px&quot;; tip.style.top = &quot;34px&quot;; });
     svg.addEventListener(&quot;pointerleave&quot;, () =&gt; { tip.hidden = true; cr.hidden = true; nr.hidden = true; });
-    svg.addEventListener(&quot;click&quot;, (e) =&gt; { const { best } = achar(e); if (best) { mcToggle(best.u.id); renderMulti(US, dias, dias[dias.length - 1]); } });
+    svg.addEventListener(&quot;click&quot;, (e) =&gt; { const { best } = achar(e); if (best) { mcToggle(best.u.id); if (mcArgs) renderMulti(...mcArgs); } });
   }
   // tendência 7 dias, uma linha por tanque/viveiro (cor por tanque/viveiro, ordem fixa)
   function trendChart(el, legEl, US, dias, val, opts) {
@@ -8362,7 +8367,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v96";
+  const APP_VERSAO="ras-v97";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
