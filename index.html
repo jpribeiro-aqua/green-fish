@@ -719,6 +719,8 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.mk-autobox{margin:10px 0;padding:10px 12px;border:1px dashed #7b4bb7;border-radius:10px;background:rgba(123,75,183,.06)}.mk-autoh{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}.mk-autoh small{flex:1;min-width:200px;color:var(--muted)}.mk-autobox ul{margin:6px 0 0;padding-left:18px;font-size:13px}.mk-autobox li small{color:var(--muted)}.mk-autobox li:not(.on){opacity:.75}
+.mk-auto{font-style:normal;font-size:10.5px;font-weight:700;color:#7b4bb7;background:rgba(123,75,183,.12);border-radius:6px;padding:0 5px;margin-left:6px}.mk-autoed{font-size:12px;color:#7b4bb7;margin:4px 0}
 .mk-pinfix span{width:36px;height:36px;font-size:17px;background:#111;box-shadow:0 0 0 3px #1baf7a,0 2px 8px rgba(0,0,0,.5)}.leaflet-tooltip.mk-fixtip{background:#1baf7a;color:#fff;border:0;font-weight:700;padding:2px 8px}.leaflet-tooltip.mk-fixtip:before{border-top-color:#1baf7a}
 .mk-fixbox{margin-top:10px;padding:10px 12px;border:2px solid #1baf7a;border-radius:10px;background:rgba(27,175,122,.08);font-size:13px}.mk-fixbox.rec{border-style:dashed}.mk-fixbox ul,.mk-recm{margin:6px 0;padding-left:18px;font-size:12.5px}.mk-fixbox code{font-size:12.5px}.mk-fixbox .mk-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.mk-recbtn{border-color:#1baf7a}
 .ia-rank tr{cursor:pointer}.ia-rank tr.sel td{background:rgba(27,175,122,.12)}.ia-rank td small{display:block;color:var(--muted)}.ia-n{display:inline-grid;place-items:center;min-width:38px;padding:2px 6px;border-radius:8px;color:#fff;background:#8a9690}.ia-n.ok{background:#1baf7a}.ia-n.warn{background:#e09a00}.ia-n.crit{background:#d33f2e}
@@ -4265,7 +4267,7 @@ function csv(res){const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;return "﻿
 function kml(res){const e=s=>String(s||"").replace(/[<&>]/g,c=>({"<":"&lt;","&":"&amp;",">":"&gt;"}[c]));return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>${e(res.ramo)} · ${e(res.mun.n)}</name>${(res.pts||[]).map(p=>`<Placemark><name>${e(p.nome)}</name><description>${e(CAT[p.cat][0])} · ${e(p.tipo)} · ${fmt(p.d,1)} km</description><Point><coordinates>${p.lon},${p.lat},0</coordinates></Point></Placemark>`).join("")}${S.crm&&S.crm.local?`<Placemark><name>Empreendimento${S.crm.local.fixo?" (fixado)":""}</name><description>${e(S.crm.local.nome)}</description><Point><coordinates>${S.crm.local.lon},${S.crm.local.lat},0</coordinates></Point></Placemark>`:""}<Placemark><name>Centro da análise</name><Point><coordinates>${res.lon},${res.lat},0</coordinates></Point></Placemark></Document></kml>`}
 const baixa=(nome,txt,tipo)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)};
 let filtroCat="";
-function draw(){const el=document.getElementById("view-merc");if(!el||el.hidden)return;
+function draw(){const el=document.getElementById("view-merc");if(!el||el.hidden)return;try{aplicaAuto(false)}catch(e){console.warn("auto",e)}
   const res=S.res,R=ramoInfo(),k=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d||""}</small></div></div>`;
   let h=`<section class="card wide"><div class="card-head"><h2>Camada de mercado<span>Prospecção com inteligência geográfica e plano de negócios para o ramo que você escolher</span></h2></div>
    <div class="body"><div class="mk-form">
@@ -4273,10 +4275,10 @@ function draw(){const el=document.getElementById("view-merc");if(!el||el.hidden)
     <label class="jr-f">Município<input id="mk-mun" list="mk-muns" value="${esc(S.mun)}" placeholder="ex.: Pinheiro – MA" autocomplete="off"><datalist id="mk-muns"></datalist></label>
     <label class="jr-f">Raio (km)<input id="mk-raio" inputmode="decimal" value="${esc(S.raio)}"></label>
     <label class="jr-f">Consumo de pescado (kg/hab/ano)<input id="mk-cons" inputmode="decimal" value="${esc(S.cons)}"></label>
-    <label class="jr-f">Preço de venda (R$/kg)<input id="mk-preco" inputmode="decimal" value="${esc(S.preco)}" placeholder="da aba Local"></label>
-    <label class="jr-f">Meta de mercado (% da microrregião)<input id="mk-alvo" inputmode="decimal" value="${esc(S.alvo)}"></label>
+    <label class="jr-f">Preço de venda (R$/kg)${S.auto&&S.auto.preco?`<em class="mk-auto">✨ sugerido</em>`:""}<input id="mk-preco" inputmode="decimal" value="${esc(S.preco)}" placeholder="da aba Local"></label>
+    <label class="jr-f">Meta de mercado (% da microrregião)${S.auto&&S.auto.alvo?`<em class="mk-auto">✨ sugerido</em>`:""}<input id="mk-alvo" inputmode="decimal" value="${esc(S.alvo)}"></label>
     <button type="button" class="btn solid mk-go" id="mk-go"${busy?" disabled":""}>${busy?"⏳ Prospectando…":"🔎 Prospectar mercado"}</button></div>
-    ${busy||msg?`<p class="mk-msg">⏳ ${esc(msg)}</p>`:""}${erros.length?`<p class="mk-err">⚠️ ${erros.map(esc).join(" · ")}</p>`:""}
+    ${busy||msg?`<p class="mk-msg">⏳ ${esc(msg)}</p>`:""}${erros.length?`<p class="mk-err">⚠️ ${erros.map(esc).join(" · ")}</p>`:""}${autoHTML()}
     <p class="hint">Busca dados públicos no navegador: IBGE (população, PIB, aquicultura da Pesquisa da Pecuária Municipal e empresas do Cadastro Central de Empresas por atividade CNAE) e OpenStreetMap (concorrentes, clientes e fornecedores num raio do ponto). O centro é a coordenada do projeto (aba Local) quando o município é o mesmo; senão, a sede do município. Base técnica das aulas de Topografia: coordenadas geográficas em SIRGAS 2000/WGS 84; os pontos podem ser levados ao Google Earth Pro pelo arquivo KML.</p></div></section>`;
   h+=ideiasHTML()+analiseHTML();
   let hB="";
@@ -4307,7 +4309,7 @@ function draw(){const el=document.getElementById("view-merc");if(!el||el.hidden)
 document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#view-merc"))return;
   if(t.id==="mk-ramo"){const r=Object.entries(RAMOS).find(([k,x])=>x.n===t.value);if(r){S.ramo=r[0];S.ramoTxt=""}else{S.ramo="";S.ramoTxt=t.value}}
   if(t.id==="mk-mun"){S.mun=t.value;S.munId=null;const q=norm(t.value),dl=document.getElementById("mk-muns");if(MUN&&dl&&q.length>=2)dl.innerHTML=MUN.filter(m=>norm(m.n+" "+m.uf).includes(q)).slice(0,40).map(m=>`<option value="${esc(m.n)} – ${m.uf}">`).join("")}
-  if(t.id==="mk-raio")S.raio=t.value;if(t.id==="mk-cons")S.cons=t.value;if(t.id==="mk-preco")S.preco=t.value;if(t.id==="mk-alvo")S.alvo=t.value;grava()});
+  if(t.id==="mk-raio")S.raio=t.value;if(t.id==="mk-cons")S.cons=t.value;if(t.id==="mk-preco"){S.preco=t.value;S.auto.preco=false}if(t.id==="mk-alvo"){S.alvo=t.value;S.auto.alvo=false}grava()});
 document.addEventListener("change",e=>{const t=e.target;if(t&&["mk-cons","mk-preco","mk-alvo"].includes(t.id)&&S.res){const id=t.id;draw();const n2=document.getElementById(id);if(n2)n2.focus()}});
 document.addEventListener("click",e=>{const v=e.target.closest&&e.target.closest("#view-merc");if(!v)return;
   if(e.target.closest("#mk-go")){prospectar();return}
@@ -4331,7 +4333,7 @@ const localEmp=()=>S.crm.local||null;
 const pontoCorr=()=>{const L=S.crm.local;return L&&L.sug?L:null};
 const cliById=id=>S.crm.clientes.find(c=>c.id===id);
 const kmRota=(a,b)=>distKm(a.lat,a.lon,b.lat,b.lon)*(P(S.crm.ent.fator)||1.3);
-function addCliente(o){const c={id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome:o.nome||"Novo cliente",tipo:o.tipo||"",lat:o.lat,lon:o.lon,end:o.end||"",tel:o.tel||"",etapa:"prosp",vol:o.vol||"",preco:"",freq:"1",prox:"",data:"",obs:"",osm:o.osm||"",hist:[{d:new Date().toISOString().slice(0,10),e:"prosp"}]};S.crm.clientes.push(c);selId=c.id;grava();return c}
+function addCliente(o){const c={id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome:o.nome||"Novo cliente",tipo:o.tipo||"",lat:o.lat,lon:o.lon,end:o.end||"",tel:o.tel||"",etapa:"prosp",vol:o.vol||"",preco:"",freq:"1",prox:"",data:"",obs:"",osm:o.osm||"",hist:[{d:new Date().toISOString().slice(0,10),e:"prosp"}]};S.crm.clientes.push(c);try{sugCliente(c)}catch(_){}selId=c.id;grava();return c}
 function moverEtapa(c,dir){const i=ETAPAS.findIndex(e=>e[0]===c.etapa),j=Math.max(0,Math.min(ETAPAS.length-1,i+dir));if(j===i)return;c.etapa=ETAPAS[j][0];(c.hist=c.hist||[]).push({d:new Date().toISOString().slice(0,10),e:c.etapa});grava()}
 const volSem=c=>P(c.vol)||0,prec=c=>P(c.preco)||precoPad(),frq=c=>Math.max(1,Math.round(P(c.freq)||1));
 // mediana geométrica ponderada (Weiszfeld): ponto que minimiza a soma das distâncias × volume
@@ -4420,6 +4422,7 @@ function envSide(){const box=document.getElementById("mk-side");if(!box)return;c
    <div class="mk-2">${inp("vol","Volume (kg/semana)","inputmode=\"decimal\"")}${inp("preco","Preço (R$/kg)","inputmode=\"decimal\"",F(precoPad(),2))}</div>
    <div class="mk-2">${inp("freq","Entregas por semana","inputmode=\"numeric\"","1")}${inp("data","Próximo contato","type=\"date\"")}</div>
    ${inp("prox","Próximo passo","","ex.: levar amostra, enviar proposta")}<label class="jr-f">Anotações<textarea id="mk-ed-obs" data-ed="obs" rows="3">${esc(c.obs||"")}</textarea></label>
+   ${c.auto&&c.auto.campos.length?`<p class="mk-autoed">✨ ${c.auto.campos.map(k=>({vol:"volume",freq:"entregas/semana",preco:"preço"})[k]).join(", ")} sugerido(s) pela referência de ${esc(c.auto.ref)} — troque pelos valores reais quando souber.</p>`:""}
    <p class="mk-ed-res">${volSem(c)?`<b>R$ ${F(volSem(c)*prec(c)*4.33)}</b> por mês · ${F(volSem(c)*4.33)} kg/mês`:"Informe o volume para estimar a receita"}${isFinite(dk)?` · ${F(dk,1)} km do empreendimento`:""}</p>
    <div class="mk-acts">${c.tel?`<a class="btn" href="https://wa.me/55${String(c.tel).replace(/\D/g,"").replace(/^55/,"")}" target="_blank" rel="noopener">💬 WhatsApp</a>`:""}${L0?`<a class="btn" href="https://www.google.com/maps/dir/?api=1&origin=${L0.lat},${L0.lon}&destination=${c.lat},${c.lon}" target="_blank" rel="noopener">🧭 Rota até ele</a>`:""}<button type="button" class="btn" data-mkdel="${c.id}">🗑 Remover</button></div>
    <p class="muted" style="font-size:12px">Histórico: ${(c.hist||[]).map(h=>`${h.d.split("-").reverse().join("/")} ${ET[h.e]?ET[h.e].n:h.e}`).join(" → ")}</p>`}
@@ -4477,7 +4480,7 @@ document.addEventListener("click",e=>{const v=e.target.closest&&e.target.closest
   const dl=e.target.closest("[data-mkdel]");if(dl){S.crm.clientes=S.crm.clientes.filter(c=>c.id!==dl.dataset.mkdel);selId=null;grava();envDraw();return}});
 const alertMsg=t=>{const b=document.getElementById("mk-side");if(b)b.insertAdjacentHTML("afterbegin",`<p class="mk-err">${esc(t)}</p>`)};
 document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#view-merc"))return;
-  if(t.dataset.ed){const c=cliById(selId);if(!c)return;c[t.dataset.ed]=t.value;grava();clearTimeout(window.__mkT);window.__mkT=setTimeout(()=>{envFunil();envEstr();camadas();const r=document.querySelector(".mk-ed-res");if(r)r.innerHTML=volSem(c)?`<b>R$ ${F(volSem(c)*prec(c)*4.33)}</b> por mês · ${F(volSem(c)*4.33)} kg/mês`:"Informe o volume para estimar a receita"},350);return}
+  if(t.dataset.ed){const c=cliById(selId);if(!c)return;c[t.dataset.ed]=t.value;if(c.auto){c.auto.campos=c.auto.campos.filter(k=>k!==t.dataset.ed);if(!c.auto.campos.length)delete c.auto}grava();clearTimeout(window.__mkT);window.__mkT=setTimeout(()=>{envFunil();envEstr();camadas();const r=document.querySelector(".mk-ed-res");if(r)r.innerHTML=volSem(c)?`<b>R$ ${F(volSem(c)*prec(c)*4.33)}</b> por mês · ${F(volSem(c)*4.33)} kg/mês`:"Informe o volume para estimar a receita"},350);return}
   if(t.dataset.ent){S.crm.ent[t.dataset.ent]=t.type==="checkbox"?t.checked:t.value;grava();clearTimeout(window.__mkR);window.__mkR=setTimeout(()=>{const id=document.activeElement&&document.activeElement.dataset.ent;envRotas();envEstr();if(id){const n2=document.querySelector(`[data-ent="${id}"]`);if(n2&&n2.type!=="checkbox"){n2.focus();try{n2.setSelectionRange(n2.value.length,n2.value.length)}catch(_){}}}},500);return}
   if(t.dataset.mkcam){S.crm.camadas[t.dataset.mkcam]=t.checked;grava();camadas()}});
 function envPlano(){const C=S.crm.clientes.filter(c=>c.etapa!=="perd"),A=C.filter(c=>c.etapa==="cli"),r=rotaRes||rotas();let L0=localEmp();
@@ -4547,8 +4550,8 @@ document.addEventListener("click",e=>{const v=e.target.closest&&e.target.closest
   if((x=g("data-sugcli"))){const w=norm(x).split(" ").filter(s=>s.length>2).slice(0,3).join("|")||norm(x);buscarTipo({n:x,sels:[`nwr["name"~"${w}",i]`],termos:[x]});return}
   if((x=g("data-suglugar"))){S.mun=x;S.munId=null;grava();prospectar();return}
   if((x=g("data-sugraio"))){S.raio=x;grava();prospectar();return}
-  if((x=g("data-sugprod"))){S.produto=S.produto===x?"":x;grava();draw();return}
-  if((x=g("data-sugnicho"))){const i=S.nichos.indexOf(x);if(i>=0)S.nichos.splice(i,1);else S.nichos.push(x);grava();draw();return}
+  if((x=g("data-sugprod"))){S.produto=S.produto===x?"":x;S.auto.produto=false;grava();draw();return}
+  if((x=g("data-sugnicho"))){S.auto.nichos=false;const i=S.nichos.indexOf(x);if(i>=0)S.nichos.splice(i,1);else S.nichos.push(x);grava();draw();return}
   if((x=g("data-sugadd"))){const inp=v.querySelector(`[data-sugin="${x}"]`),t=inp&&inp.value.trim();if(t&&!S.sugs[x].includes(t)){S.sugs[x].push(t.slice(0,60));if(x==="nicho")S.nichos.push(t.slice(0,60));if(x==="prod")S.produto=t.slice(0,60);grava();draw()}return}
   if((x=g("data-sugdel"))){const [k,i]=x.split("|");const r=S.sugs[k].splice(+i,1)[0];if(k==="nicho")S.nichos=S.nichos.filter(n=>n!==r);if(k==="prod"&&S.produto===r)S.produto="";grava();draw();return}
   if(g("data-ideia")){const inp=document.getElementById("mk-ideia"),t=inp&&inp.value.trim();if(!t){inp&&inp.focus();return}S.ideias.push({txt:t.slice(0,140),d:new Date().toISOString().slice(0,10)});S.ramo="";S.ramoTxt=t.slice(0,140);grava();prospectar();return}
@@ -4620,6 +4623,49 @@ function analiseHTML(){const c=ctxDados(),ideias=S.ideias.map((x,i)=>({k:String(
    <p class="hint">Como a nota é feita: mercado (déficit e população, peso 25), clientes acessíveis (20), concorrência (10), margem do produto (25), produção × meta (10), logística (5) e água (5). Margens dos produtos usam rendimento e preço de referência aproximados (ex.: filé ≈ 33% do peixe e ≈ 3,2× o preço do inteiro); confira com preços da sua região.</p></div></section>`}
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-iasel]");if(t&&t.closest("#view-merc")){iaSel=t.dataset.iasel;draw()}});
 
+/* ---------- v110: preenchimento automático a partir da prospecção (sugestões editáveis) ---------- */
+const GRUPO=t=>{t=String(t||"").toLowerCase();return /supermarket|convenience/.test(t)?"super":/seafood/.test(t)?"peix":/restaurant/.test(t)?"rest":/marketplace/.test(t)?"feira":/hotel|guest_house|motel/.test(t)?"hotel":/school/.test(t)?"escola":/hospital|clinic/.test(t)?"hosp":/butcher/.test(t)?"acou":/fast_food|cafe/.test(t)?"lanch":/wholesale/.test(t)?"atac":""};
+// referência do app: [kg por semana, entregas por semana, fator do preço]
+const VREF={super:[40,2,.9,"supermercado"],peix:[60,3,.85,"peixaria"],rest:[15,2,1,"restaurante"],feira:[30,2,.9,"feira/mercado"],hotel:[20,1,1,"hotel/pousada"],escola:[25,1,.95,"escola (PNAE)"],hosp:[20,1,.95,"hospital/clínica"],acou:[20,2,.9,"açougue"],lanch:[6,1,1,"lanchonete"],atac:[150,1,.8,"atacadista"],"":[15,1,1,"cliente"]};
+S.auto=Object.assign({preco:false,alvo:false,produto:false,nichos:false},S.auto||{});
+const arred=(v,p)=>Math.round(v/p)*p,fmtBR=(v,d)=>String(+v.toFixed(d)).replace(".",",");
+function sugCliente(c){const g=VREF[GRUPO(c.tipo)],m=[],novo=!String(c.vol||"").trim();if(novo){c.vol=String(g[0]);m.push("vol")}if(!String(c.freq||"").trim()||(novo&&c.freq==="1"&&g[1]!==1)){c.freq=String(g[1]);m.push("freq")}
+  if(!String(c.preco||"").trim()){const p=precoPad();if(isFinite(p)&&p>0){c.preco=fmtBR(arred(p*g[2],.5),2);m.push("preco")}}if(m.length)c.auto={campos:[...new Set([...((c.auto&&c.auto.campos)||[]),...m])],ref:g[3]};return m.length}
+function sugestoesPesquisa(){const res=S.res;if(!res||!res.mun)return null;const pts=res.pts||[],cli=pts.filter(p=>p.cat==="cli"),conc=pts.filter(p=>p.cat==="conc");
+  const n={};cli.forEach(p=>{const g=GRUPO(p.tipo);n[g]=(n[g]||0)+1});const q=k=>n[k]||0,R={};
+  let c=null;try{c=ctxDados()}catch(e){}
+  // produto pelo perfil de clientes encontrado
+  const sc={"Filé de peixe":q("rest")*1.2+q("hotel")+q("hosp")+q("lanch")*.6,"Peixe eviscerado congelado":q("super")*1.2+q("escola")+q("atac")*1.5+q("hosp")*.5,"Peixe inteiro fresco":q("feira")*1.5+q("peix")*1.5+q("acou")+q("super")*.4};
+  if(c)for(const p in sc){const mg=margemProd(p,c);if(mg)sc[p]*=1+Math.max(-.5,Math.min(.5,mg.m))}
+  const best=Object.entries(sc).sort((a,b)=>b[1]-a[1])[0];
+  R.produto=best&&best[1]>0?{v:best[0],por:`${best[0]==="Filé de peixe"?`${q("rest")} restaurante(s), ${q("hotel")} hotel(éis) e ${q("lanch")} lanchonete(s)`:best[0]==="Peixe eviscerado congelado"?`${q("super")} supermercado(s), ${q("escola")} escola(s) e ${q("atac")} atacadista(s)`:`${q("feira")} feira(s), ${q("peix")} peixaria(s) e ${q("acou")} açougue(s)`} mapeados na prospecção`}:{v:"Peixe inteiro fresco",por:"poucos clientes mapeados: produto mais simples para começar"};
+  // nichos
+  const ni=[];if(q("escola"))ni.push(["Compras públicas (PNAE/PAA)",`${q("escola")} escola(s) no raio`]);if(q("rest")+q("hotel")>=3)ni.push(["Restaurantes e gastronomia",`${q("rest")+q("hotel")} restaurantes e hotéis no raio`]);
+  ni.push(["Semana Santa e datas festivas","pico de consumo de pescado na Quaresma"]);if(res.pop&&res.pop.mun&&res.pop.mun.v>=100000)ni.push(["Delivery direto ao consumidor",`${F(res.pop.mun.v)} habitantes no município`]);
+  if(/Filé|defumado|Hambúrguer/.test(R.produto.v))ni.push(["Processamento e valor agregado",`produto sugerido: ${R.produto.v.toLowerCase()}`]);R.nichos=ni.slice(0,4);
+  // preço
+  const pv=c&&c.o&&c.o.pV>0?c.o.pV:NaN,f=PFAT[R.produto.v];if(isFinite(pv))R.preco={v:fmtBR(arred(pv*(f?f[1]:1),.5),2),por:`preço do peixe na aba Local (R$ ${F(pv,2)}/kg)${f&&f[1]!==1?` × ${fmtBR(f[1],2)} para ${R.produto.v.toLowerCase()}`:""}`};
+  // meta
+  const cons=P(S.cons)||9.5,popMi=res.pop&&res.pop.mi?res.pop.mi.v:(res.pop&&res.pop.mun?res.pop.mun.v:NaN),dMi=popMi*cons/1000,prodT=c&&c.o&&c.o.prod>0?c.o.prod/1000:NaN;
+  if(isFinite(prodT)&&dMi>0){const a=Math.max(1,Math.min(30,prodT*(f?f[0]:1)/dMi*100));R.alvo={v:fmtBR(a,1),por:`sua produção (${F(prodT,1)} t/ano) ÷ consumo da microrregião (${F(dMi,0)} t/ano)`}}
+  else R.alvo={v:conc.length===0?"8":conc.length<=3?"5":"3",por:`${conc.length} concorrente(s) mapeado(s): ${conc.length===0?"mercado aberto":conc.length<=3?"concorrência moderada":"concorrência alta"}`};
+  return R}
+function aplicaAuto(forca){const res=S.res;if(!res||!res.mun)return false;if(!forca&&S.autoQ===res.quando)return false;const R=sugestoesPesquisa();if(!R)return false;
+  const pode=k=>forca||S.auto[k]||(k==="preco"?!String(S.preco||"").trim():k==="alvo"?(!String(S.alvo||"").trim()||S.alvo==="5"):k==="produto"?!S.produto:!S.nichos.length);
+  if(R.produto&&pode("produto")){S.produto=R.produto.v;S.auto.produto=true}
+  if(R.nichos.length&&pode("nichos")){S.nichos=R.nichos.map(x=>x[0]);S.auto.nichos=true}
+  if(R.preco&&pode("preco")){S.preco=R.preco.v;S.auto.preco=true}
+  if(R.alvo&&pode("alvo")){S.alvo=R.alvo.v;S.auto.alvo=true}
+  S.crm.clientes.forEach(sugCliente);
+  if(!fixado()&&(forca||!recFeito()))fazRec();
+  S.autoQ=res.quando;S.autoR=R;grava();return true}
+function autoHTML(){const R=S.autoR;if(!S.res||!S.res.mun)return "";const it=[];
+  if(R){if(R.produto)it.push(["📦 Produto",R.produto.v,R.produto.por,S.auto.produto]);if(R.nichos&&R.nichos.length)it.push(["🎯 Nichos",R.nichos.map(x=>x[0]).join(", "),R.nichos.map(x=>x[1]).join("; "),S.auto.nichos]);
+    if(R.preco)it.push(["💲 Preço de venda",`R$ ${R.preco.v}/kg`,R.preco.por,S.auto.preco]);if(R.alvo)it.push(["📈 Meta de mercado",`${R.alvo.v}% da microrregião`,R.alvo.por,S.auto.alvo]);
+    if(S.crm.rec||(S.crm.local&&S.crm.local.sug))it.push(["📍 Ponto de venda",S.crm.local&&S.crm.local.sug?"sugerido"+(S.crm.local.fixo?" e fixado":""):"sugestão no mapa (confirme com 📌)","calculado só com a prospecção — veja no Ambiente de estratégia",true]);
+    const na=S.crm.clientes.filter(c=>c.auto).length;if(na)it.push(["🤝 Clientes do funil",`${na} com volume, preço e entregas sugeridos`,"referência por tipo de cliente (ex.: restaurante 15 kg/sem, supermercado 40 kg/sem)",true])}
+  return `<div class="mk-autobox"><div class="mk-autoh"><b>✨ Sugestões da pesquisa de mercado</b><small>preenchidas automaticamente após a prospecção — edite à vontade; o que você mudar não é sobrescrito</small><button type="button" class="chip" data-mkauto="1">✨ Aplicar todas as sugestões</button></div>${it.length?`<ul>${it.map(([k,v,p,on])=>`<li class="${on?"on":""}"><b>${k}:</b> ${esc(v)} <small>— ${p}${on?"":" · você alterou"}</small></li>`).join("")}</ul>`:`<p class="muted">Toque em ✨ para gerar as sugestões.</p>`}</div>`}
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-mkauto]");if(!t||!t.closest("#view-merc"))return;S.crm.clientes.forEach(c=>{if(c.auto)c.auto.campos.forEach(k=>c[k]="")});aplicaAuto(true);draw()});
 window.drawMerc=()=>{if(!S.mun){try{const lr=window.lvResumo&&lvResumo();if(lr&&lr.LV&&lr.LV.loc)S.mun=String(lr.LV.loc)}catch(e){}}draw()};
 })();
 
@@ -9015,7 +9061,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v110";
+  const APP_VERSAO="ras-v111";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
