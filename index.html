@@ -4157,7 +4157,7 @@ async function prospectar(){
     if(!isFinite(lat)){const g=await getJ(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=br&city=${encodeURIComponent(m.n)}&state=${encodeURIComponent(m.uf)}`);if(g[0]){lat=+g[0].lat;lon=+g[0].lon;res.centroFonte="sede do município (Nominatim/OSM)"}}
     res.lat=lat;res.lon=lon;const raio=Math.max(1,Math.min(150,P(S.raio)||30));res.raio=raio;
     msg="Lendo população, PIB e aquicultura no IBGE…";draw();
-    const loc=`N6[${m.id}]|N9[${m.mi}]|N3[${m.ufId}]|N1[all]`;
+    const loc=`N6[${m.id}]|N3[${m.ufId}]|N1[all]`;
     const [pop,pib,aq,popMi]=await Promise.all([
       getJ(`${IB}/v3/agregados/6579/periodos/-1/variaveis/9324?localidades=${loc}`).catch(e=>{erros.push("população: "+e.message);return []}),
       getJ(`${IB}/v3/agregados/5938/periodos/-6/variaveis/37?localidades=N6[${m.id}]|N3[${m.ufId}]`).catch(e=>{erros.push("PIB: "+e.message);return []}),
@@ -4168,18 +4168,21 @@ async function prospectar(){
     const pb=serie(pib,37);res.pib={mun:byLoc(pb,m.id).Total,uf:byLoc(pb,m.ufId).Total};
     const qq=serie(aq,4146),vv=serie(aq,215),filt=o=>Object.entries(o).filter(([k,x])=>k!=="Total"&&isFinite(x.v)&&x.v>0).map(([k,x])=>({k,v:x.v,ano:x.ano}));
     res.aq={};for(const [nv,id] of [["mun",m.id],["mi",m.mi],["uf",m.ufId]]){const Q=byLoc(qq,id),V=byLoc(vv,id);res.aq[nv]={q:filt(Q),valor:V.Total?V.Total.v:NaN,ano:(V.Total||{}).ano}}
-    res.vizinhos=((popMi[0]||{}).resultados||[]).flatMap(r=>r.series.map(s=>({id:s.localidade.id,n:s.localidade.nome,pop:ultimo(s.serie).v}))).sort((a,b)=>b.pop-a.pop);
+    res.vizinhos=((popMi[0]||{}).resultados||[]).flatMap(r=>r.series.map(s=>({id:s.localidade.id,n:s.localidade.nome,pop:ultimo(s.serie).v,ano:ultimo(s.serie).ano}))).sort((a,b)=>b.pop-a.pop);
+    if(res.vizinhos.length)res.pop.mi={v:res.vizinhos.reduce((t,x)=>t+(isFinite(x.pop)?x.pop:0),0),ano:res.vizinhos[0].ano};
     msg="Contando empresas do ramo no Cadastro Central de Empresas (IBGE)…";draw();
     try{const C=await cnaeCats(),kw=R.cnae.map(norm).filter(Boolean),sel=C.filter(c=>/^\d{2}\.\d{2}/.test(c.n)&&kw.some(k=>norm(c.n).includes(k))).slice(0,8);
       res.cnae=sel.map(c=>({id:c.id,n:c.n}));
-      if(sel.length){const d=await getJ(`${IB}/v3/agregados/9528/periodos/-1/variaveis/706|707|708?localidades=N6[${m.id}]|N9[${m.mi}]|N3[${m.ufId}]&classificacao=12762[${sel.map(c=>c.id).join(",")}]`);
-        for(const c of res.cnae){c.v={};for(const [vk,vid] of [["ul",706],["po",707],["pa",708]]){c.v[vk]={};for(const r of serie(d,vid)){if(String(Object.keys(r.classificacoes[0].categoria)[0])!==String(c.id))continue;for(const s of r.series){const u=ultimo(s.serie);c.v[vk][s.localidade.nivel.id]=u.v;c.ano=u.ano||c.ano}}}}}}catch(e){erros.push("CEMPRE: "+e.message)}
+      if(sel.length){const d=await getJ(`${IB}/v3/agregados/9528/periodos/-1/variaveis/706|707|708?localidades=N6[N9[${m.mi}]]|N3[${m.ufId}]&classificacao=12762[${sel.map(c=>c.id).join(",")}]`);
+        for(const c of res.cnae){c.v={};for(const [vk,vid] of [["ul",706],["po",707],["pa",708]]){c.v[vk]={};for(const r of serie(d,vid)){if(String(Object.keys(r.classificacoes[0].categoria)[0])!==String(c.id))continue;for(const s of r.series){const u=ultimo(s.serie),nv=s.localidade.nivel.id;c.ano=u.ano||c.ano;if(nv==="N6"){c.v[vk].N9=(c.v[vk].N9||0)+(isFinite(u.v)?u.v:0);if(String(s.localidade.id)===String(m.id))c.v[vk].N6=u.v}else c.v[vk][nv]=u.v}}}}}}catch(e){erros.push("CEMPRE: "+e.message)}
     if(isFinite(lat)){msg="Procurando concorrentes, clientes e fornecedores no raio (OpenStreetMap)…";draw();
       const blocos=[];for(const [cat,L] of Object.entries(R.osm))for(const sel of L)blocos.push([cat,sel]);
-      const qy=`[out:json][timeout:40];(${blocos.map(([c,s])=>`${s}(around:${Math.round(raio*1000)},${lat},${lon});`).join("")});out center tags 400;`;
-      try{const o=await getJ("https://overpass-api.de/api/interpreter",{method:"POST",body:"data="+encodeURIComponent(qy),headers:{"Content-Type":"application/x-www-form-urlencoded"}});
+      const qy=`[out:json][timeout:28];(${blocos.map(([c,s])=>`${s}(around:${Math.round(raio*1000)},${lat},${lon});`).join("")});out center tags 400;`;
+      try{let o=null,ult="";for(const srv of ["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://overpass.kumi.systems/api/interpreter"]){const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),30000);
+          try{msg=`Procurando concorrentes, clientes e fornecedores no raio (OpenStreetMap: ${srv.split("/")[2]})…`;draw();o=await getJ(srv,{method:"POST",body:"data="+encodeURIComponent(qy),headers:{"Content-Type":"application/x-www-form-urlencoded"},signal:ac.signal});clearTimeout(tm);break}catch(er){clearTimeout(tm);ult=er.name==="AbortError"?"servidor demorou mais de 30 s":er.message}}
+        if(!o)throw new Error(`servidores do OpenStreetMap ocupados (${ult}). Os dados do IBGE estão abaixo; toque em Prospectar de novo daqui a pouco para buscar os pontos`);
         const tagOK=(t,sel)=>{const re=/\["([^"]+)"(?:(=|~)"([^"]+)")?(,i)?\]/g;let x;while((x=re.exec(sel))){const v=t[x[1]];if(v==null)return false;if(x[2]==="="&&v!==x[3])return false;if(x[2]==="~"&&!new RegExp(x[3],x[4]?"i":"").test(v))return false}return true};
-        res.pts=(o.elements||[]).map(e=>{const t=e.tags||{},la=e.lat??(e.center||{}).lat,lo=e.lon??(e.center||{}).lon,b=blocos.find(([c,s])=>tagOK(t,s));return {cat:b?b[0]:"cli",nome:t.name||t.brand||t.operator||"(sem nome)",tipo:t.shop||t.amenity||t.landuse||t.leisure||t.tourism||t.industrial||t.aquaculture||"",cuisine:t.cuisine||"",end:[t["addr:street"],t["addr:housenumber"],t["addr:city"]].filter(Boolean).join(", "),tel:t.phone||t["contact:phone"]||"",site:t.website||t["contact:website"]||"",lat:la,lon:lo,d:distKm(lat,lon,la,lo),osm:e.type+"/"+e.id}}).filter(p=>isFinite(p.lat)).sort((a,b)=>a.d-b.d)}catch(e){erros.push("OpenStreetMap: "+e.message);res.pts=[]}}
+        res.pts=(o.elements||[]).map(e=>{const t=e.tags||{},la=e.lat??(e.center||{}).lat,lo=e.lon??(e.center||{}).lon,b=blocos.find(([c,s])=>tagOK(t,s));return {cat:b?b[0]:"cli",nome:t.name||t.brand||t.operator||"(sem nome)",tipo:t.shop||t.amenity||t.landuse||t.leisure||t.tourism||t.industrial||t.aquaculture||"",cuisine:t.cuisine||"",end:[t["addr:street"],t["addr:housenumber"],t["addr:city"]].filter(Boolean).join(", "),tel:t.phone||t["contact:phone"]||"",site:t.website||t["contact:website"]||"",lat:la,lon:lo,d:distKm(lat,lon,la,lo),osm:e.type+"/"+e.id}}).filter(p=>isFinite(p.lat)).sort((a,b)=>a.d-b.d)}catch(e){erros.push("OpenStreetMap: "+e.message);res.pts=(S.res&&S.res.mun&&S.res.mun.id===m.id&&S.res.ramoK===S.ramo&&S.res.pts)||[];if(res.pts.length)erros.push("mostrando os pontos da busca anterior")}}
     else{res.pts=[];erros.push("Não achei as coordenadas do município no OpenStreetMap; o mapa ficou sem pontos.")}
     res.erros=erros;S.res=res;grava();msg="";
   }catch(e){msg="";erros.push(e.message)}
@@ -8674,7 +8677,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v101";
+  const APP_VERSAO="ras-v102";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
