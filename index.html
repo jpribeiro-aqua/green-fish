@@ -4365,7 +4365,9 @@ function localRecomendado(){const res=S.res,pts=(res&&res.pts)||[],D=[];
 const fixado=()=>!!(S.crm.local&&S.crm.local.fixo);
 const chaveRes=()=>S.res?String(S.res.quando||(S.res.mun&&S.res.mun.id)||""):"";
 const recFeito=()=>!!S.res&&S.crm.recQ===chaveRes();
-function fazRec(){const r=localRecomendado();S.crm.rec=r;if(r)S.crm.recQ=chaveRes();grava();return r}
+function fazRec(){const r=localRecomendado();S.crm.rec=r;if(r)S.crm.recQ=chaveRes();if(r)autoFixa();grava();return r}
+// v112: a sugestão pela prospecção já fica fixada no mapa (a menos que você tenha marcado um ponto à mão)
+function autoFixa(){const L=S.crm.local,r=S.crm.rec;if(r&&(!L||(L.sug&&!L.fixo)))fixarLocal(r,"Ponto de venda sugerido pela pesquisa de mercado",true)}
 const TRAVA="Disponível depois da sugestão pela prospecção (📍)";
 function fixarLocal(o,nome,sug){S.crm.local={lat:o.lat,lon:o.lon,nome:nome||o.nome||"Ponto de venda",fixo:true,sug:!!sug,data:new Date().toISOString().slice(0,10),mun:o.mun||(S.res&&S.res.mun?S.res.mun.n:""),motivo:o.motivo||[]};S.crm.rec=null;S.crm.sug=null;rotaRes=null;grava()}
 const gmLink=L=>`https://www.google.com/maps/search/?api=1&query=${L.lat.toFixed(6)},${L.lon.toFixed(6)}`;
@@ -4390,7 +4392,7 @@ const gmaps=(L0,seq)=>{const p=s=>`${s.lat.toFixed(6)},${s.lon.toFixed(6)}`,w=se
 function iconeCor(cor,txt,grande){return LF.divIcon({className:"mk-pin",html:`<span style="background:${cor};${grande?"width:30px;height:30px;font-size:14px":""}">${txt||""}</span>`,iconSize:grande?[30,30]:[22,22],iconAnchor:grande?[15,15]:[11,11]})}
 function montaMapa(){const box=document.getElementById("mk-lmap");if(!box||!LF)return;
   if(MAP&&MAP.getContainer()!==box){try{MAP.remove()}catch(e){}MAP=null}
-  if(!MAP){const L0=localEmp()||(S.res&&isFinite(S.res.lat)?S.res:{lat:-2.52,lon:-45.08});MAP=LF.map(box,{zoomControl:true}).setView([L0.lat,L0.lon],10);
+  if(!MAP){const L0=localEmp()||(S.res&&isFinite(S.res.lat)?S.res:{lat:-2.52,lon:-45.08});MAP=LF.map(box,{zoomControl:true}).setView([L0.lat,L0.lon],10);box.querySelectorAll(":scope>.note").forEach(n=>n.remove());
     LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(MAP);
     MAP.on("click",ev=>{if(modo==="add"){const c=addCliente({lat:ev.latlng.lat,lon:ev.latlng.lng,nome:"Novo cliente"});modo="nav";envDraw();setTimeout(()=>{const i=document.getElementById("mk-ed-nome");if(i){i.focus();i.select()}},50)}
       else if(modo==="local"&&!fixado()&&recFeito()){S.crm.local={lat:ev.latlng.lat,lon:ev.latlng.lng,nome:"Local escolhido no mapa"};modo="nav";grava();envDraw()}});
@@ -4454,7 +4456,7 @@ function envEstr(){const box=document.getElementById("mk-estr-b");if(!box)return
   box.innerHTML=`<div class="gfh-kpis bx-kpis">${k("Clientes no funil",F(C.length),`${A.length} ativos · ${perd} perdidos · conversão ${isFinite(conv)?F(conv*100)+"%":"—"}`)}${k("Receita mensal (ativos)",`R$ ${F(recAt)}`,`${F(volAt*4.33)} kg/mês`,"ok")}${k("Receita prevista (funil)",`R$ ${F(recPond)}`,"volume × preço × chance de cada etapa")}${k("Vendido da produção",isFinite(cob)?F(cob*100)+"%":"—",isFinite(capSem)?`ativos ${F(volAt)} de ${F(capSem)} kg/sem · previsto ${F(cobP*100)}%`:"preencha a aba Local",isFinite(cob)?(cob>1?"crit":cob<.6?"warn":"ok"):"")}</div>
    <h3 class="mk-h3">✅ Estratégia sugerida</h3><ul class="mk-rec">${rec.map(([c,t])=>`<li class="${c}">${t}</li>`).join("")||"<li>Tudo em ordem.</li>"}</ul>
    <h3 class="mk-h3">📅 Próximos contatos</h3>${ag.length?`<ul class="mk-ag">${ag.map(c=>`<li class="${c.data<hoje?"late":""}" data-mksel="${c.id}"><b>${c.data.split("-").reverse().join("/")}</b> ${esc(c.nome)} <small>${ET[c.etapa].n} · ${esc(c.prox||"")}</small></li>`).join("")}</ul>`:`<p class="muted">Preencha “Próximo contato” nos clientes do funil.</p>`}`}
-function envDraw(){const env=document.getElementById("mk-env");if(!env)return;if(!fixado()&&S.res&&(S.res.pts||[]).some(p=>p.cat==="cli")&&!recFeito())fazRec();
+function envDraw(){const env=document.getElementById("mk-env");if(!env)return;if(!fixado()&&S.res&&(S.res.pts||[]).some(p=>p.cat==="cli")&&!recFeito())fazRec();else if(S.crm.rec&&recFeito())autoFixa();
   if(!env.querySelector("#mk-lmap")){env.innerHTML=`<section class="card wide" id="mk-envcard"><div class="card-head"><h2>Ambiente de estratégia<span>Mapa interativo dos clientes, local do empreendimento, funil de vendas e rotas de entrega</span></h2></div><div class="body">
     <div class="mk-tools" id="mk-tools"></div><div class="mk-envgrid"><div id="mk-lmap" class="mk-lmap"><div class="note" style="margin:12px">Carregando o mapa interativo…</div></div><aside id="mk-side" class="mk-side"></aside></div></div></section>
     <section class="card wide"><div class="card-head"><h2>Funil de vendas<span>Do primeiro contato ao cliente ativo · toque num cartão para editar, ◀ ▶ para mudar de etapa</span></h2></div><div class="body" id="mk-funil-b"></div></section>
@@ -9061,7 +9063,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v111";
+  const APP_VERSAO="ras-v112";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
