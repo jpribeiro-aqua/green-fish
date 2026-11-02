@@ -4132,7 +4132,7 @@ let S;try{S=JSON.parse(localStorage.getItem(MK_KEY)||"null")}catch(e){}
 S=Object.assign({ramo:"piscicultura",ramoTxt:"",mun:"",munId:null,raio:"30",cons:"9,5",preco:"",alvo:"5",res:null},S||{});
 const grava=()=>{try{localStorage.setItem(MK_KEY,JSON.stringify(S))}catch(e){try{const t={...S,res:null};localStorage.setItem(MK_KEY,JSON.stringify(t))}catch(_){}}};
 const P=v=>{const x=parseFloat(String(v||"").replace(/\./g,"").replace(",","."));return isFinite(x)?x:NaN};
-const F=(v,d=0)=>isFinite(v)?fmt(v,d):"—";
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?fmt(v,d):"—";
 const getJ=async(u,o)=>{const r=await fetch(u,o);if(!r.ok)throw new Error("HTTP "+r.status);return r.json()};
 let MUN=null;async function municipios(){if(MUN)return MUN;try{const c=sessionStorage.getItem("gf-mun");if(c){MUN=JSON.parse(c);return MUN}}catch(e){}
   const L=await getJ(IB+"/v1/localidades/municipios?view=nivelado");MUN=L.map(m=>({id:m["municipio-id"],n:m["municipio-nome"],uf:m["UF-sigla"],ufId:m["UF-id"],mi:m["microrregiao-id"],min:m["microrregiao-nome"]}));try{sessionStorage.setItem("gf-mun",JSON.stringify(MUN))}catch(e){}return MUN}
@@ -8684,7 +8684,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v103";
+  const APP_VERSAO="ras-v104";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
