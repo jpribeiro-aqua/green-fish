@@ -2897,7 +2897,7 @@ function dcard(title,sub,body,wide){
 }
 
 /* ---------- Aba em evidência: o Painel mostra só os dados da aba escolhida (ou de todas) ---------- */
-const FOCO_K="ras-foco-painel",FOCOS=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"]];
+const FOCO_K="ras-foco-painel",FOCOS=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"]];
 let foco=(()=>{try{return localStorage.getItem(FOCO_K)||""}catch(e){return ""}})(),focoTent=0,focoTimer=null;
 const focoPode=a=>!window.abaPermitida||abaPermitida(a);
 const focoVe=a=>(!foco||foco===a)&&focoPode(a);
@@ -2964,15 +2964,58 @@ function heroLotes(eF,rac){const fms=feedModels()||[],now=typeof bioRef!=="undef
     como:`<p>Cada lote cresce por uma curva da espécie, ajustada pela temperatura e pelas biometrias lançadas. A ração do dia sai da biomassa × taxa de alimentação da fase.</p>`})}
 function heroGeral(eF,a){const D={local:["📍","Local e viabilidade","Clima, água, aptidão da espécie e custos do local do projeto."],repro:["🐟","Reprodução","Protocolos de indução, desova, incubação e o plantel de reprodutores."],topo:["🗺","Levantamentos e projetos","Topografia, viveiros projetados e terraplenagem."]}[a];if(!D)return "";
   return heroBox({foco:eF,aba:D[1],ico:D[0],tone:"info",badge:"Em evidência",titulo:D[1],sub:D[2]+" Os números e gráficos detalhados estão logo abaixo.",goto:a})}
+/* v124: Camada de mercado e Beneficiamento em evidência no Painel */
+function heroMerc(eF){const R=window.gfMercResumo&&gfMercResumo();const base={foco:eF,aba:"Camada de mercado",ico:"🛒",goto:"merc"};
+  if(!R)return heroBox({...base,tone:"info",titulo:"Abrindo a Camada de mercado…",sub:"Abra a aba uma vez para carregar a pesquisa de mercado."});
+  const todo=[];
+  if(!R.prosp)todo.push(["warn","Faça a <b>🔎 prospecção</b> do município na Camada de mercado: dela saem o ponto de venda, os nichos e as sugestões."]);
+  else if(!R.local||!R.local.fixo)todo.push(["warn","Fixe o <b>📌 ponto de venda</b> sugerido pela prospecção."]);
+  if(!R.ativos)todo.push([R.nCli?"warn":"info",R.nCli?`Nenhum cliente ativo ainda: avance os ${R.nCli} contato(s) do funil até “Cliente ativo”.`:"Coloque no funil os clientes encontrados na prospecção (botão ➕ no mapa ou na lista)."]);
+  if(R.top)todo.push(["info",`Nicho mais promissor: <b>${esc(R.top.n)}</b> (nota ${R.top.nota} · ${esc(R.top.v)}).`]);
+  const B2=window.gfBenefResumo&&gfBenefResumo(),on=id=>!window.gfCorrOn||gfCorrOn(id);
+  if(B2&&on("benef_prod")&&B2.plan&&B2.plan.kg>0&&R.volAt>0)todo.push([B2.plan.kg<R.volAt?"warn":"ok",`🔗 Beneficiamento: ${n(B2.plan.kg,1)} kg planejados × ${n(R.volAt,0)} kg/semana dos clientes ativos.`]);
+  if(B2&&on("benef_qual")&&B2.qual.falhas.length)todo.push(["crit",`🔗 Qualidade fora do limite (${esc(B2.qual.falhas.join(", "))}): não venda o lote antes de corrigir.`]);
+  if(!todo.length)todo.push(["ok","Mercado organizado. Atualize as etapas do funil a cada contato."]);
+  const tone=todo.some(t=>t[0]==="crit")?"crit":todo.some(t=>t[0]==="warn")?"warn":"ok";
+  return heroBox({...base,tone,badge:R.ativos?`${R.ativos} cliente${R.ativos===1?"":"s"} ativo${R.ativos===1?"":"s"}`:"sem clientes ativos",
+    titulo:R.prosp?`Mercado de ${esc(R.mun)}: ${R.ativos} cliente${R.ativos===1?"":"s"} ativo${R.ativos===1?"":"s"} comprando ${n(R.volAt,0)} kg/semana`:"Mercado ainda não prospectado",
+    sub:`Funil de clientes, ponto de venda e nichos da pesquisa de mercado${R.pts?` (${R.pts} ponto${R.pts===1?"":"s"} prospectado${R.pts===1?"":"s"})`:""}.`,
+    kpis:[{i:"🤝",l:"Clientes ativos",v:String(R.ativos),d:`${n(R.volAt,0)} kg/semana`,c:R.ativos?"ok":"warn"},{i:"🧲",l:"No funil",v:String(R.funil),d:`≈ ${n(R.volFun,0)} kg/semana ponderados pela chance de fechar`},
+      {i:"📍",l:"Ponto de venda",v:R.local?(R.local.fixo?"fixado":"escolhido"):"—",d:R.local?esc(R.local.nome||""):"faça a prospecção e fixe o ponto",c:R.local&&R.local.fixo?"ok":"warn"},
+      {i:"🎯",l:"Nicho mais promissor",v:R.top?String(R.top.nota):"—",d:R.top?esc(R.top.n):"sem prospecção",c:R.top?(R.top.nota>=70?"ok":R.top.nota>=45?"warn":"crit"):"n"},
+      ...(isFinite(R.frete)?[{i:"🚚",l:"Frete das entregas",v:`R$ ${n(R.frete,2)}/kg`,d:"rotas com os clientes ativos"}]:[])],
+    chartT:"🧲 Clientes por etapa do funil",chart:heroBars(R.etapas.filter(e=>e.q).map(e=>({n:e.n,v:e.q,s:`${n(e.v,0)} kg/sem`,c:e.k==="cli"?"ok":e.k==="prosp"?"info":"warn"})),v=>String(v)),
+    todo:todo.slice(0,6),como:`<p>O <b>funil</b> mostra em que etapa está cada cliente, da prospecção até cliente ativo; o volume ponderado multiplica o kg/semana pela chance de cada etapa. A <b>nota dos nichos</b> (0–100) usa a prospecção, os produtos marcados e as outras abas. As ligações com o Beneficiamento seguem o painel 🔗 Correlações entre abas.</p>`})}
+function heroBenef(eF){const R=window.gfBenefResumo&&gfBenefResumo();const base={foco:eF,aba:"Beneficiamento do pescado",ico:"🔪",goto:"benef"};
+  if(!R)return heroBox({...base,tone:"info",titulo:"Abrindo o Beneficiamento…",sub:"Abra a aba uma vez para carregar os dados."});
+  const PN={visc:"Vísceras",nad:"Nadadeiras",cab:"Cabeça",tronco:"Tronco limpo",filePele:"Filés com pele",pele:"Pele",file:"Filé sem pele",res:"Resíduos"},todo=[];
+  if(R.qual.falhas.length)todo.push(["crit",`Qualidade fora do limite: <b>${esc(R.qual.falhas.join(", "))}</b> (RIISPOA/IN 21). Não libere o lote.`]);
+  if(R.od!=null&&R.od<4)todo.push([R.od<3?"crit":"warn",`🔗 Água do cultivo: OD mínimo ${n(R.od,1)} mg/L. Corrija a aeração e faça jejum/depuração antes do abate.`]);
+  if(!R.qual.feitas)todo.push(["info","Lance as análises de qualidade (pH, N-BVT, histamina, temperatura, glaciamento)."]);
+  if(!R.kg)todo.push(["info","Informe os kg de matéria-prima ou cadastre os lotes na Biomassa (com a correlação ligada)."]);
+  if(!R.plan)todo.push(["info","Planeje um derivado (linguiça, hambúrguer, nugget…) no botão de derivados."]);
+  if(!todo.length)todo.push(["ok","Beneficiamento em dia: rendimento, plano e qualidade lançados."]);
+  const tone=todo.some(t=>t[0]==="crit")?"crit":todo.some(t=>t[0]==="warn")?"warn":"ok",fp=R.rend&&isFinite(R.rend[0])?R.rend[0]:NaN;
+  const parts=R.est?Object.entries(R.est).filter(([k,v])=>PN[k]&&isFinite(v)&&k!=="res").map(([k,v])=>({n:PN[k],v,c:k==="file"?"ok":"info"})):[];
+  return heroBox({...base,tone,badge:R.qual.falhas.length?"qualidade fora do limite":R.qual.feitas?"qualidade dentro":"sem análises",
+    titulo:`${esc(R.esp)}: filé de ${isFinite(fp)?n(fp,1)+" %":"—"}${R.kg?` · ${n(R.kg,0)} kg de matéria-prima`:""}`,
+    sub:`Rendimentos, derivados e qualidade do pescado. ${R.corr} de ${R.corrT} correlações entre abas ligadas.`,
+    kpis:[{i:"🐟",l:"Rendimento de filé",v:isFinite(fp)?n(fp,1)+" %":"—",d:R.rend?esc(R.rend[1]):"",c:isFinite(fp)?"ok":"n"},{i:"⚖️",l:"Peso do animal",v:isFinite(R.pw)?n(R.pw,0)+" g":"—",d:"informado, do lote ou da medição"},
+      {i:"📦",l:"Matéria-prima",v:R.kg?n(R.kg,0)+" kg":"—",d:R.kgFonte||"sem lote"},{i:"🌭",l:"Derivado planejado",v:R.plan?n(R.plan.kg,1)+" kg":"—",d:R.plan?esc(String(R.plan.n).replace(/^\S+\s/,"")):"nenhum"},
+      {i:"🧪",l:"Qualidade",v:R.qual.feitas?(R.qual.falhas.length?R.qual.falhas.length+" fora":"dentro"):"—",d:R.qual.feitas?`${R.qual.feitas} análise(s)`:"sem análises",c:R.qual.feitas?(R.qual.falhas.length?"crit":"ok"):"n"}],
+    chartT:parts.length?`📐 Rendimento das partes (% do peso vivo, ${isFinite(R.pw)?n(R.pw,0)+" g":""})`:"",chart:parts.length?heroBars(parts,v=>n(v,1)+" %"):"",
+    todo:todo.slice(0,6),como:`<p>Os rendimentos vêm da literatura para a espécie e o peso (Souza e Maranhão 2001, Macedo-Viegas 2000 e outros) ou das suas medições. Os limites de qualidade são do RIISPOA (art. 211) e da IN 21/2017. As ligações com as outras abas seguem o painel 🔗 Correlações entre abas.</p>`})}
 function heroVisao(){const tiles=[];
   try{const w=aquaFrame.contentWindow,R=w&&w.aquaRelatorio?w.aquaRelatorio().filter(r=>!r.exemplo):[];if(R.length){const ult={};R.forEach(r=>{if(!ult[r.id]||r.data+r.ini>ult[r.id].data+ult[r.id].ini)ult[r.id]=r});const L=Object.values(ult),c=gfContaU(L.filter(r=>r.st==="critico"||r.st==="letal")).nv,al=gfContaU(L.filter(r=>r.st==="alerta")).nv;tiles.push(["aqua","📈","AquaNictemeral",c?`${c} crítico${c===1?"":"s"}`:al?`${al} em alerta`:"água no ideal",c?"crit":al?"warn":"ok",`${gfContaU(L).txt}${gfContaU(L).det?" · "+gfContaU(L).det:""}`])}else tiles.push(["aqua","📈","AquaNictemeral","sem leituras","info","importe as leituras"])}catch(e){}
   if(dashState&&dashState.ok)tiles.push(["calc","🧮","Calculadora",`${n(dashState.r.BM,0)} kg`,"ok","biomassa máxima do RAS"]);
   const fms=feedModels()||[];let bio=0,ra=0;fms.forEach(m=>{const v=m.ok?m.at(Date.now()):{};if(v.on){bio+=v.bio;ra+=v.feed}});if(fms.length){tiles.push(["bio","🐟","Biomassa",`${n(bio,0)} kg`,bio?"ok":"info","biomassa estimada hoje"]);tiles.push(["racao","🍽","Arraçoamento",`${n(ra,1)} kg/d`,ra?"ok":"info","ração de hoje"])}
+  try{const M=window.gfMercResumo&&gfMercResumo();if(M&&focoPode("merc"))tiles.push(["merc","🛒","Camada de mercado",M.prosp?`${M.ativos} cliente${M.ativos===1?"":"s"} ativo${M.ativos===1?"":"s"}`:"sem prospecção",M.ativos?"ok":M.prosp?"warn":"info",M.prosp?`${n(M.volAt,0)} kg/semana · ${M.funil} no funil`:"prospecte o município"])}catch(e){}
+  try{const Bn=window.gfBenefResumo&&gfBenefResumo();if(Bn&&focoPode("benef")){const fp=Bn.rend?Bn.rend[0]:NaN;tiles.push(["benef","🔪","Beneficiamento",isFinite(fp)?`filé ${n(fp,1)} %`:"—",Bn.qual.falhas.length?"crit":"ok",Bn.qual.falhas.length?`qualidade: ${Bn.qual.falhas.join(", ")} fora`:`${esc(Bn.esp)}${Bn.plan?` · ${n(Bn.plan.kg,1)} kg de derivado`:""}`])}}catch(e){}
   if(!tiles.length)return "";
   return `<section class="gfh gfh-info gfh-geral"><div class="gfh-top"><div class="gfh-ico">📊</div><div class="gfh-tt"><small>Visão geral · todas as abas</small><h2>Resumo do projeto</h2><p>Toque num cartão para pôr a aba em evidência e ver o painel explicado dela.</p></div></div>
    <div class="gfh-tiles">${tiles.map(([a,i,t,v,c,d])=>`<button type="button" class="ht ht-${c}" data-foco="${a}"><span class="ht-i">${i}</span><span class="ht-t">${t}</span><b>${v}</b><small>${d}</small><span class="ht-go">📌 pôr em evidência</span></button>`).join("")}</div></section>`}
 function heroHTML(){try{if(!foco)return heroVisao();const f=foco;
-  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);return heroGeral(true,f)}catch(e){return ""}}
+  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);if(f==="merc")return heroMerc(true);if(f==="benef")return heroBenef(true);return heroGeral(true,f)}catch(e){return ""}}
 function focoRender(blocos){
   if(foco&&!focoPode(foco))foco="";
   const ord=a=>FOCOS.findIndex(x=>x[0]===a);
@@ -2986,7 +3029,16 @@ function focoOutros(){const B=[];
   if(focoVe("bio"))B.push(["bio",(window.shrimpDashHTML?shrimpDashHTML():"")+bioDashHTML()]);
   if(focoVe("repro")&&window.reproDashHTML)B.push(["repro",reproDashHTML()]);
   if(focoVe("topo"))B.push(["topo",topoDashHTML()]);
+  if(focoVe("merc"))B.push(["merc",mercDashHTML()]);
+  if(focoVe("benef"))B.push(["benef",benefDashHTML()]);
   return B}
+function mercDashHTML(){const R=window.gfMercResumo&&gfMercResumo();if(!R)return "";
+  return `<section class="card wide">${fcHead("Camada de mercado",R.prosp?`Pesquisa de mercado · ${esc(R.mun)}`:"Pesquisa de mercado ainda não feita","merc","Abrir Camada de mercado")}<div class="pj-body">
+    ${fcK([["Clientes ativos",String(R.ativos),`${n(R.volAt,0)} kg/semana`,R.ativos?"ok":""],["No funil",String(R.funil),`≈ ${n(R.volFun,0)} kg/semana ponderados`],["Ponto de venda",R.local?(R.local.fixo?"fixado":"escolhido"):"—",R.local?esc(R.local.nome||""):"",R.local&&R.local.fixo?"ok":""],["Nicho mais promissor",R.top?String(R.top.nota):"—",R.top?esc(R.top.n):""],...(isFinite(R.frete)?[["Frete",`R$ ${n(R.frete,2)}/kg`,"rotas de entrega"]]:[])])}
+    ${R.nCli?`<div class="scroll"><table class="pj-tab fc-tab"><thead><tr><th>Etapa do funil</th><th class="num">Clientes</th><th class="num">kg/semana</th></tr></thead><tbody>${R.etapas.map(e=>`<tr><td><i class="sw" style="background:${e.c}"></i> ${esc(e.n)}</td><td class="num" data-l="Clientes">${e.q}</td><td class="num" data-l="kg/semana">${n(e.v,0)}</td></tr>`).join("")}</tbody></table></div>`:""}</div></section>`}
+function benefDashHTML(){const R=window.gfBenefResumo&&gfBenefResumo();if(!R)return "";const fp=R.rend?R.rend[0]:NaN;
+  return `<section class="card wide">${fcHead("Beneficiamento do pescado",`${esc(R.esp)} · ${R.corr} de ${R.corrT} correlações ligadas`,"benef","Abrir Beneficiamento")}<div class="pj-body">
+    ${fcK([["Rendimento de filé",isFinite(fp)?n(fp,1)+" %":"—",R.rend?esc(R.rend[1]):""],["Peso do animal",isFinite(R.pw)?n(R.pw,0)+" g":"—",""],["Matéria-prima",R.kg?n(R.kg,0)+" kg":"—",R.kgFonte||""],["Derivado planejado",R.plan?n(R.plan.kg,1)+" kg":"—",R.plan?esc(String(R.plan.n).replace(/^\S+\s/,"")):""],["Qualidade",R.qual.feitas?(R.qual.falhas.length?R.qual.falhas.length+" fora":"dentro"):"—",R.qual.falhas.length?esc(R.qual.falhas.join(", ")):R.qual.feitas?R.qual.feitas+" análise(s)":"sem análises",R.qual.falhas.length?"bad":R.qual.feitas?"ok":""]])}</div></section>`}
 function focoDepois(){}
 const fcK=l=>`<div class="fc-kpis">${l.map(([t,v,s,c])=>`<div class="fc-kpi${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`).join("")}</div>`;
 const fcHead=(t,s,go,lbl)=>`<div class="card-head"><h2>${t}<span>${s}</span></h2>${go?`<a href="#" class="btn" data-goto="${go}" style="margin-left:auto;text-decoration:none">${lbl||"Abrir a aba"}</a>`:""}</div>`;
@@ -3041,7 +3093,12 @@ const CORR={
   bio:{de:["calc"],para:["racao","aqua","dash"],txt:"um lote por grupo de tanques; peso e número de animais definem a biomassa e a ração"},
   racao:{de:["bio","calc"],para:["dash"],txt:"a ração, os tratos e as compras saem dos lotes da Biomassa"},
   repro:{de:[],para:["dash"],txt:"reprodutores e lotes de reprodução, independentes das outras abas"},
-  topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"}};
+  topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"},
+  merc:{de:["local","bio","aqua"],para:["dash"],txt:"prospecção, funil, ponto de venda e nichos; usa o preço e os custos do Local, as despescas da Biomassa e a água do AquaNictemeral"},
+  benef:{de:[],para:["dash"],txt:"rendimentos, derivados e qualidade; as ligações com as outras abas são as que você marcou em 🔗 Correlações entre abas"}};
+const CORR_GF=[["bio","benef","bio_peso"],["bio","benef","bio_lote"],["local","benef","local_preco"],["aqua","benef","aqua_qual"],["merc","benef","merc_prod"],["merc","benef","merc_frete"],["benef","merc","benef_rend"],["benef","merc","benef_prod"],["benef","merc","benef_qual"]];
+function corrDe(v){const c=CORR[v];if(!c)return null;const o={de:[...c.de],para:[...c.para],txt:c.txt},on=id=>!window.gfCorrOn||gfCorrOn(id);
+  for(const [a,b,id] of CORR_GF){if(!on(id))continue;if(b===v&&!o.de.includes(a))o.de.push(a);if(a===v&&!o.para.includes(b))o.para.splice(o.para.length-(o.para.includes("dash")?1:0),0,b)}return o}
 const NOMES={dash:"Painel",...Object.fromEntries(FOCOS)};
 function ctxOrigem(){try{const w=aquaFrame.contentWindow,O=w&&w.aquaOrigens&&w.aquaOrigens();if(!O)return {txt:"AquaNictemeral ainda não aberto",ras:null};
   const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥",exemplo:"🧪"};
@@ -3053,8 +3110,8 @@ function ctxOrigem(){try{const w=aquaFrame.contentWindow,O=w&&w.aquaOrigens&&w.a
 function ctxHTML(v){const pa=window.projAtual?window.projAtual():null,og=ctxOrigem(),lk=a=>`<a href="#" data-goto="${a}">${esc(NOMES[a]||a)}</a>`;
   let corr="";
   if(v==="dash"){const vis=FOCOS.filter(([a])=>focoVe(a)).map(([a])=>a);corr=`🔗 No Painel agora: ${vis.map(lk).join(", ")||"nenhuma aba"}${foco?" (aba em evidência)":""}`}
-  else if(CORR[v]){const c=CORR[v],de=c.de.filter(focoPode),para=c.para.filter(a=>a==="dash"||focoPode(a));
-    corr=`🔗 ${de.length?`Recebe de ${de.map(lk).join(" e ")} → `:""}<b>${esc(NOMES[v])}</b>${para.length?` → alimenta ${para.map(lk).join(", ")}`:""}<small>${esc(c.txt)}${v==="aqua"&&og.ras===false?" · agora os tanques/viveiros não estão vinculados à Calculadora":""}</small>`}
+  else if(CORR[v]){const c=corrDe(v),de=c.de.filter(focoPode),para=c.para.filter(a=>a==="dash"||focoPode(a));
+    const jE=L=>L.length>1?L.slice(0,-1).join(", ")+" e "+L[L.length-1]:L.join("");corr=`🔗 ${de.length?`Recebe de ${jE(de.map(lk))} → `:""}<b>${esc(NOMES[v])}</b>${para.length?` → alimenta ${para.map(lk).join(", ")}`:""}<small>${esc(c.txt)}${v==="aqua"&&og.ras===false?" · agora os tanques/viveiros não estão vinculados à Calculadora":""}</small>`}
   return `<div class="ctx"><span>📁 Projeto: <b>${pa?esc(pa.nome):"não salvo"}</b></span><span>🗂 Origem dos dados (AquaNictemeral): <b>${esc(og.txt)}</b></span><span>📌 Painel: <b>${foco?esc(focoNome(foco)):"todas as abas"}</b></span></div>${corr?`<div class="ctx-corr">${corr}</div>`:""}`}
 let focoView="dash";window.focoRefresh=()=>{const t=document.querySelector('.tab[aria-selected="true"]');drawFocoBar(t?t.dataset.view:focoView)};
 function drawFocoBar(v){const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";focoView=v;const cx=ctxHTML(v);
@@ -4853,6 +4910,9 @@ function nichosResHTML(){const R=nichosRank();const tit=`<section class="card wi
    <p class="hint">Toque numa linha para ver a análise. A nota pesa os dados de cada nicho (ex.: escolas para o PNAE, bares/restaurantes/hotéis para gastronomia, data da próxima despesca × Páscoa para a Semana Santa, população e contatos digitais para delivery, margem do processado) e 10% do mercado local. Mapeie mais tipos de cliente para a nota ficar mais precisa.</p></div></section>`}
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-nisel]");if(!t||e.target.closest("[data-sugnicho]")||!t.closest("#view-merc"))return;niSel=t.dataset.nisel;draw();document.getElementById("mk-ni")?.scrollIntoView({block:"nearest"})});
 window.gfMerc={freteKg:()=>{try{const r=rotas();return r&&isFinite(r.freteKg)?r.freteKg:NaN}catch(e){return NaN}}};
+window.gfMercResumo=()=>{const C=(S.crm&&S.crm.clientes)||[],at=C.filter(c=>c.etapa==="cli"),fu=C.filter(c=>c.etapa!=="perd"&&c.etapa!=="cli");let top=null,fr=NaN;try{top=nichosRank()[0]||null}catch(e){}try{const r=rotas();fr=r&&isFinite(r.freteKg)?r.freteKg:NaN}catch(e){}const L=S.crm&&S.crm.local;
+  return {mun:S.res&&S.res.mun?S.res.mun.n:(S.mun||""),prosp:!!(S.res&&S.res.mun),pts:((S.res&&S.res.pts)||[]).length,nCli:C.length,ativos:at.length,volAt:at.reduce((a,c)=>a+volSem(c),0),funil:fu.length,volFun:fu.reduce((a,c)=>a+volSem(c)*(ET[c.etapa]?ET[c.etapa].p:0),0),
+    etapas:ETAPAS.filter(e=>e[0]!=="perd").map(e=>{const l=C.filter(c=>c.etapa===e[0]);return {k:e[0],n:e[1],c:e[3],q:l.length,v:l.reduce((a,c)=>a+volSem(c),0)}}),local:L&&isFinite(L.lat)?{nome:L.nome,fixo:!!L.fixo}:null,top:top?{n:top.n,nota:top.a.nota,v:top.a.v[0]}:null,frete:fr}};
 window.drawMerc=()=>{if(!S.mun){try{const lr=window.lvResumo&&lvResumo();if(lr&&lr.LV&&lr.LV.loc)S.mun=String(lr.LV.loc)}catch(e){}}draw()};
 })();
 
@@ -4924,7 +4984,7 @@ function corrHTML(onde){const c=corrGet(),on=CORR.filter(x=>c[x[0]]!==false).len
    <div class="scroll"><table class="lot gf-corr"><thead><tr><th>Usar</th><th class="l">De → Para</th><th class="l">Evidência</th><th class="l">Valor agora</th></tr></thead><tbody>${CORR.map(([id,de,pa,txt,val])=>{let v="—";try{v=val()}catch(e){}return `<tr class="${c[id]===false?"off":""}"><td><input type="checkbox" data-gfcorrid="${id}"${c[id]===false?"":" checked"} aria-label="${esc(txt)}"></td><td class="l"><b>${esc(de)}</b> → ${esc(pa)}</td><td class="l">${esc(txt)}</td><td class="l"><small>${esc(v)}</small></td></tr>`}).join("")}</tbody></table></div>
    <p class="hint">Desligada, a evidência deixa de passar de uma aba para a outra (o app usa só o que você digitar ali). As escolhas valem para as duas abas e ficam salvas neste aparelho.</p></div></section>`}
 window.gfCorrHTML=corrHTML;
-const corrRedraw=()=>{try{draw()}catch(e){}try{window.drawMerc&&drawMerc()}catch(e){}};
+const corrRedraw=()=>{try{draw()}catch(e){}try{window.drawMerc&&drawMerc()}catch(e){}try{window.focoRefresh&&focoRefresh()}catch(e){}};
 document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.dataset.gfcorrid)return;const c=corrGet();c[t.dataset.gfcorrid]=t.checked;localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-gfcorr]");if(!b)return;const c={};CORR.forEach(x=>c[x[0]]=b.dataset.gfcorr==="todas");localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
 function rendCalc(){B.medM=B.medM||{};const m=B.med,pi=P(m.inteiro),e=ESP[B.esp]||ESP.outro,pw=pesoAnimal(),est=estimar(B.esp,pw),pct=x=>isFinite(pi)&&pi>0&&isFinite(P(x))?P(x)/pi*100:NaN;
@@ -4940,7 +5000,7 @@ function rendCalc(){B.medM=B.medM||{};const m=B.med,pi=P(m.inteiro),e=ESP[B.esp]
    <div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Parte (pese na ordem do seu método)</th><th>Peso (g)</th><th>% do inteiro</th><th>${est?`Literatura p/ ${F(pw)} g`:"Referência"}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
    <div class="gfh-kpis bx-kpis">${k("Rendimento de filé",isFinite(fp)?F(fp,1)+"%":"—",est&&est.pct.file!=null?`literatura: ${F(est.pct.file,1)}% para ${F(pw)} g`:e.file?`referência ${faixa(e.file)}`:"meça o filé sem pele","ok")}${k("Corpo limpo / carcaça",isFinite(cl)?F(cl,1)+"%":"—","média dos peixes: corpo limpo 62,6% (Contreras-Guzmán, 1994)")}${k("Resíduos",isFinite(pct(m.res))?F(pct(m.res),1)+"%":"—","cabeça, vísceras, pele, escamas e espinhaço → farinha, óleo, silagem, CMS")}</div>
    <p class="hint">📐 <b>Estimar</b> preenche os pesos de cada parte para o peso do animal e a espécie, interpolando entre as classes de peso da literatura (partes sem dado ficam em branco). Depois é só pesar e trocar pelo valor real — a linha passa a mostrar “medido”. Cálculo da aula: rendimento (%) = peso da parte ÷ peso do inteiro × 100. Fatores: espécie, tamanho, sexo, formato do corpo, mecanização, método e destreza do operador (Macedo-Viegas e Souza, 2004).${L.length?` Peso médio do seu lote de ${esc(ESP[B.esp].n)} na despesca: veja na aba Biomassa.`:""}</p>`}
-function rendFile(key){key=key||B.esp;const fp=P(B.med.file)/P(B.med.inteiro)*100;if(key===B.esp&&isFinite(fp)&&fp>0)return [fp,B.medFonte==="est"&&!(B.medM||{}).file?"estimado pela literatura":"medido por você"];const est=estimar(key,P(B.pesoEst)||P(B.med.inteiro)||(EST[key]?EST[key].w[0]:0));if(est&&est.pct.file!=null)return [est.pct.file,"literatura"];const e=ESP[key]||ESP.outro;if(e.file)return [(e.file[0]+e.file[1])/2,"referência da espécie"];return [33,"estimativa geral, sem medição"]}
+function rendFile(key){key=key||B.esp;const fp=P(B.med.file)/P(B.med.inteiro)*100;if(key===B.esp&&isFinite(fp)&&fp>0)return [fp,B.medFonte==="est"&&!(B.medM||{}).file?"estimado pela literatura":"medido por você"];const est=estimar(key,(key===B.esp?pesoAnimal():NaN)||P(B.pesoEst)||P(B.med.inteiro)||(EST[key]?EST[key].w[0]:0));if(est&&est.pct.file!=null)return [est.pct.file,"literatura"];const e=ESP[key]||ESP.outro;if(e.file)return [(e.file[0]+e.file[1])/2,"referência da espécie"];return [33,"estimativa geral, sem medição"]}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-bnest],[data-bnlimpa]");if(!b||!b.closest("#view-benef"))return;
   if(b.dataset.bnlimpa){B.med={};B.medM={};B.medFonte="";grava();draw();return}
   const w=pesoAnimal(),est=estimar(B.esp,w);if(!est)return;B.med={inteiro:String(Math.round(w))};B.medM={};for(const [k2,v] of Object.entries(est.pct))B.med[k2]=String(Math.round(w*v/100));B.medFonte="est";grava();draw()});
@@ -5050,6 +5110,8 @@ document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest
   later()});
 document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#view-benef"))return;if(t.tagName==="SELECT"||t.type==="checkbox"){grava();draw()}});
 window.drawBenef=draw;
+window.gfBenefResumo=()=>{const e=ESP[B.esp]||ESP.outro,pw=pesoAnimal();let est=null,r=null,A=null;try{est=estimar(B.esp,pw)}catch(x){}try{r=rendFile()}catch(x){}const L=corrOn("bio_lote")?lotes():[],kgL=L.reduce((a,x)=>a+(isFinite(x.kg)?x.kg:0),0),kgM=P(B.kgMan),q=qualFalhas();if(corrOn("aqua_qual")){try{A=bxAgua()}catch(x){}}
+  return {esp:e.n,pw,est:est?est.pct:null,rend:r,lotes:L.length,kg:kgM>0?kgM:kgL,kgFonte:kgM>0?"informado por você":L.length?`${L.length} lote(s) da Biomassa`:"",plan:B.lastPlan&&B.lastPlan.kg>0?B.lastPlan:null,qual:q,od:A&&A.od?A.od.odMin:null,corr:CORR.filter(x=>corrOn(x[0])).length,corrT:CORR.length}};
 })();
 
 /* ---------- Guarda a última configuração neste navegador ---------- */
@@ -9445,7 +9507,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v123";
+  const APP_VERSAO="ras-v124";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
