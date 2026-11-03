@@ -719,6 +719,8 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+.bn-t td .bn-in,.bn-in{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}.bn-t td small{display:block;color:var(--muted)}.bn-st{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:8px}.bn-st.ok{background:rgba(27,175,122,.15);color:#127a55}.bn-st.abaixo{background:rgba(224,154,0,.18);color:#8a5d00}.bn-st.acima{background:rgba(42,120,214,.15);color:#1d5aa5}
+.bn-ul{margin:8px 0;padding-left:20px;font-size:13.5px;line-height:1.5}.bn-ul li{margin:3px 0}.bn-bars{display:grid;gap:5px;margin:8px 0}.bn-bars div{display:grid;grid-template-columns:60px 1fr 54px;gap:8px;align-items:center;font-size:13px}.bn-bars i{display:block;height:12px;border-radius:6px;background:#2a78d6}.bn-svg{width:100%;height:90px;background:var(--bg);border-radius:8px;margin-top:8px}
 .mk-catr{margin:8px 0;padding:8px 10px;border-radius:8px;background:var(--accent-soft);font-size:13px}
 .mk-busca{margin:0 0 8px}.mk-qbox{display:flex;gap:6px;align-items:center}.mk-qbox input{flex:1;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border:1.5px solid var(--accent);border-radius:10px;background:var(--surface);color:var(--ink)}
 .mk-qn{margin:6px 2px;font-size:12.5px;color:var(--muted)}.mk-ql{list-style:none;margin:0;padding:0;display:grid;gap:6px;max-height:360px;overflow:auto}.mk-ql li{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}.mk-ql .mk-rdot{margin-top:6px;flex:0 0 auto}.mk-qt{flex:1;min-width:0}.mk-qt small{color:var(--muted)}.mk-qc{display:block}.mk-qt .mk-cts{margin:4px 0 0}.mk-qa{display:flex;flex-direction:column;gap:4px}.mk-ql mark,.mk-qc mark{background:#ffe58a;color:inherit;border-radius:3px;padding:0 1px}.mk-qtag{font-size:12.5px;padding:2px 8px;border-radius:12px;background:var(--accent-soft)}
@@ -868,6 +870,7 @@ body.has-bnav .imp-box{bottom:76px}
     <button type="button" class="tab" role="tab" id="tab-repro" aria-controls="view-repro" data-view="repro">Reprodução</button>
     <button type="button" class="tab" role="tab" id="tab-topo" aria-controls="view-topo" data-view="topo">Levantamentos e projetos</button>
     <button type="button" class="tab" role="tab" id="tab-merc" aria-controls="view-merc" data-view="merc">Camada de mercado</button>
+    <button type="button" class="tab" role="tab" id="tab-benef" aria-controls="view-benef" data-view="benef">Beneficiamento do pescado</button>
     <button type="button" class="tab" role="tab" id="tab-proj" aria-controls="view-proj" data-view="proj">Projetos</button>
     <button type="button" class="tab" role="tab" id="tab-users" aria-controls="view-users" data-view="users">Usuários e acesso</button>
     <span class="sp"></span>
@@ -883,6 +886,7 @@ body.has-bnav .imp-box{bottom:76px}
   <div class="dash" id="view-repro" role="tabpanel" aria-labelledby="tab-repro" hidden></div>
   <div class="dash" id="view-topo" role="tabpanel" aria-labelledby="tab-topo" hidden></div>
   <div class="dash" id="view-merc" role="tabpanel" aria-labelledby="tab-merc" hidden></div>
+  <div class="dash" id="view-benef" role="tabpanel" aria-labelledby="tab-benef" hidden></div>
   <div class="dash" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden></div>
   <div class="dash" id="view-users" role="tabpanel" aria-labelledby="tab-users" hidden></div>
 
@@ -3840,7 +3844,7 @@ function drawPlan(){
 }
 
 /* ---------- Abas ---------- */
-const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","merc","proj","users"];
+const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","merc","benef","proj","users"];
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
@@ -3853,6 +3857,7 @@ function setView(v){
   document.getElementById("view-repro").hidden=v!=="repro";if(v==="repro"&&window.drawRepro)drawRepro();
   document.getElementById("view-topo").hidden=v!=="topo";if(v==="topo"&&window.drawTopo)drawTopo();
   document.getElementById("view-merc").hidden=v!=="merc";if(v==="merc"&&window.drawMerc)drawMerc();
+  document.getElementById("view-benef").hidden=v!=="benef";if(v==="benef"&&window.drawBenef)drawBenef();
   document.getElementById("view-proj").hidden=v!=="proj";if(v==="proj"&&window.drawProj)drawProj();
   document.getElementById("view-users").hidden=v!=="users";if(v==="users"&&window.drawUsers)drawUsers();
 }
@@ -4843,6 +4848,108 @@ function nichosResHTML(){const R=nichosRank();const tit=`<section class="card wi
    <p class="hint">Toque numa linha para ver a análise. A nota pesa os dados de cada nicho (ex.: escolas para o PNAE, bares/restaurantes/hotéis para gastronomia, data da próxima despesca × Páscoa para a Semana Santa, população e contatos digitais para delivery, margem do processado) e 10% do mercado local. Mapeie mais tipos de cliente para a nota ficar mais precisa.</p></div></section>`}
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-nisel]");if(!t||e.target.closest("[data-sugnicho]")||!t.closest("#view-merc"))return;niSel=t.dataset.nisel;draw();document.getElementById("mk-ni")?.scrollIntoView({block:"nearest"})});
 window.drawMerc=()=>{if(!S.mun){try{const lr=window.lvResumo&&lvResumo();if(lr&&lr.LV&&lr.LV.loc)S.mun=String(lr.LV.loc)}catch(e){}}draw()};
+})();
+
+/* ---------- v119: Beneficiamento do pescado — aulas de Beneficiamento e Tecnologia do Pescado (UFMA), Controle de Qualidade, Bioquímica do Pescado, RIISPOA, IN 21/2017 e Embrapa ---------- */
+(function(){
+const BK="greenfish-benef";let B;try{B=JSON.parse(localStorage.getItem(BK)||"null")}catch(e){}
+B=Object.assign({esp:"tilapia",med:{},lote:"todos",kgMan:"",tipoSal:"seca",kgSal:"",conc:"26,6",piS:"",pfS:"",sec:{pi:"",d:["","","","",""]},ling:"1000",temps:"",defPi:"",defPf:"",qual:{grupo:"peixe",hist:false,ph:"",bvt:"",his:"",tc:"",glac:""},preco:{}},B||{});
+const grava=()=>{try{localStorage.setItem(BK,JSON.stringify(B))}catch(e){}};
+const P=v=>{let t=String(v??"").trim();if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const espDe=n=>{n=String(n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");return /tambatinga/.test(n)?"tambatinga":/tambaqui/.test(n)?"tambaqui":/tilapia/.test(n)?"tilapia":/panga/.test(n)?"panga":/curimat/.test(n)?"curimata":/piau/.test(n)?"piau":/palombeta/.test(n)?"palombeta":/camar/.test(n)?"camarao":"outro"};
+// referências de rendimento (% do peso do peixe inteiro) — cada número com a fonte
+const ESP={
+  tilapia:{n:"Tilápia",file:[31.5,33.7],f:"filé 31,5% (150–350 g) a 33,7% (751–950 g) — Souza et al., citado nos relatórios da aula prática (2022)"},
+  tambaqui:{n:"Tambaqui",cab:[21.3,22.1],visc:[6.5,10.4],pele:[2.9,2.9],tronco:[42.3,46.1],evisc:[93.5,93.5],f:"cabeça 21–22%, vísceras 6,5–10,4%, pele 2,9%, tronco limpo 42–46% (Cirne et al., 2019, Embrapa); eviscerado 93,5% (Borghesi et al., 2017, Embrapa)"},
+  tambatinga:{n:"Tambatinga",f:"híbrido usado na aula de defumação (2022); use as referências do tambaqui como aproximação"},
+  panga:{n:"Panga",file:[40,50],f:"filé 40–50% (Colpani, citado no relatório da aula, 2022); na aula, filé manual deu 11% — destreza e método pesam muito"},
+  curimata:{n:"Curimatá",file:[43.9,43.9],f:"filé 43,9% em exemplar de 380 g (relatório da aula prática 1, 2022)"},
+  piau:{n:"Piau",file:[22.9,22.9],f:"filé 22,9% em exemplar de 380 g (relatório da aula prática 1, 2022)"},
+  palombeta:{n:"Palombeta (Carangidae)",file:[15.2,22.9],hist:true,f:"filé 15–23% (relatório da aula, 2022). Família Carangidae: forma histamina — controle obrigatório (IN 21/2017)"},
+  camarao:{n:"Camarão",file:[50,50],f:"cerca de 50% vira resíduo no camarão inteiro (Silva et al., 2019, citado no relatório da aula)"},
+  outro:{n:"Outra espécie",f:"corpo limpo médio de 62,6% do peso dos peixes marinhos e de água doce (Contreras-Guzmán, 1994)"}};
+const ETAP=[["inteiro","Peixe inteiro"],["escama","Escamas"],["visc","Vísceras"],["nad","Nadadeiras"],["cab","Cabeça"],["tronco","Tronco limpo (carcaça)"],["filePele","Filés com pele"],["pele","Pele"],["file","Filé sem pele"],["res","Todos os resíduos"]];
+function lotes(){try{const fm=(typeof feedModels==="function"&&feedModels())||[];return fm.filter(m=>m.ok).map(m=>{let kg=NaN;try{kg=(m.at0||m.at)(m.harvest-864e5).bio}catch(e){}return {id:m.t.id,n:m.name,sp:m.sp&&m.sp.name||"",h:m.harvest,kg}})}catch(e){return []}}
+function pV(){try{const o=window.lvResumo&&lvResumo();return o&&o.o&&o.o.pV>0?o.o.pV:NaN}catch(e){return NaN}}
+function prodsMerc(){try{const s=JSON.parse(localStorage.getItem("greenfish-mercado")||"{}");return Array.isArray(s.produtos)&&s.produtos.length?s.produtos:(s.produto?[s.produto]:[])}catch(e){return []}}
+const card=(id,t,sub,body)=>`<section class="card wide" id="${id}"><div class="card-head"><h2>${t}<span>${sub}</span></h2></div><div class="body">${body}</div></section>`;
+const inp=(k,l,v,ex)=>`<label class="jr-f">${l}<input data-bn="${k}" value="${esc(v)}" inputmode="decimal"${ex||""}></label>`;
+const k=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d||""}</small></div></div>`;
+const faixa=r=>r?(r[0]===r[1]?`${F(r[0],1)}%`:`${F(r[0],1)}–${F(r[1],1)}%`):"—";
+function rendCalc(){const m=B.med,pi=P(m.inteiro),e=ESP[B.esp]||ESP.outro;const pct=x=>isFinite(pi)&&pi>0&&isFinite(P(x))?P(x)/pi*100:NaN;
+  const ref={visc:e.visc,cab:e.cab,pele:e.pele,tronco:e.tronco,file:e.file};
+  const rows=ETAP.map(([key,l])=>{const p=key==="inteiro"?(isFinite(pi)?100:NaN):pct(m[key]),r=ref[key];let st="";if(r&&isFinite(p)){st=p<r[0]*0.9?"abaixo":p>r[1]*1.1?"acima":"ok"}
+    return `<tr><td class="l">${l}</td><td><input data-bnm="${key}" value="${esc(m[key]||"")}" inputmode="decimal" placeholder="g" class="bn-in"></td><td><b>${isFinite(p)?F(p,1)+"%":"—"}</b></td><td>${r?faixa(r):"—"}</td><td>${st?`<span class="bn-st ${st}">${st==="ok"?"dentro":st}</span>`:""}</td></tr>`}).join("");
+  const fp=pct(m.file),cl=pct(m.tronco);
+  return `<div class="mk-form"><label class="jr-f">Espécie<select data-bn="esp">${Object.entries(ESP).map(([k2,v])=>`<option value="${k2}"${B.esp===k2?" selected":""}>${v.n}</option>`).join("")}</select></label><small class="muted" style="flex:1;min-width:220px">${esc(e.f)}</small></div>
+   <div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Etapa (pese na ordem do seu método)</th><th>Peso (g)</th><th>% do inteiro</th><th>Referência</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="gfh-kpis bx-kpis">${k("Rendimento de filé",isFinite(fp)?F(fp,1)+"%":"—",e.file?`referência ${faixa(e.file)}`:isFinite(fp)?"sem referência de filé para a espécie":"meça o filé sem pele","ok")}${k("Corpo limpo / tronco",isFinite(cl)?F(cl,1)+"%":"—","média dos peixes: 62,6% (Contreras-Guzmán, 1994)")}${k("Resíduos",isFinite(pct(m.res))?F(pct(m.res),1)+"%":"—","cabeça, vísceras, pele, escamas e espinhaço → farinha, óleo, silagem")}</div>
+   <p class="hint">Cálculo da aula prática: rendimento (%) = peso da parte ÷ peso do peixe inteiro × 100. Fatores que mudam o rendimento: espécie, tamanho, sexo e formato do corpo; grau de mecanização; método (ordem de retirar pele, filé, cabeça); destreza do operador (Macedo-Viegas e Souza, 2004). Compare dois métodos: 1) eviscerar → decapitar → tirar pele → filetar; 2) tirar pele → filetar → eviscerar → decapitar.</p>`}
+function rendFile(key){key=key||B.esp;const fp=P(B.med.file)/P(B.med.inteiro)*100;if(key===B.esp&&isFinite(fp)&&fp>0)return [fp,"medido por você"];const e=ESP[key]||ESP.outro;if(e.file)return [(e.file[0]+e.file[1])/2,"referência da espécie"];return [33,"estimativa geral, sem medição"]}
+function loteHTML(){const L=lotes(),sel=B.lote,kgL=sel==="todos"?L.reduce((a,x)=>a+(isFinite(x.kg)?x.kg:0),0):(L.find(x=>String(x.id)===sel)||{}).kg,kg=isFinite(P(B.kgMan))&&P(B.kgMan)>0?P(B.kgMan):kgL;
+  const man=isFinite(P(B.kgMan))&&P(B.kgMan)>0,US=man?[{kg,k:B.esp}]:(sel==="todos"?L:L.filter(x=>String(x.id)===sel)).filter(x=>isFinite(x.kg)).map(x=>({kg:x.kg,k:espDe(x.sp)}));
+  const W=US.reduce((a,x)=>a+x.kg,0)||1,rfs=US.map(x=>({...x,r:rendFile(x.k)})),rf=rfs.reduce((a,x)=>a+x.kg*x.r[0],0)/W||rendFile()[0],rfo=[...new Set(rfs.map(x=>`${ESP[x.k].n}: ${F(x.r[0],1)}% ${x.r[1]}`))].join("; ")||rendFile()[1];
+  const ev=US.reduce((a,x)=>a+x.kg*((ESP[x.k]||{}).evisc?ESP[x.k].evisc[0]/100:0.88),0)/W||0.88,e={evisc:US.some(x=>(ESP[x.k]||{}).evisc)},pv=pV(),perdaDef=(()=>{const a=P(B.defPi),b=P(B.defPf);return a>0&&b>0?(a-b)/a:NaN})();
+  const PR=[["Peixe inteiro fresco",1,1,"peso vivo na despesca"],["Peixe vivo (pesque-pague)",1,1.15,"peso vivo"],["Peixe eviscerado congelado",ev,1.25,e.evisc?"eviscerado: tambaqui 93,5% (Embrapa); demais ≈ 88% (referência do app)":"eviscerado ≈ 88% (referência do app)"],["Filé de peixe",rf/100,3.2,`filé ${F(rf,1)}% — ${rfo}`],["Peixe defumado",(rf/100)*(1-(isFinite(perdaDef)?perdaDef:0.15)),3.5,`filé defumado: perda na defumação ${isFinite(perdaDef)?F(perdaDef*100,1)+"% (medida)":"≈15% (estimativa)"}`],["Linguiça de peixe",(rf/100)/0.748,2.2,"filé = 74,8% da massa da linguiça (formulação da aula)"]];
+  const marc=prodsMerc();const lista=PR.filter(p=>!marc.length||marc.includes(p[0]));const usa=lista.length?lista:PR;
+  const rows=usa.map(([n,f,fp2,obs])=>{const kgp=kg*f,pr=P(B.preco[n])||(isFinite(pv)?pv*fp2:NaN);return `<tr><td class="l"><b>${n}</b><small>${obs}</small></td><td>${F(f*100,1)}%</td><td><b>${F(kgp)}</b> kg</td><td><input data-bnp="${esc(n)}" value="${esc(B.preco[n]||"")}" placeholder="${isFinite(pv)?F(pv*fp2,2):"R$/kg"}" inputmode="decimal" class="bn-in"></td><td>${isFinite(pr)?"R$ "+F(kgp*pr):"—"}</td></tr>`}).join("");
+  return `<div class="mk-form"><label class="jr-f">Lote da aba Biomassa<select data-bn="lote"><option value="todos"${sel==="todos"?" selected":""}>Todos os lotes (${F(L.reduce((a,x)=>a+(isFinite(x.kg)?x.kg:0),0))} kg na despesca)</option>${L.map(x=>`<option value="${x.id}"${String(x.id)===sel?" selected":""}>${esc(x.n)} · ${esc(x.sp)} · ${F(x.kg)} kg em ${new Date(x.h).toLocaleDateString("pt-BR")}</option>`).join("")}</select></label>${inp("kgMan","Ou digite o peso inteiro (kg)",B.kgMan)}</div>
+   ${isFinite(kg)&&kg>0?`<div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Produto${marc.length?" (marcados na Camada de mercado)":""}</th><th>Rendimento</th><th>Produto final</th><th>Preço (R$/kg)</th><th>Receita</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <p class="hint">Resíduos do filé: ≈ ${F(kg*(1-rf/100))} kg (cabeça, vísceras, pele, espinhaço) — destine para farinha, óleo, silagem ou ração animal. Preço padrão = preço da aba Local × fator do produto (inteiro 1; vivo 1,15; eviscerado 1,25; filé 3,2; defumado 3,5; linguiça 2,2): referências do app, troque pelo preço da sua região.</p>`:`<div class="note">Sem biomassa de despesca: preencha os lotes na aba Biomassa ou digite o peso.</div>`}`}
+function salgaHTML(){const kg=P(B.kgSal),c=P(B.conc)||26.6,pi=P(B.piS),pf=P(B.piS)&&P(B.pfS);const perda=pi>0&&P(B.pfS)>0?(pi-P(B.pfS))/pi*100:NaN;
+  let res="";if(kg>0){if(B.tipoSal==="seca"){const sal=kg*0.30;res=k("Sal total (≈30% do peso)",F(sal,2)+" kg",`${F(sal/3,2)} kg de sal fino + ${F(sal*2/3,2)} kg de sal grosso (1:2)`,"ok")}
+    else{const V=kg*2,nacl=V*c*10,ag=V*(1000-c*10);res=k("Salmoura (2 volumes por peso)",F(V,1)+" L",`${F(nacl/1000,2)} kg de sal + ${F(ag/1000,2)} L de água (${F(c,1)}%)`,"ok")}}
+  return `<div class="mk-form"><label class="jr-f">Tipo de salga<select data-bn="tipoSal"><option value="seca"${B.tipoSal==="seca"?" selected":""}>Salga seca (camadas sal–peixe–sal)</option><option value="umida"${B.tipoSal==="umida"?" selected":""}>Salga úmida (salmoura)</option></select></label>${inp("kgSal","Peso de peixe/filé (kg)",B.kgSal)}${B.tipoSal==="umida"?inp("conc","Concentração da salmoura (%)",B.conc):""}${inp("piS","Peso antes (g)",B.piS)}${inp("pfS","Peso depois (g)",B.pfS)}</div>
+   <div class="gfh-kpis bx-kpis">${res}${k("Perda de água",isFinite(perda)?F(perda,1)+"%":"—","(Pi − Pf) ÷ Pi × 100",isFinite(perda)?"ok":"")}</div>
+   <ul class="bn-ul"><li><b>Salga seca (aula):</b> sal fino e grosso na proporção 1:2; camadas de 1,5 a 3 mm em basqueta perfurada; ≈5 dias ao ar livre, à sombra e sem vento forte; a água que sai do peixe não pode voltar a tocar nele.</li><li><b>Salga úmida (aula):</b> 2 volumes de solução por volume de peixe; salmoura saturada ≈ 266 g de NaCl + 733 mL de água por litro. Para defumar, a cartilha da Embrapa usa salmoura forte (30%) por 30 min a 1 h, escorrendo 1 h depois.</li><li>A salga termina no <b>equilíbrio osmótico</b>: o sal para de entrar e a água de sair (Zaitsev, 1969). Use sal pasteurizado ou de boa qualidade.</li></ul>`}
+function secHTML(){const pi=P(B.sec.pi),d=B.sec.d.map(P);const L=d.map((x,i)=>pi>0&&x>0?{i,p:(pi-x)/pi*100}:null).filter(Boolean);
+  return `<div class="mk-form">${inp("secPi","Peso inicial (g)",B.sec.pi)}${B.sec.d.map((v,i)=>`<label class="jr-f">Dia ${i+1} (g)<input data-bnd="${i}" value="${esc(v)}" inputmode="decimal"></label>`).join("")}</div>
+   ${L.length?`<div class="bn-bars">${L.map(x=>`<div><span>Dia ${x.i+1}</span><i style="width:${Math.min(100,x.p)}%"></i><b>${F(x.p,1)}%</b></div>`).join("")}</div>`:""}
+   <ul class="bn-ul"><li><b>Estufa com recirculação de ar:</b> 30 a 40 °C.</li><li><b>Secador artesanal (natural):</b> algumas horas ao sol e depois em local protegido do sol e da chuva, com vento; ideal UR do ar 45–55% e vento 2–3 m/s (aula prática, Nunes e Pedro, 2011).</li><li>Na aula de 2022, a carcaça na estufa perdeu 16%, 37% e 43% de água nos dias 1, 2 e 3; no secador natural, 9%, 19% e 30%.</li><li>A secagem é a conservação mais antiga e ainda das mais importantes onde falta rede de frio; combine com salga ou defumação.</li></ul>`}
+const LING=[["Filé de peixe moído",74.8,"base"],["Gelo",5,"máx. 10%"],["Sal",1.5,"1 a 2%"],["Toucinho (ou gordura)",15,"15 a 30%"],["Proteína texturizada de soja",2.5,"máx. 2,5%"],["Condimento para linguiça",0.2,""],["Alho desidratado",0.3,""],["Cebola desidratada",0.2,""],["Urucum/colorau",0.2,""],["Páprica",0.1,""],["Pimenta calabresa",0.2,""]];
+function lingHTML(){const f=P(B.ling),tot=f/0.748;return `<div class="mk-form">${inp("ling","Filé moído disponível (g)",B.ling)}</div>${f>0?`<div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Ingrediente</th><th>%</th><th>Quantidade</th><th class="l">Limite (aula)</th></tr></thead><tbody>${LING.map(([n,p,l])=>`<tr><td class="l">${n}</td><td>${F(p,1)}%</td><td><b>${F(tot*p/100,1)} g</b></td><td class="l"><small>${l}</small></td></tr>`).join("")}<tr><td class="l"><b>Total de massa</b></td><td>100%</td><td><b>${F(tot)} g</b></td><td></td></tr></tbody></table></div>`:""}
+   <ol class="bn-ul"><li>Tripa natural de molho 30 min em água com vinagre (≈4 L de água + 0,5 a 0,7 L de vinagre) e enxaguar com cuidado.</li><li>Tirar as espinhas maiores; cortar filé e toucinho em cubos de ≈1 cm e moer separados (disco de 8 mm); o filé pode ser moído 2 vezes para quebrar espinhas.</li><li>Misturar o filé com o sal e metade do gelo; juntar a gordura; depois temperos e o resto do gelo. A massa deve ficar abaixo de 10 °C (emulsão).</li><li>Embutir com o canhão no moedor, amarrar os gomos, pesar e congelar a −18 °C (ou defumar).</li></ol>
+   <p class="hint">Formulação usada na aula prática de embutidos (2022), com filé de tambaqui, pintado, tambatinga e palombeta. A textura melhora com um aglutinante (sugestão dos relatórios). Patê e outros produtos usam a mesma lógica: base de filé e ingredientes em % do total.</p>`}
+function defHTML(){const T=String(B.temps).split(/[^\d.,]+/).map(P).filter(x=>isFinite(x)&&x>0);const pi=P(B.defPi),pf=P(B.defPf),perda=pi>0&&pf>0?(pi-pf)/pi*100:NaN;
+  const st=T.length?{min:Math.min(...T),max:Math.max(...T),med:T.reduce((a,x)=>a+x,0)/T.length,ok:T.filter(x=>x>=60&&x<=85).length/T.length*100}:null;
+  return `<div class="mk-form"><label class="jr-f" style="flex:1;min-width:240px">Temperaturas medidas a cada 10 min (°C)<input data-bn="temps" value="${esc(B.temps)}" placeholder="ex.: 42 46 47 70 98 89 91 82"></label>${inp("defPi","Peso antes (g)",B.defPi)}${inp("defPf","Peso depois (g)",B.defPf)}</div>
+   ${st?`<div class="gfh-kpis bx-kpis">${k("Média",F(st.med,0)+" °C",`mín. ${F(st.min)} · máx. ${F(st.max)} °C`)}${k("Tempo na faixa 60–85 °C",F(st.ok,0)+"%",`${T.length} leituras (${F(T.length*10)} min)`,st.ok>=70?"ok":"warn")}${k("Perda de peso",isFinite(perda)?F(perda,1)+"%":"—","na aula: linguiça 710 → 653 g (8%)")}</div><svg class="bn-svg" viewBox="0 0 300 80" preserveAspectRatio="none"><rect x="0" y="${80-85/180*80}" width="300" height="${25/180*80}" fill="rgba(27,175,122,.15)"/><polyline fill="none" stroke="#d33f2e" stroke-width="2" points="${T.map((t,i)=>`${(i/(Math.max(1,T.length-1))*300).toFixed(1)},${(80-Math.min(180,t)/180*80).toFixed(1)}`).join(" ")}"/></svg><small class="muted">faixa verde: 60–85 °C</small>`:""}
+   <ol class="bn-ul"><li><b>Salga antes:</b> salmoura (aula: 30 min; Embrapa: 30% por 30 min a 1 h) e escorrer.</li><li><b>Defumador:</b> serragem umedecida (pode misturar casca de coco moída) socada em volta de um cano, que se retira para abrir a passagem do fogo; brasa de carvão por baixo.</li><li><b>Pré-secagem</b> ≈ 38 °C por 30 min; depois subir e manter a câmara entre 60 e 80 °C (Embrapa) — na aula o alvo foi 80–85 °C, controlando com borrifador de água e chaminé, medindo a cada 10 min.</li><li><b>Tempo:</b> 2 a 6 h (≈4 h defumação leve; 4–7 h mais intensa). Pronto quando a superfície fica seca, sem pegajosidade.</li><li><b>Depois:</b> esfriar em local limpo e ventilado, embalar a vácuo e manter refrigerado ou congelado. A cartilha da Embrapa indica até 2 meses refrigerado a vácuo — confirme a vida útil com análises do seu produto.</li></ol>`}
+function qualHTML(){const q=B.qual,G={peixe:[7.00,"peixes"],crust:[7.85,"crustáceos"],molusco:[6.85,"moluscos"]}[q.grupo];const R=[];const add=(t,ok,txt)=>R.push(`<li class="${ok==null?"":ok?"ok":"crit"}"><b>${t}:</b> ${txt}</li>`);
+  const ph=P(q.ph),bvt=P(q.bvt),his=P(q.his),tc=P(q.tc),gl=P(q.glac),hist=q.hist||(ESP[B.esp]||{}).hist;
+  add("pH da carne",isFinite(ph)?ph<G[0]:null,isFinite(ph)?`${F(ph,2)} — limite < ${F(G[0],2)} para ${G[1]}`:`limite < ${F(G[0],2)} para ${G[1]} (RIISPOA, art. 211)`);
+  add("Bases voláteis totais (N-BVT)",isFinite(bvt)?bvt<30:null,isFinite(bvt)?`${F(bvt,1)} mg N/100 g — limite < 30`:"limite < 30 mg de N/100 g (RIISPOA; Salmonidae/Gadidae/Merluccidae até 35; elasmobrânquios até 40 — IN 21/2017)");
+  add("Histamina",hist?(isFinite(his)?his<=100:null):null,hist?(isFinite(his)?`${F(his)} mg/kg — limite 100 mg/kg (média de 9 unidades), nenhuma acima de 200`:"espécie formadora: limite 100 mg/kg na média de 9 unidades, nenhuma acima de 200 mg/kg (IN 21/2017)"):"exigida para Carangidae, Scombridae, Clupeidae, Engraulidae, Coryphaenidae, Pomatomidae e outras formadoras. Marque abaixo se for o caso.");
+  add("Congelado",isFinite(tc)?tc<=-18:null,isFinite(tc)?`${F(tc,1)} °C — deve ficar a −18 °C ou abaixo`:"congelamento rápido só termina quando o centro do produto chega a −18 °C; armazenar a −18 °C ou abaixo (IN 21/2017)");
+  add("Glaciamento",isFinite(gl)?gl<=12:null,isFinite(gl)?`${F(gl,1)}% — máximo 12% do peso líquido`:"máximo 12% do peso líquido declarado; a água do glaciamento não conta no peso (IN 21/2017)");
+  return `<div class="mk-form"><label class="jr-f">Grupo<select data-bnq="grupo"><option value="peixe"${q.grupo==="peixe"?" selected":""}>Peixe</option><option value="crust"${q.grupo==="crust"?" selected":""}>Crustáceo</option><option value="molusco"${q.grupo==="molusco"?" selected":""}>Molusco</option></select></label>
+   <label class="jr-f">pH<input data-bnq="ph" value="${esc(q.ph)}" inputmode="decimal"></label><label class="jr-f">N-BVT (mg N/100 g)<input data-bnq="bvt" value="${esc(q.bvt)}" inputmode="decimal"></label><label class="jr-f">Histamina (mg/kg)<input data-bnq="his" value="${esc(q.his)}" inputmode="decimal"></label><label class="jr-f">Temp. do congelado (°C)<input data-bnq="tc" value="${esc(q.tc)}" inputmode="decimal"></label><label class="jr-f">Glaciamento (%)<input data-bnq="glac" value="${esc(q.glac)}" inputmode="decimal"></label><label class="mk-tpf"><input type="checkbox" data-bnq="hist"${hist?" checked":""}> Espécie formadora de histamina</label></div>
+   <ul class="mk-rec">${R.join("")}</ul>
+   <ul class="bn-ul"><li><b>Rigor mortis:</b> no tambaqui de piscicultura conservado em gelo, a rigidez começa ≈20 min após a morte e se resolve em ≈15 dias; o ATP cai pela metade em 20 min (artigo da aula de Bioquímica do Pescado). Filetar antes ou depois do rigor muda textura e rendimento.</li><li><b>Cadeia do frio:</b> recepção e transporte do peixe fresco a 0–1 °C (Embrapa); gelo em todas as etapas — o pescado tem pH quase neutro, muita água e gordura insaturada, por isso estraga rápido (Soares e Gonçalves, 2012).</li><li><b>Frescor:</b> avaliação sensorial (mais usada), físico-química (pH, N-BVT, histamina) e microbiológica. Off-flavor (gosto de barro) vem da água do cultivo: depuração antes do abate.</li><li><b>Rastreabilidade:</b> registre lote, data, tanque e destino para recall e descarte quando houver problema.</li></ul>`}
+function fontesHTML(){return `<p><b>Aulas e materiais do SIGAA (UFMA, Campus Pinheiro):</b></p><ul class="bn-ul"><li>CCPP0031 Beneficiamento e Industrialização do Pescado (2021.1 e 2022.1), Profa. Adriana Cristina Bordignon — roteiros das aulas práticas (rendimento corporal, salga e secagem; embutidos; defumação) e relatórios das turmas; capítulo “Salga e Secagem do Pescado”.</li><li>CCPP0040 Controle de Qualidade de Produtos Pesqueiros (2020.2) — Decreto RIISPOA, “Qualidade e segurança do pescado” (Soares e Gonçalves, Rev. Inst. Adolfo Lutz, 2012), rastreabilidade, off-flavor.</li><li>CCPP0024 Bioquímica Geral e do Pescado (2018.1) — Contreras-Guzmán, <i>Bioquímica de pescado e derivados</i> (1994); rigor mortis em tambaqui.</li></ul>
+   <p><b>Na web:</b></p><ul class="bn-ul"><li><a href="https://wikisda.agricultura.gov.br/dipoa_baselegal/in_21-2017_rt_peixe_congelado.pdf" target="_blank" rel="noopener">MAPA — IN 21/2017, Regulamento Técnico do peixe congelado</a></li><li><a href="https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/965807/1/AGROINDFAMPeixedefumadoed022012.pdf" target="_blank" rel="noopener">Embrapa — Agroindústria familiar: peixe defumado (2012)</a></li><li><a href="https://www.alice.cnptia.embrapa.br/alice/bitstream/doc/1130166/1/CaractristicasMorfometricasCarcacaTambaqui-LuisGabrielAlvesCirne-2019.pdf" target="_blank" rel="noopener">Embrapa — Características morfométricas e de carcaça do tambaqui (Cirne et al., 2019)</a></li><li><a href="https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1076351/1/BP7820171.pdf" target="_blank" rel="noopener">Embrapa — Resíduos do beneficiamento do tambaqui e surubim (Borghesi et al., 2017)</a></li><li><a href="https://scielo.br/j/aib/a/vcbVGHPLLtxmFjghqJTfxDs/?lang=pt" target="_blank" rel="noopener">Histamina e rastreamento de pescado — revisão (Arq. Inst. Biol.)</a></li></ul>`}
+function draw(){const el=document.getElementById("view-benef");if(!el||el.hidden)return;
+  const ae=document.activeElement,foco=ae&&ae.closest&&ae.closest("#view-benef")?[...el.querySelectorAll("input,select")].indexOf(ae):-1,cur=ae&&ae.selectionStart;
+  el.innerHTML=card("bn-int","🔪 Beneficiamento do pescado","Rendimento, salga, secagem, embutidos, defumação e qualidade — com base nas aulas de Beneficiamento e Tecnologia do Pescado (UFMA), na legislação e na Embrapa",`<p>Transforme o peixe do seu lote em produtos de maior valor: calcule o rendimento da filetagem, a salga, a secagem, a linguiça e a defumação, e confira os limites de qualidade antes de vender. Os dados ficam só neste aparelho.</p>`)
+   +card("bn-lote","🐟 Do lote ao produto","Biomassa da despesca (aba Biomassa) × rendimento × produtos marcados na Camada de mercado",loteHTML())
+   +card("bn-rend","📏 Rendimento corporal (aula prática 1)","Pese cada etapa e compare com as referências da espécie",rendCalc())
+   +card("bn-salga","🧂 Salga","Seca ou úmida (salmoura) — quantidades e perda de água",salgaHTML())
+   +card("bn-sec","☀️ Secagem","Perda de água por dia em estufa ou secador artesanal",secHTML())
+   +card("bn-ling","🌭 Embutidos: linguiça frescal de peixe","Formulação da aula prática calculada para o seu filé",lingHTML())
+   +card("bn-def","🔥 Defumação a quente","Registro de temperatura, perda de peso e passo a passo",defHTML())
+   +card("bn-qual","✅ Qualidade e legislação","Limites do RIISPOA (Decreto 9.013/2017) e da IN 21/2017 do MAPA",qualHTML())
+   +card("bn-fon","📚 Fontes","Aulas baixadas do SIGAA e referências da web",fontesHTML());
+  if(foco>=0){const n=el.querySelectorAll("input,select")[foco];if(n){n.focus();try{if(cur!=null&&n.setSelectionRange)n.setSelectionRange(cur,cur)}catch(e){}}}}
+let tm=null;const later=()=>{grava();clearTimeout(tm);tm=setTimeout(draw,450)};
+document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#view-benef"))return;const d=t.dataset;
+  if(d.bn){const key={secPi:null}[d.bn];if(d.bn==="secPi")B.sec.pi=t.value;else B[d.bn]=t.value;if(t.tagName==="SELECT"){grava();draw();return}}
+  else if(d.bnm!=null)B.med[d.bnm]=t.value;else if(d.bnd!=null)B.sec.d[+d.bnd]=t.value;else if(d.bnp!=null)B.preco[d.bnp]=t.value;
+  else if(d.bnq!=null){B.qual[d.bnq]=t.type==="checkbox"?t.checked:t.value;if(t.tagName==="SELECT"||t.type==="checkbox"){grava();draw();return}}
+  later()});
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#view-benef"))return;if(t.tagName==="SELECT"||t.type==="checkbox"){grava();draw()}});
+window.drawBenef=draw;
 })();
 
 /* ---------- Guarda a última configuração neste navegador ---------- */
@@ -9190,6 +9297,7 @@ const ICO={
   bio:'<path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1"/>',
   racao:'<path d="M5 9h14l-1.5 11h-11z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/>',
   topo:'<path d="M3 19l5-8 4 5 3-4 6 7z"/><path d="M6 8c2-2 4-2 6 0s4 2 6 0"/>',
+  benef:'<path d="M3 12c3-4 7-5 11-3l4-3v12l-4-3c-4 2-8 1-11-3z"/><circle cx="7.5" cy="11" r=".8"/><path d="M12 9v6"/>',
   merc:'<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/><path d="M3 21h18"/>',
   repro:'<ellipse cx="12" cy="13" rx="6" ry="7.5"/><circle cx="12" cy="11" r="2"/><path d="M9.5 16.5c1.4 1 3.6 1 5 0"/>',
   proj:'<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>',
@@ -9198,7 +9306,7 @@ const ICO={
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 const MAIN=[["local","Local"],["calc","Calcular"],["aqua","Água"],["dash","Painel"]];
-const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["proj","Projetos"],["users","Usuários e acesso"]];
+const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
 nav.innerHTML=MAIN.map(([v,t])=>`<button type="button" data-bv="${v}">${svg(v)}<span>${t}</span></button>`).join("")+`<button type="button" data-bv="mais" aria-haspopup="dialog" aria-expanded="false">${svg("mais")}<span>Mais</span></button>`;
@@ -9237,7 +9345,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v118";
+  const APP_VERSAO="ras-v119";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
