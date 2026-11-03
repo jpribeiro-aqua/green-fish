@@ -722,6 +722,16 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .gf-corr tr.off td{opacity:.5}.gf-corr input[type=checkbox]{width:18px;height:18px}
 .bn-prods{margin:0 0 4px}.bn-gh td{background:var(--accent-soft);font-weight:700;font-size:12.5px;text-align:left}.bn-tp td:first-child{padding-left:14px}.bn-mud{border-color:#e09a00!important;background:rgba(224,154,0,.08)!important}.bn-err{color:#d33f2e}
 .bn-t td .bn-in,.bn-in{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}.bn-t td small{display:block;color:var(--muted)}.bn-st{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:8px}.bn-st.ok{background:rgba(27,175,122,.15);color:#127a55}.bn-st.abaixo{background:rgba(224,154,0,.18);color:#8a5d00}.bn-st.acima{background:rgba(42,120,214,.15);color:#1d5aa5}
+.fx-flow{display:grid;margin:10px 0}.fx-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;padding:10px 12px;border:2px solid var(--accent);border-radius:10px;background:var(--accent-soft)}.fx-top span{font:600 14px var(--f-mono)}
+.fx-st{margin-left:14px;padding:10px 0 10px 18px;border-left:3px solid var(--line)}.fx-st.ok{border-left-color:var(--accent)}.fx-st.ok .fx-chk b{color:var(--accent)}
+.fx-main{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:6px 14px}.fx-chk{display:flex;gap:8px;align-items:flex-start;cursor:pointer}.fx-chk input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none}.fx-chk small{display:block;color:var(--muted);font-size:12px}
+.fx-resto{font:12px var(--f-mono);color:var(--muted);white-space:nowrap}
+.fx-br{display:grid;grid-template-columns:minmax(0,1.1fr) auto minmax(0,1.3fr) auto minmax(0,1fr);gap:8px;align-items:stretch;margin-top:8px}
+.fx-pt,.fx-de,.fx-pr{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg);display:grid;gap:4px;align-content:start;font-size:13px;min-width:0}.fx-pt b,.fx-pr b{font:600 18px var(--f-display)}.fx-pt small,.fx-de small,.fx-pr small{color:var(--muted);font-size:11.5px}
+.fx-de label{display:grid;gap:3px;font-size:12px;color:var(--muted)}.fx-de select{width:100%;font:inherit;font-size:13px;padding:5px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink)}
+.fx-real,.fx-de .fx-fat{display:flex!important;gap:6px;align-items:center;font-size:12px;color:var(--muted)}.fx-real .bn-in,.fx-fat .bn-in{width:76px}
+.fx-pr{border-color:var(--accent)}.fx-pr.off{border-style:dashed;border-color:var(--line);opacity:.75}.fx-ar{display:grid;place-items:center;color:var(--accent);font-size:18px}.fx-h{font-size:15px;margin:14px 0 6px}
+@media (max-width:760px){.fx-br{grid-template-columns:minmax(0,1fr)}.fx-ar{transform:rotate(90deg);height:14px}.fx-st{margin-left:6px;padding-left:12px}}
 .bn-ul{margin:8px 0;padding-left:20px;font-size:13.5px;line-height:1.5}.bn-ul li{margin:3px 0}.bn-bars{display:grid;gap:5px;margin:8px 0}.bn-bars div{display:grid;grid-template-columns:60px 1fr 54px;gap:8px;align-items:center;font-size:13px}.bn-bars i{display:block;height:12px;border-radius:6px;background:#2a78d6}.bn-svg{width:100%;height:90px;background:var(--bg);border-radius:8px;margin-top:8px}
 .mk-catr{margin:8px 0;padding:8px 10px;border-radius:8px;background:var(--accent-soft);font-size:13px}
 .mk-busca{margin:0 0 8px}.mk-qbox{display:flex;gap:6px;align-items:center}.mk-qbox input{flex:1;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border:1.5px solid var(--accent);border-radius:10px;background:var(--surface);color:var(--ink)}
@@ -5089,12 +5099,117 @@ function qualHTML(){const q=B.qual,G={peixe:[7.00,"peixes"],crust:[7.85,"crustá
    <ul class="bn-ul"><li><b>Rigor mortis:</b> no tambaqui de piscicultura conservado em gelo, a rigidez começa ≈20 min após a morte e se resolve em ≈15 dias; o ATP cai pela metade em 20 min (artigo da aula de Bioquímica do Pescado). Filetar antes ou depois do rigor muda textura e rendimento.</li><li><b>Cadeia do frio:</b> recepção e transporte do peixe fresco a 0–1 °C (Embrapa); gelo em todas as etapas — o pescado tem pH quase neutro, muita água e gordura insaturada, por isso estraga rápido (Soares e Gonçalves, 2012).</li><li><b>Frescor:</b> avaliação sensorial (mais usada), físico-química (pH, N-BVT, histamina) e microbiológica. Off-flavor (gosto de barro) vem da água do cultivo: depuração antes do abate.</li><li><b>Rastreabilidade:</b> registre lote, data, tanque e destino para recall e descarte quando houver problema.</li></ul>`}
 function fontesHTML(){return `<p><b>Aulas e materiais do SIGAA (UFMA, Campus Pinheiro):</b></p><ul class="bn-ul"><li>CCPP0031 Beneficiamento e Industrialização do Pescado (2021.1 e 2022.1), Profa. Adriana Cristina Bordignon — roteiros das aulas práticas (rendimento corporal, salga e secagem; embutidos; patê; defumação) e relatórios das turmas; capítulo “Salga e Secagem do Pescado”.</li><li>CCPP0040 Controle de Qualidade de Produtos Pesqueiros (2020.2) — Decreto RIISPOA, “Qualidade e segurança do pescado” (Soares e Gonçalves, Rev. Inst. Adolfo Lutz, 2012), rastreabilidade, off-flavor.</li><li>CCPP0024 Bioquímica Geral e do Pescado (2018.1) — Contreras-Guzmán, <i>Bioquímica de pescado e derivados</i> (1994); rigor mortis em tambaqui.</li></ul>
    <p><b>Na web:</b></p><ul class="bn-ul"><li><a href="https://wikisda.agricultura.gov.br/dipoa_baselegal/in_21-2017_rt_peixe_congelado.pdf" target="_blank" rel="noopener">MAPA — IN 21/2017, Regulamento Técnico do peixe congelado</a></li><li><a href="https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/965807/1/AGROINDFAMPeixedefumadoed022012.pdf" target="_blank" rel="noopener">Embrapa — Agroindústria familiar: peixe defumado (2012)</a></li><li><a href="https://www.alice.cnptia.embrapa.br/alice/bitstream/doc/1130166/1/CaractristicasMorfometricasCarcacaTambaqui-LuisGabrielAlvesCirne-2019.pdf" target="_blank" rel="noopener">Embrapa — Características morfométricas e de carcaça do tambaqui (Cirne et al., 2019)</a></li><li><a href="https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1076351/1/BP7820171.pdf" target="_blank" rel="noopener">Embrapa — Resíduos do beneficiamento do tambaqui e surubim (Borghesi et al., 2017)</a></li><li><a href="https://periodicos.uem.br/ojs/index.php/ActaSciAnimSci/article/download/2643/2163" target="_blank" rel="noopener">Souza e Maranhão (2001) — rendimento da tilápia do Nilo por classe de peso</a></li><li><a href="https://periodicos.uem.br/ojs/index.php/ActaSciAnimSci/article/download/3138/2226" target="_blank" rel="noopener">Macedo-Viegas et al. (2000) — rendimento do matrinxã por classe de peso</a></li><li><a href="https://ojs.ufgd.edu.br/agrarian/article/download/8132/5309/32527" target="_blank" rel="noopener">Barros et al. (2019) — rendimentos de cortes (cita filé de tambaqui)</a></li><li><a href="https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1105248/1/CT230final.pdf" target="_blank" rel="noopener">Embrapa (2018) — Embutido de tilápia; CMS até 14% do peso vivo</a></li><li><a href="https://periodicos.utfpr.edu.br/rebrapa/article/download/5251/pdf" target="_blank" rel="noopener">Fishburger de tilápia com CMS (Muzzolon et al., Braz. J. Food Res., 2018)</a></li><li><a href="https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1036808/1/CT112.pdf" target="_blank" rel="noopener">Embrapa Pantanal — Empanado de CMS de pacu (Circular Técnica 112, 2015)</a></li><li><a href="https://visa.jundiai.sp.gov.br/wp-content/uploads/2024/08/IN_75_2020-requisitos-para-rotulagem-nutricional.pdf" target="_blank" rel="noopener">Anvisa — IN 75/2020, porções de referência (Anexo V)</a></li><li><a href="https://wikisda.agricultura.gov.br/dipoa_baselegal/in_04-2000_salsicha_mortadela_linguiça.pdf" target="_blank" rel="noopener">MAPA — IN 4/2000: salsicha, mortadela e linguiça</a></li><li><a href="https://wikisda.agricultura.gov.br/dipoa_baselegal/in_20-2000_rt_cárneos_almondega_kibe.pdf" target="_blank" rel="noopener">MAPA — IN 20/2000: almôndega e kibe</a></li><li><a href="https://wikisda.agricultura.gov.br/dipoa_baselegal/port_724-2022_rt_hamburguer.pdf" target="_blank" rel="noopener">MAPA — Portaria SDA 724/2022: hambúrguer</a></li><li><a href="https://scielo.br/j/aib/a/vcbVGHPLLtxmFjghqJTfxDs/?lang=pt" target="_blank" rel="noopener">Histamina e rastreamento de pescado — revisão (Arq. Inst. Biol.)</a></li></ul>`}
+// v125: fluxograma de processamento por espécie — rendimento de cada parte, destino (produto) e controle do lote
+const FXK={
+ escama:["Escamas","🫧"],visc:["Vísceras","🫀"],nad:["Nadadeiras","🪶"],cab:["Cabeça","🐟"],carc:["Carcaça (espinhaço com carne aderida)","🦴"],
+ pele:["Pele","🧤"],apara:["Aparas da toalete","✂️"],file:["Filé sem pele","🍽️"],casca:["Cabeça e casca","🦐"],cauda:["Cauda descascada (carne)","🍤"]};
+// fluxos: [id da etapa, nome, parte que sai (ou null), o que fazer]
+const FXF={
+ escama:[["recep","Recepção e pesagem",null,"Peixe no gelo (proporção gelo:peixe ≈ 1:1), temperatura próxima de 0 °C; pese o lote."],
+  ["lav","Lavagem",null,"Água potável clorada; tira muco, sangue e sujeira."],
+  ["abate","Insensibilização, abate e sangria",null,"Choque térmico em água com gelo; sangria cortando as brânquias."],
+  ["descam","Descamação","escama","Descamador ou faca; escamas separadas, sem misturar com o resto."],
+  ["evisc","Evisceração","visc","Corte ventral; tire vísceras e rim sem romper a vesícula biliar."],
+  ["nad","Corte das nadadeiras","nad",""],
+  ["decap","Descabeçamento","cab","Corte atrás do opérculo."],
+  ["filet","Filetagem","carc","Faca rente ao espinhaço; sobra a carcaça com carne aderida."],
+  ["desp","Despeliculagem","pele","Retirada da pele (manual ou máquina)."],
+  ["toal","Toalete","apara","Tire espinhas, gordura e partes escuras; as aparas são carne."],
+  ["final","Resfriamento ou congelamento, embalagem e rotulagem","file","Resfriado a 0–4 °C ou congelado até o centro a −18 °C; glaciamento até 12% (IN 21/2017)."]],
+ camarao:[["recep","Recepção e pesagem",null,"Camarão no gelo, temperatura próxima de 0 °C."],
+  ["lav","Lavagem",null,"Água potável clorada."],
+  ["desc","Descabeçamento e descascamento","casca","Tire o cefalotórax e a casca; retire o intestino (\"tripa\")."],
+  ["final","Classificação, congelamento e embalagem","cauda","Congelado até o centro a −18 °C; glaciamento até 12% (IN 21/2017)."]]};
+const fxFluxo=esp=>esp==="camarao"?FXF.camarao:esp==="panga"?FXF.escama.filter(x=>x[0]!=="descam"):FXF.escama;
+// matéria seca da pele (Embrapa, Procopio et al., 2023): tilápia 39,93%, tambaqui 30,93%
+const MSPELE={tilapia:.3993,tambaqui:.3093,tambatinga:.3093};
+const FAR=[.22,"farinha: ≈ 1 kg para cada 4,5 kg de resíduo úmido (≈22%) — FAO (1986), The production of fish meal and oil; confira com a sua secagem"];
+const SIL=[1,"silagem ácida: a massa fica praticamente igual à do resíduo (mais o ácido) — vai para ração"];
+const COMP=[0,"descarte/compostagem: não vira produto vendável"];
+function fxDest(part,esp){const g=MSPELE[esp]||MSPELE.tilapia;return ({
+ file:[["Filé fresco resfriado",1,"venda direta, 0 a 4 °C"],["Filé congelado",1,"−18 °C; o glaciamento (até 12%) não conta no peso — IN 21/2017"],["Defumado","def","rende 1 − perda da 🔥 Defumação"],["Derivados (🧪 embutidos, hambúrguer…)",1,"calcule a receita em 🧪 Derivados com este peso"]],
+ cauda:[["Camarão descascado congelado",1,"−18 °C; glaciamento até 12% (IN 21/2017)"],["Camarão descascado resfriado",1,"0 a 4 °C"]],
+ apara:[["Derivados (hambúrguer, almôndega, nugget)",1,"aparas são carne: vão moídas para os derivados"],["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
+ carc:[["CMS (despolpadeira)",.19,"CMS ≈ 19% da carcaça (Anbe et al., 2015, com base em Mello et al., 2010: 13–25% de músculo aderido)"],["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Carcaça para caldo/sopa",1,"venda da carcaça inteira"],["Descarte/compostagem",...COMP]],
+ cab:[["Farinha de cabeça",...FAR],["Silagem ácida",...SIL],["Cabeça para caldo/sopa",1,"venda da cabeça inteira"],["Óleo",null,"informe o rendimento da sua extração (a cabeça tem ≈18–35% de gordura conforme a espécie — Anbe et al., 2015)"],["Descarte/compostagem",...COMP]],
+ visc:[["Óleo de vísceras",null,"informe o rendimento da sua extração"],["Silagem ácida",...SIL],["Farinha de peixe",...FAR],["Descarte/compostagem",...COMP]],
+ pele:[["Couro (curtimento)","un","conta peles: 2 por peixe (um filé de cada lado)"],["Gelatina (colágeno)",.5296*g,`gelatina = 52,96% da matéria seca da pele (tambaqui) × matéria seca de ${F(g*100,1)}% — Embrapa, Procopio et al. (2023)`],["Pele frita (petisco)",1,"peso de pele crua destinada; meça o rendimento da fritura"],["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
+ escama:[["Colágeno/artesanato",1,"peso de escamas secas varia; pese depois de secar"],["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
+ nad:[["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
+ casca:[["Farinha de camarão",...FAR],["Caldo/fumet",1,"cabeças e cascas para caldo"],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]]})[part]||[["Descarte/compostagem",...COMP]]}
+// % de cada parte: medido > estimado pela literatura > referência; o que não tiver número vai junto com a carcaça
+function fxPartes(){const esp=B.esp,m=B.med,pi=P(m.inteiro),est=estimar(esp,pesoAnimal()),e=ESP[esp]||ESP.outro,O={},src={};
+  const get=k2=>{const g=P(m[k2]);if(isFinite(pi)&&pi>0&&isFinite(g)){src[k2]=(B.medM||{})[k2]||B.medFonte!=="est"?"medido":"estimado";return g/pi*100}if(est&&est.pct[k2]!=null){src[k2]="literatura";return est.pct[k2]}if(e[k2]){src[k2]="referência";return (e[k2][0]+e[k2][1])/2}return NaN};
+  if(esp==="camarao"){const c=get("file");O.cauda=c;src.cauda=src.file;O.casca=isFinite(c)?100-c:NaN;src.casca=src.file;return {O,src,falta:[]}}
+  for(const k2 of ["escama","visc","nad","cab","pele","file"])O[k2]=get(k2);
+  const fp=get("filePele");O.apara=isFinite(fp)&&isFinite(O.file)&&isFinite(O.pele)&&fp-O.pele-O.file>0.05?fp-O.pele-O.file:NaN;if(isFinite(O.apara))src.apara=src.filePele;
+  if(esp==="panga")O.escama=NaN;
+  const falta=Object.keys(O).filter(k2=>!isFinite(O[k2])&&k2!=="apara"&&k2!=="file"&&!(esp==="panga"&&k2==="escama")&&!(k2==="escama"));
+  const soma=Object.values(O).filter(isFinite).reduce((a,x)=>a+x,0);O.carc=isFinite(O.file)?Math.max(0,100-soma):NaN;src.carc=falta.length?"por diferença (inclui partes sem número)":"por diferença";
+  return {O,src,falta,soma}}
+const fxR=()=>{B.fx=B.fx||{};const r=B.fx.realS=B.fx.realS||{};return r[B.esp]=r[B.esp]||{}},fxOk=()=>{B.fx=B.fx||{};const r=B.fx.okS=B.fx.okS||{};return r[B.esp]=r[B.esp]||{}};
+function fxKgLote(){const fx=B.fx||{};if(P(fx.kg)>0)return [P(fx.kg),"informado no controle"];if(P(B.kgMan)>0)return [P(B.kgMan),"kg informados em 🐟 Do lote ao produto"];
+  const L=(corrOn("bio_lote")?lotes():[]).filter(x=>espDe(x.sp)===B.esp&&isFinite(x.kg)),s=B.lote&&B.lote!=="todos"?L.filter(x=>String(x.id)===B.lote):L,kg=s.reduce((a,x)=>a+x.kg,0);
+  return kg>0?[kg,`🔗 ${s.length} lote(s) de ${ESP[B.esp].n.toLowerCase()} na despesca (Biomassa)`]:[NaN,""]}
+function fxCalc(){B.fx=B.fx||{};const fx=B.fx,esp=B.esp,D=(fx.dest=fx.dest||{})[esp]=fx.dest[esp]||{},FT=(fx.fat=fx.fat||{})[esp]=fx.fat[esp]||{};
+  const {O,src,falta}=fxPartes(),[kg,kgSrc]=fxKgLote(),pw=pesoAnimal(),nPeixes=kg>0&&pw>0?kg*1000/pw:NaN;
+  const perdaDef=(()=>{const a=P(B.defPi),b=P(B.defPf);return a>0&&b>0?(a-b)/a:NaN})();
+  const F2=fxFluxo(esp);let resto=100;
+  const etapas=F2.map(([id,n,part,txt])=>{const pct=part?O[part]:NaN;const ops=part?fxDest(part,esp):[];const di=Math.min(ops.length-1,Math.max(0,parseInt(D[part]??0)||0)),op=ops[di]||null;
+    if(part&&part!=="file"&&part!=="cauda"&&isFinite(pct))resto-=pct;
+    const kgP=isFinite(pct)&&kg>0?kg*pct/100:NaN;let fat=op&&op[1]!=null?op[1]:NaN,un="kg";const fu=P(FT[part+"_"+di]);
+    if(op&&op[1]==="def")fat=perdaDef>0?1-perdaDef:NaN;if(op&&op[1]==="un"){un="peles";fat=NaN}
+    if(isFinite(fu)&&fu>=0&&op&&op[1]!=="un")fat=fu/100;
+    const prod=op&&op[1]==="un"?(isFinite(nPeixes)?nPeixes*2:NaN):isFinite(kgP)&&isFinite(fat)?kgP*fat:NaN;
+    const real=P(fxR()[part]),dev=isFinite(real)&&isFinite(kgP)&&kgP>0?(real-kgP)/kgP*100:NaN;
+    return {id,n,part,txt,pct,src:part?src[part]:"",kgP,ops,di,op,fat,un,prod,real,dev,resto:part==="file"||part==="cauda"?pct:resto,descarte:op&&op[1]===0}});
+  const comParte=etapas.filter(x=>x.part&&isFinite(x.pct)),aprov=comParte.filter(x=>!x.descarte).reduce((a,x)=>a+x.pct,0),desc=comParte.filter(x=>x.descarte).reduce((a,x)=>a+x.pct,0);
+  const realFile=P(fxR()[esp==="camarao"?"cauda":"file"]),rendReal=realFile>0&&kg>0?realFile/kg*100:NaN;
+  return {etapas,kg,kgSrc,pw,nPeixes,falta,aprov,desc,perdaDef,rendReal,O}}
+function fxHTML(){B.fx=B.fx||{};const fx=B.fx;
+  const head=`<div class="mk-modos"><button type="button" class="btn${fx.open?"":" solid"}" data-fxtog="1" aria-expanded="${!!fx.open}">🧭 ${fx.open?"Fechar o fluxograma":"Abrir o fluxograma da espécie"}</button><span class="hint" style="align-self:center">Espécie: <b>${esc((ESP[B.esp]||ESP.outro).n)}</b> (troque em 📏 Rendimento corporal)</span></div>`;
+  if(!fx.open)return head+`<p class="hint">Mostra cada etapa do processamento da espécie, quanto sai de cada parte (pelo rendimento medido ou estimado), para qual produto vai e quanto rende — e controla o lote: etapas feitas, peso real × esperado e histórico.</p>`;
+  const C=fxCalc(),T=(ESP[B.esp]||ESP.outro).n,tol=P(fx.tol)||10,stt=d=>!isFinite(d)?"":Math.abs(d)<=tol?`<span class="bn-st ok">${d>0?"+":""}${F(d,1)}%</span>`:`<span class="bn-st ${d<0?"abaixo":"acima"}">${d>0?"+":""}${F(d,1)}%</span>`;
+  const feito=fxOk(),nF=C.etapas.filter(x=>feito[x.id]).length;
+  const linhas=C.etapas.map((x,i)=>{const o=x.op,fatTxt=o?(o[1]==="un"?"2 por peixe":o[1]==="def"?(isFinite(x.fat)?F(x.fat*100,1)+"%":"meça em 🔥"):isFinite(x.fat)?F(x.fat*100,1)+"%":"informe"):"";
+   return `<div class="fx-st${feito[x.id]?" ok":""}"><div class="fx-main"><label class="fx-chk"><input type="checkbox" data-fxok="${x.id}"${feito[x.id]?" checked":""}><span><b>${i+1}. ${esc(x.n)}</b>${x.txt?`<small>${esc(x.txt)}</small>`:""}</span></label>
+     ${x.part&&x.part!=="file"&&x.part!=="cauda"?`<div class="fx-resto">segue: ${isFinite(x.resto)?F(x.resto,1)+"%":"—"}${C.kg>0&&isFinite(x.resto)?` · ${F(C.kg*x.resto/100,1)} kg`:""}</div>`:""}</div>
+    ${x.part?`<div class="fx-br"><div class="fx-pt"><span>${FXK[x.part][1]} ${esc(FXK[x.part][0])}</span><b>${isFinite(x.pct)?F(x.pct,1)+"%":"—"}</b><small>${isFinite(x.kgP)?F(x.kgP,1)+" kg esperados":""}${x.src?` · ${esc(x.src)}`:""}</small>
+       <label class="fx-real">pesado (kg)<input class="bn-in" data-fxreal="${x.part}" value="${esc(fxR()[x.part]||"")}" inputmode="decimal"></label>${stt(x.dev)}</div>
+      <div class="fx-ar" aria-hidden="true">→</div>
+      <div class="fx-de"><label>Destino<select data-fxdest="${x.part}">${x.ops.map((o2,j)=>`<option value="${j}"${j===x.di?" selected":""}>${esc(o2[0])}</option>`).join("")}</select></label>
+       ${o&&o[1]!=="un"&&o[1]!==0&&o[1]!=="def"?`<label class="fx-fat">rende (%)<input class="bn-in" data-fxfat="${x.part}_${x.di}" value="${esc(((fx.fat||{})[B.esp]||{})[x.part+"_"+x.di]||"")}" placeholder="${o[1]!=null?F(o[1]*100,1):"%"}" inputmode="decimal"></label>`:""}<small>${esc(o?o[2]:"")}</small></div>
+      <div class="fx-ar" aria-hidden="true">→</div>
+      <div class="fx-pr${x.descarte?" off":""}"><span>${esc(o?o[0]:"")}</span><b>${x.descarte?"descarte":isFinite(x.prod)?F(x.prod,x.un==="peles"?0:1)+(x.un==="peles"?" peles":" kg"):"—"}</b><small>${x.descarte?"":fatTxt}</small></div></div>`:""}</div>`}).join("");
+  const P2={};C.etapas.filter(x=>x.op&&!x.descarte&&isFinite(x.prod)).forEach(x=>{const kk=x.op[0]+(x.un==="peles"?" (peles)":"");P2[kk]=(P2[kk]||0)+x.prod});
+  const H=(fx.hist||[]).filter(h=>h.esp===B.esp);
+  return head+`<div class="mk-form"><label class="jr-f">Data do processamento<input type="date" data-fx="data" value="${esc(fx.data||new Date().toISOString().slice(0,10))}"></label>
+    <label class="jr-f">Matéria-prima (kg de peixe inteiro)<input data-fx="kg" value="${esc(fx.kg||"")}" inputmode="decimal" placeholder="${isFinite(C.kg)?F(C.kg,1):"ex.: 100"}"></label>
+    <label class="jr-f">Tolerância do controle (±%)<input data-fx="tol" value="${esc(fx.tol||"")}" inputmode="decimal" placeholder="10"></label></div>
+   <p class="hint" style="margin:4px 0">${C.kgSrc?`Matéria-prima: ${esc(C.kgSrc)}.`:"Informe os kg de matéria-prima para ver os pesos."}${isFinite(C.nPeixes)?` ≈ ${F(C.nPeixes)} ${B.esp==="camarao"?"camarões":"peixes"} de ${F(C.pw)} g.`:""}${C.falta.length?` <b>Sem número para ${C.falta.map(k2=>FXK[k2][0].toLowerCase()).join(", ")}</b>: entram na carcaça (pese em 📏 ou use 📐 Estimar).`:""}</p>
+   <div class="gfh-kpis bx-kpis">${k("Etapas feitas",`${nF} de ${C.etapas.length}`,nF===C.etapas.length?"lote concluído":"marque cada etapa ao terminar",nF===C.etapas.length?"ok":"n")}${k("Aproveitamento",F(C.aprov,1)+"%",`do pescado vai para produto · ${F(C.desc,1)}% para descarte`,C.desc>0?"warn":"ok")}${k(B.esp==="camarao"?"Rendimento de carne":"Rendimento de filé",isFinite(C.rendReal)?F(C.rendReal,1)+"%":(isFinite(C.O.file)?F(C.O.file,1)+"%":isFinite(C.O.cauda)?F(C.O.cauda,1)+"%":"—"),isFinite(C.rendReal)?"real (pesado ÷ matéria-prima)":"esperado — pese o produto final","ok")}</div>
+   <div class="fx-flow"><div class="fx-top"><b>🐟 ${esc(T)} inteiro</b><span>100%${C.kg>0?` · ${F(C.kg,1)} kg`:""}</span></div>${linhas}</div>
+   ${Object.keys(P2).length?`<h3 class="fx-h">📦 Produtos do lote</h3><div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Produto</th><th>Quantidade</th></tr></thead><tbody>${Object.entries(P2).map(([n2,v])=>`<tr><td class="l">${esc(n2)}</td><td><b>${/peles/.test(n2)?F(v)+" un.":F(v,1)+" kg"}</b></td></tr>`).join("")}</tbody></table></div>`:""}
+   <div class="mk-modos" style="margin-top:10px"><button type="button" class="btn solid" data-fxsalva="1"${C.kg>0?"":" disabled"}>💾 Salvar lote no histórico</button><button type="button" class="chip" data-fxlimpa="1">🧹 Novo lote (limpar etapas e pesos)</button></div>
+   ${H.length?`<h3 class="fx-h">🗂️ Histórico de ${esc(T.toLowerCase())}</h3><div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Data</th><th>Matéria-prima</th><th>${B.esp==="camarao"?"Carne":"Filé"} real</th><th>Aproveitamento</th><th>Etapas</th><th></th></tr></thead><tbody>${H.map(h=>`<tr><td class="l">${esc(String(h.data).split("-").reverse().join("/"))}</td><td>${F(h.kg,1)} kg</td><td>${isFinite(h.rend)?F(h.rend,1)+"%":"—"}</td><td>${F(h.aprov,1)}%</td><td>${h.feitas}/${h.total}</td><td><button type="button" class="chip" data-fxdel="${esc(h.id)}" aria-label="Apagar registro">✕</button></td></tr>`).join("")}</tbody></table></div>`:""}
+   <p class="hint">Como ler: cada etapa tira uma parte do peixe; a linha “segue” mostra quanto continua na mesa. O % de cada parte vem do 📏 Rendimento corporal (medido, ou estimado pela literatura para a espécie e o peso); a carcaça é calculada por diferença. Escolha o destino de cada parte — o app usa o rendimento de referência do produto, que você pode trocar pelo seu (campo “rende”). Ao processar, marque as etapas e anote o peso real: fora da tolerância aparece em laranja. Fluxo e boas práticas: aulas de Beneficiamento do Pescado (UFMA), RIISPOA e IN 21/2017; partes da tilápia em lote de 1.400 kg — filé 38,75%, pele 7,83%, carcaça 28,23%, cabeça 17,12%, vísceras 7,97% (Anbe et al., 2015, Informações Econômicas 45(4)).</p>`}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-fxtog],[data-fxsalva],[data-fxlimpa],[data-fxdel]");if(!b||!b.closest("#view-benef"))return;B.fx=B.fx||{};const fx=B.fx;
+  if(b.dataset.fxtog)fx.open=!fx.open;
+  else if(b.dataset.fxsalva){const C=fxCalc();(fx.hist=fx.hist||[]).unshift({id:Date.now().toString(36),esp:B.esp,data:fx.data||new Date().toISOString().slice(0,10),kg:C.kg,rend:C.rendReal,aprov:C.aprov,feitas:C.etapas.filter(x=>fxOk()[x.id]).length,total:C.etapas.length,real:Object.assign({},fxR()),dest:Object.assign({},(fx.dest||{})[B.esp]||{})});fx.hist=fx.hist.slice(0,60)}
+  else if(b.dataset.fxlimpa){(fx.okS=fx.okS||{})[B.esp]={};(fx.realS=fx.realS||{})[B.esp]={};fx.kg=""}
+  else if(b.dataset.fxdel)fx.hist=(fx.hist||[]).filter(h=>h.id!==b.dataset.fxdel);
+  grava();draw();if(b.dataset.fxtog&&fx.open)setTimeout(()=>document.getElementById("bn-fx")?.scrollIntoView({block:"start",behavior:"smooth"}),50)});
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#bn-fx"))return;const d=t.dataset;B.fx=B.fx||{};const fx=B.fx;
+  if(d.fxok){fxOk()[d.fxok]=t.checked;grava();draw()}else if(d.fxdest){((fx.dest=fx.dest||{})[B.esp]=fx.dest[B.esp]||{})[d.fxdest]=t.value;grava();draw()}else if(d.fx==="data"){fx.data=t.value;grava()}});
+document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#bn-fx"))return;const d=t.dataset;B.fx=B.fx||{};const fx=B.fx;
+  if(d.fxreal)fxR()[d.fxreal]=t.value;else if(d.fxfat)((fx.fat=fx.fat||{})[B.esp]=fx.fat[B.esp]||{})[d.fxfat]=t.value;else if(d.fx&&d.fx!=="data")fx[d.fx]=t.value;else return;e.stopPropagation();later()},true);
 function draw(){const el=document.getElementById("view-benef");if(!el||el.hidden)return;try{B.lastRend=rendFile();B.lastQual=qualFalhas();grava()}catch(e){}
   const ae=document.activeElement,foco=ae&&ae.closest&&ae.closest("#view-benef")?[...el.querySelectorAll("input,select")].indexOf(ae):-1,cur=ae&&ae.selectionStart;
   el.innerHTML=card("bn-int","🔪 Beneficiamento do pescado","Rendimento, salga, secagem, embutidos, defumação e qualidade — com base nas aulas de Beneficiamento e Tecnologia do Pescado (UFMA), na legislação e na Embrapa",`<p>Transforme o peixe do seu lote em produtos de maior valor: calcule o rendimento da filetagem, a salga, a secagem, a linguiça e a defumação, e confira os limites de qualidade antes de vender. Os dados ficam só neste aparelho.</p>`)
    +corrHTML("benef")
    +card("bn-lote","🐟 Do lote ao produto","Biomassa da despesca (aba Biomassa) × rendimento × produtos marcados na Camada de mercado",loteHTML())
    +card("bn-rend","📏 Rendimento corporal (aula prática 1)","Pese cada etapa e compare com as referências da espécie",rendCalc())
+   +card("bn-fx","🧭 Fluxograma e destino das partes","Etapas da espécie, rendimento de cada parte, produto de destino e controle do lote",fxHTML())
    +card("bn-salga","🧂 Salga","Seca ou úmida (salmoura) — quantidades e perda de água",salgaHTML())
    +card("bn-sec","☀️ Secagem","Perda de água por dia em estufa ou secador artesanal",secHTML())
    +card("bn-ling","🧪 Derivados do pescado: embutidos, patê, hambúrguer, nugget e outros","Escolha o produto — a receita e a tabela de temperos são calculadas para a sua matéria-prima",lingHTML())
@@ -9507,7 +9622,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v124";
+  const APP_VERSAO="ras-v125";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
