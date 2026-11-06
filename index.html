@@ -734,6 +734,9 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 @media (max-width:760px){.fx-br{grid-template-columns:minmax(0,1fr)}.fx-ar{transform:rotate(90deg);height:14px}.fx-st{margin-left:6px;padding-left:12px}}
 #uso-bloq{position:fixed;inset:0;z-index:9999;background:rgba(10,20,18,.72);display:grid;place-items:center;padding:16px}#uso-bloq .ub-box{max-width:420px;background:var(--surface);color:var(--ink);border-radius:14px;padding:18px 20px;display:grid;gap:10px;box-shadow:0 10px 40px rgba(0,0,0,.35)}#uso-bloq b{font-size:18px}
 .sv-pod{display:flex;flex-wrap:wrap;gap:6px 14px;margin:6px 0}.sv-pod label{display:inline-flex;gap:6px;align-items:center;font-size:13.5px}.sv-pod input{accent-color:var(--accent);width:16px;height:16px}.sv-log td{font-size:13px}.sv-log td small{display:block;color:var(--muted)}.sv-ac{font:600 12px var(--f-body);padding:1px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}.sv-ac.warn{color:var(--warn);border-color:var(--warn)}.sv-blq{color:var(--warn);font-size:13px}
+.lt-card>summary{cursor:pointer;list-style:none}.lt-card>summary::-webkit-details-marker{display:none}.lt-tab tr.on td{background:var(--accent-soft)}.lt-tab td small{display:block;color:var(--muted);font-size:12px}
+.lt-ban{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;margin:0 0 12px;padding:10px 14px;border:2px solid #e09a00;border-radius:12px;background:#fff6e0;color:#5b3d00;font-size:14px}.lt-ban.lt-info{border-width:1px}
+:root[data-theme="dark"] .lt-ban{background:#33260f;color:#f3d9a4}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .lt-ban{background:#33260f;color:#f3d9a4}}
 .bn-ul{margin:8px 0;padding-left:20px;font-size:13.5px;line-height:1.5}.bn-ul li{margin:3px 0}.bn-bars{display:grid;gap:5px;margin:8px 0}.bn-bars div{display:grid;grid-template-columns:60px 1fr 54px;gap:8px;align-items:center;font-size:13px}.bn-bars i{display:block;height:12px;border-radius:6px;background:#2a78d6}.bn-svg{width:100%;height:90px;background:var(--bg);border-radius:8px;margin-top:8px}
 .mk-catr{margin:8px 0;padding:8px 10px;border-radius:8px;background:var(--accent-soft);font-size:13px}
 .mk-busca{margin:0 0 8px}.mk-qbox{display:flex;gap:6px;align-items:center}.mk-qbox input{flex:1;min-width:0;font:inherit;font-size:15px;padding:9px 12px;border:1.5px solid var(--accent);border-radius:10px;background:var(--surface);color:var(--ink)}
@@ -962,6 +965,7 @@ body.has-bnav .imp-box{bottom:76px}
   </div>
 
   <div id="view-aqua" role="tabpanel" aria-labelledby="tab-aqua" hidden>
+    <div id="aqua-lotes"></div>
     <div id="aqua-plug"></div>
     <div id="aqua-bio"></div>
     <div id="aqua-orig"></div>
@@ -1274,6 +1278,11 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
 @media (prefers-reduced-motion: no-preference) { .tile, .chip, .ucard { transition: border-color .15s; } }
   td.orig { font-size: .78rem; color: var(--ink-2); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   td.orig small { display: block; color: var(--ink-3); }
+#lote-ban{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:9px 14px;background:#fff6e0;color:#5b3d00;border-bottom:2px solid #e09a00;font-size:13.5px}
+#lote-ban .lb-b{display:flex;gap:6px;flex-wrap:wrap}#lote-ban button{font:inherit;font-size:12.5px;font-weight:700;border:1px solid #b77a00;background:#fff;color:#5b3d00;border-radius:999px;padding:4px 11px;cursor:pointer}
+.u-ids{margin:8px 0 2px}.ids-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}.ids-l{color:var(--ink-2,#555)}.ids-chips{display:flex;flex-wrap:wrap;gap:5px}
+.ids-chips button,.ids-ed{font:inherit;font-size:12.5px;border:1px solid var(--line,#ccc);background:transparent;color:inherit;border-radius:999px;padding:3px 10px;cursor:pointer}.ids-chips button[aria-pressed=&quot;true&quot;]{background:var(--accent,#0f7a6c);border-color:var(--accent,#0f7a6c);color:#fff}
+.ids-chips small{opacity:.7}.ids-ed{border-style:dashed}.ids-form{display:grid;gap:6px;margin-top:8px;padding:10px;border:1px solid var(--line,#ccc);border-radius:10px;font-size:13px}.ids-form input[type=text]{width:100%;font:inherit;padding:6px 8px}.ids-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ids-b input{width:70px}
 &lt;/style&gt;
 
 &lt;div class=&quot;topbar&quot;&gt;&lt;div class=&quot;topbar-in&quot;&gt;
@@ -1362,6 +1371,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
       &lt;h1&gt;&lt;input id=&quot;u-nome&quot; type=&quot;text&quot; aria-label=&quot;Nome do tanque/viveiro&quot; value=&quot;&quot;&gt;&lt;/h1&gt;
       &lt;div class=&quot;meta&quot; id=&quot;u-meta&quot;&gt;&lt;/div&gt;
       &lt;details class=&quot;t-tab&quot; id=&quot;u-ttab&quot;&gt;&lt;/details&gt;
+      &lt;div class=&quot;u-ids&quot; id=&quot;u-ids&quot;&gt;&lt;/div&gt;
     &lt;/div&gt;
     &lt;div class=&quot;controls&quot;&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;u-sel&quot;&gt;Tanque/viveiro&lt;/label&gt;&lt;select id=&quot;u-sel&quot;&gt;&lt;/select&gt;&lt;/div&gt;
@@ -1643,7 +1653,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const fonteDe = (l) =&gt; l.origem || (String(l.id).startsWith(&quot;e&quot;) ? &quot;exemplo&quot; : String(l.id).startsWith(&quot;i&quot;) ? &quot;importado&quot; : &quot;manual&quot;);
   const chaveOrig = (l) =&gt; fonteDe(l) + (l.origemNome ? &quot;|&quot; + l.origemNome : &quot;&quot;);
   const projAt = () =&gt; { try { const p = window.parent &amp;&amp; window.parent !== window &amp;&amp; window.parent.projAtual &amp;&amp; window.parent.projAtual(); return p ? { pid: p.id, pnome: p.nome } : {}; } catch (e) { return {}; } };
-  const passa = (l) =&gt; { const f = S.fOrig || &quot;&quot;, q = S.fProj || &quot;&quot;;
+  /* v127: lotes importados ficam isolados (S.lotes[chave] = isolado | evidencia | integrado); identificação de cada tanque/viveiro (l.ident) */
+  let soInt = false;
+  const loteSt = (k) =&gt; (S.lotes || {})[k] || &quot;integrado&quot;;
+  const unitVis = (u) =&gt; { if (S.fLote) return S.leituras.some((l) =&gt; l.unidade === u.id &amp;&amp; chaveOrig(l) === S.fLote); if (u.lote) { const st = loteSt(u.lote); if (st === &quot;isolado&quot; || (st === &quot;evidencia&quot; &amp;&amp; soInt)) return false; } return true; };
+  const comInt = (f) =&gt; (...a) =&gt; { const o = soInt, fl = S.fLote; soInt = true; S.fLote = &quot;&quot;; try { return f(...a); } finally { soInt = o; S.fLote = fl; } };
+  const passa = (l) =&gt; { const f = S.fOrig || &quot;&quot;, q = S.fProj || &quot;&quot;, k = chaveOrig(l), st = loteSt(k);
+    if (S.fLote) { if (k !== S.fLote) return false; }
+    else if (st === &quot;isolado&quot; || (st === &quot;evidencia&quot; &amp;&amp; soInt)) return false;
+    if (!soInt) { const fi = (S.fIdentU || {})[l.unidade]; if (fi &amp;&amp; (fi === &quot;__sem&quot; ? !!l.ident : (l.ident || &quot;&quot;) !== fi)) return false; }
     if (f &amp;&amp; !(chaveOrig(l) === f || (!f.includes(&quot;|&quot;) &amp;&amp; fonteDe(l) === f))) return false;
     if (q &amp;&amp; (q === &quot;__sem&quot; ? !!l.pid : l.pid !== q)) return false; return true; };
   const LT = () =&gt; S.leituras.filter(passa);
@@ -1834,11 +1852,11 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
   // ============================================================ PAINEL
   function diasPeriodo() { const d = diaPainel || (S.dia &amp;&amp; !futuro(S.dia) ? S.dia : ultValido(LT().map((l) =&gt; l.data))); return periodo === 1 ? [d] : Array.from({ length: 7 }, (_, i) =&gt; addDias(d, i - 6)); }
-  const unidadesFiltradas = () =&gt; { if (S.grupoSo &amp;&amp; uniById(S.grupoSo)) return S.unidades.filter((u) =&gt; u.id === S.grupoSo); return S.unidades.filter((u) =&gt; !u.oculto &amp;&amp; passaTipo(u) &amp;&amp; (!filtroEsp || espDe(u).includes(filtroEsp))); };
+  const unidadesFiltradas = () =&gt; { if (S.grupoSo &amp;&amp; uniById(S.grupoSo)) return S.unidades.filter((u) =&gt; u.id === S.grupoSo); return S.unidades.filter((u) =&gt; !u.oculto &amp;&amp; unitVis(u) &amp;&amp; passaTipo(u) &amp;&amp; (!filtroEsp || espDe(u).includes(filtroEsp))); };
   window.aquaSoGrupo = (id) =&gt; { const novo = id &amp;&amp; uniById(id) ? id : &quot;&quot;; if ((S.grupoSo || &quot;&quot;) === novo) return; S.grupoSo = novo; if (novo) { S.ativa = novo; try { mcHL = new Set([novo]); mcAuto = false; } catch (e) {} } else { try { mcAuto = true; mcHL = null; } catch (e) {} } salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
   window.aquaGrupoTodos = () =&gt; { S.grupoSo = &quot;&quot;; S.focoGrupo = &quot;&quot;; try { mcAuto = true; mcHL = null; } catch (e) {} salvar(); irPara(&quot;painel&quot;); };
 
-  function renderPainel() {
+  function renderPainel() { try { loteBan(); } catch (e) {}
     const presentes = [&quot;tilapia&quot;, &quot;tambaqui&quot;, &quot;camarao&quot;, &quot;pirarucu&quot;, &quot;pangasius&quot;, &quot;curimata&quot;, &quot;lambari&quot;].filter((e) =&gt; S.unidades.some((u) =&gt; espDe(u).includes(e)));
     if (filtroEsp &amp;&amp; !presentes.includes(filtroEsp)) filtroEsp = &quot;&quot;;
     const dias = diasPeriodo(), dRef = dias[dias.length - 1], US = unidadesFiltradas();
@@ -2173,10 +2191,10 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     $(&quot;u-orig&quot;).value = origemDe(u); $(&quot;u-orig&quot;).disabled = !!(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS);
     $(&quot;u-orig&quot;).title = $(&quot;u-orig&quot;).disabled ? &quot;Num RAS a origem é a da água do sistema: escolha no tanque/viveiro Água do sistema&quot; : &quot;&quot;;
     $(&quot;u-nome&quot;).title = u.ras ? &quot;O nome vem da Calculadora&quot; : &quot;&quot;;
-    $(&quot;u-sel&quot;).innerHTML = S.unidades.map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
+    $(&quot;u-sel&quot;).innerHTML = S.unidades.filter((x) =&gt; x.id === u.id || unitVis(x)).map((x) =&gt; `&lt;option value=&quot;${x.id}&quot;${x.id === u.id ? &quot; selected&quot; : &quot;&quot;}&gt;${x.nome}&lt;/option&gt;`).join(&quot;&quot;);
     { const d0 = S.dia || hoje(), ch = $(&quot;u-chips&quot;);
       const cnt = (t) =&gt; S.unidades.filter((x) =&gt; tipoU(x) === t).length, ft = S.filtroTipo || &quot;&quot;;
-      if (ch) { ch.innerHTML = `&lt;div class=&quot;u-chips-top&quot;&gt;&lt;span class=&quot;u-chips-l&quot;&gt;Selecione ${ft === &quot;viveiro&quot; ? &quot;o viveiro&quot; : ft === &quot;tanque&quot; ? &quot;o tanque&quot; : &quot;o tanque ou viveiro&quot;}&lt;/span&gt;&lt;span class=&quot;u-seg&quot; role=&quot;group&quot; aria-label=&quot;Mostrar&quot;&gt;${[[&quot;&quot;, &quot;Todos&quot;, S.unidades.length], [&quot;tanque&quot;, &quot;🟦 Tanques&quot;, cnt(&quot;tanque&quot;)], [&quot;viveiro&quot;, &quot;🟫 Viveiros&quot;, cnt(&quot;viveiro&quot;)]].map(([k, t, n]) =&gt; `&lt;button type=&quot;button&quot; class=&quot;u-ft${k ? &quot; ft-&quot; + k : &quot;&quot;}&quot; data-ft=&quot;${k}&quot; aria-pressed=&quot;${ft === k}&quot;&gt;${t} &lt;small&gt;${n}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;)}&lt;/span&gt;&lt;/div&gt;` + S.unidades.filter((x) =&gt; x.id === u.id || passaTipo(x)).map((x) =&gt; { const n = S.leituras.filter((l) =&gt; l.unidade === x.id &amp;&amp; l.data === d0 &amp;&amp; passa(l)).length, tot = S.leituras.some((l) =&gt; l.unidade === x.id &amp;&amp; passa(l));
+      if (ch) { ch.innerHTML = `&lt;div class=&quot;u-chips-top&quot;&gt;&lt;span class=&quot;u-chips-l&quot;&gt;Selecione ${ft === &quot;viveiro&quot; ? &quot;o viveiro&quot; : ft === &quot;tanque&quot; ? &quot;o tanque&quot; : &quot;o tanque ou viveiro&quot;}&lt;/span&gt;&lt;span class=&quot;u-seg&quot; role=&quot;group&quot; aria-label=&quot;Mostrar&quot;&gt;${[[&quot;&quot;, &quot;Todos&quot;, S.unidades.length], [&quot;tanque&quot;, &quot;🟦 Tanques&quot;, cnt(&quot;tanque&quot;)], [&quot;viveiro&quot;, &quot;🟫 Viveiros&quot;, cnt(&quot;viveiro&quot;)]].map(([k, t, n]) =&gt; `&lt;button type=&quot;button&quot; class=&quot;u-ft${k ? &quot; ft-&quot; + k : &quot;&quot;}&quot; data-ft=&quot;${k}&quot; aria-pressed=&quot;${ft === k}&quot;&gt;${t} &lt;small&gt;${n}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;)}&lt;/span&gt;&lt;/div&gt;` + S.unidades.filter((x) =&gt; x.id === u.id || unitVis(x) &amp;&amp; passaTipo(x)).map((x) =&gt; { const n = S.leituras.filter((l) =&gt; l.unidade === x.id &amp;&amp; l.data === d0 &amp;&amp; passa(l)).length, tot = S.leituras.some((l) =&gt; l.unidade === x.id &amp;&amp; passa(l));
         return `&lt;button type=&quot;button&quot; class=&quot;u-chip t-${tipoU(x)}${x.id === u.id ? &quot; on&quot; : &quot;&quot;}${tot ? &quot;&quot; : &quot; vaz&quot;}${x.oculto ? &quot; oc&quot; : &quot;&quot;}&quot; data-u=&quot;${x.id}&quot; aria-pressed=&quot;${x.id === u.id}&quot; title=&quot;${x.oculto ? &quot;Fora do painel: toque e use “Botar de volta no painel”&quot; : TIPO_U[tipoU(x)][1]}&quot;&gt;&lt;span class=&quot;u-ico&quot;&gt;${TIPO_U[tipoU(x)][0]}&lt;/span&gt;${escO(x.nome)}${n ? `&lt;small&gt;${n}&lt;/small&gt;` : &quot;&quot;}&lt;/button&gt;`; }).join(&quot;&quot;) + `&lt;button type=&quot;button&quot; class=&quot;mc-a&quot; id=&quot;u-chip-nova&quot;&gt;+ Novo tanque/viveiro&lt;/button&gt;` + (vazias().length &amp;&amp; vazias().length &lt; S.unidades.length ? `&lt;button type=&quot;button&quot; class=&quot;mc-a u-conv-b&quot; id=&quot;u-limpa&quot; data-q=&quot;Confirmar: remover ${vazias().length} sem leituras&quot;&gt;🧹 Remover os ${vazias().length} sem leituras&lt;/button&gt;` : &quot;&quot;) + (ft &amp;&amp; cnt(ft) ? (() =&gt; { const para = ft === &quot;tanque&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;, nn = S.unidades.filter((x) =&gt; tipoU(x) === ft &amp;&amp; !x.ras &amp;&amp; !x.sistemaRAS).length; return nn ? `&lt;button type=&quot;button&quot; class=&quot;mc-a u-conv-b&quot; id=&quot;u-conv&quot; data-de=&quot;${ft}&quot; data-para=&quot;${para}&quot; data-q=&quot;Confirmar: transformar ${nn} ${ft === &quot;tanque&quot; ? &quot;tanque(s)&quot; : &quot;viveiro(s)&quot;} em ${para === &quot;viveiro&quot; ? &quot;viveiro(s) escavado(s)&quot; : &quot;tanque(s) suspenso(s)&quot;}&quot;&gt;⇄ Transformar ${ft === &quot;tanque&quot; ? &quot;estes tanques em viveiros&quot; : &quot;estes viveiros em tanques&quot;}&lt;/button&gt;` : &quot;&quot;; })() : &quot;&quot;);
         const nb = $(&quot;u-chip-nova&quot;); if (nb) nb.addEventListener(&quot;click&quot;, () =&gt; $(&quot;b-nova&quot;).click());
         const lp = $(&quot;u-limpa&quot;); if (lp) lp.addEventListener(&quot;click&quot;, () =&gt; { if (lp.dataset.ok !== &quot;1&quot;) { lp.dataset.ok = &quot;1&quot;; lp.textContent = lp.dataset.q; return; } const r = window.aquaLimparVazias(); try { parent.bioLimparVazias &amp;&amp; parent.bioLimparVazias(); } catch (e) {} const f = $(&quot;f-msg&quot;); if (f) { f.textContent = r.length ? `${r.length} tanque(s)/viveiro(s) sem leituras removido(s): ${r.join(&quot;, &quot;)}.` : &quot;Nenhum para remover.&quot;; f.className = &quot;msg ok&quot;; } });
@@ -2203,9 +2221,25 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       : { eyebrow: &quot;NH₃ no pior horário&quot;, big: &quot;—&quot;, cls: &quot;sem_faixa&quot;, note: &quot;Lance amônia total, pH e temperatura.&quot; });
     $(&quot;summary&quot;).innerHTML = tiles.map((t) =&gt; `&lt;div class=&quot;tile&quot; style=&quot;--tile-c:${STCOL[t.cls]}&quot;&gt;&lt;div class=&quot;eyebrow&quot;&gt;${t.eyebrow}&lt;/div&gt;&lt;div class=&quot;big&quot;&gt;${t.big}&lt;/div&gt;&lt;div class=&quot;note&quot;&gt;${t.note}&lt;/div&gt;&lt;/div&gt;`).join(&quot;&quot;);
   }
+  const idsDe = (u) =&gt; { const L = new Set(u.idents || []); S.leituras.forEach((l) =&gt; { if (l.unidade === u.id &amp;&amp; l.ident) L.add(l.ident); }); return [...L]; };
+  const idsPadrao = (u, n) =&gt; { const t = tipoU(u) === &quot;viveiro&quot; ? &quot;V&quot; : &quot;T&quot;; return Array.from({ length: Math.max(1, Math.min(200, n)) }, (_, i) =&gt; t + (i + 1)); };
+  function renderIds() { const box = $(&quot;u-ids&quot;); if (!box) return; const u = UA(); if (u.sistemaRAS) { box.innerHTML = &quot;&quot;; return; }
+    const L = idsDe(u), fi = (S.fIdentU || {})[u.id] || &quot;&quot;, qt = u.ras &amp;&amp; u.ras.tanques ? u.ras.tanques : null, tipo = tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;;
+    const cont = (id) =&gt; S.leituras.filter((l) =&gt; l.unidade === u.id &amp;&amp; (l.ident || &quot;&quot;) === id).length, abre = !!S.idsAberto;
+    box.innerHTML = `&lt;div class=&quot;ids-top&quot;&gt;&lt;span class=&quot;ids-l&quot;&gt;🏷 ${u.ras ? `Grupo &lt;b&gt;${escO(u.nome)}&lt;/b&gt; · ${qt || &quot;?&quot;} ${tipo}${(qt || 0) === 1 ? &quot;&quot; : &quot;s&quot;}` : `${tipo === &quot;viveiro&quot; ? &quot;Viveiro&quot; : &quot;Tanque&quot;} &lt;b&gt;${escO(u.nome)}&lt;/b&gt;`} · identificação de cada ${tipo}:&lt;/span&gt;
+      &lt;span class=&quot;ids-chips&quot;&gt;&lt;button type=&quot;button&quot; data-fi=&quot;&quot; aria-pressed=&quot;${!fi}&quot;&gt;Todos&lt;/button&gt;${L.map((x) =&gt; `&lt;button type=&quot;button&quot; data-fi=&quot;${escO(x)}&quot; aria-pressed=&quot;${fi === x}&quot;&gt;${escO(x)} &lt;small&gt;${cont(x)}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;)}${cont(&quot;&quot;) &amp;&amp; L.length ? `&lt;button type=&quot;button&quot; data-fi=&quot;__sem&quot; aria-pressed=&quot;${fi === &quot;__sem&quot;}&quot;&gt;sem identificação &lt;small&gt;${cont(&quot;&quot;)}&lt;/small&gt;&lt;/button&gt;` : &quot;&quot;}&lt;/span&gt;
+      &lt;button type=&quot;button&quot; class=&quot;ids-ed&quot; id=&quot;ids-ed&quot; aria-expanded=&quot;${abre}&quot;&gt;${abre ? &quot;Fechar&quot; : L.length ? &quot;Editar lista&quot; : &quot;+ Identificar&quot;}&lt;/button&gt;&lt;/div&gt;
+      ${abre ? `&lt;div class=&quot;ids-form&quot;&gt;&lt;label for=&quot;ids-txt&quot;&gt;Identificações (separe por vírgula; ex.: T1, T2, Tanque B3, Viveiro 4)&lt;/label&gt;&lt;input id=&quot;ids-txt&quot; type=&quot;text&quot; value=&quot;${escO((u.idents || []).join(&quot;, &quot;))}&quot; placeholder=&quot;${escO(idsPadrao(u, qt || 4).join(&quot;, &quot;))}&quot;&gt;
+        &lt;div class=&quot;ids-b&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;btn&quot; id=&quot;ids-ger&quot;&gt;Gerar ${escO(idsPadrao(u, qt || 4)[0])}…${escO(idsPadrao(u, qt || 4).slice(-1)[0])}&lt;/button&gt;${qt ? &quot;&quot; : `&lt;label&gt;quantos? &lt;input id=&quot;ids-n&quot; type=&quot;number&quot; min=&quot;1&quot; max=&quot;200&quot; value=&quot;${(u.idents || []).length || 4}&quot;&gt;&lt;/label&gt;`}&lt;button type=&quot;button&quot; class=&quot;btn primary&quot; id=&quot;ids-ok&quot;&gt;Salvar lista&lt;/button&gt;&lt;/div&gt;
+        &lt;p class=&quot;foot&quot;&gt;Cada leitura, importação ou biometria pode dizer qual ${tipo} foi medido (campo Identificação). Também dá para digitar uma identificação nova na hora da leitura.&lt;/p&gt;&lt;/div&gt;` : &quot;&quot;}`;
+    box.querySelectorAll(&quot;[data-fi]&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.fIdentU = S.fIdentU || {}; const v = b.dataset.fi; if (v) S.fIdentU[u.id] = v; else delete S.fIdentU[u.id]; sel = null; salvar(); renderUnidade(false); }));
+    const ed = $(&quot;ids-ed&quot;); if (ed) ed.addEventListener(&quot;click&quot;, () =&gt; { S.idsAberto = !S.idsAberto; renderIds(); });
+    const g = $(&quot;ids-ger&quot;); if (g) g.addEventListener(&quot;click&quot;, () =&gt; { const n = qt || parseInt(($(&quot;ids-n&quot;) || {}).value, 10) || 4; $(&quot;ids-txt&quot;).value = idsPadrao(u, n).join(&quot;, &quot;); });
+    const ok = $(&quot;ids-ok&quot;); if (ok) ok.addEventListener(&quot;click&quot;, () =&gt; { u.idents = [...new Set(String($(&quot;ids-txt&quot;).value || &quot;&quot;).split(/[,;\n]+/).map((x) =&gt; x.trim().slice(0, 40)).filter(Boolean))]; S.idsAberto = false; salvar(); renderUnidade(); }); }
   function renderForm() {
     const u = UA(); const g = camposU(u);
-    let h = `&lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;f-hora&quot;&gt;Hora&lt;/label&gt;&lt;input id=&quot;f-hora&quot; type=&quot;time&quot; required&gt;&lt;/div&gt;
+    const idl = u.sistemaRAS ? [] : idsDe(u), fi0 = ((S.fIdentU || {})[u.id] || &quot;&quot;).replace(&quot;__sem&quot;, &quot;&quot;);
+    let h = (u.sistemaRAS ? &quot;&quot; : `&lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;f-ident&quot;&gt;Identificação &lt;span class=&quot;unit-lbl&quot;&gt;${tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;} medido&lt;/span&gt;&lt;/label&gt;&lt;input id=&quot;f-ident&quot; list=&quot;dl-ids&quot; maxlength=&quot;40&quot; value=&quot;${escO(fi0)}&quot; placeholder=&quot;${escO(idl[0] || (tipoU(u) === &quot;viveiro&quot; ? &quot;ex.: V3&quot; : &quot;ex.: T3&quot;))}&quot;&gt;&lt;datalist id=&quot;dl-ids&quot;&gt;${idl.map((x) =&gt; `&lt;option value=&quot;${escO(x)}&quot;&gt;`).join(&quot;&quot;)}&lt;/datalist&gt;&lt;/div&gt;`) + `&lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;f-hora&quot;&gt;Hora&lt;/label&gt;&lt;input id=&quot;f-hora&quot; type=&quot;time&quot; required&gt;&lt;/div&gt;
       &lt;div class=&quot;field&quot;&gt;&lt;label for=&quot;f-prof&quot;&gt;Profundidade&lt;/label&gt;&lt;select id=&quot;f-prof&quot;&gt;&lt;option&gt;superfície&lt;/option&gt;&lt;option&gt;meio&lt;/option&gt;&lt;option&gt;fundo&lt;/option&gt;&lt;/select&gt;&lt;/div&gt;`;
     for (const [nome, ps] of g) { if (!ps.length) continue; h += `&lt;div class=&quot;group-lbl&quot;&gt;${nome}&lt;/div&gt;`;
       for (const p of ps) { const f = fx(u, p);
@@ -2218,6 +2252,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   function lerForm() {
     const u = UA(); const hora = $(&quot;f-hora&quot;).value; if (!/^\d{2}:\d{2}$/.test(hora)) return { erro: &quot;Informe a hora da leitura (ex.: 06:00).&quot; };
     const l = { id: &quot;l&quot; + Date.now(), unidade: u.id, data: S.dia || hoje(), hora, profundidade: $(&quot;f-prof&quot;).value, origem: &quot;manual&quot;, ...projAt(), rec: Date.now() }; let n = 0;
+    { const fi = $(&quot;f-ident&quot;), v = fi ? fi.value.trim().slice(0, 40) : &quot;&quot;; if (v) { l.ident = v; u.idents = u.idents || []; if (!u.idents.includes(v)) u.idents.push(v); } }
     for (const [, ps] of camposU(u)) for (const p of ps) { const raw = $(&quot;f-&quot; + p).value.trim().replace(&quot;,&quot;, &quot;.&quot;); if (raw === &quot;&quot;) continue; const v = Number(raw); if (!Number.isFinite(v)) return { erro: `Valor inválido em ${curto[p]}.` }; l[p] = v; n++; }
     if (!n) return { erro: &quot;Preencha pelo menos um parâmetro.&quot; };
     if (l.ph !== undefined &amp;&amp; (l.ph &lt; 0 || l.ph &gt; 14)) return { erro: &quot;pH deve ficar entre 0 e 14.&quot; };
@@ -2317,11 +2352,12 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   let delArmed = false;
   function renderTable() {
     const u = UA(), L = L_U(); const cols = COLS.filter((p) =&gt; L.some((l) =&gt; typeof l[p] === &quot;number&quot;));
-    const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Hora&lt;/th&gt;${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;th&gt;Situação&lt;/th&gt;&lt;th&gt;Origem · projeto&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;`;
+    const temId = L.some((l) =&gt; l.ident);
+    const head = `&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Hora&lt;/th&gt;${temId ? &quot;&lt;th&gt;Identificação&lt;/th&gt;&quot; : &quot;&quot;}${cols.map((p) =&gt; `&lt;th&gt;${curto[p]}&lt;/th&gt;`).join(&quot;&quot;)}&lt;th&gt;Situação&lt;/th&gt;&lt;th&gt;Origem · projeto&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;`;
     const ICOO = { manual: &quot;✍️&quot;, arquivo: &quot;📄&quot;, colado: &quot;📋&quot;, link: &quot;🔗&quot;, webhook: &quot;🤖&quot;, importado: &quot;📥&quot;, exemplo: &quot;🧪&quot; };
     const orig = (l) =&gt; { const t = fonteDe(l); return `&lt;td class=&quot;orig&quot; title=&quot;${escO((ORIG[t] || t) + (l.origemNome ? &quot;: &quot; + l.origemNome : &quot;&quot;) + (l.pnome ? &quot; · projeto &quot; + l.pnome : &quot;&quot;))}&quot;&gt;${ICOO[t] || &quot;&quot;} ${escO(t === &quot;arquivo&quot; &amp;&amp; l.origemNome ? l.origemNome : ORIG[t] || t)}&lt;small&gt;${l.pnome ? escO(l.pnome) : &quot;sem projeto&quot;}&lt;/small&gt;&lt;/td&gt;`; };
     const body = L.map((l) =&gt; { const w = pior(avaliar(l, u).map((x) =&gt; x.st));
-      return `&lt;tr data-id=&quot;${l.id}&quot; class=&quot;click${sel === l.id ? &quot; sel&quot; : &quot;&quot;}&quot; tabindex=&quot;0&quot;&gt;&lt;td class=&quot;mono&quot;&gt;${l.hora}&lt;/td&gt;${cols.map((p) =&gt; { const v = l[p]; if (typeof v !== &quot;number&quot;) return &#x27;&lt;td class=&quot;v&quot;&gt;—&lt;/td&gt;&#x27;;
+      return `&lt;tr data-id=&quot;${l.id}&quot; class=&quot;click${sel === l.id ? &quot; sel&quot; : &quot;&quot;}&quot; tabindex=&quot;0&quot;&gt;&lt;td class=&quot;mono&quot;&gt;${l.hora}&lt;/td&gt;${temId ? `&lt;td&gt;${escO(l.ident || &quot;—&quot;)}&lt;/td&gt;` : &quot;&quot;}${cols.map((p) =&gt; { const v = l[p]; if (typeof v !== &quot;number&quot;) return &#x27;&lt;td class=&quot;v&quot;&gt;—&lt;/td&gt;&#x27;;
         const st = cls(u, p, v); return `&lt;td class=&quot;v&quot;&gt;&lt;span class=&quot;c-${st}&quot; title=&quot;${STLBL[st]}&quot;&gt;${fmt(v, DEC[p])}&lt;/span&gt;&lt;/td&gt;`; }).join(&quot;&quot;)}&lt;td&gt;${pill(w)}&lt;/td&gt;${orig(l)}&lt;/tr&gt;`; }).join(&quot;&quot;);
     $(&quot;tbl&quot;).innerHTML = L.length ? head + `&lt;tbody&gt;${body}&lt;/tbody&gt;` : &#x27;&lt;tbody&gt;&lt;tr&gt;&lt;td style=&quot;padding:14px&quot;&gt;Sem leituras neste dia.&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&#x27;;
     $(&quot;tbl&quot;).querySelectorAll(&quot;tbody tr.click&quot;).forEach((tr) =&gt; { const go = () =&gt; { sel = tr.dataset.id; renderUnidade(false); }; tr.addEventListener(&quot;click&quot;, go); tr.addEventListener(&quot;keydown&quot;, (e) =&gt; { if (e.key === &quot;Enter&quot;) go(); }); });
@@ -2344,7 +2380,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       $(&quot;f-hora&quot;).value = b.dataset.h; const f = $(&quot;form&quot;).querySelector(&#x27;input[type=&quot;number&quot;]&#x27;); if (f) f.focus();
       $(&quot;f-msg&quot;).textContent = `Hora ${b.dataset.h} preenchida. Lance os valores e salve.`; $(&quot;f-msg&quot;).className = &quot;msg&quot;; }));
   }
-  function renderUnidade(withForm = true) { try { renderGDash(); } catch (e) { console.warn(e); } renderHead(); renderSummary(); if (withForm) renderForm(); renderSlots(); renderCharts(); renderEval(); renderTable(); }
+  function renderUnidade(withForm = true) { try { loteBan(); renderIds(); } catch (e) { console.warn(e); } try { renderGDash(); } catch (e) { console.warn(e); } renderHead(); renderSummary(); if (withForm) renderForm(); renderSlots(); renderCharts(); renderEval(); renderTable(); }
 
   // ============================================================ abas
   let aba = &quot;painel&quot;;
@@ -2379,7 +2415,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   $(&quot;form&quot;).addEventListener(&quot;submit&quot;, (e) =&gt; {
     e.preventDefault(); const r = lerForm(); const msg = $(&quot;f-msg&quot;);
     if (r.erro) { msg.textContent = r.erro; msg.className = &quot;msg err&quot;; return; }
-    const ix = S.leituras.findIndex((x) =&gt; x.unidade === r.l.unidade &amp;&amp; x.data === r.l.data &amp;&amp; x.hora === r.l.hora &amp;&amp; (x.profundidade || &quot;superfície&quot;) === r.l.profundidade);
+    const ix = S.leituras.findIndex((x) =&gt; x.unidade === r.l.unidade &amp;&amp; x.data === r.l.data &amp;&amp; x.hora === r.l.hora &amp;&amp; (x.profundidade || &quot;superfície&quot;) === r.l.profundidade &amp;&amp; (x.ident || &quot;&quot;) === (r.l.ident || &quot;&quot;));
     if (ix &gt;= 0) S.leituras[ix] = { ...S.leituras[ix], ...r.l, id: S.leituras[ix].id }; else S.leituras.push(r.l);
     UA().exemplo = false; S.exemplo = false; sel = ix &gt;= 0 ? S.leituras[ix].id : r.l.id; salvar();
     const w = pior(avaliar(S.leituras.find((x) =&gt; x.id === sel), UA()).map((x) =&gt; x.st));
@@ -2454,16 +2490,18 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
 
   // --------------------------------------------------- plugin de automação (página-mãe): tanques/viveiros e importação de leituras
   // tipos (tanque/viveiro) para a barra de grupos da página-mãe: o que o Painel está processando agora
-  window.aquaTipos = () =&gt; { const c = { tanque: [0, 0], viveiro: [0, 0] }; for (const u of S.unidades) { if (u.oculto || u.sistemaRAS) continue; const t = tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;; c[t][0]++; if (S.leituras.some((l) =&gt; l.unidade === u.id)) c[t][1]++; }
+  window.aquaTipos = () =&gt; { if (!soInt) return comInt(window.aquaTipos)(); const c = { tanque: [0, 0], viveiro: [0, 0] }; for (const u of S.unidades) { if (u.oculto || u.sistemaRAS || !unitVis(u)) continue; const t = tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;; c[t][0]++; if (S.leituras.some((l) =&gt; l.unidade === u.id)) c[t][1]++; }
     return { filtro: S.filtroTipo || &quot;&quot;, grupo: S.grupoSo || &quot;&quot;, tanques: c.tanque[0], tanquesL: c.tanque[1], viveiros: c.viveiro[0], viveirosL: c.viveiro[1] }; };
   window.aquaFiltroTipo = (t) =&gt; { S.filtroTipo = t === &quot;tanque&quot; || t === &quot;viveiro&quot; ? t : &quot;&quot;; S.grupoSo = &quot;&quot;; S.focoGrupo = &quot;&quot;; try { mcAuto = true; mcHL = null; } catch (e) {}
     const a = UA(); if (S.filtroTipo &amp;&amp; a &amp;&amp; tipoU(a) !== S.filtroTipo) { const nx = S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto &amp;&amp; S.leituras.some((l) =&gt; l.unidade === x.id)) || S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto); if (nx) { S.ativa = nx.id; sel = null; } }
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return S.filtroTipo; };
-  window.aquaUnidades = () =&gt; S.unidades.map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null, tipo: tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot; }));
+  window.aquaUnidades = () =&gt; S.unidades.filter((u) =&gt; { const o = soInt, fl = S.fLote; soInt = true; S.fLote = &quot;&quot;; try { return unitVis(u); } finally { soInt = o; S.fLote = fl; } }).map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null, tipo: tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot; }));
   window.aquaImport = (lista, op) =&gt; {
     op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
     const PS = ORDEM.concat([&quot;od_saturacao&quot;, &quot;nh3&quot;]), dias = new Set(), uns = new Set();
-    const pref = op.tipoNum === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;;
+    const pref = op.tipoNum === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;, chL = (op.tipo || &quot;arquivo&quot;) + (op.nome ? &quot;|&quot; + String(op.nome).slice(0, 120) : &quot;&quot;);
+    if (op.isolar) { S.lotes = S.lotes || {}; if (S.lotes[chL] == null) S.lotes[chL] = S.leituras.some((l) =&gt; chaveOrig(l) === chL) ? &quot;integrado&quot; : &quot;isolado&quot;; }
+    const isol = op.isolar &amp;&amp; S.lotes[chL] !== &quot;integrado&quot;;
     const porNome = (v) =&gt; { if (v == null || v === &quot;&quot;) return null; const s = String(v).trim().toLowerCase(); const ex = S.unidades.find((u) =&gt; String(u.id).toLowerCase() === s || String(u.nome || &quot;&quot;).trim().toLowerCase() === s); if (ex) return ex;
       /* mesmo número com outro nome (a planilha diz &quot;Tanque 7&quot; e o sistema já chama de &quot;Viveiro 7&quot;): as leituras vão para ele */
       const n = numDe(v); if (!n) return null; const cs = S.unidades.filter((u) =&gt; !u.sistemaRAS &amp;&amp; numDe(u.nome) === n); if (cs.length === 1) return cs[0];
@@ -2472,17 +2510,18 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     for (const it of Array.isArray(lista) ? lista : []) {
       let u = porNome(it.unidade);
       if (!u &amp;&amp; op.criar &amp;&amp; it.unidade) { const tpl = uniById(op.destino) || {};
-        u = { id: &quot;u&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nome: nomeNovo(it.unidade), especie: op.especie || (tpl.sistemaRAS ? (tpl.especies || [])[0] : tpl.especie) || &quot;tilapia&quot;, sistema: &quot;semi-intensivo&quot;, volume_m3: 1000, racao_kg_dia: 10, importada: true };
+        u = { id: &quot;u&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nome: nomeNovo(it.unidade), especie: op.especie || (tpl.sistemaRAS ? (tpl.especies || [])[0] : tpl.especie) || &quot;tilapia&quot;, sistema: &quot;semi-intensivo&quot;, volume_m3: 1000, racao_kg_dia: 10, importada: true, ...(isol ? { lote: chL } : {}) };
         S.unidades.push(u); r.criadas.push(u.nome); }
       if (!u) u = uniById(op.destino);
       if (u &amp;&amp; !u.ras &amp;&amp; !u.sistemaRAS) { const ke = estrTxt(it.estrutura), kn = ke ? null : (!u.estrutura || u.estrFonte === &quot;nome&quot; ? estrTxt(ambiguo(it.unidade) ? u.nome : it.unidade) : null), k = ke || kn;
         if (k &amp;&amp; k !== u.estrutura) { u.estrutura = k; u.estrFonte = ke ? &quot;dados&quot; : &quot;nome&quot;; (r.estr = r.estr || {})[u.nome] = CURTO_E[k]; } }
       if (!u || !/^\d{4}-\d{2}-\d{2}$/.test(it.data || &quot;&quot;) || !/^\d{2}:\d{2}$/.test(it.hora || &quot;&quot;)) { r.ignoradas++; continue; }
-      const prof = it.profundidade || &quot;superfície&quot;, vals = {};
+      const prof = it.profundidade || &quot;superfície&quot;, vals = {}, idt = it.ident != null &amp;&amp; String(it.ident).trim() ? String(it.ident).trim().slice(0, 40) : &quot;&quot;;
+      if (idt &amp;&amp; !u.sistemaRAS) { u.idents = u.idents || []; if (!u.idents.includes(idt)) u.idents.push(idt); }
       for (const p of PS) { const v = typeof it[p] === &quot;number&quot; ? it[p] : Number(String(it[p] == null ? &quot;&quot; : it[p]).replace(&quot;,&quot;, &quot;.&quot;)); if (it[p] !== undefined &amp;&amp; it[p] !== &quot;&quot; &amp;&amp; Number.isFinite(v)) vals[p] = v; }
       if (!Object.keys(vals).length) { r.ignoradas++; continue; }
-      const ix = S.leituras.findIndex((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) &amp;&amp; l.unidade === u.id &amp;&amp; l.data === it.data &amp;&amp; l.hora === it.hora &amp;&amp; (l.profundidade || &quot;superfície&quot;) === prof);
-      const og = { origem: op.tipo || &quot;arquivo&quot;, ...(op.nome ? { origemNome: String(op.nome).slice(0, 120) } : {}), ...projAt(), rec: Date.now() };
+      const ix = S.leituras.findIndex((l) =&gt; !String(l.id).startsWith(&quot;e&quot;) &amp;&amp; l.unidade === u.id &amp;&amp; l.data === it.data &amp;&amp; l.hora === it.hora &amp;&amp; (l.profundidade || &quot;superfície&quot;) === prof &amp;&amp; (l.ident || &quot;&quot;) === idt);
+      const og = { origem: op.tipo || &quot;arquivo&quot;, ...(op.nome ? { origemNome: String(op.nome).slice(0, 120) } : {}), ...(idt ? { ident: idt } : {}), ...(isol ? {} : projAt()), rec: Date.now() };
       if (ix &gt;= 0) { Object.assign(S.leituras[ix], vals, og); r.atualizadas++; }
       else { S.leituras.push({ id: &quot;i&quot; + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), unidade: u.id, data: it.data, hora: it.hora, profundidade: prof, ...vals, ...og }); r.novas++; }
       dias.add(it.data); uns.add(u.id);
@@ -2493,6 +2532,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       uns.forEach((id) =&gt; { const u = uniById(id); if (u) u.exemplo = false; });
       if (S.exemplo &amp;&amp; !S.leituras.some((l) =&gt; String(l.id).startsWith(&quot;e&quot;))) S.exemplo = false;
       S.dia = ultValido(r.dias); if (uns.size === 1) S.ativa = [...uns][0]; else if (r.criadas.length) S.ativa = [...uns][0];
+      if (isol) { S.fLote = chL; r.lote = chL; r.isolado = true; }
       diaPainel = null; sel = null; salvar(); renderRodape();
       if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade();
     }
@@ -2500,15 +2540,15 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   };
 
   // resumo para o Painel da página-mãe: último dia com leituras de cada tanque/viveiro
-  window.aquaResumo = () =&gt; S.unidades.map((u) =&gt; {
+  window.aquaResumo = () =&gt; { if (!soInt) return comInt(window.aquaResumo)(); return S.unidades.filter(unitVis).map((u) =&gt; {
     const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []), dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].sort();
     const dia = dias[dias.length - 1]; if (!dia) return { id: u.id, nome: u.nome || u.id, especie: u.especie, n: 0 };
     const mt = metricasDia(u, dia), L = mt.L || [], ult = L[L.length - 1] || {};
     return { id: u.id, nome: u.nome || u.id, especie: u.especie, dia, dias: dias.length, n: mt.n, odMin: mt.odMin, odMinHora: mt.odMinHora, odMinSt: mt.odMinSt, odPrev: mt.odPrev, odPrevSt: mt.odPrevSt, dph: mt.dph, nh3: mt.nh3, nh3St: mt.nh3St, st: mt.st, temp: ult.temperatura, ph: ult.ph, hora: ult.hora, exemplo: !!u.exemplo };
-  });
+  }); };
   // relatório das nictemerais para a página-mãe: cada coleta contínua (pode atravessar a meia-noite) de cada tanque/viveiro
-  window.aquaRelatorio = () =&gt; { const out = [], ts = (l) =&gt; new Date(l.data + &quot;T&quot; + (String(l.hora || &quot;00:00&quot;).length === 4 ? &quot;0&quot; + l.hora : l.hora || &quot;00:00&quot;)).getTime();
-    for (const u of S.unidades) { if (u.oculto) continue; const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []);
+  window.aquaRelatorio = () =&gt; { if (!soInt) return comInt(window.aquaRelatorio)(); const out = [], ts = (l) =&gt; new Date(l.data + &quot;T&quot; + (String(l.hora || &quot;00:00&quot;).length === 4 ? &quot;0&quot; + l.hora : l.hora || &quot;00:00&quot;)).getTime();
+    for (const u of S.unidades) { if (u.oculto || !unitVis(u)) continue; const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []);
       const dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].filter((d) =&gt; /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); if (!dias.length) continue;
       const T = leituras(u.id, dias).map((l) =&gt; ({ ...l, _t: ts(l) })).filter((l) =&gt; isFinite(l._t)).sort((a, b) =&gt; a._t - b._t), G = [];
       for (const l of T) { const g = G[G.length - 1]; if (g &amp;&amp; l._t - g[g.length - 1]._t &lt;= 6 * 36e5 &amp;&amp; l._t - g[0]._t &lt;= 30 * 36e5) g.push(l); else G.push([l]); }
@@ -2528,10 +2568,27 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     for (const p of PS) { const f = fx(u, p) || {}; meta[p] = { n: curto[p] || p, u: f.unidade || &quot;&quot;, a: [f.ideal_min ?? null, f.ideal_max ?? null], d: DEC[p] ?? 1 }; }
     return { params: PS, meta, pts: L.map((l) =&gt; { const o = { t: l._t }; for (const p of PS) if (typeof l[p] === &quot;number&quot;) o[p] = l[p]; return o; }) }; }
   // médias diárias da água por tanque/viveiro (para cruzar com a biometria)
-  window.aquaDiario = () =&gt; { const out = {}; for (const u of S.unidades) { const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []);
+  window.aquaDiario = () =&gt; { if (!soInt) return comInt(window.aquaDiario)(); const out = {}; for (const u of S.unidades) { if (!unitVis(u)) continue; const ids = [u.id].concat(S.ras &amp;&amp; u.ras &amp;&amp; !u.sistemaRAS ? [SYS_ID] : []);
       const dias = [...new Set(LT().filter((l) =&gt; ids.includes(l.unidade)).map((l) =&gt; l.data))].filter((d) =&gt; /^\d{4}-\d{2}-\d{2}$/.test(d)); if (!dias.length) continue; const D = {};
       for (const d of dias) { const L = leituras(u.id, [d]), r = {}; for (const p of [&quot;temperatura&quot;, &quot;od&quot;, &quot;ph&quot;, &quot;salinidade&quot;, &quot;tan&quot;]) { const v = L.map((l) =&gt; l[p]).filter((x) =&gt; typeof x === &quot;number&quot;); if (v.length) r[p] = p === &quot;od&quot; ? Math.min(...v) : v.reduce((a, b) =&gt; a + b, 0) / v.length; } D[d] = r; }
       out[u.id] = D; } return out; };
+  window.aquaLotes = () =&gt; { const G = {}; for (const l of S.leituras) { const k = chaveOrig(l); if (!(S.lotes || {})[k]) continue;
+      const g = (G[k] = G[k] || { key: k, tipo: fonteDe(l), nome: l.origemNome || &quot;&quot;, st: S.lotes[k], n: 0, uni: new Set(), dias: new Set(), od: [], idents: new Set() }); g.n++; g.uni.add((uniById(l.unidade) || {}).nome || l.unidade); g.dias.add(l.data); if (typeof l.od === &quot;number&quot;) g.od.push(l.od); if (l.ident) g.idents.add(l.ident); }
+    for (const k in S.lotes || {}) if (!G[k]) G[k] = { key: k, tipo: k.split(&quot;|&quot;)[0], nome: k.split(&quot;|&quot;).slice(1).join(&quot;|&quot;), st: S.lotes[k], n: 0, uni: new Set(), dias: new Set(), od: [], idents: new Set() };
+    return Object.values(G).map((g) =&gt; { const d = [...g.dias].sort(); return { key: g.key, tipo: g.tipo, nome: g.nome, st: g.st, n: g.n, unidades: [...g.uni], idents: [...g.idents], de: d[0] || &quot;&quot;, ate: d[d.length - 1] || &quot;&quot;, odMin: g.od.length ? Math.min(...g.od) : null, vendo: S.fLote === g.key }; }); };
+  window.aquaLoteEstado = (k, st) =&gt; { if (![&quot;isolado&quot;, &quot;evidencia&quot;, &quot;integrado&quot;].includes(st)) return; S.lotes = S.lotes || {}; S.lotes[k] = st;
+    if (st !== &quot;isolado&quot;) { const P = projAt(); if (st === &quot;integrado&quot; &amp;&amp; P.pid) S.leituras.forEach((l) =&gt; { if (chaveOrig(l) === k &amp;&amp; !l.pid) Object.assign(l, P); }); if (S.fLote === k) S.fLote = &quot;&quot;; }
+    diaPainel = null; sel = null; salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
+  window.aquaVerLote = (k) =&gt; { S.fLote = k || &quot;&quot;; const L = S.leituras.filter((l) =&gt; chaveOrig(l) === S.fLote); if (L.length) { S.dia = ultValido(L.map((l) =&gt; l.data)); const u = L[L.length - 1].unidade; if (uniById(u)) S.ativa = u; }
+    diaPainel = null; sel = null; salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); };
+  window.aquaDescartarLote = (k) =&gt; { const n = window.aquaApagarOrigem(k); if (S.lotes) delete S.lotes[k]; if (S.fLote === k) S.fLote = &quot;&quot;; const ids = new Set(S.unidades.filter((u) =&gt; u.lote === k &amp;&amp; !S.leituras.some((l) =&gt; l.unidade === u.id)).map((u) =&gt; u.id));
+    if (ids.size &amp;&amp; ids.size &lt; S.unidades.length) { S.unidades = S.unidades.filter((u) =&gt; !ids.has(u.id)); if (ids.has(S.ativa)) S.ativa = (S.unidades.find((u) =&gt; !u.sistemaRAS) || S.unidades[0]).id; }
+    sel = null; salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return n; };
+  function loteBan() { let b = document.getElementById(&quot;lote-ban&quot;); if (!S.fLote) { if (b) b.remove(); return; }
+    if (!b) { b = document.createElement(&quot;div&quot;); b.id = &quot;lote-ban&quot;; document.body.insertBefore(b, document.body.firstChild); }
+    const st = loteSt(S.fLote), nm = S.fLote.split(&quot;|&quot;).slice(1).join(&quot;|&quot;) || ORIG[S.fLote.split(&quot;|&quot;)[0]] || S.fLote, n = S.leituras.filter((l) =&gt; chaveOrig(l) === S.fLote).length;
+    b.innerHTML = `&lt;span&gt;📥 &lt;b&gt;Lote ${st === &quot;isolado&quot; ? &quot;isolado&quot; : st === &quot;evidencia&quot; ? &quot;em evidência&quot; : &quot;integrado&quot;}:&lt;/b&gt; ${escO(nm)} · ${n} leitura${n === 1 ? &quot;&quot; : &quot;s&quot;} — processado sozinho${st === &quot;isolado&quot; ? &quot;, fora das outras abas e dos projetos&quot; : &quot;&quot;}.&lt;/span&gt;&lt;span class=&quot;lb-b&quot;&gt;${st === &quot;isolado&quot; ? `&lt;button type=&quot;button&quot; data-lb=&quot;evidencia&quot;&gt;📌 Pôr em evidência&lt;/button&gt;` : &quot;&quot;}${st !== &quot;integrado&quot; ? `&lt;button type=&quot;button&quot; data-lb=&quot;integrado&quot;&gt;✅ Integrar&lt;/button&gt;` : &quot;&quot;}&lt;button type=&quot;button&quot; data-lb=&quot;sair&quot;&gt;✕ Ver todos os dados&lt;/button&gt;&lt;/span&gt;`;
+    b.querySelectorAll(&quot;[data-lb]&quot;).forEach((x) =&gt; x.addEventListener(&quot;click&quot;, () =&gt; { const a = x.dataset.lb, k = S.fLote; if (a === &quot;sair&quot;) window.aquaVerLote(&quot;&quot;); else window.aquaLoteEstado(k, a); try { parent.drawLotes &amp;&amp; parent.drawLotes(); } catch (e) {} })); }
   window.aquaAbrir = (id, dia) =&gt; { if (uniById(id)) { S.ativa = id; if (dia) S.dia = dia; sel = null; salvar(); irPara(&quot;unidade&quot;); } };
 
   // origem dos dados: lista as origens e projetos com quantas leituras cada um tem, e escolhe quais o AquaNictemeral processa
@@ -7154,11 +7211,11 @@ function delaunay(X,Y){
   return T.filter(t=>t[0]<n&&t[1]<n&&t[2]<n).map(t=>[t[0],t[1],t[2]])}
 function analisar(p){
   const cfg=p.cfg,excl=new Set(cfg.excl||[]),cmin=cfg.cmin===""||cfg.cmin==null?NaN:+cfg.cmin,raw=[];
-  for(const f of p.arquivos)if(f.k==="pontos"&&f.usar!==false&&f.pts)for(const q of f.pts)raw.push(q);
+  for(const f of p.arquivos)if(f.k==="pontos"&&f.pts&&(S.soArq?f.p===S.soArq:f.usar!==false&&f.est!=="isolado"))for(const q of f.pts)raw.push(q);
   const cods={};for(const q of raw){const c=(q[1]||"(sem código)").toUpperCase();cods[c]=(cods[c]||0)+1}
   const vis=raw.filter(q=>!excl.has((q[1]||"(sem código)").toUpperCase())&&q[4]!=null&&isFinite(q[4])&&!(isFinite(cmin)&&q[4]<cmin));
   const semZ=raw.filter(q=>q[4]==null||!isFinite(q[4])).length;
-  const key=JSON.stringify([p.id,p.v,cfg]);if(cache&&cache.key===key)return cache;
+  const key=JSON.stringify([p.id,p.v,cfg,S.soArq||"",p.arquivos.map(f=>f.est||"").join()]);if(cache&&cache.key===key)return cache;
   // remove duplicados em planta (mesmo ponto a 1 cm)
   const seen=new Map();for(const q of vis){const k=Math.round(q[2]*100)+"_"+Math.round(q[3]*100);if(!seen.has(k))seen.set(k,q)}
   let pts=[...seen.values()];const MAXT=4500;let amostrado=false;
@@ -7278,7 +7335,7 @@ function vivHTML(p,a){
   const vs=p.viv=p.viv||[],cu=p.cu=p.cu||{corte:"18",aterro:"12",fat:"1,25"},fat=+String(cu.fat).replace(",",".")||1.25,pc=+String(cu.corte).replace(",",".")||0,pa=+String(cu.aterro).replace(",",".")||0;
   const rs=vs.map(v=>calcViv(a,v));const sel=vs.find(v=>v.id===S.viv),T={esp:0,agua:0,corte:0,aterro:0,ocup:0};
   rs.forEach(r=>{if(r)for(const k in T)T[k]+=r[k]});const custo=T.corte*pc+T.aterro*pa;
-  p.res={n:vs.length,esp:T.esp,agua:T.agua,corte:T.corte,aterro:T.aterro,ocup:T.ocup,custo,em:Date.now(),viv:vs.map((v,i)=>({nome:v.nome||"Viveiro "+(i+1),agua:rs[i]?rs[i].agua:0,esp:rs[i]?rs[i].esp:0}))};
+  if(!naoGrava)p.res={n:vs.length,esp:T.esp,agua:T.agua,corte:T.corte,aterro:T.aterro,ocup:T.ocup,custo,em:Date.now(),viv:vs.map((v,i)=>({nome:v.nome||"Viveiro "+(i+1),agua:rs[i]?rs[i].agua:0,esp:rs[i]?rs[i].esp:0}))};
   const linha=(v,i)=>{const r=rs[i];if(!r)return `<tr><td><b>${E(v.nome||"Viveiro "+(i+1))}</b></td><td colspan="7" class="muted">Defina a cota do fundo</td><td><button type="button" class="btn" data-a="viv-sel" data-id="${v.id}">Editar</button></td></tr>`;
     const dr=r.g.zF&&isFinite(r.jus)?(r.jus<r.zDreno-0.3?`<span class="pj-tag pj-ok tp-nw">por gravidade (${N(r.zDreno-r.jus,2)} m)</span>`:`<span class="pj-tag pj-wait tp-nw">precisa de bomba</span>`):"—";
     return `<tr${v.id===S.viv?' class="on"':""}><td><b>${E(v.nome||"Viveiro "+(i+1))}</b><small>${N(r.g.L,0)} × ${N(r.g.W,0)} m · lâmina ${N(r.g.h,2)} m</small></td><td class="num">${N(r.esp/10000,3)} ha</td><td class="num">${I(r.agua)} m³</td><td class="num">${N(r.g.zF,2)} / ${N(r.g.zA,2)} / ${N(r.g.zC,2)}</td><td class="num">${I(r.corte)} m³</td><td class="num">${I(r.aterro)} m³</td><td class="num">${I(r.corte-r.aterro*fat)} m³</td><td>${dr}${r.fora>r.dentro*0.05?`<small>${N(r.fora/(r.fora+r.dentro)*100,0)}% fora do levantamento</small>`:""}</td><td><div class="pj-btns"><button type="button" class="btn${v.id===S.viv?" solid":""}" data-a="viv-sel" data-id="${v.id}">Editar</button><button type="button" class="btn" data-a="viv-dup" data-id="${v.id}">Duplicar ao lado</button><button type="button" class="btn" data-a="viv-del" data-id="${v.id}">Excluir</button></div></td></tr>`};
@@ -7323,7 +7380,10 @@ function listaHTML(){
 function projetoHTML(p){
   const porSub={};for(const f of p.arquivos)(porSub[f.sub]=porSub[f.sub]||[]).push(f);
   const tot=p.arquivos.reduce((s,f)=>s+(f.s||0),0);
-  return `<section class="card wide"><div class="card-head"><h2>${E(p.nome)}<span>${p.arm==="fs"?`Pasta: ${E((raiz?raiz.name:"…")+"/"+p.pasta)}`:"Arquivos guardados neste navegador"} · ${I(p.arquivos.length)} arquivo${p.arquivos.length===1?"":"s"} · ${tam(tot)}</span></h2></div><div class="pj-body">
+  const fso=S.soArq&&p.arquivos.find(f=>f.p===S.soArq),nIso=p.arquivos.filter(f=>f.est==="isolado").length,nEv=p.arquivos.filter(f=>f.est==="evidencia").length;
+  const ban=fso?`<div class="lt-ban"><span>📥 <b>Arquivo ${fso.est==="isolado"?"isolado":fso.est==="evidencia"?"em evidência":"integrado"}:</b> ${E(fso.n)} · ${I((fso.pts||[]).length)} pontos — a planta, as curvas e os volumes abaixo usam só este arquivo${fso.est==="isolado"?", fora do projeto e das outras abas":""}.</span><span class="pj-btns">${fso.est==="isolado"?`<button type="button" class="btn" data-a="lt-ev" data-id="${E(fso.p)}">📌 Pôr em evidência</button>`:""}${fso.est?`<button type="button" class="btn solid" data-a="lt-int" data-id="${E(fso.p)}">✅ Integrar ao levantamento</button>`:""}<button type="button" class="btn" data-a="lt-ver" data-id="">✕ Ver o levantamento</button></span></div>`
+    :nIso||nEv?`<div class="lt-ban lt-info"><span>📥 ${nIso?`${nIso} arquivo${nIso===1?"":"s"} de pontos isolado${nIso===1?"":"s"} (fora do levantamento e das outras abas)`:""}${nIso&&nEv?" · ":""}${nEv?`${nEv} em evidência (entra na planta daqui, mas não vai para a Calculadora, a Viabilidade e o Painel)`:""}. Use 👁 Ver sozinho, 📌 Em evidência ou ✅ Integrar em cada arquivo.</span></div>`:"";
+  return ban+`<section class="card wide"><div class="card-head"><h2>${E(p.nome)}<span>${p.arm==="fs"?`Pasta: ${E((raiz?raiz.name:"…")+"/"+p.pasta)}`:"Arquivos guardados neste navegador"} · ${I(p.arquivos.length)} arquivo${p.arquivos.length===1?"":"s"} · ${tam(tot)}</span></h2></div><div class="pj-body">
    <div class="pj-btns"><button type="button" class="btn solid" data-a="descarregar"${busy?" disabled":""}>⇩ Descarregar do equipamento</button><button type="button" class="btn" data-a="arquivos"${busy?" disabled":""}>Adicionar arquivos</button><button type="button" class="btn" data-a="fechar">Fechar projeto</button></div>
    <details class="us-det"><summary>Como descarregar os dados de cada equipamento</summary><ol class="rp-steps">
     <li><b>Coletora do RTK (ComNav, CHC, Emlid, etc.):</b> exporte o levantamento em TXT ou CSV (nome, código, N, E, cota) e, se for fazer PPP, o arquivo bruto/RINEX da base. Ligue a coletora no computador pelo cabo USB, escolha "Transferência de arquivos" no aviso da coletora e clique em <b>Descarregar do equipamento</b>: selecione a pasta da obra (normalmente em Armazenamento interno/SurveyMaster ou 7Star).</li>
@@ -7331,18 +7391,19 @@ function projetoHTML(p){
     <li><b>Drone (DJI e outros):</b> tire o cartão de memória e coloque no leitor do computador, ou ligue o controle. Selecione a pasta DCIM do voo: fotos, arquivos .MRK/.OBS (PPK) e, se já processou, o ortomosaico, o MDT (GeoTIFF) ou a nuvem de pontos (LAS).</li>
     <li>O app copia tudo para a pasta deste projeto, separado em <b>RTK</b>, <b>Drone</b> e <b>Outros</b>, e não copia de novo o que já estiver lá. Os arquivos TXT/CSV de pontos são lidos na hora e viram planta, curvas de nível e volumes.</li>
     <li>No celular, use <b>Adicionar arquivos</b> e escolha os arquivos no app Arquivos/Drive.</li></ol></details>
-   ${p.arquivos.length?Object.entries(porSub).map(([sub,fs])=>`<div class="subhead">${E(sub)} · ${fs.length} arquivo${fs.length===1?"":"s"}</div><div class="scroll"><table class="pj-tab"><thead><tr><th>Arquivo</th><th>Tipo</th><th class="num">Tamanho</th><th>Origem</th><th></th></tr></thead><tbody>${fs.slice(0,300).map(f=>`<tr><td><b>${E(f.n)}</b>${f.pts?`<small>${I(f.pts.length)} pontos${f.zona?" · UTM "+E(f.zona):""}${f.ruins?` · ${I(f.ruins)} linhas ignoradas`:""}</small>`:""}</td><td>${E(f.t)}</td><td class="num">${tam(f.s||0)}</td><td>${E(f.o||"")}<small>${dataBR(f.m)}</small></td><td><div class="pj-btns">${f.k==="pontos"?`<label class="tp-chk"><input type="checkbox" data-usar="${E(f.p)}"${f.usar!==false?" checked":""}> usar</label><button type="button" class="btn" data-a="colunas" data-id="${E(f.p)}">Colunas</button>`:""}<button type="button" class="btn" data-a="baixar" data-id="${E(f.p)}">Baixar</button><button type="button" class="btn" data-a="remover" data-id="${E(f.p)}">Remover</button></div></td></tr>${S.col===f.p?`<tr><td colspan="5">${colunasHTML(f)}</td></tr>`:""}`).join("")}${fs.length>300?`<tr><td colspan="5" class="muted">… e mais ${fs.length-300} arquivos</td></tr>`:""}</tbody></table></div>`).join(""):`<p class="muted">A pasta do projeto está vazia. Ligue o equipamento no computador e clique em <b>Descarregar do equipamento</b>.</p>`}
+   ${p.arquivos.length?Object.entries(porSub).map(([sub,fs])=>`<div class="subhead">${E(sub)} · ${fs.length} arquivo${fs.length===1?"":"s"}</div><div class="scroll"><table class="pj-tab"><thead><tr><th>Arquivo</th><th>Tipo</th><th class="num">Tamanho</th><th>Origem</th><th></th></tr></thead><tbody>${fs.slice(0,300).map(f=>`<tr><td><b>${E(f.n)}</b>${f.pts?`<small>${I(f.pts.length)} pontos${f.zona?" · UTM "+E(f.zona):""}${f.ruins?` · ${I(f.ruins)} linhas ignoradas`:""}</small>`:""}</td><td>${E(f.t)}</td><td class="num">${tam(f.s||0)}</td><td>${E(f.o||"")}<small>${dataBR(f.m)}</small></td><td><div class="pj-btns">${f.k==="pontos"?`${f.est?`<span class="us-st ${f.est==="isolado"?"wait":"ok"}">${f.est==="isolado"?"📥 isolado":"📌 em evidência"}</span>`:""}<button type="button" class="btn${S.soArq===f.p?" solid":""}" data-a="lt-ver" data-id="${S.soArq===f.p?"":E(f.p)}">${S.soArq===f.p?"✕ Fechar":"👁 Ver sozinho"}</button>${f.est==="isolado"?`<button type="button" class="btn" data-a="lt-ev" data-id="${E(f.p)}">📌 Evidência</button>`:""}${f.est?`<button type="button" class="btn" data-a="lt-int" data-id="${E(f.p)}">✅ Integrar</button>`:`<button type="button" class="btn" data-a="lt-iso" data-id="${E(f.p)}">↩ Isolar</button>`}${f.est!=="isolado"?`<label class="tp-chk"><input type="checkbox" data-usar="${E(f.p)}"${f.usar!==false?" checked":""}> usar</label>`:""}<button type="button" class="btn" data-a="colunas" data-id="${E(f.p)}">Colunas</button>`:""}<button type="button" class="btn" data-a="baixar" data-id="${E(f.p)}">Baixar</button><button type="button" class="btn" data-a="remover" data-id="${E(f.p)}">Remover</button></div></td></tr>${S.col===f.p?`<tr><td colspan="5">${colunasHTML(f)}</td></tr>`:""}`).join("")}${fs.length>300?`<tr><td colspan="5" class="muted">… e mais ${fs.length-300} arquivos</td></tr>`:""}</tbody></table></div>`).join(""):`<p class="muted">A pasta do projeto está vazia. Ligue o equipamento no computador e clique em <b>Descarregar do equipamento</b>.</p>`}
   </div></section>`+analiseHTML(p)}
 function colunasHTML(f){
   const m=f.map||{},cols=f.prev&&f.prev[0]?f.prev[0].length:6,opt=k=>`<select class="lv-sel" data-cm="${k}"><option value="-1">—</option>${Array.from({length:cols},(_,j)=>`<option value="${j}"${m[k]===j?" selected":""}>Coluna ${j+1}</option>`).join("")}</select>`;
   return `<div class="us-abas-box"><b>Colunas do arquivo ${E(f.n)}</b>${f.prev?`<div class="scroll"><table class="pj-tab tp-prev"><tbody>${f.prev.map(r=>`<tr>${r.map(c=>`<td>${E(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:""}
    <div class="rp-grid">${[["nome","Nome do ponto"],["cod","Código / descrição"],["E","Este (E / X)"],["N","Norte (N / Y)"],["Z","Cota (Z)"],["lat","Latitude (se for geográfica)"],["lon","Longitude"]].map(([k,t])=>`<label>${t}${opt(k)}</label>`).join("")}<label class="tp-chk"><input type="checkbox" data-cm="head"${f.head?" checked":""}> 1ª linha é cabeçalho</label></div>
    <div class="pj-btns"><button type="button" class="btn solid" data-a="col-ok" data-id="${E(f.p)}">Reler com estas colunas</button><button type="button" class="btn" data-a="col-fechar">Fechar</button></div></div>`}
+let naoGrava=false;
 function analiseHTML(p){
   const tem=p.arquivos.some(f=>f.k==="pontos"&&f.pts&&f.pts.length);
   if(!tem)return `<section class="card wide"><div class="card-head"><h2>Planta, curvas de nível e volumes<span>aparece quando houver um arquivo de pontos (TXT/CSV)</span></h2></div><div class="pj-body"><p class="muted">Os arquivos de fotos, GeoTIFF, nuvem de pontos e RINEX ficam guardados na pasta do projeto. Para a planta e as curvas, descarregue o TXT/CSV de pontos exportado da coletora (ou a nuvem de pontos do drone exportada como XYZ/CSV).</p></div></section>`;
   const a=analisar(p),c=p.cfg,h=c.ref===""||c.ref==null?NaN:+c.ref,vol=isFinite(h)&&a.T.length?volPlano(a,h):null;
-  p.area=a.area;
+  naoGrava=!!S.soArq||p.arquivos.some(f=>f.est==="evidencia"&&f.usar!==false);if(!naoGrava)p.area=a.area;
   const cods=Object.entries(a.cods).sort((x,y)=>y[1]-x[1]),excl=new Set(c.excl||[]);
   return `<section class="card wide"><div class="card-head"><h2>Resumo do levantamento<span>${I(a.raw.length)} pontos lidos · ${I(a.vis.length)} usados na superfície${a.semZ?` · ${I(a.semZ)} sem cota`:""}</span></h2></div><div class="pj-body">
    <div class="us-kpis rp-k"><div><b>${I(a.vis.length)}</b>pontos com cota</div><div><b>${N(a.area/10000,2)} ha</b>área coberta pela superfície</div><div><b>${N(a.zmin,2)} m</b>cota mínima</div><div><b>${N(a.zmax,2)} m</b>cota máxima</div><div><b>${N(a.zmax-a.zmin,2)} m</b>desnível</div><div><b>${I(a.T.length)}</b>triângulos (MDT)</div></div>
@@ -7380,11 +7441,12 @@ async function importar(p,itens,origem){
         const sub=tp.sub+(rel.includes("/")?"/"+rel.split("/").slice(0,-1).map(slug).join("/"):""),cam=sub+"/"+nome;
         if(p.arquivos.some(f=>f.p===cam&&f.s===file.size)){iguais++;continue}
         await gravar(p,cam,file);
-        const f={p:cam,n:nome,k:tp.k,t:tp.t,sub:tp.sub,s:file.size,m:file.lastModified||Date.now(),o:origem,em:Date.now()};
+        const f={p:cam,n:nome,k:tp.k,t:tp.t,sub:tp.sub,s:file.size,m:file.lastModified||Date.now(),o:origem,em:Date.now(),est:"isolado",usar:false};
         if(tp.k==="pontos"&&file.size<40e6){const txt=await file.text(),L=linhas(txt);const d=detectar(L.rows);const r=extrair(L.rows,d.m,d.head);
           f.prev=L.rows.slice(0,4).map(x=>x.slice(0,9).map(c=>String(c).slice(0,18)));f.map=d.m;f.head=d.head;
           if(r.pts.length>=3){f.pts=r.pts.slice(0,30000);f.ruins=r.ruins;f.zona=r.zona;if(r.pts.length>30000)f.ruins+=r.pts.length-30000}else{f.k="outro";f.t="Texto (sem pontos reconhecidos)"}}
-        const i=p.arquivos.findIndex(x=>x.p===cam);if(i>=0)p.arquivos[i]=f;else p.arquivos.push(f);novos++}catch(e){erros++;console.warn(e)}}
+        if(f.k!=="pontos"){delete f.est;delete f.usar}
+        const i=p.arquivos.findIndex(x=>x.p===cam);if(i>=0)p.arquivos[i]=f;else p.arquivos.push(f);novos++;if(f.k==="pontos"&&f.pts)S.soArq=cam}catch(e){erros++;console.warn(e)}}
     p.em=Date.now();p.v=(p.v||0)+1;cache=null;vb=null;salvar();
     aviso(`${novos} arquivo${novos===1?"":"s"} copiado${novos===1?"":"s"} para ${p.arm==="fs"?"a pasta "+p.pasta:"o projeto"}${iguais?` · ${iguais} já estava${iguais===1?"":"m"} lá`:""}${erros?` · ${erros} com erro`:""} (${N((Date.now()-t0)/1000,1)} s).`)}
   finally{busy=false;draw()}}
@@ -7409,6 +7471,12 @@ async function acao(a,id){
   const p=P();
   try{
   if(a==="raiz"){if(window.top!==window){aviso("Para criar pastas no computador, abra o app pelo link do GitHub (jpribeiro-aqua.github.io/green-fish) no Chrome ou Edge. Aqui os arquivos ficam guardados no navegador.");return}const h=await window.showDirectoryPicker({id:"greenfish-levantamentos",mode:"readwrite",startIn:"documents"});await idb.put("cfg","raiz",h);raiz=h;raizOk=true;aviso(`Pasta ${h.name} escolhida. Os próximos projetos criam a pasta deles dentro dela.`);draw();return}
+  if(a&&a.startsWith("lt-")&&p){const f=p.arquivos.find(x=>x.p===id);
+    if(a==="lt-ver"){S.soArq=id||null}
+    else if(f&&a==="lt-ev"){f.est="evidencia";f.usar=true}
+    else if(f&&a==="lt-int"){delete f.est;f.usar=true;if(S.soArq===f.p)S.soArq=null}
+    else if(f&&a==="lt-iso"){f.est="isolado";f.usar=false}
+    p.v=(p.v||0)+1;cache=null;vb=null;salvar();msg=a==="lt-ev"&&f?`${f.n} em evidência: aparece na planta deste levantamento, mas a Calculadora, a Viabilidade e o Painel continuam usando só os arquivos integrados.`:a==="lt-int"&&f?`${f.n} integrado ao levantamento: entra nos volumes, nos viveiros e nas outras abas.`:a==="lt-iso"&&f?`${f.n} isolado de novo: saiu do levantamento e das outras abas.`:"";draw();salvar();try{window.drawLotes&&drawLotes()}catch(e){}return}
   if(a==="reconectar"){raizOk=(await raiz.requestPermission({mode:"readwrite"}))==="granted";draw();return}
   if(a==="abrir"){S.cur=id;vb=null;cache=null;S.col=null;salvar();msg="";draw();window.scrollTo({top:0});return}
   if(a==="fechar"){S.cur=null;salvar();draw();return}
@@ -8479,8 +8547,8 @@ draw();iniciar();
 const HK="greenfish-imp-hist",E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const rd=()=>{try{return JSON.parse(localStorage.getItem(HK))||[]}catch(e){return []}},wr=v=>{try{localStorage.setItem(HK,JSON.stringify(v.slice(0,12)))}catch(e){}};
 const ORIG={arquivo:"📄 Arquivo",colado:"📋 Texto colado",link:"🔗 Link",webhook:"🤖 Automação (webhook)",form:"✍️ Formulário",projeto:"🗂 Arquivos do projeto",reproc:"🔁 Reprocessamento"};
-const TIPO={agua:{n:"Leituras de água",i:"📈",dest:"AquaNictemeral: curvas 24 h, Painel, matriz e alertas de cada tanque/viveiro",ver:"Ver no AquaNictemeral"},
-            bio:{n:"Biometria (pesos dos animais)",i:"📏",dest:"Painel da biometria, aba Biomassa e Arraçoamento (crescimento e ração)",ver:"Ver o Painel da biometria"}};
+const TIPO={agua:{n:"Leituras de água",i:"📈",dest:"📥 Área de importações: processado sozinho, sem correlação com outras abas ou projetos. Depois de 📌 Pôr em evidência / ✅ Integrar: AquaNictemeral, Painel, matriz e alertas",ver:"Ver no AquaNictemeral"},
+            bio:{n:"Biometria (pesos dos animais)",i:"📏",dest:"📥 Área de importações: processada sozinha, sem correlação com outras abas ou projetos. Depois de ✅ Integrar: Painel da biometria, Biomassa e Arraçoamento",ver:"Ver o Painel da biometria"}};
 const proj=()=>{try{const p=window.projAtual&&projAtual();return p?{nome:p.nome,salvo:true}:{nome:"Projeto não salvo",salvo:false}}catch(e){return {nome:"Projeto não salvo",salvo:false}}};
 let el=null,cur=null,min=false,tMin=null,verHist=false;
 function host(){if(el&&document.body.contains(el))return el;el=document.createElement("aside");el.id="imp-box";el.setAttribute("aria-live","polite");el.setAttribute("role","status");document.body.appendChild(el);
@@ -8662,6 +8730,7 @@ const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""
 const ALVOS=[["dt","Data e hora",["datahora","datetime","timestamp","createdat","dataehora","datetimeutc","horario","momento","registro","time_stamp","entryts"]],
   ["data","Data",["data","date","dia","day"]],["hora","Hora",["hora","hour","time","horas"]],
   ["unidade","Unidade / tanque",["unidade","tanque","viveiro","unit","tank","pond","local","ponto","sensor","device","dispositivo","estacao"]],
+  ["ident","Identificação do tanque/viveiro (ex.: T3, V2)",["identificacao","identificacaodotanque","identificacaodoviveiro","ident","idtanque","tanqueid","idviveiro","viveiroid","codigotanque","codtanque","codigoviveiro","numerotanque","ntanque","numeroviveiro","nviveiro","codigodotanque"]],
   ["estrutura","Estrutura (viveiro, tanque…)",["estrutura","tipodeestrutura","estruturadecultivo","estruturacultivo","sistemadecultivo","tipodetanque","tipodeviveiro","tipodecultivo","structure"]],
   ["profundidade","Profundidade",["profundidade","depth","prof"]],
   ["temperatura","Temperatura (°C)",["temperatura","temp","t","tempc","temperature","tagua","tempagua","watertemp","temperaturadaagua"]],
@@ -8674,7 +8743,7 @@ const ALVOS=[["dt","Data e hora",["datahora","datetime","timestamp","createdat",
   ["salinidade","Salinidade",["salinidade","sal","salinity","psu","ppt"]],["transparencia","Transparência (cm)",["transparencia","secchi","transparency","disco"]],
   ["clorofila_a","Clorofila-a",["clorofila","clorofilaa","chlorophyll","chla"]],["sst","Sólidos suspensos (SST)",["sst","tss","solidos","solidossuspensos"]],
   ["ss_imhoff","Sólidos sedimentáveis (Imhoff)",["imhoff","ssimhoff","sedimentaveis"]],["vibrio","Vibrio",["vibrio"]]];
-const NUM=ALVOS.filter(a=>!["dt","data","hora","unidade","estrutura","profundidade"].includes(a[0])).map(a=>a[0]);
+const NUM=ALVOS.filter(a=>!["dt","data","hora","unidade","ident","estrutura","profundidade"].includes(a[0])).map(a=>a[0]);
 const soHora=v=>/^\s*\d{1,2}[:h]\d{2}(:\d{2})?\s*$/.test(String(v==null?"":v));
 function autoMap(cols,rows){const m={},usados=new Set(),am=(rows||[]).slice(0,30),vals=c=>am.map(r=>r[c]).filter(v=>v!==""&&v!=null);
   /* regras antes dos sinônimos: OD em %, "hora (ordem)" não é horário, coluna de horário só com hh:mm vira Hora */
@@ -8717,12 +8786,13 @@ function normalizar(rows,map,agrupar){
     if(!d&&inv.data){d=dataHora(r[inv.data]);if(d&&inv.hora){const hm=String(r[inv.hora]||"").match(/(\d{1,2})[:h](\d{2})?/);if(hm){d.setHours(+hm[1],+(hm[2]||0))}}}
     if(d){data=isoD(d);hora=pad(d.getHours())+":"+pad(d.getMinutes())}
     const o={data,hora};const un=uCols.map(c=>{const v=r[c];if(v==null||v==="")return "";const t=String(typeof v==="number"?+v.toFixed(3):v).trim();return t.length<=3?c.replace(/\s*\(.*?\)/g,"").split("/")[0].trim()+" "+t:t}).filter(Boolean).join(" · ");if(un)o.unidade=un;
+    if(inv.ident&&r[inv.ident]!=null&&r[inv.ident]!=="")o.ident=String(r[inv.ident]).trim().slice(0,40);
     if(inv.estrutura&&r[inv.estrutura]!=null&&r[inv.estrutura]!=="")o.estrutura=String(r[inv.estrutura]).trim().slice(0,60);
     if(inv.profundidade&&r[inv.profundidade])o.profundidade=/fun|bot|deep/i.test(r[inv.profundidade])?"fundo":"superfície";
     let n=0;for(const p of NUM)if(inv[p]){const v=numBR(r[inv[p]]);if(Number.isFinite(v)){o[p]=Math.round(v*1000)/1000;n++}}
     if(!data||!n){ruins++;continue}out.push(o)}
   if(!agrupar)return {lista:out,ruins};
-  const g=new Map();for(const o of out){const h=o.hora.slice(0,2)+":00",k=[o.unidade||"",o.data,h,o.profundidade||""].join("|");if(!g.has(k))g.set(k,{base:{...o,hora:h},orig:o.hora,c:0,soma:{},n:{}});const e=g.get(k);e.c++;for(const p of NUM)if(typeof o[p]==="number"){e.soma[p]=(e.soma[p]||0)+o[p];e.n[p]=(e.n[p]||0)+1}}
+  const g=new Map();for(const o of out){const h=o.hora.slice(0,2)+":00",k=[o.unidade||"",o.ident||"",o.data,h,o.profundidade||""].join("|");if(!g.has(k))g.set(k,{base:{...o,hora:h},orig:o.hora,c:0,soma:{},n:{}});const e=g.get(k);e.c++;for(const p of NUM)if(typeof o[p]==="number"){e.soma[p]=(e.soma[p]||0)+o[p];e.n[p]=(e.n[p]||0)+1}}
   const lista=[...g.values()].map(e=>{const o={...e.base};if(e.c===1)o.hora=e.orig;for(const p of NUM)if(e.n[p])o[p]=Math.round(e.soma[p]/e.n[p]*100)/100;else delete o[p];return o});
   return {lista,ruins,brutas:out.length}}
 
@@ -8878,14 +8948,14 @@ const ARQ=window.ARQ=(()=>{const K="ras-multitanques-v1-arquivos",LIM=3e6,H={};l
 let histConf=null;
 async function importar(lista,origem){const w=await pronto();if(!w)throw new Error("O AquaNictemeral ainda não abriu. Abra a aba e tente de novo.");
   const sal=lista.map(o=>o.salinidade).filter(v=>typeof v==="number"),esp=sal.length&&sal.reduce((a,b)=>a+b,0)/sal.length>5?"camarao":undefined;
-  const tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:"";
-  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp,tipo,nome,tipoNum:window.tipoNumero()});
+  const tipo=/^arquivo/.test(origem)?"arquivo":origem==="colado"?"colado":origem,nome=tipo==="arquivo"?origem.replace(/^arquivo\s*/,""):tipo==="link"?C.url:tipo==="colado"?"colado em "+new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"";
+  const r=w.aquaImport(lista,{destino:C.destino,origem,criar:C.criar!==false,especie:esp,tipo,nome,tipoNum:window.tipoNumero(),isolar:true});try{window.drawLotes&&drawLotes()}catch(e){}
   const id="imp"+Date.now().toString(36),key=tipo+(nome?"|"+String(nome).slice(0,120):"");
   C.log.unshift({id,em:Date.now(),origem,tipo,nome,key,n:lista.length,novas:r.novas,atualizadas:r.atualizadas,ignoradas:r.ignoradas,dias:r.dias,criadas:r.criadas});
   const sai=C.log.slice(30);C.log=C.log.slice(0,30);salvar();sai.forEach(l=>l.id&&IDB.del(l.id).catch(()=>{}));
-  IDB.put(id,{lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem}}).catch(()=>{});
-  ARQ.add({tipo:"leituras",key,nome,fonte:tipo,lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem},juntar:tipo==="webhook"||tipo==="link"}).catch(()=>{});return r}
-const resumo=(r,brutas)=>`${r.criadas&&r.criadas.length?`${r.criadas.length} ${r.criadas.length===1?"tanque/viveiro criado":"tanques/viveiros criados"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem tanque/viveiro ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.${r.estr&&Object.keys(r.estr).length?(()=>{const g={};for(const [n,e] of Object.entries(r.estr))(g[e]=g[e]||[]).push(n);return " Estrutura ajustada pelos dados: "+Object.entries(g).map(([e,ns])=>`${e} (${ns.length>4?ns.slice(0,4).join(", ")+"…":ns.join(", ")})`).join("; ")+"."})():""}`;
+  IDB.put(id,{lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem,isolar:true}}).catch(()=>{});
+  ARQ.add({tipo:"leituras",key,nome,fonte:tipo,lista,op:{destino:C.destino,criar:C.criar!==false,especie:esp,tipo,nome,origem,isolar:true},juntar:tipo==="webhook"||tipo==="link"}).catch(()=>{});return r}
+const resumo=(r,brutas)=>(r.isolado?"📥 Isolado na Área de importações (fora das outras abas e dos projetos até você integrar) · ":"")+`${r.criadas&&r.criadas.length?`${r.criadas.length} ${r.criadas.length===1?"tanque/viveiro criado":"tanques/viveiros criados"} (${r.criadas.join(", ")}) · `:""}${r.novas} leitura${r.novas===1?"":"s"} nova${r.novas===1?"":"s"}${r.atualizadas?`, ${r.atualizadas} atualizada${r.atualizadas===1?"":"s"}`:""}${r.ignoradas?`, ${r.ignoradas} sem tanque/viveiro ou data (ignoradas)`:""}${brutas&&brutas>r.novas+r.atualizadas+r.ignoradas?` · ${brutas} medições juntadas por hora`:""}${r.dias&&r.dias.length?` · ${r.dias.length>1?`de ${r.dias[0].split("-").reverse().join("/")} a ${r.dias[r.dias.length-1].split("-").reverse().join("/")}`:`em ${r.dias[0].split("-").reverse().join("/")}`}`:""}.${r.estr&&Object.keys(r.estr).length?(()=>{const g={};for(const [n,e] of Object.entries(r.estr))(g[e]=g[e]||[]).push(n);return " Estrutura ajustada pelos dados: "+Object.entries(g).map(([e,ns])=>`${e} (${ns.length>4?ns.slice(0,4).join(", ")+"…":ns.join(", ")})`).join("; ")+"."})():""}`;
 
 /* link (Google Planilhas publicada, ThingSpeak, servidor do sensor): busca agora e, se marcado, a cada N minutos */
 async function buscarLink(silencioso){if(!C.url)throw new Error("Cole o link dos dados.");
@@ -9191,7 +9261,11 @@ function reg(x,y){const n=x.length,mx=x.reduce((s,v)=>s+v,0)/n,my=y.reduce((s,v)
 function regPL(pares){const r=reg(pares.map(q=>q[0]),pares.map(q=>q[1]));return {a:Math.exp(r.a),b:r.b,r2:r.r2,n:pares.length}}
 const tsA=a=>new Date(a.data+"T"+(a.hora||"12:00")).getTime();
 const ordem=(x,y)=>(x.data+(x.hora||"")).localeCompare(y.data+(y.hora||""));
-function visO(a){return !(typeof B==="object"&&B&&B.fOrigB)||((a.origem&&a.origem.tipo)||"form")===B.fOrigB}
+function chB(a){const o=a&&a.origem||{};return (o.tipo||"form")+(o.nome?"|"+String(o.nome).slice(0,120):"")}
+let soIntB=false;
+function visO(a){if(typeof B!=="object"||!B)return true;const k=chB(a),st=(B.lotes||{})[k]||"integrado";if(B.fLoteB){if(k!==B.fLoteB)return false}else if(st==="isolado"||(st==="evidencia"&&soIntB))return false;
+  return !B.fOrigB||((a.origem&&a.origem.tipo)||"form")===B.fOrigB}
+const intB=fn=>(...x)=>{const o=soIntB,fl=B.fLoteB;soIntB=true;B.fLoteB="";try{return fn(...x)}finally{soIntB=o;B.fLoteB=fl}};
 const amostrasU=(p,uid)=>B.amostras.filter(a=>(a.pid||"_local")===p&&a.unidade===uid&&visO(a)).sort(ordem);
 const modelo=uid=>{try{const fm=typeof feedModels==="function"?feedModels()||[]:[];return fm.find(m=>"ras-"+m.t.id===uid)||null}catch(e){return null}};
 function resumoUni(p,uid){const L=amostrasU(p,uid);if(!L.length)return null;const u=L[L.length-1],s=stats(u),ant=L.length>1?L[L.length-2]:null,sa=ant?stats(ant):null;
@@ -9242,6 +9316,7 @@ window.numN=numN;
 function guardar(lista,origem,p0){const pg=p0||projImp(),n0=B.amostras.length,h=window.IMP&&IMP.processar({tipo:"bio",origem:(origem&&origem.tipo)||"form",nome:(origem&&origem.nome)||"",linhas:(lista||[]).length,projeto:pNome(pg),salvo:pg!=="_local"});
   try{const r=guardar0(lista,origem,p0),nv=B.amostras.slice(n0);h&&h.ok({...r,unidades:[...new Set(nv.map(a=>a.unome||a.unidade))],dias:[...new Set(nv.map(a=>a.data).filter(Boolean))],semPeso:nv.filter(a=>!(stats(a).pm>0)).length});return r}catch(e){h&&h.erro(e);throw e}}
 function guardar0(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
+  const kL=chB({origem}),isol=origem&&origem.tipo&&origem.tipo!=="form";if(isol){B.lotes=B.lotes||{};if(B.lotes[kL]==null)B.lotes[kL]=B.amostras.some(a=>chB(a)===kL)?"integrado":"isolado";if(B.lotes[kL]==="isolado")B.fLoteB=kL}
   for(const a of lista){const p=(a.proj&&projDe(a.proj))||base,us=uniP(p);let u=a.uid?us.find(x=>x.id===a.uid):null;
     if(!u&&a.un){const s=String(a.un).trim().toLowerCase();u=us.find(x=>String(x.id).toLowerCase()===s||String(x.nome).trim().toLowerCase()===s);
       if(!u){const n=numN(a.un);if(n){const cs=us.filter(x=>numN(x.nome)===n);u=cs.length===1?cs[0]:cs.find(x=>x.tipo===(/^\s*viveiro/i.test(a.un)?"viveiro":/^\s*tanque/i.test(a.un)?"tanque":(window.tipoNumero?tipoNumero():"tanque")))||null}}
@@ -9407,7 +9482,14 @@ function drawBD(){if(!bdEl)return;const fr=document.getElementById("aqua-frame")
   bdEl.querySelectorAll("[data-bd]").forEach(b=>b.addEventListener("click",()=>{if(b.dataset.bd==="limpa"){bdFoco=[];drawBD();return}
     if(b.dataset.bd==="csv"){const blob=new Blob([bdCSV(bdDados(p))],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="relatorio_biometria_"+String(pNome(p)).replace(/[^\wÀ-ú-]+/g,"_")+"_"+hojeS()+".csv";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)}}))}
 window.drawBioDashAqua=drawBD;
+window.bioLotes=()=>{const G={};for(const a of B.amostras){const k=chB(a);if(!(B.lotes||{})[k])continue;const g=G[k]=G[k]||{key:k,tipo:(a.origem&&a.origem.tipo)||"form",nome:(a.origem&&a.origem.nome)||"",st:B.lotes[k],n:0,uni:new Set(),dias:new Set(),pm:[]};g.n++;g.uni.add(a.unome||a.unidade);if(a.data)g.dias.add(a.data);const pm=stats(a).pm;if(pm>0)g.pm.push(pm)}
+  for(const k in B.lotes||{})if(!G[k])G[k]={key:k,tipo:k.split("|")[0],nome:k.split("|").slice(1).join("|"),st:B.lotes[k],n:0,uni:new Set(),dias:new Set(),pm:[]};
+  return Object.values(G).map(g=>{const d=[...g.dias].sort();return {key:g.key,tipo:g.tipo,nome:g.nome,st:g.st,n:g.n,unidades:[...g.uni],de:d[0]||"",ate:d[d.length-1]||"",pm:g.pm.length?g.pm.reduce((x,y)=>x+y,0)/g.pm.length:null,vendo:B.fLoteB===g.key}})};
+window.bioLoteEstado=(k,st)=>{if(!["isolado","evidencia","integrado"].includes(st))return;B.lotes=B.lotes||{};B.lotes[k]=st;if(st!=="isolado"&&B.fLoteB===k)B.fLoteB="";salvar();draw();outros()};
+window.bioVerLote=k=>{B.fLoteB=k||"";salvar();draw();outros()};
+window.bioDescartarLote=k=>{const n0=B.amostras.length;B.amostras=B.amostras.filter(a=>{if(chB(a)!==k)return true;(B.del=B.del||[]).push(a.id);return false});if(B.lotes)delete B.lotes[k];if(B.fLoteB===k)B.fLoteB="";salvar();draw();outros();return n0-B.amostras.length};
 window.bioHistRAS=tid=>{try{return amostrasU(curPid(),"ras-"+tid).map(a=>({ts:tsA(a),pm:stats(a).pm,data:a.data,N:stats(a).N})).filter(x=>x.pm>0)}catch(e){return []}};
+window.bioHistRAS=intB(window.bioHistRAS);
 window.bioUltRAS=tid=>{const H=bioHistRAS(tid);if(!H.length)return null;const u=H[H.length-1];return {...u,hist:H,n:H.length}};
 function draw(){if(desenhando){setTimeout(draw,0);return}desenhando=true;try{desenha()}finally{desenhando=false}}
 /* ---- itens do botão Biometria: origens dos dados e cadência em tempo real ---- */
@@ -9507,7 +9589,7 @@ window.bioCadTick=el=>{let mud=false;el.querySelectorAll("[data-bio-t]").forEach
 window.bioCadResumo=()=>{const R=cadRows().filter(x=>x.c);return {emDia:R.filter(x=>estado(x)==="ok").length,atrasadas:R.filter(x=>estado(x)!=="ok").map(x=>"Biometria "+x.nome),total:R.length}};
 
 /* resumo para o Painel (projeto em evidência) */
-window.bioDashResumo=()=>linhasResumo(projSel()).map(({p,u,r})=>({nome:u.nome,tipo:u.tipo,projeto:pNome(p),data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
+window.bioDashResumo=()=>intB(()=>linhasResumo(projSel()))().map(({p,u,r})=>({nome:u.nome,tipo:u.tipo,projeto:pNome(p),data:r.u.data,metodo:metNome(r.u.metodo),N:r.s.N,pm:r.s.pm,cv:r.s.cv,gpd:r.gpd,esp:r.esp,dif:r.dif,prox:r.prox}));
 function bioLimpa(p){const L=B.unisP[p]||[],tem=id=>B.amostras.some(a=>(a.pid||"_local")===p&&a.unidade===id),fora=L.filter(u=>!tem(u.id));B.unisP[p]=L.filter(u=>tem(u.id));fora.forEach(u=>delete B.tipoU[uk(p,u.id)]);return fora.map(u=>u.nome)}
 window.bioLimparVazias=()=>{const r=bioLimpa(curPid());salvar();draw();outros();return r};
 const okeyB=a=>{const o=a.origem||{},t=o.tipo||"form";return t+(o.nome?"|"+String(o.nome).slice(0,120):"")};
@@ -9688,7 +9770,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v126";
+  const APP_VERSAO="ras-v127";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -9708,4 +9790,36 @@ window.addEventListener("appinstalled",()=>{inst.hidden=true});
 if(window.aplicarAbas)aplicarAbas();
 })();
 </script>
-
+<script>
+/* ---------- v127: Área de importações — tudo o que chega por importação (água, biometria e levantamento) fica isolado até você pôr em evidência ou integrar ---------- */
+(function(){
+const box=document.getElementById("aqua-lotes");if(!box)return;
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const ORIG={arquivo:"📄 Arquivo",colado:"📋 Colado",link:"🔗 Link",webhook:"🤖 Automação",importado:"📥 Importado"};
+const ST={isolado:["📥 Isolado","wait","processado sozinho; não aparece em nenhuma outra aba nem nos projetos"],evidencia:["📌 Em evidência","ok","aparece nos gráficos desta aba para você interagir, mas fica fora do Painel, da Biomassa, das correlações e dos projetos"],integrado:["✅ Integrado","ok","entra em tudo: abas, Painel, correlações e projeto"]};
+const dBR=s=>s?s.split("-").reverse().join("/"):"";
+let aberto=true,msg="",conf=null;
+const W=()=>{try{const f=document.getElementById("aqua-frame");return f&&f.contentWindow}catch(e){return null}};
+function lista(){const L=[];try{const w=W();if(w&&w.aquaLotes)w.aquaLotes().forEach(x=>L.push({...x,t:"agua"}))}catch(e){}try{if(window.bioLotes)bioLotes().forEach(x=>L.push({...x,t:"bio"}))}catch(e){}return L}
+function draw(){const L=lista(),pend=L.filter(x=>x.st!=="integrado");if(!L.length){box.innerHTML="";return}
+  const row=x=>{const s=ST[x.st]||ST.isolado,k=x.t+"::"+x.key,cf=conf===k;return `<tr${x.vendo?' class="on"':""}><td>${x.t==="bio"?"📏 Biometria":"📈 Água"}<small>${E(ORIG[x.tipo]||x.tipo)}${x.nome?" · "+E(x.nome.length>50?x.nome.slice(0,47)+"…":x.nome):""}</small></td>
+    <td class="num">${x.n}<small>${x.t==="bio"?"biometria(s)":"leitura(s)"}</small></td><td>${E(x.unidades.slice(0,4).join(", "))}${x.unidades.length>4?` +${x.unidades.length-4}`:""}${x.idents&&x.idents.length?`<small>🏷 ${E(x.idents.slice(0,6).join(", "))}</small>`:""}<small>${x.de?dBR(x.de)+(x.ate&&x.ate!==x.de?" a "+dBR(x.ate):""):""}${x.odMin!=null?` · OD mín. ${x.odMin.toLocaleString("pt-BR",{maximumFractionDigits:1})} mg/L`:""}${x.pm!=null?` · peso médio ${x.pm.toLocaleString("pt-BR",{maximumFractionDigits:1})} g`:""}</small></td>
+    <td><span class="us-st ${s[1]}">${s[0]}</span>${x.vendo?`<small>vendo sozinho</small>`:""}</td>
+    <td class="pj-acts">${cf?`<button type="button" class="btn warn" data-lt="descartar-ok" data-k="${E(k)}">Confirmar: apagar ${x.n}</button><button type="button" class="btn" data-lt="x">Voltar</button>`:`<button type="button" class="btn${x.vendo?" solid":""}" data-lt="ver" data-k="${E(k)}">${x.vendo?"✕ Ver todos":"👁 Ver sozinho"}</button>${x.st==="isolado"?`<button type="button" class="btn" data-lt="evidencia" data-k="${E(k)}">📌 Evidência</button>`:""}${x.st!=="integrado"?`<button type="button" class="btn solid" data-lt="integrado" data-k="${E(k)}">✅ Integrar</button>`:`<button type="button" class="btn" data-lt="isolado" data-k="${E(k)}">↩ Isolar</button>`}<button type="button" class="btn warn" data-lt="descartar" data-k="${E(k)}">Descartar</button>`}</td></tr>`};
+  box.innerHTML=`<details class="card wide lt-card"${aberto?" open":""}><summary class="card-head"><h2>📥 Área de importações<span>${pend.length?`${pend.length} lote${pend.length===1?"":"s"} fora das outras abas e dos projetos`:"todos os lotes integrados"} · ${L.length} no total</span></h2></summary><div class="pj-body">
+   ${msg?`<p class="pj-msg">${E(msg)}</p>`:""}<p class="muted">Cada importação (arquivo, texto colado, link ou automação) chega <b>isolada</b>: o AquaNictemeral e a Biometria mostram só ela, sem misturar com outros dados, abas ou projetos. <b>📌 Em evidência</b>: ${ST.evidencia[2]}. <b>✅ Integrar</b>: ${ST.integrado[2]}. No Levantamento, os arquivos de pontos do equipamento seguem a mesma regra.</p>
+   <div class="scroll"><table class="pj-tab lt-tab"><thead><tr><th>Lote</th><th class="num">Dados</th><th>Tanques/viveiros e período</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(row).join("")}</tbody></table></div></div></details>`;
+  const d=box.querySelector("details");d&&d.addEventListener("toggle",()=>{aberto=d.open})}
+box.addEventListener("click",e=>{const b=e.target.closest("[data-lt]");if(!b)return;e.preventDefault();const a=b.dataset.lt,[t,...r]=(b.dataset.k||"").split("::"),k=r.join("::"),w=W();
+  try{if(a==="x"){conf=null}
+    else if(a==="descartar"){conf=b.dataset.k}
+    else if(a==="descartar-ok"){conf=null;const n=t==="bio"?bioDescartarLote(k):w.aquaDescartarLote(k);msg=`Lote descartado: ${n} ${t==="bio"?"biometria(s)":"leitura(s)"} apagada(s).`}
+    else if(a==="ver"){const v=(lista().find(x=>x.t===t&&x.key===k)||{}).vendo;if(t==="bio")bioVerLote(v?"":k);else w.aquaVerLote(v?"":k);msg=v?"Mostrando todos os dados de novo.":"Mostrando só este lote.";
+      if(!v){if(t==="bio"){const dd=document.querySelector("#aqua-bio details.bi-card");if(dd&&!dd.open){dd.open=true;dd.dispatchEvent(new Event("toggle"))}}else{const f=document.getElementById("aqua-frame");f&&f.scrollIntoView({behavior:"smooth",block:"start"})}}}
+    else{if(t==="bio")bioLoteEstado(k,a);else w.aquaLoteEstado(k,a);msg=a==="integrado"?"Lote integrado: agora entra nas outras abas, no Painel, nas correlações e no projeto aberto.":a==="evidencia"?"Lote em evidência: aparece nos gráficos para você interagir, mas continua fora do Painel, da Biomassa, das correlações e dos projetos.":"Lote isolado de novo."}
+    try{window.focoRefresh&&focoRefresh()}catch(er){}}catch(er){msg="Erro: "+(er&&er.message||er)}draw()});
+window.drawLotes=draw;
+const vw=document.getElementById("view-aqua");if(vw)new MutationObserver(()=>{if(!vw.hidden)setTimeout(draw,600)}).observe(vw,{attributes:true,attributeFilter:["hidden"]});
+setInterval(()=>{if(vw&&!vw.hidden)draw()},15000);setTimeout(draw,2500);
+})();
+</script>
