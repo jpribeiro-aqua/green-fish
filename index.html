@@ -1719,7 +1719,7 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   const PREF_E = { viveiro: &quot;Viveiro&quot;, suspenso: &quot;Tanque&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;Tanque RAS&quot;, bft: &quot;Tanque BFT&quot; };
   const CURTO_E = { viveiro: &quot;Viveiro escavado&quot;, suspenso: &quot;Tanque suspenso / elevado&quot;, tanque_rede: &quot;Tanque-rede&quot;, ras: &quot;RAS (recirculação)&quot;, bft: &quot;Bioflocos (BFT)&quot; };
   /* nome que acompanha a estrutura: &quot;Tanque 7&quot; vira &quot;Viveiro 7&quot; ao escolher viveiro escavado (nomes próprios ficam como estão) */
-  function nomePorEstr(nome, k) { const m = String(nome || &quot;&quot;).trim().match(/^(?:viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|bioflocos?|tanque\/viveiro)\s*[-–:nº°#.]*\s*(\S.*)$/i);
+  function nomePorEstr(nome, k) { const m = String(nome || &quot;&quot;).trim().match(/^(?:tanque\s*\/\s*viveiro|viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|bioflocos?|tanque\/viveiro)\s*[-–:nº°#.]*\s*(\S.*)$/i);
     return m &amp;&amp; PREF_E[k] ? PREF_E[k] + &quot; &quot; + m[1] : null; }
   function converterTipo(de, para) { let n = 0; const k = para === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;suspenso&quot;;
     for (const u of S.unidades) { if (u.ras || u.sistemaRAS || tipoU(u) !== de) continue; u.estrutura = k; u.estrFonte = &quot;usuario&quot;; const nv = nomePorEstr(u.nome, k);
@@ -2498,6 +2498,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   window.aquaFiltroTipo = (t) =&gt; { S.filtroTipo = t === &quot;tanque&quot; || t === &quot;viveiro&quot; ? t : &quot;&quot;; S.grupoSo = &quot;&quot;; S.focoGrupo = &quot;&quot;; try { mcAuto = true; mcHL = null; } catch (e) {}
     const a = UA(); if (S.filtroTipo &amp;&amp; a &amp;&amp; tipoU(a) !== S.filtroTipo) { const nx = S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto &amp;&amp; S.leituras.some((l) =&gt; l.unidade === x.id)) || S.unidades.find((x) =&gt; tipoU(x) === S.filtroTipo &amp;&amp; !x.oculto); if (nx) { S.ativa = nx.id; sel = null; } }
     salvar(); if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); return S.filtroTipo; };
+  window.aquaDefTipo = (id, tipo) =&gt; { const u = uniById(id); if (!u || u.ras || u.sistemaRAS) return false; const k = tipo === &quot;viveiro&quot; ? &quot;viveiro&quot; : (estrDe(u) !== &quot;viveiro&quot; ? estrDe(u) : &quot;suspenso&quot;); if (estrDe(u) === k) return true;
+    u.estrutura = k; u.estrFonte = &quot;usuario&quot;; const nv = nomePorEstr(u.nome, k); if (nv &amp;&amp; nv !== u.nome &amp;&amp; !S.unidades.some((x) =&gt; x !== u &amp;&amp; String(x.nome || &quot;&quot;).trim().toLowerCase() === nv.toLowerCase())) u.nome = nv; salvar(); try { if (aba === &quot;painel&quot;) renderPainel(); else renderUnidade(); } catch (e) {} return true; };
   window.aquaUnidades = () =&gt; S.unidades.filter((u) =&gt; { const o = soInt, fl = S.fLote; soInt = true; S.fLote = &quot;&quot;; try { return unitVis(u); } finally { soInt = o; S.fLote = fl; } }).map((u) =&gt; ({ id: u.id, nome: u.nome || u.id, ras: !!u.ras, sistema: u.sistema || &quot;&quot;, especie: u.especie || &quot;&quot;, volume: u.volume_m3 || null, tipo: tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot; }));
   window.aquaImport = (lista, op) =&gt; {
     op = op || {}; const r = { novas: 0, atualizadas: 0, ignoradas: 0, dias: [], unidades: [], criadas: [] };
@@ -9251,10 +9253,10 @@ function rasInfo(id){try{if(typeof tanks==="undefined")return null;const t=tanks
   return {q:parseInt(t.q)||1,v:parseFloat(String(t.v).replace(",","."))||0,esp}}catch(e){return null}}
 const uk=(p,id)=>p+"|"+id;
 function uniP(p){if(p==="*")return projs().flatMap(x=>uniP(x.id).map(u=>({...u,p:x.id})));const m=new Map(),add=u=>{if(u&&u.id&&!m.has(u.id))m.set(u.id,u)};
-  if(p===curPid())for(const u of unis())add({...u});
+  if(p===curPid())for(const u of unis())add({...u,aq:true});
   for(const u of B.unisP[p]||[])add({...u});
   for(const a of B.amostras)if((a.pid||"_local")===p)add({id:a.unidade,nome:a.unome||a.unidade,tipo:a.utipo});
-  return [...m.values()].map(u=>{const r=String(u.id).startsWith("ras-")?rasInfo(u.id):null,tipo=B.tipoU[uk(p,u.id)]||u.tipo||detectTipo({...u,ras:u.ras||!!r});
+  return [...m.values()].map(u=>{const r=String(u.id).startsWith("ras-")?rasInfo(u.id):null,tipo=(u.aq&&!u.ras&&u.tipo)?u.tipo:B.tipoU[uk(p,u.id)]||u.tipo||detectTipo({...u,ras:u.ras||!!r});
     const info=r?`${r.q} tanque${r.q===1?"":"s"}${r.v?" × "+f(r.v,r.v<10?1:0)+" m³":""}${r.esp?" · "+r.esp:""}`:[u.volume?f(+u.volume,0)+" m³":"",cap(u.especie)].filter(Boolean).join(" · ");
     return {...u,p,tipo,info,q:r?r.q:0}})}
 function novaUnidade(p,nome,tipo){nome=String(nome||"").trim().slice(0,60);if(!nome)return null;const ja=uniP(p).find(x=>String(x.nome).trim().toLowerCase()===nome.toLowerCase());if(ja)return ja;
@@ -9358,7 +9360,7 @@ function uniHTML(p,rot){const us=uniP(p),ft=B.ftipo||"todas",vis=us.filter(u=>ft
   const grp=t=>{const g=vis.filter(u=>u.tipo===t);return g.length?`<optgroup label="${TIPO[t]}s">${g.map(u=>`<option value="${E(u.id)}"${u.id===unidade?" selected":""}>${E(u.nome)}${u.info?" — "+E(u.info):""}</option>`).join("")}</optgroup>`:""};
   return `<div class="pj-tools chips bi-ft">${[["todas",`Todas (${us.length})`],["tanque",`🟦 Tanques (${nT})`],["viveiro",`🟫 Viveiros (${nV})`]].map(([k,t])=>`<button type="button" class="chip${ft===k?" on":""}" data-bi-ft="${k}">${t}</button>`).join("")}</div>
    <div class="rp-grid"><label>${rot}<select class="lv-sel" id="bi-un">${grp("tanque")}${grp("viveiro")}<option value="__nova"${unidade==="__nova"?" selected":""}>➕ Novo tanque/viveiro…</option></select></label>
-   ${unidade==="__nova"?`<label>Tipo<select class="lv-sel" id="bi-nt"><option value="tanque"${novaTipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${novaTipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></label><label>Identificação<div class="inp"><input id="bi-nn" maxlength="60" value="${E(novaNome)}" placeholder="ex.: Viveiro 3 ou Tanque T-07"></div></label>`
+   ${unidade==="__nova"?`<label>Tipo<select class="lv-sel" id="bi-nt"><option value="tanque"${novaTipo==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${novaTipo==="viveiro"?" selected":""}>🟫 Viveiro</option></select></label><label>Identificação<div class="inp"><input id="bi-nn" maxlength="60" value="${E(novaNome)}" placeholder="${novaTipo==="viveiro"?"ex.: Viveiro 3 ou V3":"ex.: Tanque T-07 ou T3"}"></div></label>`
     :sel?`<label>${sel.tipo==="viveiro"?"Viveiro":"Tanque"} nº (opcional)${sel.q>1?`<select class="lv-sel" id="bi-num"><option value="">todos do grupo</option>${Array.from({length:sel.q},(_,i)=>`<option value="${sel.tipo==="viveiro"?"V":"T"}${i+1}"${numU===(sel.tipo==="viveiro"?"V":"T")+(i+1)?" selected":""}>${sel.tipo==="viveiro"?"V":"T"}${i+1}</option>`).join("")}</select>`:`<div class="inp"><input id="bi-num" maxlength="20" value="${E(numU)}" placeholder="ex.: 3, T-07, P2"></div>`}</label>`:""}</div>
    ${sel?`<p class="muted bi-met">${TIPO[sel.tipo]} · ${E(sel.nome)}${sel.info?" · "+E(sel.info):""}${p===curPid()&&unis().some(u=>u.id===sel.id)?" · tanque/viveiro do AquaNictemeral deste projeto":" · tanque/viveiro cadastrado na biometria"}</p>`:us.length?"":`<p class="muted">Este projeto ainda não tem tanques nem viveiros cadastrados: crie em “Novo tanque/viveiro”.</p>`}`}
 function formHTML(p){if(!dataB)dataB=hojeS();
@@ -9539,15 +9541,15 @@ function bind(){const q=s=>box.querySelector(s),d=q("details.bi-card"),p=projSel
   const pj=q("#bi-proj");pj&&pj.addEventListener("change",()=>{B.proj=pj.value===curPid()?null:pj.value;msg="";salvar();draw();outros()});
   box.querySelectorAll("[data-bi-fonte]").forEach(b=>b.addEventListener("click",()=>{B.fonte=b.dataset.biFonte;dados=null;msg="";salvar();draw()}));
   box.querySelectorAll("[data-bi-modo]").forEach(b=>b.addEventListener("click",()=>{B.modo=b.dataset.biModo;salvar();draw()}));
-  box.querySelectorAll("[data-bi-ft]").forEach(b=>b.addEventListener("click",()=>{B.ftipo=b.dataset.biFt;salvar();draw()}));
+  box.querySelectorAll("[data-bi-ft]").forEach(b=>b.addEventListener("click",()=>{B.ftipo=b.dataset.biFt;if(B.ftipo!=="todas")novaTipo=B.ftipo;salvar();draw()}));
   box.querySelectorAll("[data-bi-cfg]").forEach(i=>i.addEventListener("change",()=>{const k=i.dataset.biCfg;B[k]=i.type==="checkbox"?i.checked:k==="min"?+i.value:i.value.trim();salvar();if(k==="auto"||k==="min"||k==="url")agendar();draw()}));
   box.querySelectorAll("[data-bi-col]").forEach(s=>s.addEventListener("change",()=>{B.map[s.dataset.biCol]=s.value;salvar();draw()}));
   box.querySelectorAll("[data-bi-cad]").forEach(s=>s.addEventListener("change",()=>{B.cad[s.dataset.biCad]=+s.value;salvar();draw();outros()}));
-  box.querySelectorAll("[data-bi-tipo]").forEach(s=>s.addEventListener("change",()=>{B.tipoU[s.dataset.biTipo]=s.value;salvar();draw();outros()}));
+  box.querySelectorAll("[data-bi-tipo]").forEach(s=>s.addEventListener("change",()=>{const k=s.dataset.biTipo,i=k.indexOf("|"),pp=k.slice(0,i),id=k.slice(i+1);B.tipoU[k]=s.value;for(const u of B.unisP[pp]||[])if(u.id===id)u.tipo=s.value;for(const a of B.amostras)if((a.pid||"_local")===pp&&a.unidade===id)a.utipo=s.value;if(pp===curPid()){try{const w=document.getElementById("aqua-frame").contentWindow;w.aquaDefTipo&&w.aquaDefTipo(id,s.value)}catch(e){}}if(B.ftipo&&B.ftipo!=="todas")B.ftipo=s.value;salvar();draw();outros()}));
   box.querySelectorAll("[data-bi-pop]").forEach(i=>i.addEventListener("change",()=>{const v=Math.round(num(i.value));if(v>0)B.pop[i.dataset.biPop]=v;else delete B.pop[i.dataset.biPop];salvar();draw();outros()}));
   const al=q("#bi-alvo");al&&al.addEventListener("change",()=>{const v=num(al.value);if(v>0)B.alvo[p]=v;else delete B.alvo[p];salvar();draw()});
   const un=q("#bi-un");un&&un.addEventListener("change",()=>{unidade=un.value;escNova=unidade==="__nova";numU="";draw()});
-  const nn=q("#bi-nn");nn&&nn.addEventListener("input",()=>{novaNome=nn.value});const nt=q("#bi-nt");nt&&nt.addEventListener("change",()=>{novaTipo=nt.value});
+  const nn=q("#bi-nn");nn&&nn.addEventListener("input",()=>{novaNome=nn.value});const nt=q("#bi-nt");nt&&nt.addEventListener("change",()=>{novaTipo=nt.value;if(B.ftipo&&B.ftipo!=="todas")B.ftipo=novaTipo;salvar();draw()});
   const nu=q("#bi-num");nu&&nu.addEventListener(nu.tagName==="SELECT"?"change":"input",()=>{numU=nu.value.trim()});
   const dt=q("#bi-data");dt&&dt.addEventListener("change",()=>{dataB=dt.value});const hr=q("#bi-hora");hr&&hr.addEventListener("change",()=>{horaB=hr.value});
   box.querySelectorAll("[data-bi]").forEach(b=>b.addEventListener("click",()=>acao(b.dataset.bi,b)))}
@@ -9614,8 +9616,12 @@ ARQ.registrar("biometria",{
 window.bioRenomear=(velho,novo,estr)=>{try{const v=String(velho||"").trim().toLowerCase(),nv=String(novo||"").trim();if(!v||!nv)return 0;const p=curPid();let n=0;
   for(const u of B.unisP[p]||[])if(String(u.nome||"").trim().toLowerCase()===v){u.nome=nv;if(estr){u.tipo=estr==="viveiro"?"viveiro":"tanque";B.tipoU[uk(p,u.id)]=u.tipo}n++}
   for(const a of B.amostras)if((a.pid||"_local")===p&&String(a.unome||"").trim().toLowerCase()===v){a.unome=nv;if(estr){a.utipo=estr==="viveiro"?"viveiro":"tanque";B.tipoU[uk(p,a.unidade)]=a.utipo}n++}
-  if(n){salvar();try{draw()}catch(e){}}return n}catch(e){return 0}};
+  if(estr){for(const u of unis())if(String(u.nome||"").trim().toLowerCase()===nv.toLowerCase()||String(u.nome||"").trim().toLowerCase()===v){B.tipoU[uk(p,u.id)]=estr==="viveiro"?"viveiro":"tanque";n++}}
+  salvar();try{draw();outros()}catch(e){}return n}catch(e){return 0}};
 window.bioPorNome=()=>{const M={};try{for(const {u,r} of linhasResumo(curPid()))M[String(u.nome||"").trim().toLowerCase()]={nome:u.nome,data:r.u.data,N:r.s.N,pm:r.s.pm,cv:r.s.cv,k:r.s.k,gpd:r.gpd,n:r.n,prox:r.prox}}catch(e){}return M};
+/* v130: a lista de tanques/viveiros acompanha o AquaNictemeral (novo, renomeado, tanque ↔ viveiro) */
+let sigU=null;setInterval(()=>{try{const sg=unis().map(u=>u.id+":"+u.nome+":"+u.tipo).join("|");if(sigU===null){sigU=sg;return}if(sg===sigU)return;
+  if(document.activeElement&&box.contains(document.activeElement)&&/INPUT|TEXTAREA/.test(document.activeElement.tagName))return;sigU=sg;if(document.body.contains(box))draw()}catch(e){}},1500);
 window.drawAquaBio=()=>draw();window.bioDebug={stats,linhasParaAmostras,autoMapB,B,projecao,uniP,projs,cadRows};
 salvar();agendar();draw();
 })();
@@ -9783,7 +9789,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v129";
+  const APP_VERSAO="ras-v130";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
