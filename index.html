@@ -3057,7 +3057,7 @@ function heroMerc(eF){const R=window.gfMercResumo&&gfMercResumo();const base={fo
     todo:todo.slice(0,6),como:`<p>O <b>funil</b> mostra em que etapa está cada cliente, da prospecção até cliente ativo; o volume ponderado multiplica o kg/semana pela chance de cada etapa. A <b>nota dos nichos</b> (0–100) usa a prospecção, os produtos marcados e as outras abas. As ligações com o Beneficiamento seguem o painel 🔗 Correlações entre abas.</p>`})}
 function heroBenef(eF){const R=window.gfBenefResumo&&gfBenefResumo();const base={foco:eF,aba:"Beneficiamento do pescado",ico:"🔪",goto:"benef"};
   if(!R)return heroBox({...base,tone:"info",titulo:"Abrindo o Beneficiamento…",sub:"Abra a aba uma vez para carregar os dados."});
-  const PN={visc:"Vísceras",nad:"Nadadeiras",cab:"Cabeça",tronco:"Tronco limpo",filePele:"Filés com pele",pele:"Pele",file:"Filé sem pele",res:"Resíduos"},todo=[];
+  const cam=/Camar/i.test(R.esp||""),PN=cam?{cab:"Cefalotórax",cauda:"Cauda com casca",casca:"Casca e telson",file:"Carne descascada"}:{visc:"Vísceras",nad:"Nadadeiras",cab:"Cabeça",tronco:"Tronco limpo",filePele:"Filés com pele",pele:"Pele",file:"Filé sem pele",res:"Resíduos"},todo=[];
   if(R.qual.falhas.length)todo.push(["crit",`Qualidade fora do limite: <b>${esc(R.qual.falhas.join(", "))}</b> (RIISPOA/IN 21). Não libere o lote.`]);
   if(R.od!=null&&R.od<4)todo.push([R.od<3?"crit":"warn",`🔗 Água do cultivo: OD mínimo ${n(R.od,1)} mg/L. Corrija a aeração e faça jejum/depuração antes do abate.`]);
   if(!R.qual.feitas)todo.push(["info","Lance as análises de qualidade (pH, N-BVT, histamina, temperatura, glaciamento)."]);
@@ -3067,9 +3067,9 @@ function heroBenef(eF){const R=window.gfBenefResumo&&gfBenefResumo();const base=
   const tone=todo.some(t=>t[0]==="crit")?"crit":todo.some(t=>t[0]==="warn")?"warn":"ok",fp=R.rend&&isFinite(R.rend[0])?R.rend[0]:NaN;
   const parts=R.est?Object.entries(R.est).filter(([k,v])=>PN[k]&&isFinite(v)&&k!=="res").map(([k,v])=>({n:PN[k],v,c:k==="file"?"ok":"info"})):[];
   return heroBox({...base,tone,badge:R.qual.falhas.length?"qualidade fora do limite":R.qual.feitas?"qualidade dentro":"sem análises",
-    titulo:`${esc(R.esp)}: filé de ${isFinite(fp)?n(fp,1)+" %":"—"}${R.kg?` · ${n(R.kg,0)} kg de matéria-prima`:""}`,
+    titulo:`${esc(R.esp)}: ${cam?"carne descascada":"filé"} de ${isFinite(fp)?n(fp,1)+" %":"—"}${R.kg?` · ${n(R.kg,0)} kg de matéria-prima`:""}`,
     sub:`Rendimentos, derivados e qualidade do pescado. ${R.corr} de ${R.corrT} correlações entre abas ligadas.`,
-    kpis:[{i:"🐟",l:"Rendimento de filé",v:isFinite(fp)?n(fp,1)+" %":"—",d:R.rend?esc(R.rend[1]):"",c:isFinite(fp)?"ok":"n"},{i:"⚖️",l:"Peso do animal",v:isFinite(R.pw)?n(R.pw,0)+" g":"—",d:"informado, do lote ou da medição"},
+    kpis:[{i:cam?"🦐":"🐟",l:cam?"Rendimento de carne":"Rendimento de filé",v:isFinite(fp)?n(fp,1)+" %":"—",d:R.rend?esc(R.rend[1]):"",c:isFinite(fp)?"ok":"n"},{i:"⚖️",l:"Peso do animal",v:isFinite(R.pw)?n(R.pw,0)+" g":"—",d:"informado, do lote ou da medição"},
       {i:"📦",l:"Matéria-prima",v:R.kg?n(R.kg,0)+" kg":"—",d:R.kgFonte||"sem lote"},{i:"🌭",l:"Derivado planejado",v:R.plan?n(R.plan.kg,1)+" kg":"—",d:R.plan?esc(String(R.plan.n).replace(/^\S+\s/,"")):"nenhum"},
       {i:"🧪",l:"Qualidade",v:R.qual.feitas?(R.qual.falhas.length?R.qual.falhas.length+" fora":"dentro"):"—",d:R.qual.feitas?`${R.qual.feitas} análise(s)`:"sem análises",c:R.qual.feitas?(R.qual.falhas.length?"crit":"ok"):"n"}],
     chartT:parts.length?`📐 Rendimento das partes (% do peso vivo, ${isFinite(R.pw)?n(R.pw,0)+" g":""})`:"",chart:parts.length?heroBars(parts,v=>n(v,1)+" %"):"",
@@ -5007,6 +5007,9 @@ const ESP={
   matrinxa:{n:"Matrinxã",file:[38.6,40.0],f:"filé 38,6–40,0% (400–700 g), Macedo-Viegas et al. (2000)"},
   outro:{n:"Outra espécie",f:"corpo limpo médio de 62,6% do peso dos peixes marinhos e de água doce (Contreras-Guzmán, 1994)"}};
 const ETAP=[["inteiro","Peixe inteiro"],["escama","Escamas"],["visc","Vísceras"],["nad","Nadadeiras"],["cab","Cabeça"],["tronco","Tronco limpo (carcaça)"],["filePele","Filés com pele"],["pele","Pele"],["file","Filé sem pele"],["res","Todos os resíduos"]];
+// v128: camarão (Litopenaeus vannamei) — partes com os nomes usados no beneficiamento do camarão
+const ETAP_CAM=[["inteiro","Camarão inteiro (com cabeça)"],["cab","Cefalotórax (“cabeça”)"],["cauda","Cauda com casca (camarão sem cabeça)"],["casca","Casca, telson (“rabo”) e intestino (“tripa”)"],["file","Carne descascada (cauda limpa, PUD/PD)"],["res","Todos os resíduos (cabeça + casca)"]];
+const etapB=()=>B.esp==="camarao"?ETAP_CAM:ETAP,ehCam=()=>B.esp==="camarao";
 function lotes(){try{const fm=(typeof feedModels==="function"&&feedModels())||[];return fm.filter(m=>m.ok).map(m=>{let kg=NaN,w=NaN;try{const v=(m.at0||m.at)(m.harvest-864e5);kg=v.bio;w=v.w}catch(e){}return {id:m.t.id,n:m.name,sp:m.sp&&m.sp.name||"",h:m.harvest,kg,w}})}catch(e){return []}}
 function pV(){try{const o=window.lvResumo&&lvResumo();return o&&o.o&&o.o.pV>0?o.o.pV:NaN}catch(e){return NaN}}
 function prodsMerc(){try{const s=JSON.parse(localStorage.getItem("greenfish-mercado")||"{}");return Array.isArray(s.produtos)&&s.produtos.length?s.produtos:(s.produto?[s.produto]:[])}catch(e){return []}}
@@ -5025,6 +5028,8 @@ const EST={
  panga:{w:[900],fx:"sem classe de peso",src:"Colpani, citado no relatório da aula (2022): filé 40–50%",p:{file:[45]}},
  curimata:{w:[380],fx:"1 exemplar de 380 g",src:"relatório da aula prática 1 (UFMA, 2022)",p:{file:[43.9]}},
  piau:{w:[380],fx:"1 exemplar de 380 g",src:"relatório da aula prática 1 (UFMA, 2022)",p:{file:[22.9]}},
+ camarao:{w:[11.9],fx:"≈ 12 g (camarão de engorda)",src:"cefalotórax ≈ 33% do camarão inteiro (Ogawa et al., 2007, Ciênc. Tecnol. Aliment. 27(2) — L. vannamei cultivado); carne descascada 51,3% (44,4 a 59,2%) em camarões de 11,9 g (Dai et al., 2023, Aquaculture 577); cauda com casca e casca por diferença. Cabeça + casca ≈ 40–49% (Embrapa Meio-Norte, Circ. Téc. 52, 2011)",
+  p:{cab:[33.0],cauda:[67.0],casca:[15.7],file:[51.3],res:[48.7]},obs:{cauda:"por diferença: inteiro − cefalotórax",casca:"por diferença: cauda com casca − carne",file:"varia 44–59% conforme o animal e o descasque"}},
  palombeta:{w:[170],fx:"156–186 g",src:"relatório da aula (UFMA, 2022)",p:{file:[19.0],visc:[4.4],cab:[17.9]}}};
 function interp(ws,vs,w){if(vs.length===1)return vs[0];if(w<=ws[0])return vs[0];if(w>=ws[ws.length-1])return vs[vs.length-1];for(let i=0;i<ws.length-1;i++)if(w<=ws[i+1]){const t=(w-ws[i])/(ws[i+1]-ws[i]);return vs[i]+t*(vs[i+1]-vs[i])}return vs[vs.length-1]}
 function estimar(esp,w){const e=EST[esp];if(!e||!(w>0))return null;const o={};for(const [k2,vs] of Object.entries(e.p))o[k2]=interp(e.w,vs,w);if(o.file!=null&&o.res==null)o.res=100-o.file;const fora=e.w.length>1&&(w<e.w[0]*0.85||w>e.w[e.w.length-1]*1.15);return {pct:o,fora,e}}
@@ -5058,7 +5063,7 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.datase
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-gfcorr]");if(!b)return;const c={};CORR.forEach(x=>c[x[0]]=b.dataset.gfcorr==="todas");localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
 function rendCalc(){B.medM=B.medM||{};const m=B.med,pi=P(m.inteiro),e=ESP[B.esp]||ESP.outro,pw=pesoAnimal(),est=estimar(B.esp,pw),pct=x=>isFinite(pi)&&pi>0&&isFinite(P(x))?P(x)/pi*100:NaN;
   const ref={visc:e.visc,cab:e.cab,pele:e.pele,tronco:e.tronco,file:e.file};
-  const rows=ETAP.map(([key,l])=>{const p=key==="inteiro"?(isFinite(pi)?100:NaN):pct(m[key]),r=ref[key],ep=est&&est.pct[key];let st="";if(r&&isFinite(p)){st=p<r[0]*0.9?"abaixo":p>r[1]*1.1?"acima":"ok"}
+  const rows=etapB().map(([key,l])=>{const p=key==="inteiro"?(isFinite(pi)?100:NaN):pct(m[key]),r=ref[key],ep=est&&est.pct[key];let st="";if(r&&isFinite(p)){st=p<r[0]*0.9?"abaixo":p>r[1]*1.1?"acima":"ok"}
     const orig=key!=="inteiro"&&String(m[key]||"")!==""?(B.medM[key]?`<span class="bn-st ok">medido</span>`:B.medFonte==="est"?`<span class="bn-st acima">estimado</span>`:""):"";
     return `<tr><td class="l">${l}${est&&est.e.obs&&est.e.obs[key]?`<small>${est.e.obs[key]}</small>`:""}</td><td><input data-bnm="${key}" value="${esc(m[key]||"")}" inputmode="decimal" placeholder="g" class="bn-in"></td><td><b>${isFinite(p)?F(p,1)+"%":"—"}</b> ${orig}</td><td>${ep!=null?`<b>${F(ep,1)}%</b>`:r?faixa(r):"—"}</td><td>${st?`<span class="bn-st ${st}">${st==="ok"?"dentro":st}</span>`:""}</td></tr>`}).join("");
   const fp=pct(m.file),cl=pct(m.tronco),L=lotes().filter(x=>espDe(x.sp)===B.esp);
@@ -5066,13 +5071,14 @@ function rendCalc(){B.medM=B.medM||{};const m=B.med,pi=P(m.inteiro),e=ESP[B.esp]
     <label class="jr-f">Peso do animal (g)<input data-bn="pesoEst" value="${esc(B.pesoEst||"")}" inputmode="decimal" placeholder="${isFinite(pw)?F(pw):"ex.: 450"}"></label>${!P(B.pesoEst)&&corrOn("bio_peso")&&isFinite(lotePeso(B.esp))?`<small class="muted">🔗 peso médio do lote na despesca (Biomassa)</small>`:""}
     <button type="button" class="btn solid" data-bnest="1"${pw>0&&EST[B.esp]?"":" disabled"}>📐 Estimar rendimentos pela literatura</button>${String(B.medFonte||"")?`<button type="button" class="chip" data-bnlimpa="1">🧹 Limpar pesos</button>`:""}</div>
    <p class="hint" style="margin:4px 0">${EST[B.esp]?`📘 ${esc(EST[B.esp].src)} · faixa estudada: ${esc(EST[B.esp].fx)}${est&&est.fora?` · <b>⚠️ ${F(pw)} g está fora da faixa estudada — estimativa por aproximação</b>`:""}`:esc(e.f)}</p>
-   <div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Parte (pese na ordem do seu método)</th><th>Peso (g)</th><th>% do inteiro</th><th>${est?`Literatura p/ ${F(pw)} g`:"Referência"}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-   <div class="gfh-kpis bx-kpis">${k("Rendimento de filé",isFinite(fp)?F(fp,1)+"%":"—",est&&est.pct.file!=null?`literatura: ${F(est.pct.file,1)}% para ${F(pw)} g`:e.file?`referência ${faixa(e.file)}`:"meça o filé sem pele","ok")}${k("Corpo limpo / carcaça",isFinite(cl)?F(cl,1)+"%":"—","média dos peixes: corpo limpo 62,6% (Contreras-Guzmán, 1994)")}${k("Resíduos",isFinite(pct(m.res))?F(pct(m.res),1)+"%":"—","cabeça, vísceras, pele, escamas e espinhaço → farinha, óleo, silagem, CMS")}</div>
-   <p class="hint">📐 <b>Estimar</b> preenche os pesos de cada parte para o peso do animal e a espécie, interpolando entre as classes de peso da literatura (partes sem dado ficam em branco). Depois é só pesar e trocar pelo valor real — a linha passa a mostrar “medido”. Cálculo da aula: rendimento (%) = peso da parte ÷ peso do inteiro × 100. Fatores: espécie, tamanho, sexo, formato do corpo, mecanização, método e destreza do operador (Macedo-Viegas e Souza, 2004).${L.length?` Peso médio do seu lote de ${esc(ESP[B.esp].n)} na despesca: veja na aba Biomassa.`:""}</p>`}
+   <div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">${ehCam()?"Parte do camarão (pese na ordem do descasque)":"Parte (pese na ordem do seu método)"}</th><th>Peso (g)</th><th>% do inteiro</th><th>${est?`Literatura p/ ${F(pw)} g`:"Referência"}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+   <div class="gfh-kpis bx-kpis">${ehCam()?`${k("Rendimento de carne (descascado)",isFinite(fp)?F(fp,1)+"%":"—",est&&est.pct.file!=null?`literatura: ${F(est.pct.file,1)}% (44–59%)`:"meça a cauda descascada","ok")}${k("Camarão sem cabeça (cauda com casca)",isFinite(pct(m.cauda))?F(pct(m.cauda),1)+"%":"—","literatura: ≈ 67% (cabeça ≈ 33%, Ogawa et al., 2007)")}${k("Resíduos",isFinite(pct(m.res))?F(pct(m.res),1)+"%":"—","cabeça e casca → farinha de camarão, pigmentos (astaxantina), quitina/quitosana, silagem")}`
+     :`${k("Rendimento de filé",isFinite(fp)?F(fp,1)+"%":"—",est&&est.pct.file!=null?`literatura: ${F(est.pct.file,1)}% para ${F(pw)} g`:e.file?`referência ${faixa(e.file)}`:"meça o filé sem pele","ok")}${k("Corpo limpo / carcaça",isFinite(cl)?F(cl,1)+"%":"—","média dos peixes: corpo limpo 62,6% (Contreras-Guzmán, 1994)")}${k("Resíduos",isFinite(pct(m.res))?F(pct(m.res),1)+"%":"—","cabeça, vísceras, pele, escamas e espinhaço → farinha, óleo, silagem, CMS")}`}</div>
+   <p class="hint">📐 <b>Estimar</b> preenche os pesos de cada parte para o peso do animal e a espécie, interpolando entre as classes de peso da literatura (partes sem dado ficam em branco). Depois é só pesar e trocar pelo valor real — a linha passa a mostrar “medido”. Cálculo da aula: rendimento (%) = peso da parte ÷ peso do inteiro × 100. ${ehCam()?"No camarão: tire o cefalotórax (descabeçamento) e pese a cauda com casca; depois descasque, tire o telson e o intestino e pese a carne. Venda sem cabeça com casca = HLSO; descascado sem intestino = PUD/PD. O rendimento muda com o tamanho (contagem por kg), a muda, o tempo no gelo e a destreza no descasque.":"Fatores: espécie, tamanho, sexo, formato do corpo, mecanização, método e destreza do operador (Macedo-Viegas e Souza, 2004)."}${L.length?` Peso médio do seu lote de ${esc(ESP[B.esp].n)} na despesca: veja na aba Biomassa.`:""}</p>`}
 function rendFile(key){key=key||B.esp;const fp=P(B.med.file)/P(B.med.inteiro)*100;if(key===B.esp&&isFinite(fp)&&fp>0)return [fp,B.medFonte==="est"&&!(B.medM||{}).file?"estimado pela literatura":"medido por você"];const est=estimar(key,(key===B.esp?pesoAnimal():NaN)||P(B.pesoEst)||P(B.med.inteiro)||(EST[key]?EST[key].w[0]:0));if(est&&est.pct.file!=null)return [est.pct.file,"literatura"];const e=ESP[key]||ESP.outro;if(e.file)return [(e.file[0]+e.file[1])/2,"referência da espécie"];return [33,"estimativa geral, sem medição"]}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-bnest],[data-bnlimpa]");if(!b||!b.closest("#view-benef"))return;
   if(b.dataset.bnlimpa){B.med={};B.medM={};B.medFonte="";grava();draw();return}
-  const w=pesoAnimal(),est=estimar(B.esp,w);if(!est)return;B.med={inteiro:String(Math.round(w))};B.medM={};for(const [k2,v] of Object.entries(est.pct))B.med[k2]=String(Math.round(w*v/100));B.medFonte="est";grava();draw()});
+  const w=pesoAnimal(),est=estimar(B.esp,w);if(!est)return;const rdg=x=>w<100?String(Math.round(x*100)/100).replace(".",","):String(Math.round(x));B.med={inteiro:rdg(w)};B.medM={};for(const [k2,v] of Object.entries(est.pct))B.med[k2]=rdg(w*v/100);B.medFonte="est";grava();draw()});
 function loteHTML(){const L=corrOn("bio_lote")?lotes():[],sel=B.lote,kgL=sel==="todos"?L.reduce((a,x)=>a+(isFinite(x.kg)?x.kg:0),0):(L.find(x=>String(x.id)===sel)||{}).kg,kg=isFinite(P(B.kgMan))&&P(B.kgMan)>0?P(B.kgMan):kgL;
   const man=isFinite(P(B.kgMan))&&P(B.kgMan)>0,US=man?[{kg,k:B.esp}]:(sel==="todos"?L:L.filter(x=>String(x.id)===sel)).filter(x=>isFinite(x.kg)).map(x=>({kg:x.kg,k:espDe(x.sp)}));
   const W=US.reduce((a,x)=>a+x.kg,0)||1,rfs=US.map(x=>({...x,r:rendFile(x.k)})),rf=rfs.reduce((a,x)=>a+x.kg*x.r[0],0)/W||rendFile()[0],rfo=[...new Set(rfs.map(x=>`${ESP[x.k].n}: ${F(x.r[0],1)}% ${x.r[1]}`))].join("; ")||rendFile()[1];
@@ -5161,7 +5167,7 @@ function fontesHTML(){return `<p><b>Aulas e materiais do SIGAA (UFMA, Campus Pin
 // v125: fluxograma de processamento por espécie — rendimento de cada parte, destino (produto) e controle do lote
 const FXK={
  escama:["Escamas","🫧"],visc:["Vísceras","🫀"],nad:["Nadadeiras","🪶"],cab:["Cabeça","🐟"],carc:["Carcaça (espinhaço com carne aderida)","🦴"],
- pele:["Pele","🧤"],apara:["Aparas da toalete","✂️"],file:["Filé sem pele","🍽️"],casca:["Cabeça e casca","🦐"],cauda:["Cauda descascada (carne)","🍤"]};
+ pele:["Pele","🧤"],apara:["Aparas da toalete","✂️"],file:["Filé sem pele","🍽️"],casca:["Casca, telson e intestino","🦐"],cauda:["Carne descascada (cauda limpa)","🍤"],cabC:["Cefalotórax (“cabeça”)","🦐"]};
 // fluxos: [id da etapa, nome, parte que sai (ou null), o que fazer]
 const FXF={
  escama:[["recep","Recepção e pesagem",null,"Peixe no gelo (proporção gelo:peixe ≈ 1:1), temperatura próxima de 0 °C; pese o lote."],
@@ -5177,7 +5183,9 @@ const FXF={
   ["final","Resfriamento ou congelamento, embalagem e rotulagem","file","Resfriado a 0–4 °C ou congelado até o centro a −18 °C; glaciamento até 12% (IN 21/2017)."]],
  camarao:[["recep","Recepção e pesagem",null,"Camarão no gelo, temperatura próxima de 0 °C."],
   ["lav","Lavagem",null,"Água potável clorada."],
-  ["desc","Descabeçamento e descascamento","casca","Tire o cefalotórax e a casca; retire o intestino (\"tripa\")."],
+  ["gelo","Insensibilização em água e gelo",null,"Água com gelo (0 a 2 °C); o camarão morre sem estresse e a carne fica firme."],
+  ["decab","Descabeçamento","cabC","Destaque o cefalotórax da cauda. Aqui você pode parar e vender sem cabeça com casca (HLSO)."],
+  ["desc","Descascamento e retirada do intestino","casca","Tire a casca e o telson (\"rabo\") e puxe o intestino (\"tripa\") pelo dorso."],
   ["final","Classificação, congelamento e embalagem","cauda","Congelado até o centro a −18 °C; glaciamento até 12% (IN 21/2017)."]]};
 const fxFluxo=esp=>esp==="camarao"?FXF.camarao:esp==="panga"?FXF.escama.filter(x=>x[0]!=="descam"):FXF.escama;
 // matéria seca da pele (Embrapa, Procopio et al., 2023): tilápia 39,93%, tambaqui 30,93%
@@ -5195,11 +5203,13 @@ function fxDest(part,esp){const g=MSPELE[esp]||MSPELE.tilapia;return ({
  pele:[["Couro (curtimento)","un","conta peles: 2 por peixe (um filé de cada lado)"],["Gelatina (colágeno)",.5296*g,`gelatina = 52,96% da matéria seca da pele (tambaqui) × matéria seca de ${F(g*100,1)}% — Embrapa, Procopio et al. (2023)`],["Pele frita (petisco)",1,"peso de pele crua destinada; meça o rendimento da fritura"],["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
  escama:[["Colágeno/artesanato",1,"peso de escamas secas varia; pese depois de secar"],["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
  nad:[["Farinha de peixe",...FAR],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
- casca:[["Farinha de camarão",...FAR],["Caldo/fumet",1,"cabeças e cascas para caldo"],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]]})[part]||[["Descarte/compostagem",...COMP]]}
+ casca:[["Quitina/quitosana",null,"exoesqueleto rico em quitina; informe o rendimento da sua extração"],["Farinha de camarão",...FAR],["Caldo/fumet",1,"cascas para caldo"],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]],
+ cabC:[["Farinha de cabeça de camarão",...FAR],["Pigmentos (astaxantina)",null,"cabeça é a maior fonte de carotenoides do resíduo (Ogawa et al., 2007); informe o rendimento da extração"],["Caldo/fumet",1,"cabeças para caldo"],["Silagem ácida",...SIL],["Descarte/compostagem",...COMP]]})[part]||[["Descarte/compostagem",...COMP]]}
 // % de cada parte: medido > estimado pela literatura > referência; o que não tiver número vai junto com a carcaça
 function fxPartes(){const esp=B.esp,m=B.med,pi=P(m.inteiro),est=estimar(esp,pesoAnimal()),e=ESP[esp]||ESP.outro,O={},src={};
   const get=k2=>{const g=P(m[k2]);if(isFinite(pi)&&pi>0&&isFinite(g)){src[k2]=(B.medM||{})[k2]||B.medFonte!=="est"?"medido":"estimado";return g/pi*100}if(est&&est.pct[k2]!=null){src[k2]="literatura";return est.pct[k2]}if(e[k2]){src[k2]="referência";return (e[k2][0]+e[k2][1])/2}return NaN};
-  if(esp==="camarao"){const c=get("file");O.cauda=c;src.cauda=src.file;O.casca=isFinite(c)?100-c:NaN;src.casca=src.file;return {O,src,falta:[]}}
+  if(esp==="camarao"){const c=get("file"),cb=get("cab");let cs=get("casca");O.cauda=c;src.cauda=src.file;O.cabC=cb;src.cabC=src.cab;
+    if(!isFinite(cs)&&isFinite(c))cs=Math.max(0,100-c-(isFinite(cb)?cb:0));O.casca=cs;src.casca=src.casca||"por diferença";return {O,src,falta:isFinite(cb)?[]:["cabC"]}}
   for(const k2 of ["escama","visc","nad","cab","pele","file"])O[k2]=get(k2);
   const fp=get("filePele");O.apara=isFinite(fp)&&isFinite(O.file)&&isFinite(O.pele)&&fp-O.pele-O.file>0.05?fp-O.pele-O.file:NaN;if(isFinite(O.apara))src.apara=src.filePele;
   if(esp==="panga")O.escama=NaN;
@@ -5245,7 +5255,7 @@ function fxHTML(){B.fx=B.fx||{};const fx=B.fx;
   return head+`<div class="mk-form"><label class="jr-f">Data do processamento<input type="date" data-fx="data" value="${esc(fx.data||new Date().toISOString().slice(0,10))}"></label>
     <label class="jr-f">Matéria-prima (kg de peixe inteiro)<input data-fx="kg" value="${esc(fx.kg||"")}" inputmode="decimal" placeholder="${isFinite(C.kg)?F(C.kg,1):"ex.: 100"}"></label>
     <label class="jr-f">Tolerância do controle (±%)<input data-fx="tol" value="${esc(fx.tol||"")}" inputmode="decimal" placeholder="10"></label></div>
-   <p class="hint" style="margin:4px 0">${C.kgSrc?`Matéria-prima: ${esc(C.kgSrc)}.`:"Informe os kg de matéria-prima para ver os pesos."}${isFinite(C.nPeixes)?` ≈ ${F(C.nPeixes)} ${B.esp==="camarao"?"camarões":"peixes"} de ${F(C.pw)} g.`:""}${C.falta.length?` <b>Sem número para ${C.falta.map(k2=>FXK[k2][0].toLowerCase()).join(", ")}</b>: entram na carcaça (pese em 📏 ou use 📐 Estimar).`:""}</p>
+   <p class="hint" style="margin:4px 0">${C.kgSrc?`Matéria-prima: ${esc(C.kgSrc)}.`:"Informe os kg de matéria-prima para ver os pesos."}${isFinite(C.nPeixes)?` ≈ ${F(C.nPeixes)} ${B.esp==="camarao"?"camarões":"peixes"} de ${F(C.pw)} g.`:""}${C.falta.length?` <b>Sem número para ${C.falta.map(k2=>FXK[k2][0].toLowerCase()).join(", ")}</b>: ${B.esp==="camarao"?"entram na casca":"entram na carcaça"} (pese em 📏 ou use 📐 Estimar).`:""}</p>
    <div class="gfh-kpis bx-kpis">${k("Etapas feitas",`${nF} de ${C.etapas.length}`,nF===C.etapas.length?"lote concluído":"marque cada etapa ao terminar",nF===C.etapas.length?"ok":"n")}${k("Aproveitamento",F(C.aprov,1)+"%",`do pescado vai para produto · ${F(C.desc,1)}% para descarte`,C.desc>0?"warn":"ok")}${k(B.esp==="camarao"?"Rendimento de carne":"Rendimento de filé",isFinite(C.rendReal)?F(C.rendReal,1)+"%":(isFinite(C.O.file)?F(C.O.file,1)+"%":isFinite(C.O.cauda)?F(C.O.cauda,1)+"%":"—"),isFinite(C.rendReal)?"real (pesado ÷ matéria-prima)":"esperado — pese o produto final","ok")}</div>
    <div class="fx-flow"><div class="fx-top"><b>🐟 ${esc(T)} inteiro</b><span>100%${C.kg>0?` · ${F(C.kg,1)} kg`:""}</span></div>${linhas}</div>
    ${Object.keys(P2).length?`<h3 class="fx-h">📦 Produtos do lote</h3><div class="scroll"><table class="lot bn-t"><thead><tr><th class="l">Produto</th><th>Quantidade</th></tr></thead><tbody>${Object.entries(P2).map(([n2,v])=>`<tr><td class="l">${esc(n2)}</td><td><b>${/peles/.test(n2)?F(v)+" un.":F(v,1)+" kg"}</b></td></tr>`).join("")}</tbody></table></div>`:""}
@@ -5267,7 +5277,7 @@ function draw(){const el=document.getElementById("view-benef");if(!el||el.hidden
   el.innerHTML=card("bn-int","🔪 Beneficiamento do pescado","Rendimento, salga, secagem, embutidos, defumação e qualidade — com base nas aulas de Beneficiamento e Tecnologia do Pescado (UFMA), na legislação e na Embrapa",`<p>Transforme o peixe do seu lote em produtos de maior valor: calcule o rendimento da filetagem, a salga, a secagem, a linguiça e a defumação, e confira os limites de qualidade antes de vender. Os dados ficam só neste aparelho.</p>`)
    +corrHTML("benef")
    +card("bn-lote","🐟 Do lote ao produto","Biomassa da despesca (aba Biomassa) × rendimento × produtos marcados na Camada de mercado",loteHTML())
-   +card("bn-rend","📏 Rendimento corporal (aula prática 1)","Pese cada etapa e compare com as referências da espécie",rendCalc())
+   +card("bn-rend","📏 Rendimento corporal (aula prática 1)",ehCam()?"Camarão: cefalotórax, cauda com casca, casca e carne descascada — compare com a literatura":"Pese cada etapa e compare com as referências da espécie",rendCalc())
    +card("bn-fx","🧭 Fluxograma e destino das partes","Etapas da espécie, rendimento de cada parte, produto de destino e controle do lote",fxHTML())
    +card("bn-salga","🧂 Salga","Seca ou úmida (salmoura) — quantidades e perda de água",salgaHTML())
    +card("bn-sec","☀️ Secagem","Perda de água por dia em estufa ou secador artesanal",secHTML())
@@ -9770,7 +9780,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v127";
+  const APP_VERSAO="ras-v128";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
