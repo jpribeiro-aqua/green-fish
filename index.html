@@ -1280,7 +1280,7 @@ td.wrap-txt { white-space: normal; text-align: left; min-width: 260px; color: va
   td.orig small { display: block; color: var(--ink-3); }
 #lote-ban{position:sticky;top:0;z-index:40;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:9px 14px;background:#fff6e0;color:#5b3d00;border-bottom:2px solid #e09a00;font-size:13.5px}
 #lote-ban .lb-b{display:flex;gap:6px;flex-wrap:wrap}#lote-ban button{font:inherit;font-size:12.5px;font-weight:700;border:1px solid #b77a00;background:#fff;color:#5b3d00;border-radius:999px;padding:4px 11px;cursor:pointer}
-.u-ids{margin:8px 0 2px}.ids-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}.ids-l{color:var(--ink-2,#555)}.ids-chips{display:flex;flex-wrap:wrap;gap:5px}
+.u-ids{margin:8px 0 2px;padding:8px 10px;border:1px dashed var(--line,#cfd8d3);border-radius:10px;background:var(--bg-2,rgba(0,0,0,.02))}.ids-card{display:block;margin:8px 0 2px;padding:6px 8px;border:1px dashed var(--line,#cfd8d3);border-radius:8px;font-size:12.5px;text-align:left}.ids-card u{color:var(--accent,#0b7a5a)}.ids-top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13px}.ids-l{color:var(--ink-2,#555)}.ids-chips{display:flex;flex-wrap:wrap;gap:5px}
 .ids-chips button,.ids-ed{font:inherit;font-size:12.5px;border:1px solid var(--line,#ccc);background:transparent;color:inherit;border-radius:999px;padding:3px 10px;cursor:pointer}.ids-chips button[aria-pressed=&quot;true&quot;]{background:var(--accent,#0f7a6c);border-color:var(--accent,#0f7a6c);color:#fff}
 .ids-chips small{opacity:.7}.ids-ed{border-style:dashed}.ids-form{display:grid;gap:6px;margin-top:8px;padding:10px;border:1px solid var(--line,#ccc);border-radius:10px;font-size:13px}.ids-form input[type=text]{width:100%;font:inherit;padding:6px 8px}.ids-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.ids-b input{width:70px}
 &lt;/style&gt;
@@ -1919,9 +1919,10 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
           ${kv(&quot;OD previsto 06:00&quot;, m.odPrev !== undefined ? fmt(m.odPrev, 1) + &quot; mg/L&quot; : &quot;—&quot;, m.odPrevSt)}
           ${kv(&quot;Δ pH em 24 h&quot;, m.dph !== undefined ? fmt(m.dph, 2) : &quot;—&quot;, m.dphSt === &quot;sem_faixa&quot; ? &quot;ideal&quot; : m.dphSt)}
           ${kv(&quot;NH₃ pior horário&quot;, m.nh3 !== undefined ? fmt(m.nh3, 3) + &quot; mg/L&quot; : &quot;—&quot;, m.nh3St)}&lt;/div&gt;
+        ${u.sistemaRAS ? &quot;&quot; : (() =&gt; { const L = idsDe(u), tp = tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;, qt = u.ras &amp;&amp; u.ras.tanques ? u.ras.tanques : 0; return `&lt;span class=&quot;ids-card&quot; data-idsabre=&quot;1&quot;&gt;🏷 ${L.length ? `${L.length} ${tp}${L.length === 1 ? &quot;&quot; : &quot;s&quot;}: &lt;b&gt;${L.slice(0, 8).map(escO).join(&quot; · &quot;)}${L.length &gt; 8 ? &quot; …&quot; : &quot;&quot;}&lt;/b&gt;` : `Identificar cada ${tp}${qt ? ` (${qt} no grupo)` : &quot;&quot;}`} &lt;u&gt;${L.length ? &quot;editar&quot; : &quot;+ identificar&quot;}&lt;/u&gt;&lt;/span&gt;`; })()}
         &lt;span class=&quot;foot&quot;&gt;${m.n} leitura${m.n === 1 ? &quot;&quot; : &quot;s&quot;} em ${dataBR(dRef)}${m.n &gt; 0 &amp;&amp; m.n &lt; 4 ? &quot; · poucos horários para a curva de 24 h (mínimo: 06, 15, 20 e 22 h)&quot; : &quot;&quot;}&lt;/span&gt;&lt;/button&gt;`; }).join(&quot;&quot;)
       : &#x27;&lt;p class=&quot;foot&quot;&gt;Nenhum tanque/viveiro para esta espécie. Crie um na aba Tanque/viveiro.&lt;/p&gt;&#x27;;
-    el.querySelectorAll(&quot;.ucard&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.ativa = b.dataset.u; S.dia = dRef; sel = null; salvar(); irPara(&quot;unidade&quot;); }));
+    el.querySelectorAll(&quot;.ucard&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, (ev) =&gt; { if (ev.target.closest(&quot;[data-idsabre]&quot;)) S.idsAberto = true; S.ativa = b.dataset.u; S.dia = dRef; sel = null; salvar(); irPara(&quot;unidade&quot;); }));
   }
 
   const MCOLS = [&quot;temperatura&quot;, &quot;od&quot;, &quot;od_saturacao&quot;, &quot;ph&quot;, &quot;co2&quot;, &quot;alcalinidade&quot;, &quot;tan&quot;, &quot;nh3&quot;, &quot;nitrito&quot;, &quot;salinidade&quot;, &quot;transparencia&quot;, &quot;ss_imhoff&quot;, &quot;sst&quot;, &quot;vibrio&quot;];
@@ -2223,7 +2224,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
   }
   const idsDe = (u) =&gt; { const L = new Set(u.idents || []); S.leituras.forEach((l) =&gt; { if (l.unidade === u.id &amp;&amp; l.ident) L.add(l.ident); }); return [...L]; };
   const idsPadrao = (u, n) =&gt; { const t = tipoU(u) === &quot;viveiro&quot; ? &quot;V&quot; : &quot;T&quot;; return Array.from({ length: Math.max(1, Math.min(200, n)) }, (_, i) =&gt; t + (i + 1)); };
-  function renderIds() { const box = $(&quot;u-ids&quot;); if (!box) return; const u = UA(); if (u.sistemaRAS) { box.innerHTML = &quot;&quot;; return; }
+  function renderIds() { const box = $(&quot;u-ids&quot;); if (!box) return; const u = UA(); if (u.sistemaRAS) { const GS = S.unidades.filter((x) =&gt; !x.sistemaRAS);
+      box.innerHTML = GS.length ? `&lt;div class=&quot;ids-top&quot;&gt;&lt;span class=&quot;ids-l&quot;&gt;🏷 A água do sistema é uma só. Para identificar cada tanque/viveiro, abra o grupo:&lt;/span&gt;&lt;span class=&quot;ids-chips&quot;&gt;${GS.map((x) =&gt; `&lt;button type=&quot;button&quot; data-ir=&quot;${x.id}&quot;&gt;${escO(x.nome)} &lt;small&gt;${idsDe(x).length || &quot;+&quot;}&lt;/small&gt;&lt;/button&gt;`).join(&quot;&quot;)}&lt;/span&gt;&lt;/div&gt;` : &quot;&quot;;
+      box.querySelectorAll(&quot;[data-ir]&quot;).forEach((b) =&gt; b.addEventListener(&quot;click&quot;, () =&gt; { S.ativa = b.dataset.ir; S.idsAberto = !idsDe(UA()).length; sel = null; salvar(); renderUnidade(); })); return; }
     const L = idsDe(u), fi = (S.fIdentU || {})[u.id] || &quot;&quot;, qt = u.ras &amp;&amp; u.ras.tanques ? u.ras.tanques : null, tipo = tipoU(u) === &quot;viveiro&quot; ? &quot;viveiro&quot; : &quot;tanque&quot;;
     const cont = (id) =&gt; S.leituras.filter((l) =&gt; l.unidade === u.id &amp;&amp; (l.ident || &quot;&quot;) === id).length, abre = !!S.idsAberto;
     box.innerHTML = `&lt;div class=&quot;ids-top&quot;&gt;&lt;span class=&quot;ids-l&quot;&gt;🏷 ${u.ras ? `Grupo &lt;b&gt;${escO(u.nome)}&lt;/b&gt; · ${qt || &quot;?&quot;} ${tipo}${(qt || 0) === 1 ? &quot;&quot; : &quot;s&quot;}` : `${tipo === &quot;viveiro&quot; ? &quot;Viveiro&quot; : &quot;Tanque&quot;} &lt;b&gt;${escO(u.nome)}&lt;/b&gt;`} · identificação de cada ${tipo}:&lt;/span&gt;
@@ -9780,7 +9783,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v128";
+  const APP_VERSAO="ras-v129";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
