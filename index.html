@@ -6530,6 +6530,7 @@ const Auth={
   async registrarPagamento(id,meses,valor,ref){const {data,error}=await A.sb.rpc("ras_registrar_pagamento",{alvo:id,meses,valor,ref});if(error)throw {msg:/dono/i.test(error.message)?"Só o dono do app registra pagamentos.":/meses/i.test(error.message)?"Quantidade de meses inválida (1 a 24).":"Não foi possível registrar o pagamento: "+error.message};return data},
   async definirAdmin(id,ser){const {error}=await A.sb.rpc("ras_definir_admin",{alvo:id,ser:!!ser});if(error)throw {msg:/dono/i.test(error.message)?"O dono do app não pode ser removido.":/permiss|dono do app/i.test(error.message)?"Só o dono do app pode escolher administradores.":"Não foi possível concluir: "+error.message}},
   supa:()=>A.supa,email:()=>A.email,
+  campoSb:()=>A.supa&&A.uid?A.sb:null,campoUid:()=>A.uid||null,campoAdm:()=>!!A.owner,campoDono:()=>!!A.dono,
   ok(){if(A.supa)return !!A.uid&&!A.recovery;if(A.mode==="nuvem"){const s=sessao();return !!(s&&s.k==="nuvem:"+A.uid&&A.hashNuvem)}if(A.mode==="local")return !!usuarioLocal()||false;return false},
   user(){return A.mode==="nuvem"?A.nome:usuarioLocal()},
   temSenhaNuvem:()=>!!A.hashNuvem,
@@ -9921,7 +9922,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v147";
+  const APP_VERSAO="ras-v148";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -10687,7 +10688,7 @@ function telaCiclos(U){const now=Date.now(),rows=U.map(u=>{const I=info(u);retur
      `<div class="scroll"><table class="pr-t rsp"><thead><tr><th>Fase</th><th>Início</th><th>Fim</th><th>Obs.</th><th></th></tr></thead><tbody>${cs.map(c=>`<tr><td>${E((FN[c.fase]||FN.manut)[1])} ${c.auto?'<span class="pr-tag auto">sugerida</span>':""}</td><td data-l="Início">${dBR(c.ini)}</td><td data-l="Fim">${dBR(c.fim)}</td><td data-l="Obs.">${E(c.obs||"")}</td><td>${c.auto?"":`<button type="button" class="pr-mini" data-pdc="${E(c.id)}">🗑</button>`}</td></tr>`).join("")||`<tr><td colspan="5" class="muted">Sem fases.</td></tr>`}</tbody></table></div>
       <div class="pr-form" style="margin-top:8px"><label>Fase<select id="pc-fase">${FASES.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join("")}</select></label><label>Início<input type="date" id="pc-ini" value="${hoje()}"></label><label>Fim<input type="date" id="pc-fim" value="${iso(Date.now()+7*DAY)}"></label><label>Obs.<input id="pc-obs" placeholder="ex.: 2 t/ha de calcário"></label><button type="button" class="btn solid" data-pa="add-fase">Lançar fase</button>${cs.some(c=>c.auto)?`<button type="button" class="btn" data-pa="fixar-ciclo">Usar o sugerido como base</button>`:""}</div>`):""}`}
 function telaTarefas(U){const dia=P.dia||hoje(),td=tarefasDia(U,dia),nm=id=>(U.find(u=>u.id===id)||{}).nome||"Propriedade",sem=[];for(let k=0;k<7;k++){const d=iso(tsD(dia)+k*DAY),t=tarefasDia(U,d);sem.push({d,n:t.length,f:t.filter(x=>x.feito).length})}
-  return `<div class="ag-kpis">${kp("Tarefas do dia",String(td.length),dBR(dia))}${kp("Feitas",String(td.filter(t=>t.feito).length),"","ok")}${kp("Abertas",String(td.filter(t=>!t.feito).length),"",td.some(t=>!t.feito)?"warn":"")}${kp("Equipe",String(P.equipe.length),P.equipe.map(p=>p.nome).slice(0,3).join(", "))}</div>
+  return `${window.campoHTML?campoHTML(U):""}<div class="ag-kpis">${kp("Tarefas do dia",String(td.length),dBR(dia))}${kp("Feitas",String(td.filter(t=>t.feito).length),"","ok")}${kp("Abertas",String(td.filter(t=>!t.feito).length),"",td.some(t=>!t.feito)?"warn":"")}${kp("Equipe",String(P.equipe.length),P.equipe.map(p=>p.nome).slice(0,3).join(", "))}</div>
    <div class="pr-chk"><button type="button" class="pr-mini" data-pdia="-1">◀</button><input type="date" class="ag-sel" data-pp="dia" value="${dia}"><button type="button" class="pr-mini" data-pdia="1">▶</button><button type="button" class="pr-mini" data-pdia="0">Hoje</button>
     <span class="pr-leg">${sem.map(s=>`<span title="${s.f}/${s.n} feitas">${dBR(s.d).slice(0,5)}: <b>${s.f}/${s.n}</b></span>`).join("")}</span></div>
    ${bx("✅ Lista do dia",`<div class="scroll"><table class="pr-t rsp"><thead><tr><th></th><th>Tarefa</th><th>Onde</th><th>Responsável</th><th>Repete</th><th></th></tr></thead><tbody>${td.map(t=>`<tr class="${t.feito?"done":""}"><td><input type="checkbox" data-pfeito="${E(t.id)}"${t.feito?" checked":""} aria-label="Feita"></td><td><span title="${E((TT[t.tipo]||"📝 Outra").replace(/^\S+\s/,""))}">${(TT[t.tipo]||"📝").split(" ")[0]}</span> ${t.titulo?t.titulo:""}${t.auto?' <span class="pr-tag auto">automática</span>':""}</td><td data-l="Onde">${E(t.uid?nm(t.uid):"Propriedade")}</td><td data-l="Responsável">${t.auto?`<select class="ag-sel" data-presp="${E(t.id)}"><option value="">—</option>${P.equipe.map(p=>`<option${(P.respAuto||{})[t.tipo]===p.nome?" selected":""}>${E(p.nome)}</option>`).join("")}</select>`:E(t.resp||"—")}</td><td data-l="Repete">${t.auto?"conforme as abas":{nao:"não",dia:"todo dia",sem:"toda semana","15":"a cada 15 dias"}[t.rep||"nao"]}</td><td>${t.auto?"":`<button type="button" class="pr-mini" data-pdt="${E(t.id)}">🗑</button>`}</td></tr>`).join("")||`<tr><td colspan="6" class="muted">Nada para este dia.</td></tr>`}</tbody></table></div>`,"As automáticas vêm das outras abas: ração do dia (Arraçoamento), biometrias (cadência), despesca e preparo (Biomassa), água crítica (AquaNictemeral), manutenção e compras (abaixo). O responsável escolhido numa automática vale para todas daquele tipo.")}
@@ -10705,7 +10706,7 @@ window.gestProp={
   html(){recarrega();const U=unidades(),SUB=[["mapa","🗺 Viveiros e tanques"],["ciclo","🔄 Ciclos"],["tar","✅ Tarefas e equipe"],["est","📦 Estoque e equipamentos"]],s=SUB.some(x=>x[0]===P.sub)?P.sub:"mapa";
     return `<nav class="pr-sub">${SUB.map(([k,t])=>`<button type="button" data-psub="${k}" aria-pressed="${k===s}">${t}</button>`).join("")}</nav>`+(s==="mapa"?telaMapa(U):s==="ciclo"?telaCiclos(U):s==="tar"?telaTarefas(U):telaEstoque(U))},
   resumo,alertas,
-  bind(el){const q=s=>el.querySelector(s),v=s=>(q(s)||{}).value||"";
+  bind(el){const q=s=>el.querySelector(s),v=s=>(q(s)||{}).value||"";try{window.campoBind&&campoBind(el)}catch(e){}
     el.querySelectorAll("[data-psub]").forEach(b=>b.addEventListener("click",()=>{P.sub=b.dataset.psub;redraw()}));
     el.querySelectorAll("[data-pf]").forEach(c=>c.addEventListener("change",()=>{P.fontes[c.dataset.pf]=c.checked;redraw()}));
     el.querySelectorAll("[data-pp]").forEach(s=>s.addEventListener("change",()=>{P[s.dataset.pp]=s.value;redraw()}));
@@ -11484,5 +11485,318 @@ window.vvResumo=()=>{recarrega();if(V.modo!=="viv")return null;const o=T(calc,nu
   return {on:true,esp:o.S.n,n:o.n,ha:o.ha,aViv:o.aViv,V:o.Vt,prod:o.prod,mov:o.mov,corte:o.corteT,aterro:o.aterroT,Qls:o.Qls,invTot:o.invTot,COE:o.COE,COT:o.COT,RB:o.RB,LO:o.LO,VPL:o.VPL,TIR:o.TIR,PRC:o.PRC,cKg:o.cKg,ciclos:o.ciclos}};
 window.vvUnidades=()=>{recarrega();if(V.modo!=="viv")return [];const o=T(calc,null);if(!o)return [];return Array.from({length:o.n},(_,i)=>({id:"vv-"+(i+1),nome:"Viveiro escavado "+(i+1),tipo:"viveiro",area:o.aViv,vol:o.V1,fonte:"calc",sp:o.sp}))};
 const v0=view();if(v0){build();new MutationObserver(()=>{if(!v0.hidden)draw()}).observe(v0,{attributes:true,attributeFilter:["hidden"]})}
+})();
+</script>
+<style>
+.cp-wrap{display:grid;gap:12px;min-width:0}.cp-wrap>*{min-width:0}
+.cp-box{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px 14px;display:grid;gap:10px;min-width:0}
+.cp-box h3{margin:0;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cp-live{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:var(--line)}.cp-live.on{background:#2e9e6a22;color:#1f7a50}.cp-live.err{background:#c2410c1f;color:#c2410c}
+.cp-f{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));gap:8px 12px}
+.cp-f label{display:flex;flex-direction:column;gap:3px;font-size:12.5px;font-weight:600;min-width:0}
+.cp-f input,.cp-f select,.cp-f textarea,.cp-in{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-width:0;width:100%;box-sizing:border-box}
+.cp-f .w2{grid-column:span 2}@media(max-width:560px){.cp-f .w2{grid-column:auto}}
+.cp-st{display:inline-block;border-radius:999px;padding:2px 9px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.cp-st.aberta{background:#3b82c41f;color:#1d5f99}.cp-st.andamento{background:#d69a1c26;color:#9a6a06}.cp-st.enviada{background:#7c3aed1f;color:#6d28d9}.cp-st.aprovada{background:#2e9e6a22;color:#1f7a50}.cp-st.devolvida{background:#c2410c1f;color:#c2410c}.cp-st.atraso{background:#c2410c;color:#fff}
+.cp-t{width:100%;border-collapse:collapse;font-size:13px;min-width:0}.cp-t th,.cp-t td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.cp-t th{font-size:11.5px;color:var(--muted)}.cp-t tr.on td{background:var(--accent-soft,#e8f5ef)}
+.cp-t small{display:block;color:var(--muted);font-size:11px}
+.cp-btns{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cp-mini{border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:8px;padding:5px 10px;font:600 12.5px var(--f-body);cursor:pointer}
+.cp-mini.solid{background:var(--accent);border-color:var(--accent);color:#fff}.cp-mini.warn{border-color:#c2410c;color:#c2410c}
+.cp-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px}
+.cp-foto{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000;cursor:pointer;padding:0}
+.cp-foto img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}.cp-foto span{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);color:#fff;font-size:10.5px;padding:2px 5px;text-align:left}
+.cp-foto span.longe{background:#c2410ccc}
+.cp-hist{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:12.5px}.cp-hist li{border-left:3px solid var(--accent);padding:2px 8px}.cp-hist small{color:var(--muted)}
+.cp-al{border-left:4px solid #d69a1c;background:#d69a1c14;padding:6px 10px;border-radius:6px;font-size:13px}.cp-al.cr{border-color:#c2410c;background:#c2410c12}.cp-al.ok{border-color:#2e9e6a;background:#2e9e6a12}
+.cp-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));gap:6px}.cp-k div{border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface)}.cp-k span{display:block;font-size:11px;color:var(--muted)}.cp-k b{font-size:18px}
+#cp-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:900;border:0;border-radius:999px;background:var(--accent);color:#fff;font:700 14px var(--f-body);padding:11px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+#cp-fab b{background:#fff;color:var(--accent);border-radius:999px;padding:0 7px;margin-left:6px}
+#cp-ov{position:fixed;inset:0;z-index:950;background:var(--bg);overflow:auto;padding:12px 12px calc(20px + env(safe-area-inset-bottom))}
+#cp-ov .cp-top{position:sticky;top:-12px;z-index:2;background:var(--bg);display:flex;gap:8px;align-items:center;padding:6px 0 8px;border-bottom:1px solid var(--line);margin-bottom:10px}
+#cp-ov .cp-top b{margin-right:auto;font-size:16px}
+#cp-cam{position:fixed;inset:0;z-index:1000;background:#000;display:flex;flex-direction:column;color:#fff}
+#cp-cam video,#cp-cam img{flex:1;min-height:0;width:100%;object-fit:contain;background:#000}
+#cp-cam .cp-gps{font:600 13px var(--f-mono,monospace);padding:8px 12px;background:rgba(0,0,0,.75)}
+#cp-cam .cp-bar{display:flex;gap:10px;justify-content:center;align-items:center;padding:12px 12px calc(14px + env(safe-area-inset-bottom));background:#111}
+#cp-cam .cp-shot{width:68px;height:68px;border-radius:50%;border:5px solid #fff;background:#e5e7eb;cursor:pointer}
+#cp-cam .cp-mini{background:#222;color:#fff;border-color:#444}
+#cp-big{position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px;gap:8px}
+#cp-big img{max-width:100%;max-height:calc(100% - 60px);object-fit:contain}
+@media (max-width:640px){.cp-t.rsp thead{display:none}.cp-t.rsp,.cp-t.rsp tbody,.cp-t.rsp tr,.cp-t.rsp td{display:block;width:100%}.cp-t.rsp tr{border-bottom:1px solid var(--line);padding:6px 0}.cp-t.rsp td{border:0;padding:2px 4px}.cp-t.rsp td[data-l]::before{content:attr(data-l)": ";color:var(--muted);font-size:11.5px}}
+</style>
+<script>
+/* ===================== v148: tarefas de campo da equipe · tempo real · fotos georreferenciadas pela câmera do app · relatório ===================== */
+(function(){
+const LK="greenfish-campo-local",OB="greenfish-campo-fila",POLL=12000;
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf=(x,d=1)=>isFinite(x)?Number(x).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:d}):"—";
+const P=v=>{const s=String(v==null?"":v).trim().replace(/\s/g,"");if(!s)return NaN;return parseFloat(/,/.test(s)?s.replace(/\./g,"").replace(",","."):s)};
+const dh=ms=>ms?new Date(ms).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"}):"—";
+const dhc=ms=>ms?new Date(ms).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const hav=(a,b,c,d)=>{const R=6371000,r=Math.PI/180,x=Math.sin((c-a)*r/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin((d-b)*r/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+const ST={aberta:"Aberta",andamento:"Em campo",enviada:"Enviada · aguardando aprovação",aprovada:"Aprovada",devolvida:"Devolvida para correção"};
+const MODS={
+ agua:{n:"💧 Leitura de qualidade da água",c:[["od","Oxigênio dissolvido","mg/L","num"],["temp","Temperatura da água","°C","num"],["ph","pH","","num"],["transp","Transparência (Secchi)","cm","num"],["amonia","Amônia total","mg/L","num"],["sal","Salinidade","‰","num"]]},
+ bio:{n:"🐟 Biometria",c:[["n","Animais amostrados","un.","num"],["peso","Peso médio","g","num"],["comp","Comprimento médio","cm","num"]]},
+ racao:{n:"🍽 Arraçoamento",c:[["kg","Ração ofertada","kg","num"],["sobra","Sobra observada","%","num"],["tipo","Ração usada","","txt"]]},
+ vist:{n:"🔎 Vistoria de estrutura",c:[["dique","Diques e taludes sem erosão","","chk"],["tela","Telas, monge e cachimbo em ordem","","chk"],["vaz","Sem vazamento","","chk"],["aer","Aeradores e bombas funcionando","","chk"],["pred","Sem predadores ou plantas invasoras","","chk"]]},
+ manejo:{n:"🧪 Calagem / adubação",c:[["prod","Produto aplicado","","txt"],["kg","Quantidade","kg","num"]]},
+ desp:{n:"🧺 Despesca",c:[["kg","Biomassa despescada","kg","num"],["n","Animais","un.","num"],["peso","Peso médio","g","num"]]},
+ livre:{n:"📝 Tarefa livre",c:[]}};
+/* ---------- conta e servidor ---------- */
+const A=()=>window.Auth||{};
+const sb=()=>T(()=>A().campoSb&&A().campoSb(),null);
+const meu=()=>T(()=>A().campoUid&&A().campoUid(),null)||"local";
+const meuNome=()=>T(()=>(A().nome&&A().nome())||(A().user&&A().user())||(A().email&&A().email()),"")||"Eu";
+const souCoord=()=>!sb()||T(()=>!!(A().campoAdm()||A().campoDono()),false);
+const C={tasks:[],members:[],live:false,err:"",modo:"",carregado:0,carregando:false,ch:null,chKey:"",draft:{mod:"agua",exige:"1",min:"1",raio:"500",campos:[]},sel:"",msel:"",fil:{m:"",st:"",de:"",ate:""},fotoCache:{},ov:false,msg:"",mv:{}};
+const rdL=()=>{try{return JSON.parse(localStorage.getItem(LK)||"[]")}catch(e){return []}},wrL=a=>{try{localStorage.setItem(LK,JSON.stringify(a))}catch(e){aviso("O aparelho ficou sem espaço para guardar as fotos.")}};
+const fila=()=>{try{return JSON.parse(localStorage.getItem(OB)||"[]")}catch(e){return []}},wrF=a=>{try{localStorage.setItem(OB,JSON.stringify(a))}catch(e){}};
+function aviso(t,err){C.msg=t;C.msgErr=!!err;pintar()}
+const ehRede=e=>/fetch|network|Failed to|sem conex|offline/i.test((e&&(e.message||e.msg))||"")||!navigator.onLine;
+async function gravar(path,data){const s=sb();
+  if(!s){if(path.startsWith("campof/")){const L=rdL();const k="__f:"+path;try{localStorage.setItem(LK+k,JSON.stringify(data))}catch(e){aviso("Sem espaço no aparelho para a foto.",true)}return "local"}
+    const L=rdL().filter(x=>x._path!==path);L.push({...data,_path:path,srvEm:Date.now()});wrL(L);return "local"}
+  try{const {error}=await s.from("ras_docs").upsert({path,col:path.slice(0,path.lastIndexOf("/")),data,updated_at:new Date().toISOString()});if(error)throw error;return "ok"}
+  catch(e){if(ehRede(e)){const F=fila().filter(x=>x.path!==path);F.push({path,data,em:Date.now()});wrF(F);return "fila"}
+    if(/row-level|permission|42501|security/i.test((e&&e.message)||""))throw new Error("O servidor ainda não tem a regra das tarefas de campo (v148). O dono do app precisa aplicar o arquivo campo_v148.sql no Supabase.");throw e}}
+async function apagar(path){const s=sb();if(!s){wrL(rdL().filter(x=>x._path!==path));try{localStorage.removeItem(LK+"__f:"+path)}catch(e){}return}
+  const {error}=await s.from("ras_docs").delete().eq("path",path);if(error)throw error}
+async function esvaziarFila(){const F=fila();if(!F.length||!sb()||!navigator.onLine)return;const resto=[];
+  for(const x of F){try{const {error}=await sb().from("ras_docs").upsert({path:x.path,col:x.path.slice(0,x.path.lastIndexOf("/")),data:x.data,updated_at:new Date().toISOString()});if(error)throw error}catch(e){resto.push(x)}}
+  wrF(resto);if(resto.length<F.length){await carregar();pintar()}}
+async function lerFoto(path){if(C.fotoCache[path])return C.fotoCache[path];let d=null;
+  const q=fila().find(x=>x.path===path);if(q)d=q.data;
+  else if(!sb()){try{d=JSON.parse(localStorage.getItem(LK+"__f:"+path)||"null")}catch(e){}}
+  else{const {data}=await sb().from("ras_docs").select("data").eq("path",path).maybeSingle();d=data&&data.data}
+  if(d)C.fotoCache[path]=d;return d}
+async function membros(){const s=sb(),u=meu(),eu={uid:u,nome:meuNome()+" (eu)"};if(!s)return [eu];if(!souCoord())return [eu];
+  const dono=T(()=>A().campoDono(),false),{data}=await s.from("ras_docs").select("path,data").eq("col","inscricoes").limit(1000);
+  const L=(data||[]).map(r=>({uid:r.path.split("/")[1],d:r.data||{}})).filter(x=>x.uid&&x.uid!==u&&(dono||x.d.equipe===u.slice(0,8)||x.d.liberadoPor===u));
+  const ids=L.map(x=>x.uid),pf={};if(ids.length){const {data:d2}=await s.from("ras_docs").select("path,data").in("path",ids.map(i=>"perfis/"+i));(d2||[]).forEach(r=>pf[r.path.split("/")[1]]=r.data||{})}
+  return [eu].concat(L.map(x=>({uid:x.uid,nome:(pf[x.uid]&&(pf[x.uid].nome||pf[x.uid].email))||x.d.nome||x.d.email||("Colaborador "+x.uid.slice(0,6))})).sort((a,b)=>a.nome.localeCompare(b.nome,"pt")))}
+async function carregar(){if(C.carregando)return;C.carregando=true;try{
+  if(!sb()){C.members=[{uid:"local",nome:meuNome()+" (eu)"}];C.tasks=rdL();C.modo="local";C.err="";C.carregado=Date.now();return}
+  if(!C.members.length||Date.now()-(C.memEm||0)>300000){try{C.members=await membros();C.memEm=Date.now()}catch(e){if(!C.members.length)C.members=[{uid:meu(),nome:meuNome()+" (eu)"}]}}
+  const cols=[...new Set((souCoord()?C.members.map(m=>m.uid):[meu()]).concat([meu()]))].map(u=>"campo/"+u);
+  const {data,error}=await sb().from("ras_docs").select("path,data,updated_at").in("col",cols).limit(3000);if(error)throw error;
+  const F=fila();C.tasks=(data||[]).map(r=>({...(r.data||{}),_path:r.path,_upd:r.updated_at?Date.parse(r.updated_at):0}));
+  for(const q of F)if(q.path.startsWith("campo/")){const i=C.tasks.findIndex(t=>t._path===q.path);const t={...q.data,_path:q.path,_fila:1};if(i>=0)C.tasks[i]=t;else C.tasks.push(t)}
+  C.err="";C.modo="nuvem";C.carregado=Date.now();assinar(cols)}
+ catch(e){C.err=ehRede(e)?"Sem internet: mostrando o que está no aparelho; o que você enviar fica na fila e sobe sozinho.":"Não consegui ler as tarefas: "+((e&&e.message)||e)}
+ finally{C.carregando=false}}
+function assinar(cols){const s=sb();if(!s||!s.channel)return;const key=cols.join(",");if(C.ch&&C.chKey===key)return;try{if(C.ch)s.removeChannel(C.ch)}catch(e){}
+  C.chKey=key;C.live=false;try{C.ch=s.channel("campo-"+meu()).on("postgres_changes",{event:"*",schema:"public",table:"ras_docs",filter:"col=in.("+cols.join(",")+")"},()=>{clearTimeout(C.rt);C.rt=setTimeout(async()=>{await carregar();pintar()},400)}).subscribe(st=>{C.live=st==="SUBSCRIBED";pintar()})}catch(e){C.ch=null}}
+let pollT=null;function poll(){if(pollT)return;pollT=setInterval(async()=>{if(document.hidden)return;const vis=C.ov||T(()=>!!document.querySelector("#cp-coord"),false);if(!vis&&Date.now()-C.carregado<60000)return;await esvaziarFila();await carregar();pintar()},POLL)}
+window.addEventListener("online",()=>esvaziarFila());
+
+/* ---------- regras ---------- */
+const atrasada=t=>t.prazo&&!["enviada","aprovada"].includes(t.status)&&Date.parse(t.prazo)<Date.now();
+const nomeM=u=>(C.members.find(m=>m.uid===u)||{}).nome||(u===meu()?meuNome():"Colaborador "+String(u).slice(0,6));
+const minhas=()=>C.tasks.filter(t=>t.respUid===meu());
+const pendMinhas=()=>minhas().filter(t=>["aberta","andamento","devolvida"].includes(t.status||"aberta"));
+function hist(t,acao,x){t.hist=t.hist||[];t.hist.push({em:Date.now(),quem:meuNome(),uid:meu(),acao,...(x||{})})}
+const sv=(t,k)=>{const v=(t.valores||{})[k];return v==null?"":v};
+function alvoPadrao(){const o=T(()=>{const r=window.lvResumo&&lvResumo();return r&&r.o},null);return o&&isFinite(o.lat)&&isFinite(o.lon)?{lat:o.lat,lon:o.lon}:null}
+
+/* ---------- câmera do app com GPS e carimbo ---------- */
+function camera(t){return new Promise(res=>{let stream=null,face="environment",gps=null,watch=null,shot=null;
+  const d=document.createElement("div");d.id="cp-cam";d.innerHTML=`<video playsinline autoplay muted></video><img alt="Foto capturada" hidden><div class="cp-gps">📍 procurando sinal de GPS…</div><div class="cp-bar"><button type="button" class="cp-mini" data-c="sair">✕ Fechar</button><button type="button" class="cp-shot" data-c="foto" aria-label="Tirar foto"></button><button type="button" class="cp-mini" data-c="virar">🔄 Câmera</button></div>`;
+  document.body.appendChild(d);const v=d.querySelector("video"),im=d.querySelector("img"),g=d.querySelector(".cp-gps"),bar=d.querySelector(".cp-bar");
+  const fim=r=>{try{stream&&stream.getTracks().forEach(x=>x.stop())}catch(e){}try{watch!=null&&navigator.geolocation.clearWatch(watch)}catch(e){}d.remove();res(r)};
+  const gtxt=()=>{g.textContent=gps?`📍 ${gps.lat.toFixed(6)}, ${gps.lon.toFixed(6)} · precisão ±${Math.round(gps.acc)} m${gps.acc>50?" (aguarde melhorar)":""}`:"📍 procurando sinal de GPS… (ative a localização)"};
+  if(navigator.geolocation)watch=navigator.geolocation.watchPosition(p=>{gps={lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy,alt:p.coords.altitude,em:p.timestamp};gtxt()},e=>{g.textContent="⚠️ Sem GPS: "+(e.code===1?"permita a localização para o app":"sinal indisponível")+". A foto sai marcada como sem coordenada."},{enableHighAccuracy:true,maximumAge:0,timeout:30000});
+  else g.textContent="⚠️ Este aparelho não oferece GPS ao navegador.";
+  async function abrir(){try{stream&&stream.getTracks().forEach(x=>x.stop())}catch(e){}
+    try{if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))throw new Error("sem câmera");stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:face},width:{ideal:1920},height:{ideal:1080}},audio:false});v.srcObject=stream;await v.play().catch(()=>{})}
+    catch(e){fim({erro:e.name==="NotAllowedError"?"Permita o uso da câmera para o app (no navegador ou nos ajustes do celular).":"Não consegui abrir a câmera deste aparelho: "+(e.message||e.name)})}}
+  function carimbar(){const W0=v.videoWidth||1280,H0=v.videoHeight||720,k=Math.min(1,1600/Math.max(W0,H0)),W=Math.round(W0*k),H=Math.round(H0*k),cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d");x.drawImage(v,0,0,W,H);
+    const agora=Date.now(),dist=gps&&t.alvo?hav(gps.lat,gps.lon,t.alvo.lat,t.alvo.lon):NaN,fs=Math.max(13,Math.round(H/38)),lh=Math.round(fs*1.32);
+    const L=[gps?`Lat ${gps.lat.toFixed(6)}  Lon ${gps.lon.toFixed(6)}  ±${Math.round(gps.acc)} m${isFinite(gps.alt)&&gps.alt!=null?`  alt ${Math.round(gps.alt)} m`:""}`:"SEM COORDENADA GPS",
+      `${new Date(agora).toLocaleString("pt-BR")}  (${Intl.DateTimeFormat().resolvedOptions().timeZone||""})`,`${t.titulo||"Tarefa"} · ${t.onde||"Propriedade"}`,`${meuNome()}${isFinite(dist)?` · ${nf(dist,0)} m do ponto da tarefa`:""} · Green Fish`];
+    const bh=lh*L.length+fs;x.fillStyle="rgba(0,0,0,.6)";x.fillRect(0,H-bh,W,bh);x.fillStyle="#fff";x.font=`600 ${fs}px system-ui,sans-serif`;L.forEach((s,i)=>x.fillText(s,Math.round(fs*0.6),H-bh+fs*0.4+lh*(i+0.8)));
+    const img=cv.toDataURL("image/jpeg",0.78),tc=document.createElement("canvas"),tk=320/Math.max(W,H);tc.width=Math.round(W*tk);tc.height=Math.round(H*tk);tc.getContext("2d").drawImage(cv,0,0,tc.width,tc.height);
+    return {img,thumb:tc.toDataURL("image/jpeg",0.6),em:agora,lat:gps?gps.lat:null,lon:gps?gps.lon:null,acc:gps?gps.acc:null,alt:gps&&gps.alt!=null?gps.alt:null,gpsEm:gps?gps.em:null,dist:isFinite(dist)?Math.round(dist):null,fonte:"câmera do app"}}
+  d.addEventListener("click",e=>{const b=e.target.closest("[data-c]");if(!b)return;const c=b.dataset.c;
+    if(c==="sair")fim(null);else if(c==="virar"){face=face==="environment"?"user":"environment";abrir()}
+    else if(c==="foto"){if(!v.videoWidth)return;shot=carimbar();im.src=shot.img;im.hidden=false;v.hidden=true;bar.innerHTML=`<button type="button" class="cp-mini" data-c="outra">↺ Tirar outra</button><button type="button" class="cp-mini" data-c="usar" style="background:#2e9e6a;border-color:#2e9e6a">✓ Usar esta foto</button>`}
+    else if(c==="outra"){shot=null;im.hidden=true;v.hidden=false;bar.innerHTML=`<button type="button" class="cp-mini" data-c="sair">✕ Fechar</button><button type="button" class="cp-shot" data-c="foto" aria-label="Tirar foto"></button><button type="button" class="cp-mini" data-c="virar">🔄 Câmera</button>`}
+    else if(c==="usar")fim(shot)});
+  abrir()})}
+
+/* ---------- colaborador: minhas tarefas ---------- */
+function fab(){const n=pendMinhas().length,logado=T(()=>!A().ok||A().ok(),true);let b=document.getElementById("cp-fab");
+  if(!logado||(!n&&!minhas().length)){if(b)b.remove();return}
+  if(!b){b=document.createElement("button");b.type="button";b.id="cp-fab";b.addEventListener("click",()=>abrirOv());document.body.appendChild(b)}
+  b.innerHTML=`📲 Minhas tarefas${n?`<b>${n}</b>`:""}`;b.hidden=C.ov}
+function abrirOv(id){C.ov=true;C.msel=id||C.msel||"";let o=document.getElementById("cp-ov");if(!o){o=document.createElement("div");o.id="cp-ov";o.setAttribute("role","dialog");o.setAttribute("aria-label","Minhas tarefas de campo");document.body.appendChild(o)}pintarOv();fab();carregar().then(()=>{pintarOv();fab()})}
+function fecharOv(){C.ov=false;const o=document.getElementById("cp-ov");if(o)o.remove();fab()}
+function campoInp(t,c,dis){const mv=(C.mv[t.id]||{})[c[0]],v=mv!=null?mv:sv(t,c[0]);return c[3]==="chk"?`<label style="flex-direction:row;align-items:center;gap:8px"><input type="checkbox" data-cv="${E(c[0])}"${v===true||v==="1"?" checked":""}${dis?" disabled":""} style="width:auto"> ${E(c[1])}</label>`
+  :`<label>${E(c[1])}${c[2]?` (${E(c[2])})`:""}<input data-cv="${E(c[0])}" ${c[3]==="num"?'inputmode="decimal"':""} value="${E(v)}"${dis?" disabled":""}></label>`}
+function fotosHTML(t,del){return (t.fotos||[]).length?`<div class="cp-fotos">${t.fotos.map(f=>`<button type="button" class="cp-foto" data-fver="${E(f.path)}"><img src="${f.thumb}" alt="Foto de ${E(dh(f.em))}"><span class="${f.dist!=null&&t.alvo&&f.dist>t.alvo.raio?"longe":""}">${dhc(f.em)}${f.lat==null?" · sem GPS":f.dist!=null?` · ${nf(f.dist,0)} m`:""}</span></button>`).join("")}</div>`:`<p class="muted" style="margin:0">Nenhuma foto ainda.</p>`}
+function pintarOv(){const o=document.getElementById("cp-ov");if(!o)return;const L=minhas().sort((a,b)=>(a.status==="aprovada")-(b.status==="aprovada")||(Date.parse(a.prazo||0)||9e15)-(Date.parse(b.prazo||0)||9e15)),t=L.find(x=>x.id===C.msel);
+  let h=`<div class="cp-top"><b>📲 Minhas tarefas de campo</b>${t?`<button type="button" class="cp-mini" data-o="voltar">◀ Lista</button>`:""}<button type="button" class="cp-mini" data-o="fechar">✕ Fechar</button></div>`;
+  if(C.msg)h+=`<div class="cp-al ${C.msgErr?"cr":"ok"}" style="margin-bottom:8px">${E(C.msg)}</div>`;if(C.err)h+=`<div class="cp-al" style="margin-bottom:8px">${E(C.err)}</div>`;
+  if(fila().length)h+=`<div class="cp-al" style="margin-bottom:8px">⏳ ${fila().length} envio(s) guardado(s) no aparelho esperando internet.</div>`;
+  if(!t){h+=L.length?`<div class="cp-wrap">${L.map(x=>`<button type="button" class="cp-box" data-o="abrir" data-id="${E(x.id)}" style="text-align:left;cursor:pointer;color:inherit;font:inherit"><h3>${E(x.titulo)} ${stTag(x)}</h3><small class="muted">${E(x.onde||"Propriedade")} · de ${E(x.coordNome||"coordenador")}${x.prazo?` · prazo ${dhc(Date.parse(x.prazo))}`:""} · ${(x.fotos||[]).length} foto(s)</small></button>`).join("")}</div>`:`<p class="muted">Nenhuma tarefa para você.</p>`;o.innerHTML=h;bindOv(o,null);return}
+  const fechada=t.status==="enviada"||t.status==="aprovada",cs=t.campos||[];
+  h+=`<div class="cp-wrap"><div class="cp-box"><h3>${E(t.titulo)} ${stTag(t)}</h3><div class="muted" style="font-size:13px">${E(t.onde||"Propriedade")} · coordenador: ${E(t.coordNome||"")}${t.prazo?` · prazo ${dh(Date.parse(t.prazo))}`:""}</div>${t.instr?`<div class="cp-al">${E(t.instr)}</div>`:""}${t.status==="devolvida"&&t.coment?`<div class="cp-al cr">↩ Devolvida: ${E(t.coment)}</div>`:""}
+   ${t.exige?`<div class="muted" style="font-size:12.5px">📷 Exige ${t.min||1} foto(s) tirada(s) pela câmera do app${t.alvo?` a até ${nf(t.alvo.raio,0)} m do ponto da tarefa`:""}.</div>`:""}</div>
+   ${cs.length?`<div class="cp-box"><h3>Dados do campo</h3><div class="cp-f">${cs.map(c=>campoInp(t,c,fechada)).join("")}</div></div>`:""}
+   <div class="cp-box"><h3>Observações</h3><textarea class="cp-in" data-cv="__obs" rows="3"${fechada?" disabled":""}>${E((C.mv[t.id]||{}).__obs!=null?C.mv[t.id].__obs:t.obs||"")}</textarea></div>
+   <div class="cp-box"><h3>Fotos georreferenciadas (${(t.fotos||[]).length})</h3>${fotosHTML(t)}${fechada?"":`<div class="cp-btns"><button type="button" class="cp-mini solid" data-o="foto">📷 Tirar foto agora</button></div>`}</div>
+   ${fechada?`<div class="cp-al ok">${t.status==="aprovada"?"✅ Aprovada pelo coordenador":"📨 Enviada em "+dh(t.enviadoEm)+" · aguardando o coordenador"}</div>`:`<div class="cp-btns">${t.status==="aberta"||!t.iniciadoEm?`<button type="button" class="cp-mini" data-o="iniciar">▶ Cheguei no local / iniciar</button>`:""}<button type="button" class="cp-mini" data-o="salvar">💾 Salvar rascunho</button><button type="button" class="cp-mini solid" data-o="enviar">✅ Enviar ao coordenador</button></div>`}
+   <div class="cp-box"><h3>Registro (hora do celular · hora do servidor)</h3>${histHTML(t)}</div></div>`;
+  o.innerHTML=h;bindOv(o,t)}
+const stTag=t=>`<span class="cp-st ${atrasada(t)?"atraso":t.status||"aberta"}">${atrasada(t)?"⏰ atrasada · ":""}${ST[t.status||"aberta"]}</span>`;
+const histHTML=t=>(t.hist||[]).length?`<ul class="cp-hist">${t.hist.slice().reverse().map(x=>`<li><b>${E(x.acao)}</b> · ${E(x.quem||"")}<br><small>📱 ${dh(x.em)}${x.srv?` · 🖥 servidor ${dh(x.srv)}${Math.abs(x.srv-x.em)>300000?" ⚠️ diferença de "+nf(Math.abs(x.srv-x.em)/60000,0)+" min":""}`:x.fila?" · ⏳ na fila":" · 🖥 aguardando servidor"}${x.lat!=null?` · 📍 ${Number(x.lat).toFixed(5)}, ${Number(x.lon).toFixed(5)}`:""}</small></li>`).join("")}</ul>`:`<p class="muted" style="margin:0">Sem registros.</p>`;
+function lerValores(o,t){o.querySelectorAll("[data-cv]").forEach(i=>{const k=i.dataset.cv;if(k==="__obs"){t.obs=i.value;return}t.valores=t.valores||{};t.valores[k]=i.type==="checkbox"?i.checked:i.value})}
+const posAgora=()=>new Promise(r=>{if(!navigator.geolocation)return r(null);navigator.geolocation.getCurrentPosition(p=>r({lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy}),()=>r(null),{enableHighAccuracy:true,timeout:15000,maximumAge:30000})});
+async function salvarT(t,acao,x){delete C.mv[t.id];hist(t,acao,x);t.mod=Date.now();const {_path,_upd,_fila,...d}=t;const st=await gravar(_path,d);if(st==="fila"){t.hist[t.hist.length-1].fila=1;t._fila=1}return st}
+function bindOv(o,t){o.querySelectorAll("[data-o]").forEach(b=>b.addEventListener("click",async()=>{const a=b.dataset.o;C.msg="";
+  if(a==="fechar")return fecharOv();if(a==="voltar"){C.msel="";return pintarOv()}if(a==="abrir"){C.msel=b.dataset.id;return pintarOv()}
+  if(!t)return;lerValores(o,t);b.disabled=true;
+  try{if(a==="foto"){const f=await camera(t);if(!f){b.disabled=false;return}if(f.erro){aviso(f.erro,true);return}
+      const id="f"+uid(),path="campof/"+t.respUid+"/"+id,full={img:f.img,taskId:t.id,em:f.em,lat:f.lat,lon:f.lon,acc:f.acc,alt:f.alt,dist:f.dist,quem:meuNome(),uid:meu(),fonte:f.fonte};
+      const s1=await gravar(path,full);C.fotoCache[path]=full;t.fotos=t.fotos||[];t.fotos.push({path,thumb:f.thumb,em:f.em,lat:f.lat,lon:f.lon,acc:f.acc,dist:f.dist,fonte:f.fonte});if(t.status==="aberta")t.status="andamento";
+      const s2=await salvarT(t,"📷 Foto registrada",{lat:f.lat,lon:f.lon,acc:f.acc});aviso(s1==="fila"||s2==="fila"?"Foto guardada no aparelho: sobe para o coordenador quando houver internet.":"Foto enviada"+(f.lat==null?" (sem GPS)":f.dist!=null&&t.alvo&&f.dist>t.alvo.raio?` — atenção: ${nf(f.dist,0)} m do ponto da tarefa`:"")+".",f.lat==null)}
+    else if(a==="iniciar"){const g=await posAgora();t.status="andamento";t.iniciadoEm=Date.now();t.gpsIni=g;await salvarT(t,"▶ Chegou ao local / iniciou",g||{});aviso("Início registrado"+(g?` com GPS (±${Math.round(g.acc)} m).`:" (sem GPS)."))}
+    else if(a==="salvar"){if(t.status==="aberta")t.status="andamento";const st=await salvarT(t,"💾 Dados salvos");aviso(st==="fila"?"Salvo no aparelho; sobe quando houver internet.":"Dados salvos e já visíveis para o coordenador.")}
+    else if(a==="enviar"){const nF=(t.fotos||[]).length,falta=(t.campos||[]).filter(c=>c[3]!=="chk"&&String(sv(t,c[0])).trim()==="");
+      if(t.exige&&nF<(t.min||1)){aviso(`Esta tarefa exige ${t.min||1} foto(s) tirada(s) pela câmera do app. Toque em “📷 Tirar foto agora”.`,true);return}
+      if(falta.length&&!confirm(`Faltam: ${falta.map(c=>c[1]).join(", ")}. Enviar mesmo assim?`)){b.disabled=false;return}
+      const g=await posAgora();t.status="enviada";t.enviadoEm=Date.now();t.gpsEnvio=g;const st=await salvarT(t,"📨 Enviada ao coordenador",g||{});aviso(st==="fila"?"Envio guardado no aparelho: vai para o coordenador quando houver internet.":"Tarefa enviada! O coordenador já vê os dados e as fotos.")}}
+  catch(e){aviso((e&&e.message)||String(e),true)}
+  await carregar();pintarOv();fab()}));
+  o.querySelectorAll("[data-fver]").forEach(b=>b.addEventListener("click",()=>verFoto(b.dataset.fver)));
+  if(t)o.querySelectorAll("[data-cv]").forEach(i=>i.addEventListener(i.type==="checkbox"?"change":"input",()=>{C.mv[t.id]=C.mv[t.id]||{};C.mv[t.id][i.dataset.cv]=i.type==="checkbox"?i.checked:i.value}))}
+async function verFoto(path){const d=document.createElement("div");d.id="cp-big";d.innerHTML=`<p style="color:#fff">Carregando foto…</p>`;document.body.appendChild(d);d.addEventListener("click",()=>d.remove());
+  try{const f=await lerFoto(path);d.innerHTML=f&&f.img?`<img src="${f.img}" alt="Foto da tarefa"><div style="color:#fff;font-size:13px;text-align:center">📱 ${dh(f.em)}${f.srvCriada||f.srvEm?` · 🖥 servidor ${dh(f.srvCriada||f.srvEm)}`:""}${f.lat!=null?` · 📍 ${f.lat.toFixed(6)}, ${f.lon.toFixed(6)} ±${Math.round(f.acc)} m · <a style="color:#9fd" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${f.lat},${f.lon}">ver no mapa</a>`:" · sem GPS"} · toque para fechar</div>`:`<p style="color:#fff">Foto não encontrada.</p>`}catch(e){d.innerHTML=`<p style="color:#fff">Não consegui abrir a foto.</p>`}}
+
+/* ---------- coordenador (AquaGestão → Gerir propriedade → Tarefas e equipe) ---------- */
+function coordHTML(U){const D=C.draft,F=C.fil,mod=MODS[D.mod]||MODS.livre,ali=alvoPadrao();
+  if(!souCoord())return `<div class="cp-box"><h3>📲 Tarefas de campo</h3><p class="muted" style="margin:0">Você é colaborador: suas tarefas ficam no botão <b>📲 Minhas tarefas</b>. Para coordenar uma equipe é preciso ser administrador no app.</p><div class="cp-btns"><button type="button" class="cp-mini solid" data-k="minhas">Abrir minhas tarefas</button></div></div>`;
+  const L=C.tasks.filter(t=>(!F.m||t.respUid===F.m)&&(!F.st||(F.st==="atraso"?atrasada(t):(t.status||"aberta")===F.st))&&(!F.de||(t.criadoEm||0)>=Date.parse(F.de+"T00:00"))&&(!F.ate||(t.criadoEm||0)<=Date.parse(F.ate+"T23:59:59"))).sort((a,b)=>(b.mod||b.criadoEm||0)-(a.mod||a.criadoEm||0));
+  const cnt=s=>C.tasks.filter(t=>(t.status||"aberta")===s).length,sel=C.tasks.find(t=>t.id===C.sel);
+  const liveTag=C.modo==="local"?`<span class="cp-live">💻 só neste aparelho (sem conta do app)</span>`:C.err?`<span class="cp-live err">⚠️ ${E(C.err.slice(0,60))}</span>`:C.live?`<span class="cp-live on">🟢 ao vivo</span>`:`<span class="cp-live">🔄 atualiza a cada ${POLL/1000} s · ${C.carregado?dhc(C.carregado):"carregando"}</span>`;
+  return `<div class="cp-box"><h3>📲 Tarefas de campo da equipe ${liveTag}</h3>
+   ${C.msg?`<div class="cp-al ${C.msgErr?"cr":"ok"}">${E(C.msg)}</div>`:""}
+   <div class="cp-k">${[["Abertas",cnt("aberta")],["Em campo",cnt("andamento")],["Para aprovar",cnt("enviada")],["Devolvidas",cnt("devolvida")],["Aprovadas",cnt("aprovada")],["Atrasadas",C.tasks.filter(atrasada).length]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("")}</div>
+   <details${C.tasks.length?"":" open"}><summary style="cursor:pointer;font-weight:700">➕ Nova tarefa para a equipe</summary><div class="cp-f" style="margin-top:8px">
+     <label>Modelo<select data-d="mod">${Object.entries(MODS).map(([k,m])=>`<option value="${k}"${D.mod===k?" selected":""}>${m.n}</option>`).join("")}</select></label>
+     <label class="w2">Título<input data-d="titulo" value="${E(D.titulo||"")}" placeholder="${E(mod.n.replace(/^\S+\s/,""))}"></label>
+     <label>Colaborador<select data-d="resp">${C.members.map(m=>`<option value="${E(m.uid)}"${D.resp===m.uid?" selected":""}>${E(m.nome)}</option>`).join("")}</select></label>
+     <label>Onde<select data-d="onde"><option value="">Propriedade</option>${(U||[]).map(u=>`<option${D.onde===u.nome?" selected":""}>${E(u.nome)}</option>`).join("")}</select></label>
+     <label>Prazo<input type="datetime-local" data-d="prazo" value="${E(D.prazo||"")}"></label>
+     <label class="w2">Instruções<textarea data-d="instr" rows="2" placeholder="o que fazer, cuidados, horário">${E(D.instr||"")}</textarea></label>
+     <label>Foto obrigatória<select data-d="exige"><option value="1"${D.exige!=="0"?" selected":""}>Sim, pela câmera do app</option><option value="0"${D.exige==="0"?" selected":""}>Não</option></select></label>
+     <label>Mínimo de fotos<input data-d="min" inputmode="numeric" value="${E(D.min||"1")}"></label>
+     <label>Conferir distância até (m)<input data-d="raio" inputmode="numeric" value="${E(D.raio||"")}" placeholder="vazio = não conferir"></label>
+     <label>Ponto da tarefa · latitude<input data-d="lat" inputmode="decimal" value="${E(D.lat||"")}" placeholder="${ali?String(ali.lat).replace(".",","):"ex.: -2,52083"}"></label>
+     <label>Ponto da tarefa · longitude<input data-d="lon" inputmode="decimal" value="${E(D.lon||"")}" placeholder="${ali?String(ali.lon).replace(".",","):"ex.: -45,08278"}"></label>
+    </div>
+    <div class="cp-btns" style="margin-top:6px"><button type="button" class="cp-mini" data-k="aqui">📍 Usar minha posição agora como ponto</button><span class="muted" style="font-size:12px">${ali?"Em branco: coordenadas da aba Local e viabilidade.":"Sem coordenadas na aba Local."}</span></div>
+    <div style="margin-top:8px"><b style="font-size:13px">Dados que o colaborador vai preencher</b><div class="cp-btns" style="margin-top:4px">${mod.c.map(c=>`<span class="cp-st aberta">${E(c[1])}${c[2]?" ("+E(c[2])+")":""}</span>`).join("")}${(D.campos||[]).map((c,i)=>`<span class="cp-st andamento">${E(c[1])}${c[2]?" ("+E(c[2])+")":""} <button type="button" class="cp-mini" data-k="tirac" data-i="${i}" style="padding:0 5px">✕</button></span>`).join("")}</div>
+     <div class="cp-f" style="margin-top:6px"><label>Novo campo<input data-d="cn" value="${E(D.cn||"")}" placeholder="ex.: nível da água"></label><label>Unidade<input data-d="cu" value="${E(D.cu||"")}" placeholder="cm"></label><label>Tipo<select data-d="ct"><option value="num">Número</option><option value="txt"${D.ct==="txt"?" selected":""}>Texto</option><option value="chk"${D.ct==="chk"?" selected":""}>Sim / não</option></select></label><label>&nbsp;<button type="button" class="cp-mini" data-k="addc">+ Acrescentar campo</button></label></div></div>
+    <div class="cp-btns" style="margin-top:8px"><button type="button" class="cp-mini solid" data-k="criar">📨 Enviar tarefa ao colaborador</button></div></details>
+   <div class="cp-f"><label>Colaborador<select data-fil="m"><option value="">Todos</option>${C.members.map(m=>`<option value="${E(m.uid)}"${F.m===m.uid?" selected":""}>${E(m.nome)}</option>`).join("")}</select></label>
+    <label>Situação<select data-fil="st"><option value="">Todas</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}"${F.st===k?" selected":""}>${v}</option>`).join("")}<option value="atraso"${F.st==="atraso"?" selected":""}>Atrasadas</option></select></label>
+    <label>Criadas de<input type="date" data-fil="de" value="${E(F.de)}"></label><label>até<input type="date" data-fil="ate" value="${E(F.ate)}"></label></div>
+   <div class="cp-btns"><button type="button" class="cp-mini" data-k="rel">📄 Relatório das tarefas / vistorias (${L.length})</button><button type="button" class="cp-mini" data-k="atual">🔄 Atualizar</button>${minhas().length?`<button type="button" class="cp-mini" data-k="minhas">📲 Minhas tarefas</button>`:""}</div>
+   ${L.length?`<div class="scroll"><table class="cp-t rsp"><thead><tr><th>Tarefa</th><th>Colaborador</th><th>Situação</th><th>Última atividade</th><th>Fotos</th><th></th></tr></thead><tbody>${L.map(t=>{const u=(t.hist||[]).slice(-1)[0]||{},lg=(t.fotos||[]).filter(f=>t.alvo&&f.dist!=null&&f.dist>t.alvo.raio).length,sg=(t.fotos||[]).filter(f=>f.lat==null).length;
+     return `<tr class="${t.id===C.sel?"on":""}"><td>${E(t.titulo)}<small>${E(t.onde||"Propriedade")}${t.prazo?" · prazo "+dhc(Date.parse(t.prazo)):""}</small></td><td data-l="Colaborador">${E(t.respNome||nomeM(t.respUid))}</td><td data-l="Situação">${stTag(t)}</td><td data-l="Última">${E(u.acao||"")}<small>📱 ${dhc(u.em)}${u.srv?" · 🖥 "+dhc(u.srv):""}</small></td><td data-l="Fotos">${(t.fotos||[]).length}${lg?` <span class="cp-st devolvida">${lg} longe</span>`:""}${sg?` <span class="cp-st andamento">${sg} sem GPS</span>`:""}</td><td><button type="button" class="cp-mini${t.id===C.sel?" solid":""}" data-k="ver" data-id="${E(t.id)}">${t.id===C.sel?"Fechar":"Ver"}</button></td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted" style="margin:0">Nenhuma tarefa${C.tasks.length?" com esses filtros":" ainda"}.</p>`}
+   ${sel?detalheHTML(sel):""}</div>`}
+function detalheHTML(t){const cs=t.campos||[];
+  return `<div class="cp-box" style="border-color:var(--accent)"><h3>${E(t.titulo)} ${stTag(t)}</h3><div class="muted" style="font-size:13px">${E(t.onde||"Propriedade")} · ${E(t.respNome||nomeM(t.respUid))} · criada ${dh(t.criadoEm)}${t.prazo?` · prazo ${dh(Date.parse(t.prazo))}`:""}${t.alvo?` · ponto ${t.alvo.lat.toFixed(5)}, ${t.alvo.lon.toFixed(5)} (raio ${nf(t.alvo.raio,0)} m)`:""}</div>
+   ${cs.length?`<table class="cp-t"><tbody>${cs.map(c=>{const v=sv(t,c[0]);return `<tr><th style="width:55%">${E(c[1])}${c[2]?` (${E(c[2])})`:""}</th><td>${c[3]==="chk"?(v===true?"✓ sim":v===false?"✗ não":"—"):E(v)||"—"}</td></tr>`}).join("")}</tbody></table>`:""}
+   ${t.obs?`<div class="cp-al">📝 ${E(t.obs)}</div>`:""}
+   <b style="font-size:13px">Fotos (${(t.fotos||[]).length})</b>${fotosHTML(t)}
+   <b style="font-size:13px">Registro</b>${histHTML(t)}
+   <div class="cp-f"><label class="w2">Comentário para o colaborador<input data-d="coment" value="${E(C.draft.coment||"")}" placeholder="obrigatório para devolver"></label></div>
+   <div class="cp-btns">${t.status==="enviada"?`<button type="button" class="cp-mini solid" data-k="aprovar" data-id="${E(t.id)}">✅ Aprovar</button><button type="button" class="cp-mini warn" data-k="devolver" data-id="${E(t.id)}">↩ Devolver para correção</button>`:""}
+    ${t.modelo==="agua"?`<button type="button" class="cp-mini" data-k="aqua" data-id="${E(t.id)}">📈 Lançar no AquaNictemeral</button>`:""}${t.modelo==="bio"?`<button type="button" class="cp-mini" data-k="bio" data-id="${E(t.id)}">🐟 Lançar na Biomassa</button>`:""}
+    <button type="button" class="cp-mini" data-k="rel1" data-id="${E(t.id)}">📄 Relatório desta tarefa</button><button type="button" class="cp-mini warn" data-k="del" data-id="${E(t.id)}">🗑 Excluir</button></div></div>`}
+function bindCoord(el){const W=el.querySelector("#cp-coord");if(!W)return;
+  W.querySelectorAll("[data-d]").forEach(i=>i.addEventListener(i.tagName==="SELECT"?"change":"input",()=>{C.draft[i.dataset.d]=i.value;if(i.dataset.d==="mod")pintar()}));
+  W.querySelectorAll("[data-fil]").forEach(i=>i.addEventListener("change",()=>{C.fil[i.dataset.fil]=i.value;pintar()}));
+  W.querySelectorAll("[data-fver]").forEach(b=>b.addEventListener("click",()=>verFoto(b.dataset.fver)));
+  W.querySelectorAll("[data-k]").forEach(b=>b.addEventListener("click",async()=>{const k=b.dataset.k,t=C.tasks.find(x=>x.id===b.dataset.id),D=C.draft;C.msg="";
+   try{if(k==="minhas")return abrirOv();if(k==="atual"){C.memEm=0;await carregar();return pintar()}if(k==="ver"){C.sel=C.sel===b.dataset.id?"":b.dataset.id;return pintar()}
+    if(k==="rel")return relatorio(C.tasks.filter(x=>(!C.fil.m||x.respUid===C.fil.m)&&(!C.fil.st||(C.fil.st==="atraso"?atrasada(x):(x.status||"aberta")===C.fil.st))&&(!C.fil.de||(x.criadoEm||0)>=Date.parse(C.fil.de+"T00:00"))&&(!C.fil.ate||(x.criadoEm||0)<=Date.parse(C.fil.ate+"T23:59:59"))));
+    if(k==="rel1"&&t)return relatorio([t]);
+    if(k==="aqui"){const g=await posAgora();if(!g)return aviso("Não consegui a posição do GPS deste aparelho.",true);D.lat=String(g.lat.toFixed(6)).replace(".",",");D.lon=String(g.lon.toFixed(6)).replace(".",",");if(!D.raio)D.raio="200";return aviso(`Ponto da tarefa definido na sua posição (±${Math.round(g.acc)} m).`)}
+    if(k==="addc"){if(!String(D.cn||"").trim())return aviso("Digite o nome do novo campo.",true);D.campos=(D.campos||[]).concat([["x"+uid().slice(-5),D.cn.trim(),String(D.cu||"").trim(),D.ct||"num"]]);D.cn="";D.cu="";return pintar()}
+    if(k==="tirac"){D.campos.splice(+b.dataset.i,1);return pintar()}
+    if(k==="criar"){const m=MODS[D.mod]||MODS.livre,resp=D.resp||(C.members[0]||{}).uid||meu(),ali=alvoPadrao(),lat=P(D.lat),lon=P(D.lon),raio=P(D.raio);
+      const alvo=isFinite(raio)&&raio>0?(isFinite(lat)&&isFinite(lon)?{lat,lon,raio}:ali?{...ali,raio}:null):null;
+      const t2={id:"t"+uid(),modelo:D.mod,titulo:String(D.titulo||"").trim()||m.n.replace(/^\S+\s/,""),onde:D.onde||"",instr:String(D.instr||"").trim(),prazo:D.prazo||"",exige:D.exige!=="0",min:Math.max(1,Math.round(P(D.min)||1)),alvo,
+        campos:m.c.concat(D.campos||[]),valores:{},fotos:[],status:"aberta",respUid:resp,respNome:nomeM(resp),coordUid:meu(),coordNome:meuNome(),criadoEm:Date.now(),projeto:T(()=>projAtual().nome,"")};
+      t2._path="campo/"+resp+"/"+t2.id;const st=await salvarT(t2,"📨 Tarefa criada e enviada para "+t2.respNome);C.draft={mod:D.mod,exige:D.exige,min:D.min,raio:D.raio,lat:D.lat,lon:D.lon,resp:D.resp,campos:[]};C.sel=t2.id;
+      aviso(st==="fila"?"Tarefa guardada no aparelho; vai para o colaborador quando houver internet.":`Tarefa enviada para ${t2.respNome}. Ela aparece no botão 📲 Minhas tarefas do celular dele.`)}
+    if(!t){await carregar();return pintar()}
+    if(k==="aprovar"){t.status="aprovada";t.aprovadaEm=Date.now();t.coment=D.coment||"";await salvarT(t,"✅ Aprovada pelo coordenador"+(D.coment?": "+D.coment:""));D.coment="";aviso("Tarefa aprovada.")}
+    if(k==="devolver"){if(!String(D.coment||"").trim())return aviso("Escreva o comentário dizendo o que corrigir.",true);t.status="devolvida";t.coment=D.coment;await salvarT(t,"↩ Devolvida: "+D.coment);D.coment="";aviso("Tarefa devolvida ao colaborador.")}
+    if(k==="del"){if(!confirm(`Excluir a tarefa “${t.titulo}” e as fotos dela? Não dá para desfazer.`))return;for(const f of t.fotos||[])try{await apagar(f.path)}catch(e){}await apagar(t._path);C.sel="";aviso("Tarefa excluída.")}
+    if(k==="aqua")await lancarAqua(t);
+    if(k==="bio")lancarBio(t)}
+   catch(e){aviso((e&&e.message)||String(e),true)}
+   await carregar();pintar()}))}
+async function lancarAqua(t){const v=t.valores||{},u=(t.hist||[]).filter(x=>/Enviada|Foto|salvos/.test(x.acao)).slice(-1)[0]||{em:t.enviadoEm||Date.now()},d=new Date(u.em);
+  const row={Data:d.toISOString().slice(0,10),Hora:d.toTimeString().slice(0,5),Unidade:t.onde||"Propriedade",OD:v.od,Temperatura:v.temp,pH:v.ph,Transparencia:v.transp,TAN:v.amonia,Salinidade:v.sal};
+  Object.keys(row).forEach(k=>{if(row[k]==null||row[k]==="")delete row[k]});
+  try{typeof loadAqua==="function"&&loadAqua()}catch(e){}let w=null;for(let i=0;i<40;i++){w=T(()=>document.getElementById("aqua-frame").contentWindow,null);if(w&&w.aquaImport)break;await new Promise(r=>setTimeout(r,250))}
+  const U=window.aquaPlugUtil;if(!w||!w.aquaImport||!U)throw new Error("Abra a aba AquaNictemeral uma vez e tente de novo.");
+  const m=U.autoMap(Object.keys(row),[row]),r=U.normalizar([row],m,true);if(!r.lista.length)throw new Error("Preencha pelo menos o oxigênio ou a temperatura para lançar.");
+  const nome="Campo: "+t.titulo+" · "+(t.respNome||"");w.aquaImport(r.lista,{tipo:"analise",nome,criar:true,isolar:false});t.lancado=Date.now();await salvarT(t,"📈 Lançada no AquaNictemeral");aviso(`Leitura de ${t.onde||"Propriedade"} lançada no AquaNictemeral.`)}
+function lancarBio(t){const v=t.valores||{},d=new Date(t.enviadoEm||Date.now());if(!window.bioImportarAnalise)throw new Error("Biomassa indisponível.");
+  const r=bioImportarAnalise([{Data:d.toISOString().slice(0,10),Tanque:t.onde||"Propriedade","Peso médio (g)":v.peso,Quantidade:v.n,"Comprimento (cm)":v.comp}],"Campo: "+t.titulo,"integrado");salvarT(t,"🐟 Lançada na Biomassa");aviso(`Biometria lançada na Biomassa (${r&&r.n||1} registro).`)}
+
+/* ---------- relatório das tarefas / vistorias ---------- */
+async function relatorio(L){if(!L.length)return aviso("Nenhuma tarefa para o relatório.",true);
+  const ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;flex-direction:column;padding:10px;gap:8px";
+  ov.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border-radius:10px;padding:8px 10px"><b style="margin-right:auto">📄 Relatório das tarefas / vistorias</b><span class="muted" data-r="st">carregando fotos…</span><button type="button" class="btn solid" data-r="print">🖨 Imprimir / salvar PDF</button><button type="button" class="btn" data-r="baixar">⬇ Baixar</button><button type="button" class="btn" data-r="fechar">Fechar</button></div><iframe title="Relatório das tarefas" style="flex:1;width:100%;border:0;border-radius:10px;background:#fff"></iframe>`;
+  document.body.appendChild(ov);const fr=ov.querySelector("iframe");ov.querySelector('[data-r="fechar"]').onclick=()=>ov.remove();
+  const fotos={};let n=0,tot=L.reduce((s,t)=>s+(t.fotos||[]).length,0);for(const t of L)for(const f of t.fotos||[]){try{const d=await lerFoto(f.path);if(d)fotos[f.path]=d}catch(e){}n++;ov.querySelector('[data-r="st"]').textContent=`fotos ${n}/${tot}`}
+  ov.querySelector('[data-r="st"]').textContent="";const html=relHTML(L,fotos);fr.srcdoc=html;
+  ov.querySelector('[data-r="print"]').onclick=()=>{try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){}};
+  ov.querySelector('[data-r="baixar"]').onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download="Relatorio_tarefas_campo_"+new Date().toISOString().slice(0,10)+".html";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}}
+function relHTML(L,fotos){const pj=T(()=>projAtual().nome,""),hoje=dh(Date.now()),cnt=s=>L.filter(t=>(t.status||"aberta")===s).length,fs=L.flatMap(t=>t.fotos||[]);
+  const sec=t=>{const cs=t.campos||[],h=t.hist||[];return `<section><h2>${E(t.titulo)} <span class="st">${ST[t.status||"aberta"]}${atrasada(t)?" · atrasada":""}</span></h2>
+   <table class="kv"><tr><th>Local</th><td>${E(t.onde||"Propriedade")}</td><th>Colaborador</th><td>${E(t.respNome||"")}</td></tr><tr><th>Coordenador</th><td>${E(t.coordNome||"")}</td><th>Prazo</th><td>${t.prazo?dh(Date.parse(t.prazo)):"—"}</td></tr>
+    <tr><th>Criada</th><td>${dh(t.criadoEm)}</td><th>Enviada</th><td>${dh(t.enviadoEm)}</td></tr><tr><th>Ponto da tarefa</th><td>${t.alvo?`${t.alvo.lat.toFixed(6)}, ${t.alvo.lon.toFixed(6)} · raio ${nf(t.alvo.raio,0)} m`:"—"}</td><th>Aprovada</th><td>${dh(t.aprovadaEm)}</td></tr></table>
+   ${t.instr?`<p><b>Instruções:</b> ${E(t.instr)}</p>`:""}
+   ${cs.length?`<table><thead><tr><th>Dado coletado</th><th>Valor</th></tr></thead><tbody>${cs.map(c=>{const v=sv(t,c[0]);return `<tr><td>${E(c[1])}${c[2]?` (${E(c[2])})`:""}</td><td>${c[3]==="chk"?(v===true?"sim":v===false?"não":"—"):E(v)||"—"}</td></tr>`}).join("")}</tbody></table>`:""}
+   ${t.obs?`<p><b>Observações:</b> ${E(t.obs)}</p>`:""}${t.coment?`<p><b>Comentário do coordenador:</b> ${E(t.coment)}</p>`:""}
+   ${(t.fotos||[]).length?`<div class="fotos">${t.fotos.map(f=>{const F=fotos[f.path]||{};return `<figure><img src="${F.img||f.thumb}" alt="foto"><figcaption>📱 ${dh(f.em)}${F.srvCriada||F.srvEm?`<br>🖥 servidor ${dh(F.srvCriada||F.srvEm)}`:""}<br>${f.lat!=null?`📍 ${Number(f.lat).toFixed(6)}, ${Number(f.lon).toFixed(6)} ±${Math.round(f.acc)} m`:"⚠️ sem GPS"}${f.dist!=null?` · ${nf(f.dist,0)} m do ponto${t.alvo&&f.dist>t.alvo.raio?" ⚠️ fora do raio":""}`:""}</figcaption></figure>`}).join("")}</div>`:`<p class="muted">Sem fotos.</p>`}
+   <h3>Registro</h3><table><thead><tr><th>Ação</th><th>Quem</th><th>Hora do celular</th><th>Hora do servidor</th><th>GPS</th></tr></thead><tbody>${h.map(x=>`<tr><td>${E(x.acao)}</td><td>${E(x.quem||"")}</td><td>${dh(x.em)}</td><td>${x.srv?dh(x.srv):"—"}</td><td>${x.lat!=null?Number(x.lat).toFixed(5)+", "+Number(x.lon).toFixed(5):"—"}</td></tr>`).join("")}</tbody></table></section>`};
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório de tarefas de campo</title><style>
+  body{font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#14201c;margin:0 auto;padding:22px;max-width:960px;background:#fff}h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:24px 0 8px;padding-bottom:4px;border-bottom:2px solid #0f7a5c;color:#0f5a45}h3{font-size:13px;margin:10px 0 4px}
+  .st{font-size:12px;font-weight:600;color:#5d6b66}table{width:100%;border-collapse:collapse;margin:6px 0}th,td{border:1px solid #cfd8d4;padding:4px 7px;text-align:left;vertical-align:top}thead th,.kv th{background:#eef4f1;font-size:12px}
+  .k{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}.k div{border:1px solid #cfd8d4;border-radius:8px;padding:6px 8px}.k span{display:block;font-size:11px;color:#5d6b66}.k b{font-size:16px}
+  .fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:8px 0}figure{margin:0;border:1px solid #cfd8d4;border-radius:6px;overflow:hidden}figure img{width:100%;display:block}figcaption{font-size:11px;padding:4px 6px;color:#333}
+  .muted{color:#5d6b66}.ass{margin-top:40px;display:grid;grid-template-columns:1fr 1fr;gap:30px}.ass div{border-top:1px solid #14201c;padding-top:4px;text-align:center;font-size:12px}
+  @media print{body{padding:0}section{break-inside:avoid-page}h2{break-after:avoid}figure{break-inside:avoid}}</style></head><body>
+  <h1>Relatório de tarefas e vistorias de campo</h1><p class="muted">${pj?"Projeto "+E(pj)+" · ":""}emitido em ${hoje} por ${E(meuNome())}</p>
+  <div class="k">${[["Tarefas",L.length],["Aprovadas",cnt("aprovada")],["Para aprovar",cnt("enviada")],["Em campo",cnt("andamento")+cnt("aberta")],["Devolvidas",cnt("devolvida")],["Fotos",fs.length],["Fotos sem GPS",fs.filter(f=>f.lat==null).length]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("")}</div>
+  <h2>Resumo</h2><table><thead><tr><th>Tarefa</th><th>Local</th><th>Colaborador</th><th>Situação</th><th>Enviada (celular / servidor)</th><th>Fotos</th></tr></thead><tbody>${L.map(t=>{const e=(t.hist||[]).filter(x=>/Enviada ao/.test(x.acao)).slice(-1)[0];return `<tr><td>${E(t.titulo)}</td><td>${E(t.onde||"Propriedade")}</td><td>${E(t.respNome||"")}</td><td>${ST[t.status||"aberta"]}</td><td>${e?dh(e.em)+(e.srv?"<br>"+dh(e.srv):""):"—"}</td><td>${(t.fotos||[]).length}</td></tr>`}).join("")}</tbody></table>
+  ${L.map(sec).join("")}
+  <p class="muted" style="font-size:11px;margin-top:18px">As fotos foram tiradas pela câmera do app, com as coordenadas, a data e a hora gravadas na imagem no momento da captura. A hora do servidor é registrada pelo banco de dados quando os dados chegam e não pode ser alterada no aparelho.</p>
+  <div class="ass"><div>Coordenador / responsável técnico</div><div>Colaborador</div></div></body></html>`}
+
+/* ---------- integração ---------- */
+function pintar(){fab();if(C.ov){const o=document.getElementById("cp-ov");if(o&&document.activeElement&&o.contains(document.activeElement)&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))C.pend=true;else pintarOv()}const W=document.getElementById("cp-coord");if(!W)return;
+  if(document.activeElement&&W.contains(document.activeElement)&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){C.pend=true;return}
+  W.innerHTML=coordHTML(C.U||[]);bindCoord(W.parentElement||document)}
+document.addEventListener("focusout",()=>{if(C.pend){C.pend=false;setTimeout(pintar,50)}});
+window.campoHTML=U=>{C.U=U||[];return `<div class="cp-wrap" id="cp-coord">${coordHTML(C.U)}</div>`};
+window.campoBind=el=>{bindCoord(el);if(Date.now()-C.carregado>8000)carregar().then(pintar);poll()};
+window.campoResumo=()=>({n:C.tasks.length,abertas:C.tasks.filter(t=>["aberta","andamento","devolvida"].includes(t.status||"aberta")).length,enviadas:C.tasks.filter(t=>t.status==="enviada").length,minhas:pendMinhas().length});
+window.campoAbrir=()=>abrirOv();
+// inicia depois do login: carrega as tarefas e mostra o botão “Minhas tarefas” em qualquer aba
+(async()=>{for(let i=0;i<120;i++){if(T(()=>window.Auth&&(!Auth.supa||!Auth.supa()||Auth.campoUid&&Auth.campoUid()),false))break;await new Promise(r=>setTimeout(r,500))}
+  await esvaziarFila();await carregar();pintar();poll()})();
 })();
 </script>
