@@ -3194,10 +3194,12 @@ const CORR={
   topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"},
   merc:{de:["local","bio","aqua"],para:["dash"],txt:"prospecção, funil, ponto de venda e nichos; usa o preço e os custos do Local, as despescas da Biomassa e a água do AquaNictemeral"},
   benef:{de:[],para:["dash"],txt:"rendimentos, derivados e qualidade; as ligações com as outras abas são as que você marcou em 🔗 Correlações entre abas"},
-  fin:{de:["local","calc","bio","racao","merc","benef","topo","aqua"],para:["dash"],txt:"investimento, custos e receita da Viabilidade, custo e lucro por lote da Biomassa e do Arraçoamento, preço dos clientes do Mercado e os seus lançamentos reais"}};
+  fin:{de:["calc","local","aqua","bio","racao","topo","merc","benef"],para:["dash"],txt:"investimento, custos e receita da Viabilidade, custo e lucro por lote da Biomassa e do Arraçoamento, preço dos clientes do Mercado e os seus lançamentos reais"}};
 const CORR_GF=[["bio","benef","bio_peso"],["bio","benef","bio_lote"],["local","benef","local_preco"],["aqua","benef","aqua_qual"],["merc","benef","merc_prod"],["merc","benef","merc_frete"],["benef","merc","benef_rend"],["benef","merc","benef_prod"],["benef","merc","benef_qual"]];
 function corrDe(v){const c=CORR[v];if(!c)return null;const o={de:[...c.de],para:[...c.para],txt:c.txt},on=id=>!window.gfCorrOn||gfCorrOn(id);
-  for(const [a,b,id] of CORR_GF){if(!on(id))continue;if(b===v&&!o.de.includes(a))o.de.push(a);if(a===v&&!o.para.includes(b))o.para.splice(o.para.length-(o.para.includes("dash")?1:0),0,b)}return o}
+  for(const [a,b,id] of CORR_GF){if(!on(id))continue;if(b===v&&!o.de.includes(a))o.de.push(a);if(a===v&&!o.para.includes(b))o.para.splice(o.para.length-(o.para.includes("dash")?1:0),0,b)}
+  if(v!=="fin"&&CORR.fin&&CORR.fin.de.includes(v)&&!o.para.includes("fin"))o.para.push("fin");
+  const ORD=["calc","local","aqua","bio","racao","dash","repro","topo","merc","benef","fin"],ix=x=>{const i=ORD.indexOf(x);return i<0?99:i};o.de.sort((x,y)=>ix(x)-ix(y));o.para.sort((x,y)=>(x==="dash")-(y==="dash")||ix(x)-ix(y));return o}
 const NOMES={dash:"Painel",...Object.fromEntries(FOCOS)};
 function ctxOrigem(){try{const w=aquaFrame.contentWindow,O=w&&w.aquaOrigens&&w.aquaOrigens();if(!O)return {txt:"AquaNictemeral ainda não aberto",ras:null};
   const ICO={manual:"✍️",arquivo:"📄",colado:"📋",link:"🔗",webhook:"🤖",importado:"📥",exemplo:"🧪"};
@@ -9832,7 +9834,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v136";
+  const APP_VERSAO="ras-v137";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
