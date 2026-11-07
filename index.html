@@ -2975,7 +2975,7 @@ function dcard(title,sub,body,wide){
 }
 
 /* ---------- Aba em evidência: o Painel mostra só os dados da aba escolhida (ou de todas) ---------- */
-const FOCO_K="ras-foco-painel",FOCOS=[["calc","Calculadora"],["local","Local e viabilidade"],["topo","Levantamentos e projetos"],["repro","Reprodução"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"]];
+const FOCO_K="ras-foco-painel",FOCOS=[["calc","Calculadora"],["local","Local e viabilidade"],["topo","Levantamentos e projetos"],["gest","AquaGestão"],["repro","Reprodução"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"]];
 let foco=(()=>{try{return localStorage.getItem(FOCO_K)||""}catch(e){return ""}})(),focoTent=0,focoTimer=null;
 const focoPode=a=>!window.abaPermitida||abaPermitida(a);
 const focoVe=a=>(!foco||foco===a)&&focoPode(a);
@@ -3083,6 +3083,26 @@ function heroBenef(eF){const R=window.gfBenefResumo&&gfBenefResumo();const base=
       {i:"🧪",l:"Qualidade",v:R.qual.feitas?(R.qual.falhas.length?R.qual.falhas.length+" fora":"dentro"):"—",d:R.qual.feitas?`${R.qual.feitas} análise(s)`:"sem análises",c:R.qual.feitas?(R.qual.falhas.length?"crit":"ok"):"n"}],
     chartT:parts.length?`📐 Rendimento das partes (% do peso vivo, ${isFinite(R.pw)?n(R.pw,0)+" g":""})`:"",chart:parts.length?heroBars(parts,v=>n(v,1)+" %"):"",
     todo:todo.slice(0,6),como:`<p>Os rendimentos vêm da literatura para a espécie e o peso (Souza e Maranhão 2001, Macedo-Viegas 2000 e outros) ou das suas medições. Os limites de qualidade são do RIISPOA (art. 211) e da IN 21/2017. As ligações com as outras abas seguem o painel 🔗 Correlações entre abas.</p>`})}
+/* v143: AquaGestão em evidência no Painel */
+function heroGest(eF){const R=window.gestResumo&&gestResumo(),base={foco:eF,aba:"AquaGestão",ico:"🧭",goto:"gest"};
+  if(!R)return heroBox({...base,tone:"info",titulo:"Abrindo a AquaGestão…",sub:"Abra a aba uma vez para carregar os painéis."});
+  const k=R.ks,c=s=>k.filter(x=>R.st[x].st===s).length,ok=c("ok"),cr=c("crit"),wa=c("warn"),off=c("off"),P=R.prop,STC={ok:"ok",warn:"warn",crit:"crit",info:"info",off:"info"};
+  const tone=cr?"crit":wa?"warn":"ok",todo=R.A.slice(0,6).map(([t,g,h])=>[t,h+(g&&g!=="prop"?` <a href="#" data-goto="${g}">abrir</a>`:"")]);
+  if(!todo.length)todo.push(["ok","Nada urgente: todas as abas com dados estão em dia."]);
+  return heroBox({...base,tone,badge:cr?`${cr} aba(s) crítica(s)`:wa?`${wa} em atenção`:"Projeto em dia",
+    titulo:`Gestão do projeto: ${ok} de ${k.length} abas em dia${cr?` · ${cr} crítica(s)`:""}`,
+    sub:`Saúde de todas as abas, alertas reunidos e a gestão da propriedade${P?` (${P.n} viveiro(s)/tanque(s))`:""}, atualizados em tempo real.`,
+    kpis:[{i:"💚",l:"Saúde",v:`${Math.round((ok+wa*.5)/Math.max(1,k.length)*100)} %`,d:`${ok} em dia · ${wa} atenção · ${cr} críticas · ${off} sem dados`,c:tone},
+      {i:"🔔",l:"Alertas",v:String(R.A.length),d:R.A.length?"veja a lista ao lado":"nenhum",c:R.A.some(a=>a[0]==="crit")?"crit":R.A.length?"warn":"ok"},
+      ...(P?[{i:"🏡",l:"Viveiros e tanques",v:String(P.n),d:`${(P.c.povoado||0)+(P.c.despesca||0)} povoado(s) · ${(P.c.vazio||0)+(P.c.preparo||0)} vazio(s)/preparo`},
+        {i:"✅",l:"Tarefas de hoje",v:`${P.tot-P.pend}/${P.tot}`,d:P.pend?`${P.pend} aberta(s)`:"todas feitas",c:P.pend?"warn":"ok"},
+        {i:"📦",l:"Estoque e equipamentos",v:P.baixo||P.venc?`${P.baixo+P.venc} pendência(s)`:"em dia",d:`${P.baixo} item(ns) acabando · ${P.venc} manutenção(ões) vencida(s)`,c:P.venc?"crit":P.baixo?"warn":"ok"}]:[])],
+    chartT:"🧭 Situação de cada aba",chart:heroBars(k.map(x=>({n:R.NOME[x],v:{ok:3,warn:2,crit:1,info:1.5,off:.4}[R.st[x].st]||.4,c:STC[R.st[x].st],s:R.st[x].v})),v=>({3:"em dia",2:"atenção",1:"crítica",1.5:"info",.4:"sem dados"})[v]||""),
+    todo,como:`<p>A <b>AquaGestão</b> junta os dados de todas as abas: cada uma recebe uma cor (verde em dia, amarelo atenção, vermelho crítico, cinza sem dados) e os alertas são reunidos aqui. Na aba você encontra o painel interativo de cada uma e o botão <b>🏡 Gerir propriedade</b> (viveiros e tanques, ciclos, tarefas, equipe, estoque e equipamentos).</p>`})}
+function gestDashHTML(){const R=window.gestResumo&&gestResumo();if(!R)return "";const k=R.ks,P=R.prop,col={ok:"ok",warn:"",crit:"bad",info:"",off:""};
+  return `<section class="card wide">${fcHead("AquaGestão",`${k.filter(x=>R.st[x].st==="ok").length} de ${k.length} abas em dia · ${R.A.length} alerta(s)`,"gest","Abrir AquaGestão")}<div class="pj-body">
+    ${fcK(k.map(x=>[`${R.ICO[x]} ${R.NOME[x]}`,R.st[x].v,R.st[x].s,col[R.st[x].st]]))}
+    ${P?fcK([["🏡 Viveiros/tanques",String(P.n),`${(P.c.povoado||0)+(P.c.despesca||0)} povoado(s)`],["✅ Tarefas de hoje",`${P.tot-P.pend}/${P.tot}`,P.pend?P.pend+" aberta(s)":"todas feitas",P.pend?"":"ok"],["📦 Estoque",P.baixo?P.baixo+" acabando":"em dia","",P.baixo?"bad":"ok"],["⚙️ Manutenção",P.venc?P.venc+" vencida(s)":"em dia","",P.venc?"bad":"ok"]]):""}</div></section>`}
 /* v134: Financeiro em evidência no Painel */
 function heroFin(eF){const R=window.gfFinResumo&&gfFinResumo(),base={foco:eF,aba:"Financeiro",ico:"💼",goto:"fin"};
   if(!R)return heroBox({...base,tone:"info",titulo:"Abrindo o Financeiro…",sub:"Abra a aba uma vez para carregar os dados."});
@@ -3109,12 +3129,13 @@ function heroVisao(){const tiles=[];
   const fms=feedModels()||[];let bio=0,ra=0;fms.forEach(m=>{const v=m.ok?m.at(Date.now()):{};if(v.on){bio+=v.bio;ra+=v.feed}});if(fms.length){tiles.push(["bio","🐟","Biomassa",`${n(bio,0)} kg`,bio?"ok":"info","biomassa estimada hoje"]);tiles.push(["racao","🍽","Arraçoamento",`${n(ra,1)} kg/d`,ra?"ok":"info","ração de hoje"])}
   try{const M=window.gfMercResumo&&gfMercResumo();if(M&&focoPode("merc"))tiles.push(["merc","🛒","Camada de mercado",M.prosp?`${M.ativos} cliente${M.ativos===1?"":"s"} ativo${M.ativos===1?"":"s"}`:"sem prospecção",M.ativos?"ok":M.prosp?"warn":"info",M.prosp?`${n(M.volAt,0)} kg/semana · ${M.funil} no funil`:"prospecte o município"])}catch(e){}
   try{const Bn=window.gfBenefResumo&&gfBenefResumo();if(Bn&&focoPode("benef")){const fp=Bn.rend?Bn.rend[0]:NaN;tiles.push(["benef","🔪","Beneficiamento",isFinite(fp)?`filé ${n(fp,1)} %`:"—",Bn.qual.falhas.length?"crit":"ok",Bn.qual.falhas.length?`qualidade: ${Bn.qual.falhas.join(", ")} fora`:`${esc(Bn.esp)}${Bn.plan?` · ${n(Bn.plan.kg,1)} kg de derivado`:""}`])}}catch(e){}
+  try{const Gs=window.gestResumo&&gestResumo();if(Gs&&focoPode("gest")){const k=Gs.ks,ok=k.filter(x=>Gs.st[x].st==="ok").length,cr=k.filter(x=>Gs.st[x].st==="crit").length,wa=k.filter(x=>Gs.st[x].st==="warn").length;tiles.push(["gest","🧭","AquaGestão",`${ok} de ${k.length} abas em dia`,cr?"crit":wa?"warn":"ok",`${Gs.A.length} alerta(s)${Gs.prop?` · ${Gs.prop.n} viveiro(s)/tanque(s) · ${Gs.prop.pend} tarefa(s) hoje`:""}`])}}catch(e){}
   try{const Fi=window.gfFinResumo&&gfFinResumo();if(Fi&&focoPode("fin")&&(Fi.o||Fi.nL)){const o=Fi.o;tiles.push(["fin","💼","Financeiro",o?`${o.LO>=0?"lucro":"prejuízo"} R$ ${n(Math.abs(o.LO)/1000,0)} mil/ano`:`saldo R$ ${n(Fi.real.saldo,0)}`,o?(o.LO>=0?"ok":"crit"):(Fi.real.saldo>=0?"ok":"warn"),o?`custo R$ ${n(o.cKg,2)}/kg · venda R$ ${n(o.pV,2)}/kg`:`${Fi.nL} lançamento(s)`])}}catch(e){}
   if(!tiles.length)return "";
   return `<section class="gfh gfh-info gfh-geral"><div class="gfh-top"><div class="gfh-ico">📊</div><div class="gfh-tt"><small>Visão geral · todas as abas</small><h2>Resumo do projeto</h2><p>Toque num cartão para pôr a aba em evidência e ver o painel explicado dela.</p></div></div>
    <div class="gfh-tiles">${tiles.map(([a,i,t,v,c,d])=>`<button type="button" class="ht ht-${c}" data-foco="${a}"><span class="ht-i">${i}</span><span class="ht-t">${t}</span><b>${v}</b><small>${d}</small><span class="ht-go">📌 pôr em evidência</span></button>`).join("")}</div></section>`}
 function heroHTML(){try{if(!foco)return heroVisao();const f=foco;
-  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);if(f==="merc")return heroMerc(true);if(f==="benef")return heroBenef(true);if(f==="fin")return heroFin(true);return heroGeral(true,f)}catch(e){return ""}}
+  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);if(f==="merc")return heroMerc(true);if(f==="benef")return heroBenef(true);if(f==="fin")return heroFin(true);if(f==="gest")return heroGest(true);return heroGeral(true,f)}catch(e){return ""}}
 function focoRender(blocos){
   if(foco&&!focoPode(foco))foco="";
   const ord=a=>FOCOS.findIndex(x=>x[0]===a);
@@ -3131,6 +3152,7 @@ function focoOutros(){const B=[];
   if(focoVe("merc"))B.push(["merc",mercDashHTML()]);
   if(focoVe("benef"))B.push(["benef",benefDashHTML()]);
   if(focoVe("fin")&&window.finDashHTML)B.push(["fin",finDashHTML()]);
+  if(focoVe("gest"))B.push(["gest",gestDashHTML()]);
   return B}
 function mercDashHTML(){const R=window.gfMercResumo&&gfMercResumo();if(!R)return "";
   return `<section class="card wide">${fcHead("Camada de mercado",R.prosp?`Pesquisa de mercado · ${esc(R.mun)}`:"Pesquisa de mercado ainda não feita","merc","Abrir Camada de mercado")}<div class="pj-body">
@@ -3196,7 +3218,7 @@ const CORR={
   topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"},
   merc:{de:["local","bio","aqua"],para:["dash"],txt:"prospecção, funil, ponto de venda e nichos; usa o preço e os custos do Local, as despescas da Biomassa e a água do AquaNictemeral"},
   benef:{de:[],para:["dash"],txt:"rendimentos, derivados e qualidade; as ligações com as outras abas são as que você marcou em 🔗 Correlações entre abas"},
-  gest:{de:["calc","local","topo","repro","aqua","bio","racao","merc","benef","fin"],para:[],txt:"reúne os dados de todas as abas em painéis interativos, em tempo real"},
+  gest:{de:["calc","local","topo","repro","aqua","bio","racao","merc","benef","fin"],para:["dash"],txt:"reúne os dados de todas as abas em painéis interativos, em tempo real"},
   fin:{de:["calc","local","topo","repro","aqua","bio","racao","benef","merc"],para:["dash"],txt:"investimento, custos e receita da Viabilidade, formas jovens produzidas na Reprodução, custo e lucro por lote da Biomassa e do Arraçoamento, preço dos clientes do Mercado e os seus lançamentos reais"}};
 const CORR_GF=[["bio","benef","bio_peso"],["bio","benef","bio_lote"],["local","benef","local_preco"],["aqua","benef","aqua_qual"],["merc","benef","merc_prod"],["merc","benef","merc_frete"],["benef","merc","benef_rend"],["benef","merc","benef_prod"],["benef","merc","benef_qual"]];
 function corrDe(v){const c=CORR[v];if(!c)return null;const o={de:[...c.de],para:[...c.para],txt:c.txt},on=id=>!window.gfCorrOn||gfCorrOn(id);
@@ -9842,7 +9864,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v142";
+  const APP_VERSAO="ras-v143";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -10462,6 +10484,7 @@ function bind(){el.querySelectorAll("[data-sec]").forEach(b=>b.addEventListener(
       n.addEventListener("pointerleave",()=>{mp.classList.remove("hl");mp.querySelectorAll(".ed.on").forEach(x=>x.classList.remove("on"));untip()});n.addEventListener("click",()=>{G.sec=n.dataset.goSec;grava();untip();draw()})})}
   try{if(window.gestProp&&el.querySelector(".pr-sub"))gestProp.bind(el)}catch(e){console.warn(e)}
   bindLine(el)}
+window.gestResumo=()=>{try{const st=resumo(),ks=ABAS.map(a=>a[0]).filter(pode);return {st,ks,NOME,ICO,A:alertas(),prop:T(()=>window.gestProp&&gestProp.resumo(),null)}}catch(e){return null}};
 window.drawGest=draw;
 /* tempo real: redesenha a cada 15 s quando a aba está aberta e o usuário não está mexendo num gráfico */
 let mexendo=false;el.addEventListener("pointerenter",()=>{mexendo=true});el.addEventListener("pointerleave",()=>{mexendo=false});
