@@ -878,8 +878,8 @@ body.has-bnav .imp-box{bottom:76px}
 
   <div class="proj-bar"><button type="button" class="chip" id="proj-chip" title="Projetos e login">Projeto não salvo</button></div>
   <nav class="tabs" role="tablist" aria-label="Visualização">
-    <button type="button" class="tab" role="tab" id="tab-local" aria-controls="view-local" data-view="local">Local e viabilidade</button>
     <button type="button" class="tab" role="tab" id="tab-calc" aria-controls="view-calc" data-view="calc">Calculadora</button>
+    <button type="button" class="tab" role="tab" id="tab-local" aria-controls="view-local" data-view="local">Local e viabilidade</button>
     <button type="button" class="tab" role="tab" id="tab-aqua" aria-controls="view-aqua" data-view="aqua">AquaNictemeral</button>
     <button type="button" class="tab" role="tab" id="tab-bio" aria-controls="view-bio" data-view="bio">Biomassa total em tempo real</button>
     <button type="button" class="tab" role="tab" id="tab-racao" aria-controls="view-racao" data-view="racao">Arraçoamento</button>
@@ -2973,7 +2973,7 @@ function dcard(title,sub,body,wide){
 }
 
 /* ---------- Aba em evidência: o Painel mostra só os dados da aba escolhida (ou de todas) ---------- */
-const FOCO_K="ras-foco-painel",FOCOS=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"]];
+const FOCO_K="ras-foco-painel",FOCOS=[["calc","Calculadora"],["local","Local e viabilidade"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"]];
 let foco=(()=>{try{return localStorage.getItem(FOCO_K)||""}catch(e){return ""}})(),focoTent=0,focoTimer=null;
 const focoPode=a=>!window.abaPermitida||abaPermitida(a);
 const focoVe=a=>(!foco||foco===a)&&focoPode(a);
@@ -5348,7 +5348,7 @@ document.getElementById("reset").addEventListener("click",()=>{
   tanks=defaultTanks.map(t=>({...t}));bioRitmo="100";bioMort="1,5";planDays="60";planMode="dias";planW="";bioRef=null;feedMet="tabela";FEEDT={};drawTanks();render();
 });
 load();drawTanks();
-let startView="local";try{startView=localStorage.getItem(KEY+"-view")||"local"}catch(e){}
+let startView="calc";try{startView=localStorage.getItem(KEY+"-view")||"calc"}catch(e){}
 render();setView(startView);
 
 // a barra fixa só aparece quando o destaque do topo sai da tela
@@ -7926,7 +7926,7 @@ const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?
 const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
 const SIT={ativo:["Ativo","ok"],pendente:["Aguardando aprovação","wait"],suspenso:["Suspenso","bad"],cancelado:["Cancelado pelo administrador","bad"],cancelada:["Inscrição cancelada pelo usuário","off"],sem:["Sem inscrição","off"]};
-const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"],["topo","Levantamentos e projetos","Levantamentos"],["fin","Financeiro","Financeiro"]];
+const ABAS=[["calc","Calculadora","Calculadora"],["local","Local e viabilidade","Local"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"],["topo","Levantamentos e projetos","Levantamentos"],["fin","Financeiro","Financeiro"]];
 const SO_ADMIN=["local","calc"];          // Local e viabilidade e Calculadora: só administrador (versão avançada)
 const ABAS_USU=ABAS.filter(a=>!SO_ADMIN.includes(a[0]));
 const LPLANO=PK+"-planos";
@@ -9792,8 +9792,8 @@ const ICO={
   ref:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
-const MAIN=[["local","Local"],["calc","Calcular"],["aqua","Água"],["dash","Painel"]];
-const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"],["proj","Projetos"],["users","Usuários e acesso"]];
+const MAIN=[["calc","Calcular"],["local","Local"],["aqua","Água"],["dash","Painel"]];
+const ALL=[["calc","Calculadora"],["local","Local e viabilidade"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
 nav.innerHTML=MAIN.map(([v,t])=>`<button type="button" data-bv="${v}">${svg(v)}<span>${t}</span></button>`).join("")+`<button type="button" data-bv="mais" aria-haspopup="dialog" aria-expanded="false">${svg("mais")}<span>Mais</span></button>`;
@@ -9818,7 +9818,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!sh.hidden)fechar()
 
 /* acompanha a aba ativa, venha de onde vier a troca */
 const _sv=setView;setView=function(v){_sv(v);const a=document.querySelector('.tab[aria-selected="true"]');marcar(a?a.dataset.view:v)};
-try{marcar(localStorage.getItem(KEY+"-view")||"local")}catch(e){marcar("local")}
+try{marcar(localStorage.getItem(KEY+"-view")||"calc")}catch(e){marcar("calc")}
 const atual=document.querySelector('.tab[aria-selected="true"]');if(atual)marcar(atual.dataset.view);
 
 /* instalação como app: só quando o arquivo está hospedado num endereço próprio (fora do claude.ai) */
@@ -9832,7 +9832,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v134";
+  const APP_VERSAO="ras-v135";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
