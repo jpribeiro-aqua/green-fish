@@ -9388,6 +9388,8 @@ const CADS=[[0,"sem cadência"],[7,"a cada 7 dias"],[10,"a cada 10 dias"],[14,"a
 const cadSel=(k,v,attr)=>`<select class="lv-sel bi-cad" ${attr}="${E(k)}" aria-label="Cadência da biometria">${CADS.map(([d,t])=>`<option value="${d}"${v===d?" selected":""}>${t}</option>`).join("")}</select>`;
 function linhasResumo(p){const ps=p==="*"?projs().map(x=>x.id):[p],L=[];for(const pp of ps)for(const u of uniP(pp)){const r=resumoUni(pp,u.id);if(r)L.push({p:pp,u,r})}return L}
 /* v132: trocar tanque ↔ viveiro (um ou todos de uma vez) */
+const TSEL=()=>`<select class="bi-tsel bi-todos" data-bi-todos aria-label="Mudar todos de uma vez" title="Mudar todos de uma vez"><option value="">⇄ mudar todos…</option><option value="tanque">🟦 Todos tanque</option><option value="viveiro">🟫 Todos viveiro</option></select>`;
+const tSel=(k,t)=>`<select class="bi-tsel" data-bi-tipo="${E(k)}" aria-label="Tanque ou viveiro" title="Trocar entre tanque e viveiro"><option value="tanque"${t==="tanque"?" selected":""}>🟦 Tanque</option><option value="viveiro"${t==="viveiro"?" selected":""}>🟫 Viveiro</option></select>`;
 const renTipo=(nome,t)=>{const m=String(nome||"").trim().match(/^(?:tanque\s*\/\s*viveiro|viveiro(?:\s+escavado)?|tanque)\s*[-–:nº°#.]*\s*(\S.*)$/i);return m?(t==="viveiro"?"Viveiro ":"Tanque ")+m[1]:null};
 function setTipo(pp,id,t){const k=uk(pp,id);B.tipoU[k]=t;let nv=null;
   for(const u of B.unisP[pp]||[])if(u.id===id){u.tipo=t;const n=renTipo(u.nome,t);if(n){u.nome=n;nv=n}}
@@ -9395,7 +9397,7 @@ function setTipo(pp,id,t){const k=uk(pp,id);B.tipoU[k]=t;let nv=null;
   if(pp===curPid()){try{const w=document.getElementById("aqua-frame").contentWindow;w.aquaDefTipo&&w.aquaDefTipo(id,t)}catch(e){}}return nv}
 function bindTipo(root){
   root.querySelectorAll("[data-bi-tipo]").forEach(s=>s.addEventListener("change",()=>{const k=s.dataset.biTipo,i=k.indexOf("|");setTipo(k.slice(0,i),k.slice(i+1),s.value);if(B.ftipo&&B.ftipo!=="todas")B.ftipo=s.value;salvar();draw();outros()}));
-  root.querySelectorAll("[data-bi-todos]").forEach(s=>s.addEventListener("change",()=>{const t=s.value;if(!t)return;const p=projSel(),L=linhasResumo(p).filter(({u})=>!u.ras&&!String(u.id).startsWith("ras-")&&u.tipo!==t);
+  root.querySelectorAll("[data-bi-todos]").forEach(s=>s.addEventListener("change",()=>{const t=s.value;if(!t)return;const p=projSel(),L=uniP(p).filter(u=>!u.ras&&!String(u.id).startsWith("ras-")&&u.tipo!==t).map(u=>({p:u.p||p,u}));
     if(!L.length){s.value="";msg="Todos já estão como "+(t==="viveiro"?"viveiro":"tanque")+".";draw();return}
     if(!confirm(`Mudar ${L.length} ${L.length===1?"item":"itens"} para ${t==="viveiro"?"🟫 Viveiro":"🟦 Tanque"}? (os grupos RAS da Calculadora continuam tanques)`)){s.value="";return}
     for(const {p:pp,u} of L)setTipo(pp,u.id,t);if(B.ftipo&&B.ftipo!=="todas")B.ftipo=t;msg=`${L.length} ${L.length===1?"item mudou":"itens mudaram"} para ${t==="viveiro"?"viveiro":"tanque"}.`;salvar();draw();outros()}))}
@@ -9606,8 +9608,8 @@ window.bioCadHTML=()=>{cadR=cadRows();const p=projSel();if(!cadR.length&&!B.amos
   const tag=st=>st==="ok"?`<span class="us-st ok">em dia</span>`:st==="atrasada"?`<span class="us-st bad">atrasada</span>`:st==="sem"?`<span class="us-st wait">sem biometria</span>`:`<span class="us-st">livre</span>`;
   return `<h3 class="bi-h">📏 Biometria · ${E(pNome(p))}</h3>
    <p class="cad-sub">🤖 Automação: ${hook.length} biometria${hook.length===1?"":"s"} recebida${hook.length===1?"":"s"}${ultH?` · última chegou há <b data-bio-rec="${ultH}">${durC(Date.now()-ultH)}</b> · ${hook.filter(a=>a.rec>=hoje).length} hoje`:" · nenhuma ainda (mande com \"tipo\": \"biometria\")"}</p>
-   <div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Tanque ou viveiro</th><th>Cadência da biometria</th><th>Última biometria</th><th>Situação agora</th></tr></thead><tbody>${cadR.map((x,i)=>{const st=estado(x);
-     return `<tr><td><b>${E(x.nome)}</b><small>${TIPO[x.tipo]}${p==="*"?" · "+E(pNome(x.p)):""}${x.r?` · ${x.r.n} biometria${x.r.n===1?"":"s"}`:""}</small></td><td>${cadSel(uk(x.p,x.uid),x.c,"data-bio-cad")}</td>
+   ${cadR.some(x=>!String(x.uid).startsWith("ras-"))?`<div class="bi-todos-m">Tanque ou viveiro: ${TSEL()}</div>`:""}<div class="scroll"><table class="pj-tab ap-hist cad-tab"><thead><tr><th>Tanque ou viveiro${TSEL()}</th><th>Cadência da biometria</th><th>Última biometria</th><th>Situação agora</th></tr></thead><tbody>${cadR.map((x,i)=>{const st=estado(x);
+     return `<tr><td><b>${E(x.nome)}</b><small>${String(x.uid).startsWith("ras-")?TIPO[x.tipo]:tSel(uk(x.p,x.uid),x.tipo)}${p==="*"?" · "+E(pNome(x.p)):""}${x.r?` · ${x.r.n} biometria${x.r.n===1?"":"s"}`:""}</small></td><td>${cadSel(uk(x.p,x.uid),x.c,"data-bio-cad")}</td>
       <td>${x.r?`${dBR(x.r.u.data)}${x.r.u.hora?" "+x.r.u.hora:""}<small>${ORIGB[(x.r.u.origem||{}).tipo]||""} · ${f(x.r.s.pm,x.r.s.pm<10?2:1)} g${x.r.u.rec?` · chegou ${new Date(x.r.u.rec).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}`:""}</small>`:"—"}</td>
       <td>${tag(st)}<small data-bio-t="${i}" data-st="${st}">${E(cadTxt(x))}</small></td></tr>`}).join("")||`<tr><td colspan="4" class="muted">Nenhuma biometria neste projeto.</td></tr>`}</tbody></table></div>
    <p class="muted">Escolha de quantos em quantos dias cada tanque ou viveiro deve ter biometria. A contagem regressiva corre em tempo real; passou do prazo, fica <b>atrasada</b>. Biometrias que chegam pela automação aparecem aqui assim que o app recolhe o webhook.</p>`};
@@ -9802,7 +9804,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v132";
+  const APP_VERSAO="ras-v133";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
