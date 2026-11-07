@@ -9792,7 +9792,7 @@ const ICO={
   ref:'<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>'
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
-const MAIN=[["calc","Calcular"],["local","Local"],["aqua","Água"],["dash","Painel"]];
+const MAIN=[["calc","Calcular"],["local","Local"],["aqua","Água"],["fin","Financeiro"],["dash","Painel"]];
 const ALL=[["calc","Calculadora"],["local","Local e viabilidade"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
@@ -9832,7 +9832,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v135";
+  const APP_VERSAO="ras-v136";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
