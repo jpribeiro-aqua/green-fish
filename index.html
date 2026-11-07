@@ -3190,11 +3190,11 @@ const CORR={
   aqua:{de:["calc","bio"],para:["dash"],txt:"cada grupo da Calculadora vira um tanque/viveiro (volume e ração de projeto) e a espécie vem do lote da Biomassa"},
   bio:{de:["calc"],para:["racao","aqua","dash"],txt:"um lote por grupo de tanques; peso e número de animais definem a biomassa e a ração"},
   racao:{de:["bio","calc"],para:["dash"],txt:"a ração, os tratos e as compras saem dos lotes da Biomassa"},
-  repro:{de:[],para:["dash"],txt:"reprodutores e lotes de reprodução, independentes das outras abas"},
+  repro:{de:[],para:["dash"],txt:"reprodutores e lotes de reprodução; as formas jovens obtidas entram no Financeiro (valor a preço de mercado)"},
   topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"},
   merc:{de:["local","bio","aqua"],para:["dash"],txt:"prospecção, funil, ponto de venda e nichos; usa o preço e os custos do Local, as despescas da Biomassa e a água do AquaNictemeral"},
   benef:{de:[],para:["dash"],txt:"rendimentos, derivados e qualidade; as ligações com as outras abas são as que você marcou em 🔗 Correlações entre abas"},
-  fin:{de:["calc","local","topo","aqua","bio","racao","benef","merc"],para:["dash"],txt:"investimento, custos e receita da Viabilidade, custo e lucro por lote da Biomassa e do Arraçoamento, preço dos clientes do Mercado e os seus lançamentos reais"}};
+  fin:{de:["calc","local","topo","repro","aqua","bio","racao","benef","merc"],para:["dash"],txt:"investimento, custos e receita da Viabilidade, formas jovens produzidas na Reprodução, custo e lucro por lote da Biomassa e do Arraçoamento, preço dos clientes do Mercado e os seus lançamentos reais"}};
 const CORR_GF=[["bio","benef","bio_peso"],["bio","benef","bio_lote"],["local","benef","local_preco"],["aqua","benef","aqua_qual"],["merc","benef","merc_prod"],["merc","benef","merc_frete"],["benef","merc","benef_rend"],["benef","merc","benef_prod"],["benef","merc","benef_qual"]];
 function corrDe(v){const c=CORR[v];if(!c)return null;const o={de:[...c.de],para:[...c.para],txt:c.txt},on=id=>!window.gfCorrOn||gfCorrOn(id);
   for(const [a,b,id] of CORR_GF){if(!on(id))continue;if(b===v&&!o.de.includes(a))o.de.push(a);if(a===v&&!o.para.includes(b))o.para.splice(o.para.length-(o.para.includes("dash")?1:0),0,b)}
@@ -7093,6 +7093,9 @@ function dashEsp(esp){
 }
 /* resumo para a aba Painel: todas as espécies em uso */
 function espAtivas(){return ORDEM.filter(k=>(S.f&&S.f[k])||S.lotes.some(l=>l.esp===k)||plDe(k).an.length)}
+window.reproResumo=()=>{try{try{const s=rd();if(s&&s.f)Object.assign(S,{...s,f:s.f,lotes:s.lotes||[],meus:s.meus||{}})}catch(e){}const ks=espAtivas();if(!ks.length)return null;
+  const info=ks.map(k=>{const L=lotesDe(k),at=plDe(k).an.filter(x=>x.st!=="desc");return {k,n:SP[k].nome,L,at}});
+  return {esp:ks.length,nomes:info.map(i=>i.n),lotes:info.reduce((a,i)=>a+(i.L.n||0),0),obtidos:info.reduce((a,i)=>a+(i.L.obt||0),0),plantel:info.reduce((a,i)=>a+i.at.length,0)}}catch(e){return null}};
 window.reproDashHTML=function(){
   try{const s=rd();if(s&&s.f)Object.assign(S,{...s,f:s.f,lotes:s.lotes||[],meus:s.meus||{}})}catch(e){}
   const ks=espAtivas();
@@ -9834,7 +9837,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v139";
+  const APP_VERSAO="ras-v140";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -9966,6 +9969,7 @@ const unidadesAq=()=>{try{const w=document.getElementById("aqua-frame").contentW
 const merc=()=>{try{return window.gfMercResumo?gfMercResumo():null}catch(e){return null}};
 const benef=()=>{try{return window.gfBenefResumo?gfBenefResumo():null}catch(e){return null}};
 const topo=()=>{try{return window.topoResumo?topoResumo():null}catch(e){return null}};
+const repro=()=>{try{return window.reproResumo?reproResumo():null}catch(e){return null}};
 const bioNome=()=>{try{return window.bioPorNome?bioPorNome():{}}catch(e){return {}}};
 
 /* lançamentos visíveis: manuais + importações em evidência/integradas (painel: só manuais e integradas) */
@@ -10045,7 +10049,7 @@ function barras(L,fmt){if(!L.length)return "";const mx=Math.max(...L.map(x=>Math
 let msg="",msgErr=false,impPrev=null,editId=null;
 const kp=(t,v,s,c)=>`<div class="fin-k${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
 const card=(t,s,body,extra)=>`<section class="card wide"><div class="card-head"><h2>${t}${s?`<span>${s}</span>`:""}</h2>${extra||""}</div><div class="pj-body">${body}</div></section>`;
-function fontesHTML(C){const o=C.o,ms=lotesM(),M=C.M,Bn=benef(),T=topo(),U=unidadesAq(),bn=bioNome(),nB=Object.keys(bn).length;
+function fontesHTML(C){const o=C.o,ms=lotesM(),M=C.M,Bn=benef(),T=topo(),Rp=repro(),U=unidadesAq(),bn=bioNome(),nB=Object.keys(bn).length;
   const it=[["local","📍","Local e viabilidade",o?`investimento ${brl(o.invTot)} · custo ${brl(o.COT)}/ano`:"complete a viabilidade",!!o],
     ["calc","🧮","Calculadora",o?`${nf(o.V,0)} m³ · produção ${nf(o.prod,0)} kg/ano`:"sem dimensionamento",!!o],
     ["bio","🐟","Biomassa",ms.length?`${ms.length} lote${ms.length===1?"":"s"} · custo e receita por lote`:"nenhum lote cadastrado",ms.length>0],
@@ -10053,7 +10057,9 @@ function fontesHTML(C){const o=C.o,ms=lotesM(),M=C.M,Bn=benef(),T=topo(),U=unida
     ["merc","🛒","Camada de mercado",M&&M.ativos?`${M.ativos} cliente(s) · ${brl(M.recAt)}/semana${isFinite(C.frete)?` · frete R$ ${nf(C.frete,2)}/kg`:""}`:"sem clientes ativos",!!(M&&M.ativos)],
     ["benef","🔪","Beneficiamento",Bn&&Bn.plan?`${nf(Bn.plan.kg,1)} kg de derivado planejado`:"sem derivado planejado",!!(Bn&&Bn.plan)],
     ["topo","🗺","Levantamentos",T&&T.custo?`terraplenagem ${brl(T.custo)}`:"sem terraplenagem",!!(T&&T.custo)],
+    ["repro","🥚","Reprodução",Rp&&Rp.obtidos?`${nf(Rp.obtidos,0)} formas jovens obtidas ≈ ${brl(Rp.obtidos/1000*C.pJ)} (a ${brl(C.pJ,0)}/milheiro)`:Rp?`${Rp.lotes} lote(s) · ${Rp.plantel} reprodutor(es) no plantel`:"sem espécie configurada",!!(Rp&&(Rp.obtidos||Rp.lotes))],
     ["aqua","📈","AquaNictemeral",U.length?`${U.length} tanque(s)/viveiro(s) para lançar custos${nB?` · ${nB} com biometria`:""}`:"sem tanques",U.length>0]];
+  const OR=["calc","local","topo","repro","aqua","bio","racao","benef","merc"];it.sort((a,b)=>OR.indexOf(a[0])-OR.indexOf(b[0]));
   return `<div class="fin-src">${it.map(([g,i,t,s,on])=>`<a href="#" data-goto="${g}" class="${on?"":"off"}"><i>${i}</i><span><b>${t} ${on?"✓":""}</b><small>${E(s)}</small></span></a>`).join("")}</div>`}
 function painelHTML(C){const o=C.o,R=C.real,pr=o?o.COE/12*C.meses:NaN;
   let h=card("💼 Painel econômico",`${pid()?E(pid().nome):"sem projeto aberto"} · previsto (Viabilidade) × realizado (lançamentos)`,
