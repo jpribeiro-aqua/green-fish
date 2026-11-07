@@ -9842,7 +9842,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v141";
+  const APP_VERSAO="ras-v142";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -10209,6 +10209,7 @@ window.finDashHTML=()=>{const R=window.gfFinResumo&&gfFinResumo();if(!R||(!R.o&&
    ${o?kp("Lucro previsto",brl(o.LO)+"/ano",`margem ${pct(o.IL)}`,o.LO>=0?"ok":"bad")+kp("Custo por kg",brl(o.cKg,2),`venda a ${brl(o.pV,2)}/kg`,o.cKg<o.pV?"ok":"bad")+kp("Investimento",brl(o.invTot),isFinite(o.PRC)?`retorno em ${nf(o.PRC,1)} anos`:"não se paga no horizonte")+kp("VPL · TIR",brl(o.VPL),pct(o.TIR),o.VPL>=0?"ok":"bad"):""}
    ${re.n?kp("Realizado",brl(re.saldo),`${brl(re.rec)} entradas · ${brl(re.des)} saídas`,re.saldo>=0?"ok":"bad"):kp("Realizado","—","sem lançamentos")}
    ${R.cen?kp("No cenário",brl(R.cen.LO)+"/ano",E(R.cenTxt),R.cen.LO>=0?"ok":"bad"):""}</div></div></section>`};
+window.finAddLanc=l=>{try{F=Object.assign(F,rd());F.lanc.push({id:uid(),...l,em:Date.now()});grava();if(!el.hidden)draw();return true}catch(e){return false}};
 window.gfFinFluxo=()=>{try{return fluxo(calc(true))}catch(e){return []}};
 window.drawFin=draw;
 document.addEventListener("click",e=>{const g=e.target.closest('[data-goto="fin"]');if(g)setTimeout(draw,30)});
@@ -10219,7 +10220,7 @@ document.addEventListener("click",e=>{const g=e.target.closest('[data-goto="fin"
 .ag-nav{display:flex;flex-wrap:wrap;gap:6px}
 .ag-nav button{border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:6px 11px;font:600 13px var(--f-body);cursor:pointer;display:inline-flex;gap:5px;align-items:center}
 .ag-nav button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-.ag-nav button i{font-style:normal;width:8px;height:8px;border-radius:50%;display:inline-block}
+.ag-nav button.ag-prop{border-color:var(--accent);color:var(--accent)}.ag-nav button.ag-prop[aria-pressed="true"]{color:#fff}.ag-nav button i{font-style:normal;width:8px;height:8px;border-radius:50%;display:inline-block}
 .ag-live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}.ag-live b{width:8px;height:8px;border-radius:50%;background:#2e9e6a;display:inline-block;animation:agp 1.6s infinite}
 @keyframes agp{0%{box-shadow:0 0 0 0 rgba(46,158,106,.55)}70%{box-shadow:0 0 0 7px rgba(46,158,106,0)}100%{box-shadow:0 0 0 0 rgba(46,158,106,0)}}
 .ag-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(46%,190px),1fr));gap:10px}
@@ -10364,6 +10365,7 @@ function alertas(){const A=[],now=Date.now();
   (f&&f.lotes||[]).filter(x=>x.lucro<0).slice(0,2).forEach(x=>A.push(["warn","fin",`Lote <b>${E(x.nome)}</b> com prejuízo previsto (${brl(x.lucro)}).`]));
   const m=D.merc();if(m&&!m.prosp)A.push(["info","merc","Faça a prospecção do município na Camada de mercado."]);
   const o=D.local();if(!o)A.push(["info","local","Complete a Calculadora e a Local e viabilidade para ter custos e receita previstos."]);
+  T(()=>(window.gestProp?gestProp.alertas():[]).forEach(([t,h])=>A.push([t,"prop",h])),0);
   const ord={crit:0,warn:1,info:2};return A.sort((x,y)=>ord[x[0]]-ord[y[0]])}
 
 /* ---------- mapa das correlações ---------- */
@@ -10382,7 +10384,7 @@ function pgGeral(){const st=resumo(),ks=ABAS.map(a=>a[0]).filter(pode),ok=ks.fil
   const pct=ks.length?(ok+warn*.5)/ks.length:0,c=crit?STC.crit:warn?STC.warn:STC.ok;
   return `<div class="ag-grid"><div class="ag-box"><h3>💚 Saúde do projeto</h3><div class="ag-ring">${ring(pct,c,nf(pct*100,0)+"%","das abas em dia")}<div class="ag-kpis" style="flex:1;min-width:180px">${kp("Em dia",String(ok),"abas sem problema","ok")}${kp("Atenção",String(warn),"precisam de cuidado",warn?"warn":"")}${kp("Críticas",String(crit),"agir agora",crit?"crit":"")}${kp("Sem dados",String(off),"ainda não preenchidas")}</div></div><p class="ag-h">Verde = em dia · amarelo = atenção · vermelho = crítico · cinza = sem dados. Toque num cartão abaixo para ver o painel daquela aba.</p></div>
     ${box("🔔 O que pede atenção agora",A.length?`<ul class="ag-alerts">${A.slice(0,8).map(([t,g,h])=>`<li style="--tc:${STC[t]}">${h} <a href="#" data-sec="${g}">ver</a></li>`).join("")}</ul>`:`<p class="muted">Nada urgente. Tudo dentro do esperado.</p>`)}</div>
-   <h3 class="bi-h">Todas as abas</h3><div class="ag-tiles">${ks.map(k=>{const s=st[k];return `<button type="button" class="ag-tile ag-${s.st}" data-sec="${k}"><span class="t"><span>${ICO[k]}</span>${E(NOME[k])}</span><b>${s.v}</b><small>${s.s}</small><span class="go">ver painel →</span></button>`}).join("")}</div>
+   <h3 class="bi-h">Todas as abas</h3><div class="ag-tiles">${(()=>{const r=T(()=>window.gestProp&&gestProp.resumo(),null);if(!r)return "";const c=r.c||{},st=r.venc||(c.inativo)?"crit":r.pend||r.baixo?"warn":"ok";return `<button type="button" class="ag-tile ag-${st}" data-sec="prop"><span class="t"><span>🏡</span>Propriedade</span><b>${r.n} viveiro(s)/tanque(s)</b><small>${(c.povoado||0)+(c.despesca||0)} povoado(s) · ${r.pend} tarefa(s) aberta(s) hoje${r.baixo?" · "+r.baixo+" item(ns) acabando":""}</small><span class="go">gerir propriedade →</span></button>`})()}${ks.map(k=>{const s=st[k];return `<button type="button" class="ag-tile ag-${s.st}" data-sec="${k}"><span class="t"><span>${ICO[k]}</span>${E(NOME[k])}</span><b>${s.v}</b><small>${s.s}</small><span class="go">ver painel →</span></button>`}).join("")}</div>
    <div class="ag-grid" style="margin-top:12px">${box("🔗 Como as abas se ligam",mapa(st),"Cada seta mostra para onde os dados de uma aba seguem. Passe o dedo ou o mouse sobre uma aba para destacar as ligações dela; toque para abrir o painel dela.")}</div>`}
 function pgCalc(){const c=D.calc();if(!c)return vazio("calc","Preencha os grupos de tanques (quantidade e volume) na Calculadora.");const {p,r,groups}=c,G=groups.filter(g=>g.vol>0);
   return `<div class="ag-kpis">${kp("Volume de água",nf(p.V,0)+" m³",`${nf(c.nTanks,0)} tanques em ${G.length} grupo(s)`)}${kp("Biomassa máxima",nf(r.BM,0)+" kg",`${nf(Math.floor(r.NP),0)} animais no fim do ciclo`,"ok")}${kp("Ração no pico",nf(r.QR,1)+" kg/d","")}${kp("Mídia do biofiltro",nf(r.VM,1)+" m³","")}${kp("Vazão biofiltro",nf(r.VNh,0)+" L/h",`mecânico ${nf(r.FAFMh,0)} L/h`)}</div>
@@ -10438,16 +10440,16 @@ function pgFin(){const f=D.fin(),R=D.finFx();if(!f||(!f.o&&!f.nL))return vazio("
     ${o?box("📉 Custos do ano",donut(o.ops.filter(x=>isFinite(x[2])&&x[2]>0).map(x=>({n:x[0],v:x[2]})),v=>brl(v),[kfmt(o.COT),"R$ total/ano"]),""):""}
     ${(f.lotes||[]).length?box("🐟 Lucro previsto por lote",bars(f.lotes.map(x=>({n:x.nome,v:x.lucro,c:x.lucro>=0?"#2e9e6a":"#c0392b",s:`custo ${brl(x.cKg,2)}/kg · FCA ${nf(x.fca,2)}`})),v=>brl(v)),"Ração, formas jovens e custos fixos rateados de cada lote × venda da despesca."):""}</div>`}
 function vazio(k,t){return `<div class="ag-box"><p>${ICO[k]} <b>${E(NOME[k])}</b> ainda não tem dados para o painel.</p><p class="muted">${t}</p><a href="#" class="btn solid" data-goto="${k}" style="text-decoration:none">Abrir ${E(NOME[k])}</a></div>`}
-const PG={geral:pgGeral,calc:pgCalc,local:pgLocal,topo:pgTopo,repro:pgRepro,aqua:pgAqua,bio:pgBio,racao:pgRacao,merc:pgMerc,benef:pgBenef,fin:pgFin};
+const PG={prop:()=>window.gestProp?gestProp.html():"<p class=\"muted\">Carregando…</p>",geral:pgGeral,calc:pgCalc,local:pgLocal,topo:pgTopo,repro:pgRepro,aqua:pgAqua,bio:pgBio,racao:pgRacao,merc:pgMerc,benef:pgBenef,fin:pgFin};
 
 /* ---------- desenho ---------- */
 let ult=0;
-function draw(){if(el.hidden)return;const st=T(resumo,{}),sec=PG[G.sec]&&(G.sec==="geral"||pode(G.sec))?G.sec:"geral",pj=T(()=>window.projAtual&&projAtual(),null);let body="";
+function draw(){if(el.hidden)return;const st=T(resumo,{}),sec=PG[G.sec]&&(G.sec==="geral"||G.sec==="prop"||pode(G.sec))?G.sec:"geral",pj=T(()=>window.projAtual&&projAtual(),null);let body="";
   try{body=PG[sec]()}catch(e){body=`<p class="fin-msg err">Não consegui montar este painel: ${E(e.message||e)}</p>`}
   const sy=window.scrollY;ult=Date.now();
   el.innerHTML=`<section class="card wide"><div class="card-head"><h2>🧭 AquaGestão<span>${pj?"Projeto "+E(pj.nome)+" · ":""}todos os dados das abas, correlacionados e em tempo real</span></h2><span class="ag-live" style="margin-left:auto"><b></b>ao vivo · ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span></div>
-    <div class="pj-body"><nav class="ag-nav" aria-label="Painéis da AquaGestão"><button type="button" data-sec="geral" aria-pressed="${sec==="geral"}">🧭 Visão geral</button>${ABAS.filter(a=>pode(a[0])).map(([k,i,n])=>`<button type="button" data-sec="${k}" aria-pressed="${sec===k}"><i style="background:${STC[(st[k]||{}).st||"off"]}"></i>${i} ${E(n.replace(" do pescado","").replace(" e projetos","").replace(" e viabilidade",""))}</button>`).join("")}</nav></div></section>
-   <section class="card wide"><div class="card-head"><h2>${sec==="geral"?"🧭 Visão geral do projeto":ICO[sec]+" "+E(NOME[sec])}<span>${sec==="geral"?"saúde, alertas, cartões e ligações entre as abas":"painel interativo · passe o dedo ou o mouse nos gráficos"}</span></h2>${sec!=="geral"?`<a href="#" class="btn" data-goto="${sec}" style="margin-left:auto;text-decoration:none">Abrir a aba</a>`:""}</div><div class="pj-body">${body}</div></section>`;
+    <div class="pj-body"><nav class="ag-nav" aria-label="Painéis da AquaGestão"><button type="button" data-sec="geral" aria-pressed="${sec==="geral"}">🧭 Visão geral</button><button type="button" class="ag-prop" data-sec="prop" aria-pressed="${sec==="prop"}">🏡 Gerir propriedade</button>${ABAS.filter(a=>pode(a[0])).map(([k,i,n])=>`<button type="button" data-sec="${k}" aria-pressed="${sec===k}"><i style="background:${STC[(st[k]||{}).st||"off"]}"></i>${i} ${E(n.replace(" do pescado","").replace(" e projetos","").replace(" e viabilidade",""))}</button>`).join("")}</nav></div></section>
+   <section class="card wide"><div class="card-head"><h2>${sec==="geral"?"🧭 Visão geral do projeto":sec==="prop"?"🏡 Gerir propriedade":ICO[sec]+" "+E(NOME[sec])}<span>${sec==="geral"?"saúde, alertas, cartões e ligações entre as abas":sec==="prop"?"viveiros e tanques do projeto, ciclos, tarefas, equipe, estoque e equipamentos":"painel interativo · passe o dedo ou o mouse nos gráficos"}</span></h2>${sec!=="geral"&&sec!=="prop"?`<a href="#" class="btn" data-goto="${sec}" style="margin-left:auto;text-decoration:none">Abrir a aba</a>`:""}</div><div class="pj-body">${body}</div></section>`;
   window.scrollTo(0,sy);bind()}
 function bind(){el.querySelectorAll("[data-sec]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();G.sec=b.dataset.sec;grava();untip();draw();const t=el.querySelector(".card:nth-of-type(2)");if(t&&b.closest(".ag-tiles,.ag-alerts"))t.scrollIntoView({behavior:"smooth",block:"start"})}));
   el.querySelectorAll("[data-ag]").forEach(s=>s.addEventListener("change",()=>{G[s.dataset.ag]=s.value;grava();draw()}));
@@ -10458,10 +10460,191 @@ function bind(){el.querySelectorAll("[data-sec]").forEach(b=>b.addEventListener(
   const mp=el.querySelector(".ag-map");if(mp){mp.querySelectorAll(".nd").forEach(n=>{const k=n.dataset.n;n.addEventListener("pointerenter",e=>{mp.classList.add("hl");const lig=new Set([k]);mp.querySelectorAll(".ed").forEach(ed=>{const on=ed.dataset.a===k||ed.dataset.b===k;ed.classList.toggle("on",on);if(on){lig.add(ed.dataset.a);lig.add(ed.dataset.b)}});mp.querySelectorAll(".nd").forEach(x=>x.classList.toggle("on",lig.has(x.dataset.n)));
       const c=T(()=>corrDe(k),null);if(c)tip(e,`<b>${E(k==="dash"?"Painel":NOME[k])}</b>${c.de.length?`<div>recebe de: ${E(c.de.map(x=>NOME[x]||x).join(", "))}</div>`:""}${c.para.length?`<div>alimenta: ${E(c.para.map(x=>x==="dash"?"Painel":NOME[x]||x).join(", "))}</div>`:""}`)});
       n.addEventListener("pointerleave",()=>{mp.classList.remove("hl");mp.querySelectorAll(".ed.on").forEach(x=>x.classList.remove("on"));untip()});n.addEventListener("click",()=>{G.sec=n.dataset.goSec;grava();untip();draw()})})}
+  try{if(window.gestProp&&el.querySelector(".pr-sub"))gestProp.bind(el)}catch(e){console.warn(e)}
   bindLine(el)}
 window.drawGest=draw;
 /* tempo real: redesenha a cada 15 s quando a aba está aberta e o usuário não está mexendo num gráfico */
 let mexendo=false;el.addEventListener("pointerenter",()=>{mexendo=true});el.addEventListener("pointerleave",()=>{mexendo=false});
-setInterval(()=>{if(el.hidden||document.hidden)return;if(mexendo&&Date.now()-ult<60000)return;if(document.activeElement&&el.contains(document.activeElement)&&document.activeElement.tagName==="SELECT")return;draw()},15000);
+setInterval(()=>{if(el.hidden||document.hidden)return;if(mexendo&&Date.now()-ult<60000)return;if(document.activeElement&&el.contains(document.activeElement)&&/SELECT|INPUT|TEXTAREA/.test(document.activeElement.tagName))return;draw()},15000);
+})();
+</script>
+<style>
+.pr-sub{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+.pr-sub button{border:1px solid var(--line);background:var(--bg);color:inherit;border-radius:10px;padding:7px 12px;font:600 13px var(--f-body);cursor:pointer}
+.pr-sub button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.pr-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:10px}
+.pr-u{border:1px solid var(--line);border-top:6px solid var(--sc,#b9c2c0);border-radius:12px;padding:9px 11px;background:var(--surface);display:flex;flex-direction:column;gap:4px;min-width:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.pr-u:hover{box-shadow:0 6px 16px rgba(0,0,0,.08)}.pr-u.sel{outline:2px solid var(--accent)}
+.pr-u h4{margin:0;font-size:14px;display:flex;gap:6px;align-items:center;justify-content:space-between}.pr-u h4 small{font-weight:500;color:var(--muted);font-size:11px}
+.pr-u .st{font:600 11.5px var(--f-body);color:var(--sc);display:flex;align-items:center;gap:5px}.pr-u .st i{width:9px;height:9px;border-radius:50%;background:var(--sc);display:inline-block}
+.pr-u dl{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;margin:0;font-size:12px}.pr-u dt{color:var(--muted)}.pr-u dd{margin:0;text-align:right;font-family:var(--f-mono,monospace)}
+.pr-u .bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.pr-u .bar i{display:block;height:100%;background:var(--sc)}
+.pr-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px;align-items:end}
+.pr-form label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.pr-form input,.pr-form select,.pr-form textarea{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%;box-sizing:border-box}
+.pr-chk{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;align-items:center}.pr-chk label{display:inline-flex;gap:5px;align-items:center}
+.pr-leg{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--muted)}.pr-leg span{display:inline-flex;gap:5px;align-items:center}.pr-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.pr-t{width:100%;border-collapse:collapse;font-size:13px}.pr-t th,.pr-t td{padding:6px 7px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.pr-t th{font-size:11px;text-transform:uppercase;color:var(--muted)}.pr-t td.r{text-align:right;font-family:var(--f-mono,monospace)}
+#view-gest table.pr-t{min-width:0}
+.pr-t tr.done td{opacity:.5;text-decoration:line-through}.pr-t tr.late td:first-child{border-left:3px solid #c0392b}
+.pr-mini{border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:8px;padding:3px 8px;font:600 12px var(--f-body);cursor:pointer}
+.pr-tag{display:inline-block;font:600 11px var(--f-body);padding:1px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
+.pr-tag.auto{background:var(--accent-soft);border-color:transparent;color:var(--accent)}.pr-tag.bad{background:#fde8e6;border-color:transparent;color:#a32a1c}.pr-tag.warn{background:#fff3d6;border-color:transparent;color:#8a5a00}
+.pr-det{border:2px solid var(--accent);border-radius:12px;padding:10px 12px;background:var(--surface)}
+@media (max-width:640px){.pr-t.rsp thead{display:none}.pr-t.rsp,.pr-t.rsp tbody{display:block;width:100%}.pr-t.rsp tr{display:block;border-bottom:1px solid var(--line);padding:6px 0}.pr-t.rsp td{display:block;border:0;padding:2px 4px;text-align:right}.pr-t.rsp td::before{content:attr(data-l);float:left;color:var(--muted);font-size:12px}.pr-t.rsp td:first-child{text-align:left}.pr-t.rsp td:first-child::before{content:none}.pr-t.rsp td:empty{display:none}}
+</style>
+<script>
+/* ===================== v142: AquaGestão · Gerir propriedade ===================== */
+(function(){
+const PK="ras-multitanques-v1-prop",DAY=864e5;
+const rd=()=>{try{return JSON.parse(localStorage.getItem(PK))||{}}catch(e){return {}}};
+let P=Object.assign({fontes:{calc:true,topo:true,aqua:true,man:true},uni:{},manuais:[],ciclos:{},tarefas:[],feitas:{},equipe:[],estoque:[],movs:[],equip:[],sub:"mapa",sel:"",ftipo:"",fst:""},rd());
+const grava=()=>{try{localStorage.setItem(PK,JSON.stringify(P))}catch(e){}};
+const recarrega=()=>{P=Object.assign({fontes:{calc:true,topo:true,aqua:true,man:true},uni:{},manuais:[],ciclos:{},tarefas:[],feitas:{},equipe:[],estoque:[],movs:[],equip:[],sub:"mapa",sel:"",ftipo:"",fst:""},rd())};
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf=(x,d=0)=>isFinite(x)?Number(x).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const Pn=s=>{if(typeof s==="number")return s;s=String(s==null?"":s).trim();if(!s)return NaN;if(/,/.test(s))s=s.replace(/\./g,"").replace(",",".");return parseFloat(s)};
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const iso=t=>{const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const hoje=()=>iso(Date.now()),tsD=s=>s?new Date(s+"T12:00").getTime():NaN,dBR=s=>s?String(s).slice(0,10).split("-").reverse().join("/"):"—";
+const uid=p=>(p||"x")+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+const norm=s=>String(s||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const redraw=()=>{grava();try{window.drawGest&&drawGest()}catch(e){}};
+
+/* estados do viveiro/tanque */
+const ST={vazio:["Vazio / descanso","#9aa6a3"],preparo:["Em preparo","#c0a43a"],povoado:["Povoado (engorda)","#2e9e6a"],despesca:["Despesca próxima","#e07a3f"],manut:["Manutenção","#8e5bb5"],inativo:["Inativo","#c0392b"]};
+const FASES=[["secagem","Secagem/limpeza","#b49a6a"],["calagem","Calagem","#d8c79a"],["adubacao","Adubação e enchimento","#7fb3c8"],["povoamento","Povoamento","#3aa08a"],["engorda","Engorda","#2e9e6a"],["despesca","Despesca","#e07a3f"],["vazio","Vazio / descanso","#b9c2c0"],["manut","Manutenção","#8e5bb5"]];
+const FN=Object.fromEntries(FASES.map(f=>[f[0],f]));
+const TT={racao:"🍽 Arraçoamento",leitura:"📈 Leitura da água",biometria:"📏 Biometria",manut:"🔧 Manutenção",preparo:"🧪 Preparo do viveiro",despesca:"🎣 Despesca",compra:"🛒 Compra",outro:"📝 Outra"};
+const CATE={racao:"Ração",cal:"Cal/calcário",adubo:"Adubo/fertilizante",juv:"Alevinos/pós-larvas",comb:"Combustível",med:"Medicamento/probiótico",emb:"Embalagem/gelo",outro:"Outro"};
+const EQT={aerador:"Aerador",soprador:"Soprador",bomba:"Bomba",gerador:"Gerador",sonda:"Sonda/oxímetro",filtro:"Filtro",veiculo:"Veículo/trator",outro:"Outro"};
+
+/* ---------- viveiros/tanques do projeto ---------- */
+function lerTopo(){try{const S=JSON.parse(localStorage.getItem("ras-multitanques-v1-topo"))||{},ps=S.proj||[],p=ps.find(x=>x.id===S.cur)||ps.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];return ((p&&p.res&&p.res.viv)||[]).map((v,i)=>({id:"t-"+norm(v.nome||("viveiro "+(i+1))),nome:v.nome||("Viveiro "+(i+1)),tipo:"viveiro",area:+v.esp||NaN,vol:+v.agua||NaN,fonte:"topo"}))}catch(e){return []}}
+function unidades(){const L=[],ja=new Set(),add=u=>{const k=norm(u.nome);if(ja.has(u.id)||ja.has("n:"+k))return;ja.add(u.id);ja.add("n:"+k);L.push(u)};
+  if(P.fontes.calc)T(()=>(typeof tanks!=="undefined"?tanks:[]).forEach((t,i)=>{const q=parseFloat(String(t.q).replace(",","."))||0,v=parseFloat(String(t.v).replace(",","."))||0;if(q*v>0)add({id:"ras-"+t.id,nome:(typeof label==="function"?label(t):"")||t.name||("Grupo "+(i+1)),tipo:"tanque",q,vol:q*v,vUn:v,fonte:"calc",sp:t.lot&&t.lot.sp})}),0);
+  if(P.fontes.topo)lerTopo().forEach(add);
+  if(P.fontes.aqua)T(()=>{const w=document.getElementById("aqua-frame").contentWindow;(w&&w.aquaUnidades?w.aquaUnidades():[]).filter(u=>u.id!=="ras-sistema").forEach(u=>add({id:u.id,nome:u.nome,tipo:u.tipo==="viveiro"?"viveiro":"tanque",vol:+u.volume||NaN,fonte:"aqua",sp:u.especie}))},0);
+  if(P.fontes.man)P.manuais.forEach(m=>add({...m,fonte:"man"}));
+  return L.map(u=>{const x=P.uni[u.id]||{};return {...u,...(x.nome?{nome:x.nome}:{}),...(x.tipo?{tipo:x.tipo}:{}),area:isFinite(Pn(x.area))?Pn(x.area):u.area,vol:isFinite(Pn(x.vol))?Pn(x.vol):u.vol,obs:x.obs||"",stMan:x.st||""}})}
+function lotesDe(u){return T(()=>(typeof feedModels==="function"?feedModels()||[]:[]).filter(m=>("ras-"+(m.t&&m.t.id))===u.id||norm(m.name)===norm(u.nome)),[])}
+function aguaDe(u){return T(()=>{const w=document.getElementById("aqua-frame").contentWindow,R=(w&&w.aquaRelatorio?w.aquaRelatorio():[]).filter(r=>r.id===u.id||norm(r.nome)===norm(u.nome));if(!R.length)return null;return R.reduce((a,b)=>(b.data+b.ini>a.data+a.ini?b:a))},null)}
+function info(u){const now=Date.now(),ms=lotesDe(u).filter(m=>m.ok),m=ms.find(x=>now>=x.start&&now<x.harvest)||ms.filter(x=>x.start>now).sort((a,b)=>a.start-b.start)[0]||null,v=m?m.at(now):null,ag=aguaDe(u);
+  let auto="vazio";if(m&&now>=m.start&&now<m.harvest)auto=m.harvest-now<7*DAY?"despesca":"povoado";else if(m&&m.start>now&&m.start-now<20*DAY)auto="preparo";
+  const st=u.stMan||auto,pct=m&&now>=m.start?Math.min(1,(now-m.start)/(m.harvest-m.start)):0;
+  return {m,v,ag,auto,st,pct,dens:v&&v.on&&u.vol>0?v.bio/u.vol:NaN}}
+
+/* ---------- ciclos ---------- */
+function cicloAuto(u,I){const m=I.m;if(!m)return [];const s=m.start,h=m.harvest;return [["secagem",s-15*DAY,s-8*DAY],["calagem",s-8*DAY,s-5*DAY],["adubacao",s-5*DAY,s-DAY],["povoamento",s-DAY,s],["engorda",s,h],["despesca",h,h+2*DAY],["vazio",h+2*DAY,h+12*DAY]].map(([f,a,b])=>({id:"auto-"+f,fase:f,ini:iso(a),fim:iso(b),auto:true}))}
+function ciclo(u,I){const man=P.ciclos[u.id]||[];if(man.length)return man.slice().sort((a,b)=>(a.ini||"").localeCompare(b.ini||""));return cicloAuto(u,I)}
+
+/* ---------- tarefas (manuais + sugeridas pelas outras abas) ---------- */
+function rep(t,dia){if(!t.rep||t.rep==="nao")return t.data===dia;if(dia<t.data)return false;const n=Math.round((tsD(dia)-tsD(t.data))/DAY);return t.rep==="dia"?true:t.rep==="sem"?n%7===0:t.rep==="15"?n%15===0:false}
+function sugeridas(U,dia){const S=[],now=tsD(dia);
+  for(const u of U){const I=info(u);if(I.m&&I.v&&I.v.on)S.push({id:"s-r-"+u.id,tipo:"racao",uid:u.id,titulo:`Arraçoar ${nf(I.v.feed,1)} kg${I.v.fr&&I.v.fr.tratos?` em ${I.v.fr.tratos} tratos`:""} (${E(I.v.phase||"")})`,auto:true});
+    if(I.m&&I.m.harvest>now&&I.m.harvest-now<=DAY*1.5)S.push({id:"s-d-"+u.id,tipo:"despesca",uid:u.id,titulo:`Despesca prevista (${nf(I.m.at(I.m.harvest-DAY/2).bio,0)} kg)`,auto:true});
+    if(I.m&&I.m.start>now&&I.m.start-now<=15*DAY){for(const c of cicloAuto(u,I))if(c.fase!=="engorda"&&c.ini===dia)S.push({id:"s-c-"+u.id+c.fase,tipo:"preparo",uid:u.id,titulo:FN[c.fase][1],auto:true})}
+    if(I.ag&&I.ag.st&&/critico|letal/.test(I.ag.st))S.push({id:"s-a-"+u.id,tipo:"leitura",uid:u.id,titulo:"Água em situação crítica: medir OD de madrugada e corrigir aeração",auto:true})}
+  T(()=>(window.bioDashResumo?bioDashResumo():[]).filter(x=>x.prox&&x.prox<=new Date(now+DAY)).forEach(x=>{const u=U.find(y=>norm(y.nome)===norm(x.nome));S.push({id:"s-b-"+norm(x.nome),tipo:"biometria",uid:u?u.id:"",titulo:`Biometria de ${E(x.nome)}${x.prox<new Date(now)?" (atrasada)":""}`,auto:true})}),0);
+  for(const q of P.equip){const pr=proxMan(q);if(isFinite(pr)&&pr<=now+DAY)S.push({id:"s-m-"+q.id,tipo:"manut",uid:q.uid||"",titulo:`Manutenção de ${E(q.nome)}${pr<now?" (vencida)":""}`,auto:true})}
+  for(const it of P.estoque){const r=restante(it);if(isFinite(r.dias)&&r.dias<=7||(isFinite(Pn(it.min))&&r.qtd<=Pn(it.min)))S.push({id:"s-e-"+it.id,tipo:"compra",uid:"",titulo:`Comprar ${E(it.item)} (resta ${nf(r.qtd,1)} ${E(it.un||"")}${isFinite(r.dias)?`, ≈ ${nf(r.dias,0)} dia(s)`:""})`,auto:true})}
+  return S}
+function tarefasDia(U,dia){return [...sugeridas(U,dia),...P.tarefas.filter(t=>rep(t,dia))].map(t=>({...t,feito:!!P.feitas[t.id+"|"+dia]}))}
+
+/* ---------- estoque e equipamentos ---------- */
+function consumoAuto(it){if(it.cat!=="racao"||!it.auto)return NaN;return T(()=>{let s=0;(typeof feedModels==="function"?feedModels()||[]:[]).forEach(m=>{if(!m.ok)return;const v=m.at(Date.now());if(v.on)s+=v.feed});return s},NaN)}
+function restante(it){const ms=P.movs.filter(m=>m.item===it.id).reduce((a,m)=>a+(Pn(m.qtd)||0),0),qtd=(Pn(it.qtd0)||0)+ms,c=isFinite(consumoAuto(it))?consumoAuto(it):Pn(it.cons);
+  const dias=c>0?qtd/c:NaN;return {qtd,c,dias}}
+function proxMan(q){const u=tsD(q.ult),n=Pn(q.int);return isFinite(u)&&n>0?u+n*DAY:NaN}
+
+/* ---------- resumo e alertas para a AquaGestão ---------- */
+function resumo(){const U=unidades(),Is=U.map(info),c={};Is.forEach(I=>{c[I.st]=(c[I.st]||0)+1});const dia=hoje(),td=tarefasDia(U,dia),pend=td.filter(t=>!t.feito).length;
+  const baixo=P.estoque.filter(it=>{const r=restante(it);return (isFinite(Pn(it.min))&&r.qtd<=Pn(it.min))||(isFinite(r.dias)&&r.dias<=7)}).length,venc=P.equip.filter(q=>proxMan(q)<Date.now()).length;
+  return {n:U.length,c,pend,tot:td.length,baixo,venc,area:U.reduce((s,u)=>s+(isFinite(u.area)?u.area:0),0),vol:U.reduce((s,u)=>s+(isFinite(u.vol)?u.vol:0),0)}}
+function alertas(){const r=resumo(),A=[];if(r.pend)A.push(["warn",`${r.pend} tarefa(s) de hoje ainda abertas na propriedade.`]);if(r.baixo)A.push(["warn",`${r.baixo} item(ns) do estoque acabando ou abaixo do mínimo.`]);if(r.venc)A.push(["crit",`${r.venc} equipamento(s) com manutenção vencida.`]);if(r.c.inativo)A.push(["crit",`${r.c.inativo} viveiro(s)/tanque(s) inativo(s).`]);return A}
+
+/* ---------- telas ---------- */
+const kp=(t,v,s,c)=>`<div class="ag-k${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
+const bx=(t,b,h)=>`<div class="ag-box"><h3>${t}</h3>${b}${h?`<p class="ag-h">${h}</p>`:""}</div>`;
+const tipoIco=t=>t==="viveiro"?"🟫":"🟦";
+function telaMapa(U){const Is=Object.fromEntries(U.map(u=>[u.id,info(u)])),F=U.filter(u=>(!P.ftipo||u.tipo===P.ftipo)&&(!P.fst||Is[u.id].st===P.fst)),r=resumo();
+  const sel=U.find(u=>u.id===P.sel);
+  return `<div class="ag-kpis">${kp("Viveiros e tanques",String(U.length),`${U.filter(u=>u.tipo==="viveiro").length} viveiro(s) · ${U.filter(u=>u.tipo!=="viveiro").length} tanque/grupo(s)`)}${kp("Espelho d'água",r.area?nf(r.area/1e4,2)+" ha":"—","")}${kp("Volume",r.vol?nf(r.vol,0)+" m³":"—","")}${kp("Povoados",String((r.c.povoado||0)+(r.c.despesca||0)),"em engorda","ok")}${kp("Vazios/preparo",String((r.c.vazio||0)+(r.c.preparo||0)),"")}${kp("Manutenção/inativos",String((r.c.manut||0)+(r.c.inativo||0)),"",(r.c.inativo?"crit":""))}</div>
+   <div class="pr-chk"><b style="font-size:12px">Viveiros/tanques vindos de:</b>${[["calc","Calculadora"],["topo","Levantamentos"],["aqua","AquaNictemeral"],["man","Cadastro manual"]].map(([k,t])=>`<label><input type="checkbox" data-pf="${k}"${P.fontes[k]?" checked":""}> ${t}</label>`).join("")}</div>
+   <div class="pr-chk"><select class="ag-sel" data-pp="ftipo"><option value="">Todos os tipos</option><option value="viveiro"${P.ftipo==="viveiro"?" selected":""}>🟫 Viveiros</option><option value="tanque"${P.ftipo==="tanque"?" selected":""}>🟦 Tanques</option></select><select class="ag-sel" data-pp="fst"><option value="">Todas as situações</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}"${P.fst===k?" selected":""}>${v[0]}</option>`).join("")}</select>
+     <span class="pr-leg">${Object.values(ST).map(v=>`<span><i style="background:${v[1]}"></i>${v[0]}</span>`).join("")}</span></div>
+   ${F.length?`<div class="pr-map">${F.map(u=>{const I=Is[u.id],c=ST[I.st]||ST.vazio,v=I.v;return `<button type="button" class="pr-u${P.sel===u.id?" sel":""}" style="--sc:${c[1]}" data-psel="${E(u.id)}"><h4><span>${tipoIco(u.tipo)} ${E(u.nome)}</span><small>${{calc:"Calculadora",topo:"Levantamento",aqua:"AquaNictemeral",man:"manual"}[u.fonte]}</small></h4>
+       <span class="st"><i></i>${c[0]}${u.stMan?"":` <span class="pr-tag auto">automático</span>`}</span>
+       <dl>${isFinite(u.area)?`<dt>Área</dt><dd>${nf(u.area,0)} m²</dd>`:""}${isFinite(u.vol)?`<dt>Volume</dt><dd>${nf(u.vol,0)} m³</dd>`:""}${I.m?`<dt>Lote</dt><dd>${E(I.m.sp&&I.m.sp.name||"")}</dd>`:""}${v&&v.on?`<dt>Biomassa</dt><dd>${nf(v.bio,0)} kg</dd><dt>Peso médio</dt><dd>${nf(v.w,v.w<10?1:0)} g</dd>`:""}${isFinite(I.dens)?`<dt>Densidade</dt><dd>${nf(I.dens,1)} kg/m³</dd>`:""}${I.m?`<dt>${Date.now()<I.m.start?"Povoamento":"Despesca"}</dt><dd>${dBR(iso(Date.now()<I.m.start?I.m.start:I.m.harvest))}</dd>`:""}${I.ag?`<dt>Água</dt><dd>${I.ag.odMin!=null?"OD "+nf(I.ag.odMin,1):""} ${/critico|letal/.test(I.ag.st)?"🔴":I.ag.st==="alerta"?"🟡":"🟢"}</dd>`:""}</dl>
+       ${I.m&&Date.now()>=I.m.start?`<div class="bar" title="${nf(I.pct*100,0)} % do ciclo"><i style="width:${I.pct*100}%"></i></div>`:""}</button>`}).join("")}</div>`:`<p class="muted">Nenhum viveiro/tanque. Marque uma origem acima ou cadastre um abaixo.</p>`}
+   ${sel?detalhe(sel,Is[sel.id]):""}
+   ${bx("➕ Cadastrar viveiro/tanque à mão",`<div class="pr-form"><label>Nome<input id="pm-nome" placeholder="ex.: Viveiro 5"></label><label>Tipo<select id="pm-tipo"><option value="viveiro">🟫 Viveiro</option><option value="tanque">🟦 Tanque</option></select></label><label>Área (m²)<input id="pm-area" inputmode="decimal"></label><label>Volume (m³)<input id="pm-vol" inputmode="decimal"></label><button type="button" class="btn solid" data-pa="add-uni">Cadastrar</button></div>`,"Os cadastrados à mão ficam só na gestão da propriedade. Para medir água ou fazer biometria, crie também no AquaNictemeral.")}`}
+function detalhe(u,I){const x=P.uni[u.id]||{};return `<div class="pr-det"><h3 style="margin:0 0 6px">${tipoIco(u.tipo)} ${E(u.nome)} · ficha</h3>
+   <div class="pr-form"><label>Situação<select data-pu="st"><option value="">Automática (${ST[I.auto][0]})</option>${Object.entries(ST).map(([k,v])=>`<option value="${k}"${x.st===k?" selected":""}>${v[0]}</option>`).join("")}</select></label>
+    <label>Nome na propriedade<input data-pu="nome" value="${E(x.nome||"")}" placeholder="${E(u.nome)}"></label><label>Tipo<select data-pu="tipo"><option value="">${u.tipo==="viveiro"?"🟫 Viveiro":"🟦 Tanque"} (da origem)</option><option value="viveiro"${x.tipo==="viveiro"?" selected":""}>🟫 Viveiro</option><option value="tanque"${x.tipo==="tanque"?" selected":""}>🟦 Tanque</option></select></label>
+    <label>Área (m²)<input data-pu="area" inputmode="decimal" value="${E(x.area||"")}" placeholder="${isFinite(u.area)?nf(u.area,0):""}"></label><label>Volume (m³)<input data-pu="vol" inputmode="decimal" value="${E(x.vol||"")}" placeholder="${isFinite(u.vol)?nf(u.vol,0):""}"></label>
+    <label style="grid-column:1/-1">Observações<textarea data-pu="obs" rows="2" placeholder="ex.: talude com erosão no canto norte">${E(x.obs||"")}</textarea></label></div>
+   <p class="ag-h">${I.m?`Lote: ${E(I.m.name)} · ${nf(I.m.nT,0)} animais · povoado em ${dBR(iso(I.m.start))} · despesca ${dBR(iso(I.m.harvest))}.`:"Sem lote na Biomassa."} Tarefas abertas: ${tarefasDia([u],hoje()).filter(t=>!t.feito).length}.</p>
+   <div class="pr-chk"><button type="button" class="pr-mini" data-pa="ir-ciclo">🔄 Ver ciclo</button><button type="button" class="pr-mini" data-pa="ir-tar">✅ Tarefas</button>${u.fonte==="man"?`<button type="button" class="pr-mini" data-pa="del-uni">🗑 Remover</button>`:""}<button type="button" class="pr-mini" data-pa="fechar">Fechar ficha</button></div></div>`}
+function telaCiclos(U){const now=Date.now(),rows=U.map(u=>{const I=info(u);return {u,I,c:ciclo(u,I)}}),all=rows.flatMap(r=>r.c.flatMap(c=>[tsD(c.ini),tsD(c.fim)])).filter(isFinite);
+  const sel=U.find(u=>u.id===P.sel)||U[0];
+  let g="";if(all.length){const x0=Math.min(now-30*DAY,...all),x1=Math.max(now+30*DAY,...all),nar=innerWidth<600,W=nar?380:760,lw=nar?96:150,rh=26,H=rows.length*rh+30,X=t=>lw+(t-x0)/(x1-x0)*(W-lw-8);
+    for(let m=new Date(new Date(x0).getFullYear(),new Date(x0).getMonth(),1).getTime();m<=x1;m=new Date(new Date(m).getFullYear(),new Date(m).getMonth()+1,1).getTime())if(m>=x0)g+=`<line x1="${X(m)}" x2="${X(m)}" y1="0" y2="${H-18}" stroke="currentColor" stroke-opacity=".08"/><text x="${X(m)+2}" y="${H-5}" font-size="9.5" fill="currentColor" fill-opacity=".6">${new Date(m).toLocaleDateString("pt-BR",{month:"short"})}</text>`;
+    rows.forEach((r,i)=>{const y=i*rh+4;g+=`<text x="2" y="${y+15}" font-size="11" fill="currentColor">${E(r.u.nome.slice(0,nar?13:22))}</text>`;for(const c of r.c){const a=tsD(c.ini),b=tsD(c.fim);if(!isFinite(a)||!isFinite(b))continue;const f=FN[c.fase]||FN.manut;g+=`<rect x="${X(a)}" y="${y+2}" width="${Math.max(2,X(b)-X(a))}" height="${rh-8}" rx="4" fill="${f[2]}" opacity="${c.auto?.6:1}" data-tt="${E(r.u.nome+" · "+f[1]+": "+dBR(c.ini)+" a "+dBR(c.fim)+(c.auto?" (sugerido pelo lote)":"")+(c.obs?" · "+c.obs:""))}"/>`}});
+    g+=`<line x1="${X(now)}" x2="${X(now)}" y1="0" y2="${H-18}" stroke="#c0392b" stroke-dasharray="4 3"/><text x="${X(now)+3}" y="10" font-size="10" fill="#c0392b">hoje</text>`;
+    g=`<svg class="ag-svg" viewBox="0 0 ${W} ${H}">${g}</svg>`}
+  const cs=sel?ciclo(sel,info(sel)):[];
+  return `${bx("🔄 Linha do tempo dos ciclos",(g||`<p class="muted">Sem ciclos ainda: cadastre o povoamento na Biomassa ou lance as fases abaixo.</p>`)+`<div class="pr-leg">${FASES.map(f=>`<span><i style="background:${f[2]}"></i>${f[1]}</span>`).join("")}</div>`,"Barras claras são sugeridas pelo lote da Biomassa (preparo antes do povoamento, engorda até a despesca, descanso depois). Lance as fases reais para substituir.")}
+   ${sel?bx(`📋 Fases de ${E(sel.nome)} <select class="ag-sel" data-pp="sel">${U.map(u=>`<option value="${E(u.id)}"${u.id===sel.id?" selected":""}>${E(u.nome)}</option>`).join("")}</select>`,
+     `<div class="scroll"><table class="pr-t rsp"><thead><tr><th>Fase</th><th>Início</th><th>Fim</th><th>Obs.</th><th></th></tr></thead><tbody>${cs.map(c=>`<tr><td>${E((FN[c.fase]||FN.manut)[1])} ${c.auto?'<span class="pr-tag auto">sugerida</span>':""}</td><td data-l="Início">${dBR(c.ini)}</td><td data-l="Fim">${dBR(c.fim)}</td><td data-l="Obs.">${E(c.obs||"")}</td><td>${c.auto?"":`<button type="button" class="pr-mini" data-pdc="${E(c.id)}">🗑</button>`}</td></tr>`).join("")||`<tr><td colspan="5" class="muted">Sem fases.</td></tr>`}</tbody></table></div>
+      <div class="pr-form" style="margin-top:8px"><label>Fase<select id="pc-fase">${FASES.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join("")}</select></label><label>Início<input type="date" id="pc-ini" value="${hoje()}"></label><label>Fim<input type="date" id="pc-fim" value="${iso(Date.now()+7*DAY)}"></label><label>Obs.<input id="pc-obs" placeholder="ex.: 2 t/ha de calcário"></label><button type="button" class="btn solid" data-pa="add-fase">Lançar fase</button>${cs.some(c=>c.auto)?`<button type="button" class="btn" data-pa="fixar-ciclo">Usar o sugerido como base</button>`:""}</div>`):""}`}
+function telaTarefas(U){const dia=P.dia||hoje(),td=tarefasDia(U,dia),nm=id=>(U.find(u=>u.id===id)||{}).nome||"Propriedade",sem=[];for(let k=0;k<7;k++){const d=iso(tsD(dia)+k*DAY),t=tarefasDia(U,d);sem.push({d,n:t.length,f:t.filter(x=>x.feito).length})}
+  return `<div class="ag-kpis">${kp("Tarefas do dia",String(td.length),dBR(dia))}${kp("Feitas",String(td.filter(t=>t.feito).length),"","ok")}${kp("Abertas",String(td.filter(t=>!t.feito).length),"",td.some(t=>!t.feito)?"warn":"")}${kp("Equipe",String(P.equipe.length),P.equipe.map(p=>p.nome).slice(0,3).join(", "))}</div>
+   <div class="pr-chk"><button type="button" class="pr-mini" data-pdia="-1">◀</button><input type="date" class="ag-sel" data-pp="dia" value="${dia}"><button type="button" class="pr-mini" data-pdia="1">▶</button><button type="button" class="pr-mini" data-pdia="0">Hoje</button>
+    <span class="pr-leg">${sem.map(s=>`<span title="${s.f}/${s.n} feitas">${dBR(s.d).slice(0,5)}: <b>${s.f}/${s.n}</b></span>`).join("")}</span></div>
+   ${bx("✅ Lista do dia",`<div class="scroll"><table class="pr-t rsp"><thead><tr><th></th><th>Tarefa</th><th>Onde</th><th>Responsável</th><th>Repete</th><th></th></tr></thead><tbody>${td.map(t=>`<tr class="${t.feito?"done":""}"><td><input type="checkbox" data-pfeito="${E(t.id)}"${t.feito?" checked":""} aria-label="Feita"></td><td><span title="${E((TT[t.tipo]||"📝 Outra").replace(/^\S+\s/,""))}">${(TT[t.tipo]||"📝").split(" ")[0]}</span> ${t.titulo?t.titulo:""}${t.auto?' <span class="pr-tag auto">automática</span>':""}</td><td data-l="Onde">${E(t.uid?nm(t.uid):"Propriedade")}</td><td data-l="Responsável">${t.auto?`<select class="ag-sel" data-presp="${E(t.id)}"><option value="">—</option>${P.equipe.map(p=>`<option${(P.respAuto||{})[t.tipo]===p.nome?" selected":""}>${E(p.nome)}</option>`).join("")}</select>`:E(t.resp||"—")}</td><td data-l="Repete">${t.auto?"conforme as abas":{nao:"não",dia:"todo dia",sem:"toda semana","15":"a cada 15 dias"}[t.rep||"nao"]}</td><td>${t.auto?"":`<button type="button" class="pr-mini" data-pdt="${E(t.id)}">🗑</button>`}</td></tr>`).join("")||`<tr><td colspan="6" class="muted">Nada para este dia.</td></tr>`}</tbody></table></div>`,"As automáticas vêm das outras abas: ração do dia (Arraçoamento), biometrias (cadência), despesca e preparo (Biomassa), água crítica (AquaNictemeral), manutenção e compras (abaixo). O responsável escolhido numa automática vale para todas daquele tipo.")}
+   <div class="ag-grid">${bx("➕ Nova tarefa",`<div class="pr-form"><label>Tipo<select id="pt-tipo">${Object.entries(TT).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label><label style="grid-column:span 2">Descrição<input id="pt-tit" placeholder="ex.: limpar telas de saída"></label><label>Onde<select id="pt-u"><option value="">Propriedade</option>${U.map(u=>`<option value="${E(u.id)}">${E(u.nome)}</option>`).join("")}</select></label><label>Responsável<select id="pt-resp"><option value="">—</option>${P.equipe.map(p=>`<option>${E(p.nome)}</option>`).join("")}</select></label><label>Data<input type="date" id="pt-data" value="${dia}"></label><label>Repetir<select id="pt-rep"><option value="nao">Não</option><option value="dia">Todo dia</option><option value="sem">Toda semana</option><option value="15">A cada 15 dias</option></select></label><button type="button" class="btn solid" data-pa="add-tar">Criar</button></div>`)}
+    ${bx("👷 Equipe",`<div class="scroll"><table class="pr-t"><tbody>${P.equipe.map(p=>`<tr><td><b>${E(p.nome)}</b></td><td>${E(p.funcao||"")}</td><td>${E(p.tel||"")}</td><td><button type="button" class="pr-mini" data-pde="${E(p.id)}">🗑</button></td></tr>`).join("")||`<tr><td class="muted">Ninguém cadastrado.</td></tr>`}</tbody></table></div><div class="pr-form" style="margin-top:6px"><label>Nome<input id="pe-nome"></label><label>Função<input id="pe-fun" placeholder="tratador, técnico…"></label><label>Contato<input id="pe-tel"></label><button type="button" class="btn" data-pa="add-eq">Adicionar</button></div>`)}</div>`}
+function telaEstoque(U){const now=Date.now();
+  return `<div style="display:grid;gap:12px">${bx("📦 Estoque de insumos",`<div class="scroll"><table class="pr-t rsp"><thead><tr><th>Item</th><th class="r">Saldo</th><th class="r">Consumo/dia</th><th class="r">Dura</th><th>Movimentar</th><th></th></tr></thead><tbody>${P.estoque.map(it=>{const r=restante(it),bx2=(isFinite(Pn(it.min))&&r.qtd<=Pn(it.min))||(isFinite(r.dias)&&r.dias<=7);
+      return `<tr><td><b>${E(it.item)}</b><br><small class="muted">${E(CATE[it.cat]||"")}${isFinite(Pn(it.min))?` · mínimo ${nf(Pn(it.min),0)} ${E(it.un)}`:""}</small></td><td class="r" data-l="Saldo">${nf(r.qtd,1)} ${E(it.un)}</td><td class="r" data-l="Consumo/dia">${isFinite(r.c)?nf(r.c,1)+" "+E(it.un):"—"}${isFinite(consumoAuto(it))?' <span class="pr-tag auto">Arraçoamento</span>':""}</td><td class="r" data-l="Dura">${isFinite(r.dias)?`<span class="pr-tag ${bx2?"bad":r.dias<20?"warn":""}">${nf(r.dias,0)} dia(s)</span>`:bx2?'<span class="pr-tag bad">abaixo do mínimo</span>':"—"}</td>
+       <td data-l="Movimentar"><span class="pr-chk"><input class="ag-sel" style="width:80px" inputmode="decimal" data-pmq="${E(it.id)}" placeholder="qtd"><input class="ag-sel" style="width:90px" inputmode="decimal" data-pmv="${E(it.id)}" placeholder="R$ (opc.)"><button type="button" class="pr-mini" data-pmov="+" data-it="${E(it.id)}">+ Entrada</button><button type="button" class="pr-mini" data-pmov="-" data-it="${E(it.id)}">− Saída</button></span></td><td><button type="button" class="pr-mini" data-pdi="${E(it.id)}">🗑</button></td></tr>`}).join("")||`<tr><td colspan="6" class="muted">Nenhum item. Cadastre abaixo.</td></tr>`}</tbody></table></div>
+     <div class="pr-form" style="margin-top:8px"><label>Item<input id="pi-item" placeholder="ex.: Ração 32% PB 4 mm"></label><label>Categoria<select id="pi-cat">${Object.entries(CATE).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label><label>Unidade<input id="pi-un" value="kg"></label><label>Saldo inicial<input id="pi-q0" inputmode="decimal"></label><label>Mínimo<input id="pi-min" inputmode="decimal"></label><label>Consumo/dia<input id="pi-cons" inputmode="decimal" placeholder="ração: automático"></label><button type="button" class="btn solid" data-pa="add-item">Cadastrar</button></div>`,"Ração com consumo em branco usa a ração do dia da aba Arraçoamento. Entrada com valor em R$ vira despesa no Financeiro.")}
+   ${bx("⚙️ Equipamentos",`<div class="scroll"><table class="pr-t rsp"><thead><tr><th>Equipamento</th><th>Onde</th><th>Última manutenção</th><th>Próxima</th><th></th></tr></thead><tbody>${P.equip.map(q=>{const pr=proxMan(q),late=pr<now;return `<tr class="${late?"late":""}"><td><b>${E(q.nome)}</b><br><small class="muted">${E(EQT[q.tipo]||"")}${q.pot?" · "+E(q.pot):""}</small></td><td data-l="Onde">${E((U.find(u=>u.id===q.uid)||{}).nome||"Propriedade")}</td><td data-l="Última">${dBR(q.ult)}</td><td data-l="Próxima">${isFinite(pr)?`<span class="pr-tag ${late?"bad":pr-now<7*DAY?"warn":""}">${dBR(iso(pr))}</span>`:"—"}</td><td><span class="pr-chk"><button type="button" class="pr-mini" data-pman="${E(q.id)}">🔧 Feita hoje</button><button type="button" class="pr-mini" data-pdq="${E(q.id)}">🗑</button></span></td></tr>`}).join("")||`<tr><td colspan="5" class="muted">Nenhum equipamento.</td></tr>`}</tbody></table></div>
+     <div class="pr-form" style="margin-top:8px"><label>Nome<input id="pq-nome" placeholder="ex.: Aerador 2 cv nº 1"></label><label>Tipo<select id="pq-tipo">${Object.entries(EQT).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label><label>Onde<select id="pq-u"><option value="">Propriedade</option>${U.map(u=>`<option value="${E(u.id)}">${E(u.nome)}</option>`).join("")}</select></label><label>Potência<input id="pq-pot" placeholder="2 cv"></label><label>Última manutenção<input type="date" id="pq-ult" value="${hoje()}"></label><label>Intervalo (dias)<input id="pq-int" inputmode="numeric" value="30"></label><button type="button" class="btn solid" data-pa="add-eqp">Cadastrar</button></div>`,"Manutenção vencida aparece nas tarefas do dia e nos alertas da AquaGestão.")}</div>`}
+
+window.gestProp={
+  html(){recarrega();const U=unidades(),SUB=[["mapa","🗺 Viveiros e tanques"],["ciclo","🔄 Ciclos"],["tar","✅ Tarefas e equipe"],["est","📦 Estoque e equipamentos"]],s=SUB.some(x=>x[0]===P.sub)?P.sub:"mapa";
+    return `<nav class="pr-sub">${SUB.map(([k,t])=>`<button type="button" data-psub="${k}" aria-pressed="${k===s}">${t}</button>`).join("")}</nav>`+(s==="mapa"?telaMapa(U):s==="ciclo"?telaCiclos(U):s==="tar"?telaTarefas(U):telaEstoque(U))},
+  resumo,alertas,
+  bind(el){const q=s=>el.querySelector(s),v=s=>(q(s)||{}).value||"";
+    el.querySelectorAll("[data-psub]").forEach(b=>b.addEventListener("click",()=>{P.sub=b.dataset.psub;redraw()}));
+    el.querySelectorAll("[data-pf]").forEach(c=>c.addEventListener("change",()=>{P.fontes[c.dataset.pf]=c.checked;redraw()}));
+    el.querySelectorAll("[data-pp]").forEach(s=>s.addEventListener("change",()=>{P[s.dataset.pp]=s.value;redraw()}));
+    el.querySelectorAll("[data-psel]").forEach(b=>b.addEventListener("click",()=>{P.sel=P.sel===b.dataset.psel?"":b.dataset.psel;redraw();setTimeout(()=>{const d=el.querySelector(".pr-det");d&&d.scrollIntoView({behavior:"smooth",block:"nearest"})},50)}));
+    el.querySelectorAll("[data-pu]").forEach(i=>i.addEventListener("change",()=>{const x=P.uni[P.sel]=P.uni[P.sel]||{};x[i.dataset.pu]=i.value.trim();redraw()}));
+    el.querySelectorAll("[data-pdia]").forEach(b=>b.addEventListener("click",()=>{const k=+b.dataset.pdia;P.dia=k?iso(tsD(P.dia||hoje())+k*DAY):hoje();redraw()}));
+    el.querySelectorAll("[data-pfeito]").forEach(c=>c.addEventListener("change",()=>{const k=c.dataset.pfeito+"|"+(P.dia||hoje());if(c.checked)P.feitas[k]=Date.now();else delete P.feitas[k];redraw()}));
+    el.querySelectorAll("[data-presp]").forEach(s=>s.addEventListener("change",()=>{const t=s.closest("tr");P.respAuto=P.respAuto||{};const tipo=(tarefasDia(unidades(),P.dia||hoje()).find(x=>x.id===s.dataset.presp)||{}).tipo;if(tipo)P.respAuto[tipo]=s.value;redraw()}));
+    const del=(attr,arr,key)=>el.querySelectorAll(`[${attr}]`).forEach(b=>b.addEventListener("click",()=>{if(!confirm("Apagar?"))return;P[arr]=P[arr].filter(x=>x[key||"id"]!==b.getAttribute(attr));redraw()}));
+    del("data-pdt","tarefas");del("data-pde","equipe");del("data-pdi","estoque");del("data-pdq","equip");
+    el.querySelectorAll("[data-pdc]").forEach(b=>b.addEventListener("click",()=>{const s=P.sel||(unidades()[0]||{}).id;P.ciclos[s]=(P.ciclos[s]||[]).filter(c=>c.id!==b.dataset.pdc);redraw()}));
+    el.querySelectorAll("[data-pman]").forEach(b=>b.addEventListener("click",()=>{const x=P.equip.find(e=>e.id===b.dataset.pman);if(x){x.ult=hoje();redraw()}}));
+    el.querySelectorAll("[data-pmov]").forEach(b=>b.addEventListener("click",()=>{const id=b.dataset.it,qt=Pn(v(`[data-pmq="${id}"]`)),rs=Pn(v(`[data-pmv="${id}"]`)),it=P.estoque.find(x=>x.id===id);if(!(qt>0)||!it)return alert("Informe a quantidade.");
+      const sg=b.dataset.pmov==="+"?1:-1;P.movs.push({id:"m"+Date.now(),item:id,data:hoje(),qtd:sg*qt,valor:rs});
+      if(sg>0&&rs>0&&window.finAddLanc){const cat={racao:"racao",juv:"juv",comb:"frete",emb:"benef",cal:"ins",adubo:"ins",med:"ins"}[it.cat]||"outd";finAddLanc({t:"d",d:hoje(),cat,v:rs,q:qt,un:it.un,desc:"Compra: "+it.item+" (estoque da propriedade)"})}
+      redraw()}));
+    const A={
+      "add-uni":()=>{const n=v("#pm-nome").trim();if(!n)return alert("Informe o nome.");P.manuais.push({id:"m-"+uid(),nome:n,tipo:v("#pm-tipo"),area:Pn(v("#pm-area")),vol:Pn(v("#pm-vol"))});P.fontes.man=true},
+      "del-uni":()=>{if(!confirm("Remover este viveiro/tanque cadastrado à mão?"))return false;P.manuais=P.manuais.filter(m=>m.id!==P.sel);P.sel=""},
+      "fechar":()=>{P.sel=""},"ir-ciclo":()=>{P.sub="ciclo"},"ir-tar":()=>{P.sub="tar"},
+      "add-fase":()=>{const s=P.sel||(unidades()[0]||{}).id;if(!s)return false;const a=v("#pc-ini"),b=v("#pc-fim");if(!a||!b||b<a)return alert("Confira as datas.");(P.ciclos[s]=P.ciclos[s]||[]).push({id:"f"+uid(),fase:v("#pc-fase"),ini:a,fim:b,obs:v("#pc-obs").trim()})},
+      "fixar-ciclo":()=>{const U=unidades(),u=U.find(x=>x.id===P.sel)||U[0];if(!u)return false;P.ciclos[u.id]=cicloAuto(u,info(u)).map(c=>({...c,id:"f"+uid(),auto:false}))},
+      "add-tar":()=>{const t=v("#pt-tit").trim();if(!t)return alert("Descreva a tarefa.");P.tarefas.push({id:"t"+uid(),tipo:v("#pt-tipo"),titulo:E(t),uid:v("#pt-u"),resp:v("#pt-resp"),data:v("#pt-data")||hoje(),rep:v("#pt-rep")})},
+      "add-eq":()=>{const n=v("#pe-nome").trim();if(!n)return alert("Informe o nome.");P.equipe.push({id:"p"+uid(),nome:n,funcao:v("#pe-fun").trim(),tel:v("#pe-tel").trim()})},
+      "add-item":()=>{const n=v("#pi-item").trim();if(!n)return alert("Informe o item.");const cat=v("#pi-cat");P.estoque.push({id:"i"+uid(),item:n,cat,un:v("#pi-un").trim()||"kg",qtd0:Pn(v("#pi-q0"))||0,min:v("#pi-min"),cons:v("#pi-cons"),auto:cat==="racao"&&!v("#pi-cons").trim()})},
+      "add-eqp":()=>{const n=v("#pq-nome").trim();if(!n)return alert("Informe o nome.");P.equip.push({id:"q"+uid(),nome:n,tipo:v("#pq-tipo"),uid:v("#pq-u"),pot:v("#pq-pot").trim(),ult:v("#pq-ult"),int:v("#pq-int")})}};
+    el.querySelectorAll("[data-pa]").forEach(b=>b.addEventListener("click",()=>{const f=A[b.dataset.pa];if(f&&f()!==false)redraw()}))}
+};
 })();
 </script>
