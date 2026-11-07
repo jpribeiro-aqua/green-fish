@@ -882,6 +882,7 @@ body.has-bnav .imp-box{bottom:76px}
     <button type="button" class="tab" role="tab" id="tab-local" aria-controls="view-local" data-view="local">Local e viabilidade</button>
     <button type="button" class="tab" role="tab" id="tab-topo" aria-controls="view-topo" data-view="topo">Levantamentos e projetos</button>
     <button type="button" class="tab" role="tab" id="tab-gest" aria-controls="view-gest" data-view="gest">AquaGestão</button>
+    <button type="button" class="tab" role="tab" id="tab-dados" aria-controls="view-dados" data-view="dados">Análise de dados</button>
     <button type="button" class="tab" role="tab" id="tab-repro" aria-controls="view-repro" data-view="repro">Reprodução</button>
     <button type="button" class="tab" role="tab" id="tab-aqua" aria-controls="view-aqua" data-view="aqua">AquaNictemeral</button>
     <button type="button" class="tab" role="tab" id="tab-bio" aria-controls="view-bio" data-view="bio">Biomassa total em tempo real</button>
@@ -899,6 +900,7 @@ body.has-bnav .imp-box{bottom:76px}
 
   <div id="pj-gate" class="pjg-host" hidden></div>
   <div id="foco-bar" class="foco-bar" hidden></div>
+  <div id="dados-bar" class="dd-bar" hidden></div>
   <div id="grp-bar" class="grp-bar" hidden></div>
   <div class="dash" id="view-dash" role="tabpanel" aria-labelledby="tab-dash"></div>
   <div class="dash" id="view-local" role="tabpanel" aria-labelledby="tab-local" hidden></div>
@@ -908,6 +910,7 @@ body.has-bnav .imp-box{bottom:76px}
   <div class="dash" id="view-benef" role="tabpanel" aria-labelledby="tab-benef" hidden></div>
   <div class="dash" id="view-fin" role="tabpanel" aria-labelledby="tab-fin" hidden></div>
   <div class="dash" id="view-gest" role="tabpanel" aria-labelledby="tab-gest" hidden></div>
+  <div class="dash" id="view-dados" role="tabpanel" aria-labelledby="tab-dados" hidden></div>
   <div class="dash" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden></div>
   <div class="dash" id="view-users" role="tabpanel" aria-labelledby="tab-users" hidden></div>
 
@@ -3240,7 +3243,7 @@ function ctxHTML(v){const pa=window.projAtual?window.projAtual():null,og=ctxOrig
     const jE=L=>L.length>1?L.slice(0,-1).join(", ")+" e "+L[L.length-1]:L.join("");corr=`🔗 ${de.length?`Recebe de ${jE(de.map(lk))} → `:""}<b>${esc(NOMES[v])}</b>${para.length?` → alimenta ${para.map(lk).join(", ")}`:""}<small>${esc(c.txt)}${v==="aqua"&&og.ras===false?" · agora os tanques/viveiros não estão vinculados à Calculadora":""}</small>`}
   return `<div class="ctx"><span>📁 Projeto: <b>${pa?esc(pa.nome):"não salvo"}</b></span><span>🗂 Origem dos dados (AquaNictemeral): <b>${esc(og.txt)}</b></span><span>📌 Painel: <b>${foco?esc(focoNome(foco)):"todas as abas"}</b></span></div>${corr?`<div class="ctx-corr">${corr}</div>`:""}`}
 let focoView="dash";window.focoRefresh=()=>{const t=document.querySelector('.tab[aria-selected="true"]');drawFocoBar(t?t.dataset.view:focoView)};
-function drawFocoBar(v){const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";focoView=v;const cx=ctxHTML(v);
+function drawFocoBar(v){try{window.drawDadosBar&&drawDadosBar(v)}catch(e){}const b=document.getElementById("foco-bar");if(!b)return;const opts=FOCOS.filter(([a])=>focoPode(a));if(foco&&!focoPode(foco))foco="";focoView=v;const cx=ctxHTML(v);
   if(v==="dash"){b.hidden=false;b.innerHTML=cx+`<div class="fb-row"><span class="fb-t">📌 Em evidência no Painel</span><div class="chips">${[["","Todas as abas"],...opts].map(([a,t])=>`<button type="button" class="chip${foco===a?" on":""}" data-foco="${a}" aria-pressed="${foco===a}">${esc(t)}</button>`).join("")}</div></div>`;return}
   const it=opts.find(x=>x[0]===v);if(!it){b.hidden=true;b.innerHTML="";return}
   b.hidden=false;b.innerHTML=cx+`<div class="fb-row">`+(foco===v
@@ -4029,7 +4032,7 @@ function drawPlan(){
 }
 
 /* ---------- Abas ---------- */
-const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","gest","merc","benef","fin","proj","users"];
+const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","gest","dados","merc","benef","fin","proj","users"];
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
@@ -4045,6 +4048,7 @@ function setView(v){
   document.getElementById("view-benef").hidden=v!=="benef";if(v==="benef"&&window.drawBenef)drawBenef();
   document.getElementById("view-fin").hidden=v!=="fin";if(v==="fin"&&window.drawFin)drawFin();
   document.getElementById("view-gest").hidden=v!=="gest";if(v==="gest"&&window.drawGest)drawGest();
+  document.getElementById("view-dados").hidden=v!=="dados";if(v==="dados"&&window.drawDados)drawDados();
   document.getElementById("view-proj").hidden=v!=="proj";if(v==="proj"&&window.drawProj)drawProj();
   document.getElementById("view-users").hidden=v!=="users";if(v==="users"&&window.drawUsers)drawUsers();
 }
@@ -7957,7 +7961,7 @@ const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?
 const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
 const SIT={ativo:["Ativo","ok"],pendente:["Aguardando aprovação","wait"],suspenso:["Suspenso","bad"],cancelado:["Cancelado pelo administrador","bad"],cancelada:["Inscrição cancelada pelo usuário","off"],sem:["Sem inscrição","off"]};
-const ABAS=[["calc","Calculadora","Calculadora"],["local","Local e viabilidade","Local"],["topo","Levantamentos e projetos","Levantamentos"],["gest","AquaGestão","AquaGestão"],["repro","Reprodução","Reprodução"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["fin","Financeiro","Financeiro"]];
+const ABAS=[["calc","Calculadora","Calculadora"],["local","Local e viabilidade","Local"],["topo","Levantamentos e projetos","Levantamentos"],["gest","AquaGestão","AquaGestão"],["dados","Análise de dados","Dados"],["repro","Reprodução","Reprodução"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["fin","Financeiro","Financeiro"]];
 const SO_ADMIN=["local","calc"];          // Local e viabilidade e Calculadora: só administrador (versão avançada)
 const ABAS_USU=ABAS.filter(a=>!SO_ADMIN.includes(a[0]));
 const LPLANO=PK+"-planos";
@@ -9242,7 +9246,7 @@ ARQ.registrar("leituras",{
     return `${it.nome||"Dados"} processado no projeto: ${resumo(r)}`}});
 /* importações antigas (histórico com cópia neste aparelho) passam para os arquivos do projeto */
 (async()=>{try{for(const l of (C.log||[]).slice().reverse()){if(!l.id)continue;const k=chaveLog(l);if(ARQ.existe("leituras",k))continue;const g=await IDB.get(l.id).catch(()=>null);if(g&&g.lista&&g.lista.length)await ARQ.add({tipo:"leituras",key:k,nome:l.nome||"",fonte:l.tipo||k.split("|")[0],lista:g.lista,op:g.op||{}})}}catch(e){}})();
-window.aquaPlugUtil={lerArquivo,lerTexto,dataHora,numBR,norm,pronto,unidades,E,ACEITA,soHora};
+window.aquaPlugUtil={lerArquivo,lerTexto,dataHora,numBR,norm,pronto,unidades,E,ACEITA,soHora,autoMap,normalizar};
 agendar();agendarHook();draw();
 })();
 
@@ -9575,6 +9579,9 @@ window.bioLotes=()=>{const G={};for(const a of B.amostras){const k=chB(a);if(!(B
   return Object.values(G).map(g=>{const d=[...g.dias].sort();return {key:g.key,tipo:g.tipo,nome:g.nome,st:g.st,n:g.n,unidades:[...g.uni],de:d[0]||"",ate:d[d.length-1]||"",pm:g.pm.length?g.pm.reduce((x,y)=>x+y,0)/g.pm.length:null,vendo:B.fLoteB===g.key}})};
 window.bioLoteEstado=(k,st)=>{if(!["isolado","evidencia","integrado"].includes(st))return;B.lotes=B.lotes||{};B.lotes[k]=st;if(st!=="isolado"&&B.fLoteB===k)B.fLoteB="";salvar();draw();outros()};
 window.bioVerLote=k=>{B.fLoteB=k||"";salvar();draw();outros()};
+window.bioAutoMap=autoMapB;
+window.bioImportarAnalise=(rows,nome,st)=>{const cols=[...new Set(rows.flatMap(o=>Object.keys(o)))],L=linhasParaAmostras(rows,autoMapB(cols)).amostras;if(!L.length)throw new Error("Não achei biometrias (data e peso) nesta pasta.");
+  const o={tipo:"analise",nome},k=chB({origem:o});guardar0(L,o);B.lotes=B.lotes||{};B.lotes[k]=st||"evidencia";if(B.fLoteB===k)B.fLoteB="";salvar();draw();outros();return {n:L.length,k}};
 window.bioDescartarLote=k=>{const n0=B.amostras.length;B.amostras=B.amostras.filter(a=>{if(chB(a)!==k)return true;(B.del=B.del||[]).push(a.id);return false});if(B.lotes)delete B.lotes[k];if(B.fLoteB===k)B.fLoteB="";salvar();draw();outros();return n0-B.amostras.length};
 window.bioHistRAS=tid=>{try{return amostrasU(curPid(),"ras-"+tid).map(a=>({ts:tsA(a),pm:stats(a).pm,data:a.data,N:stats(a).N})).filter(x=>x.pm>0)}catch(e){return []}};
 window.bioHistRAS=intB(window.bioHistRAS);
@@ -9815,6 +9822,7 @@ const ICO={
   racao:'<path d="M5 9h14l-1.5 11h-11z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/>',
   topo:'<path d="M3 19l5-8 4 5 3-4 6 7z"/><path d="M6 8c2-2 4-2 6 0s4 2 6 0"/>',
   benef:'<path d="M3 12c3-4 7-5 11-3l4-3v12l-4-3c-4 2-8 1-11-3z"/><circle cx="7.5" cy="11" r=".8"/><path d="M12 9v6"/>',
+  dados:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 16v-3M12 16v-6M16 16v-4"/>',
   gest:'<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>',
   fin:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.5"/><path d="M7 3h10"/>',
   merc:'<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/><path d="M3 21h18"/>',
@@ -9825,7 +9833,7 @@ const ICO={
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 const MAIN=[["calc","Calcular"],["local","Local"],["aqua","Água"],["fin","Financeiro"],["dash","Painel"]];
-const ALL=[["calc","Calculadora"],["local","Local e viabilidade"],["topo","Levantamentos e projetos"],["gest","AquaGestão"],["repro","Reprodução"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"],["proj","Projetos"],["users","Usuários e acesso"]];
+const ALL=[["calc","Calculadora"],["local","Local e viabilidade"],["topo","Levantamentos e projetos"],["gest","AquaGestão"],["dados","Análise de dados"],["repro","Reprodução"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
 nav.innerHTML=MAIN.map(([v,t])=>`<button type="button" data-bv="${v}">${svg(v)}<span>${t}</span></button>`).join("")+`<button type="button" data-bv="mais" aria-haspopup="dialog" aria-expanded="false">${svg("mais")}<span>Mais</span></button>`;
@@ -9864,7 +9872,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v143";
+  const APP_VERSAO="ras-v144";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -10232,6 +10240,9 @@ window.finDashHTML=()=>{const R=window.gfFinResumo&&gfFinResumo();if(!R||(!R.o&&
    ${re.n?kp("Realizado",brl(re.saldo),`${brl(re.rec)} entradas · ${brl(re.des)} saídas`,re.saldo>=0?"ok":"bad"):kp("Realizado","—","sem lançamentos")}
    ${R.cen?kp("No cenário",brl(R.cen.LO)+"/ano",E(R.cenTxt),R.cen.LO>=0?"ok":"bad"):""}</div></div></section>`};
 window.finAddLanc=l=>{try{F=Object.assign(F,rd());F.lanc.push({id:uid(),...l,em:Date.now()});grava();if(!el.hidden)draw();return true}catch(e){return false}};
+window.finImportarAnalise=(rows,nome,st)=>{F=Object.assign(F,rd());const r=normImp(rows),k="an-"+String(nome).slice(0,60);F.lanc=F.lanc.filter(l=>l.imp!==k);F.imps[k]={nome,est:st||"evidencia",em:Date.now()};for(const l of r.L)F.lanc.push({id:uid(),...l,imp:k,em:Date.now()});grava();if(!el.hidden)draw();return {n:r.L.length,k}};
+window.finRemoverImp=k=>{F=Object.assign(F,rd());const n=F.lanc.filter(l=>l.imp===k).length;F.lanc=F.lanc.filter(l=>l.imp!==k);delete F.imps[k];grava();if(!el.hidden)draw();return n};
+window.finEstadoImp=(k,st)=>{F=Object.assign(F,rd());if(F.imps[k]){F.imps[k].est=st;grava();if(!el.hidden)draw()}};
 window.gfFinFluxo=()=>{try{return fluxo(calc(true))}catch(e){return []}};
 window.drawFin=draw;
 document.addEventListener("click",e=>{const g=e.target.closest('[data-goto="fin"]');if(g)setTimeout(draw,30)});
@@ -10462,16 +10473,16 @@ function pgFin(){const f=D.fin(),R=D.finFx();if(!f||(!f.o&&!f.nL))return vazio("
     ${o?box("📉 Custos do ano",donut(o.ops.filter(x=>isFinite(x[2])&&x[2]>0).map(x=>({n:x[0],v:x[2]})),v=>brl(v),[kfmt(o.COT),"R$ total/ano"]),""):""}
     ${(f.lotes||[]).length?box("🐟 Lucro previsto por lote",bars(f.lotes.map(x=>({n:x.nome,v:x.lucro,c:x.lucro>=0?"#2e9e6a":"#c0392b",s:`custo ${brl(x.cKg,2)}/kg · FCA ${nf(x.fca,2)}`})),v=>brl(v)),"Ração, formas jovens e custos fixos rateados de cada lote × venda da despesca."):""}</div>`}
 function vazio(k,t){return `<div class="ag-box"><p>${ICO[k]} <b>${E(NOME[k])}</b> ainda não tem dados para o painel.</p><p class="muted">${t}</p><a href="#" class="btn solid" data-goto="${k}" style="text-decoration:none">Abrir ${E(NOME[k])}</a></div>`}
-const PG={prop:()=>window.gestProp?gestProp.html():"<p class=\"muted\">Carregando…</p>",geral:pgGeral,calc:pgCalc,local:pgLocal,topo:pgTopo,repro:pgRepro,aqua:pgAqua,bio:pgBio,racao:pgRacao,merc:pgMerc,benef:pgBenef,fin:pgFin};
+const PG={dados:()=>window.dadosEmb?dadosEmb.html():"<p class=\"muted\">Carregando…</p>",prop:()=>window.gestProp?gestProp.html():"<p class=\"muted\">Carregando…</p>",geral:pgGeral,calc:pgCalc,local:pgLocal,topo:pgTopo,repro:pgRepro,aqua:pgAqua,bio:pgBio,racao:pgRacao,merc:pgMerc,benef:pgBenef,fin:pgFin};
 
 /* ---------- desenho ---------- */
 let ult=0;
-function draw(){if(el.hidden)return;const st=T(resumo,{}),sec=PG[G.sec]&&(G.sec==="geral"||G.sec==="prop"||pode(G.sec))?G.sec:"geral",pj=T(()=>window.projAtual&&projAtual(),null);let body="";
+function draw(){if(el.hidden)return;const st=T(resumo,{}),sec=PG[G.sec]&&(G.sec==="geral"||G.sec==="prop"||G.sec==="dados"||pode(G.sec))?G.sec:"geral",pj=T(()=>window.projAtual&&projAtual(),null);let body="";
   try{body=PG[sec]()}catch(e){body=`<p class="fin-msg err">Não consegui montar este painel: ${E(e.message||e)}</p>`}
   const sy=window.scrollY;ult=Date.now();
   el.innerHTML=`<section class="card wide"><div class="card-head"><h2>🧭 AquaGestão<span>${pj?"Projeto "+E(pj.nome)+" · ":""}todos os dados das abas, correlacionados e em tempo real</span></h2><span class="ag-live" style="margin-left:auto"><b></b>ao vivo · ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span></div>
-    <div class="pj-body"><nav class="ag-nav" aria-label="Painéis da AquaGestão"><button type="button" data-sec="geral" aria-pressed="${sec==="geral"}">🧭 Visão geral</button><button type="button" class="ag-prop" data-sec="prop" aria-pressed="${sec==="prop"}">🏡 Gerir propriedade</button>${ABAS.filter(a=>pode(a[0])).map(([k,i,n])=>`<button type="button" data-sec="${k}" aria-pressed="${sec===k}"><i style="background:${STC[(st[k]||{}).st||"off"]}"></i>${i} ${E(n.replace(" do pescado","").replace(" e projetos","").replace(" e viabilidade",""))}</button>`).join("")}</nav></div></section>
-   <section class="card wide"><div class="card-head"><h2>${sec==="geral"?"🧭 Visão geral do projeto":sec==="prop"?"🏡 Gerir propriedade":ICO[sec]+" "+E(NOME[sec])}<span>${sec==="geral"?"saúde, alertas, cartões e ligações entre as abas":sec==="prop"?"viveiros e tanques do projeto, ciclos, tarefas, equipe, estoque e equipamentos":"painel interativo · passe o dedo ou o mouse nos gráficos"}</span></h2>${sec!=="geral"&&sec!=="prop"?`<a href="#" class="btn" data-goto="${sec}" style="margin-left:auto;text-decoration:none">Abrir a aba</a>`:""}</div><div class="pj-body">${body}</div></section>`;
+    <div class="pj-body"><nav class="ag-nav" aria-label="Painéis da AquaGestão"><button type="button" data-sec="geral" aria-pressed="${sec==="geral"}">🧭 Visão geral</button><button type="button" class="ag-prop" data-sec="prop" aria-pressed="${sec==="prop"}">🏡 Gerir propriedade</button><button type="button" class="ag-prop" data-sec="dados" aria-pressed="${sec==="dados"}">📂 Analisar dados</button>${ABAS.filter(a=>pode(a[0])).map(([k,i,n])=>`<button type="button" data-sec="${k}" aria-pressed="${sec===k}"><i style="background:${STC[(st[k]||{}).st||"off"]}"></i>${i} ${E(n.replace(" do pescado","").replace(" e projetos","").replace(" e viabilidade",""))}</button>`).join("")}</nav></div></section>
+   <section class="card wide"><div class="card-head"><h2>${sec==="geral"?"🧭 Visão geral do projeto":sec==="prop"?"🏡 Gerir propriedade":sec==="dados"?"📂 Analisar dados":ICO[sec]+" "+E(NOME[sec])}<span>${sec==="geral"?"saúde, alertas, cartões e ligações entre as abas":sec==="prop"?"viveiros e tanques do projeto, ciclos, tarefas, equipe, estoque e equipamentos":sec==="dados"?"qualquer origem · ligue ou desligue a correlação com cada aba enquanto analisa":"painel interativo · passe o dedo ou o mouse nos gráficos"}</span></h2>${sec!=="geral"&&sec!=="prop"&&sec!=="dados"?`<a href="#" class="btn" data-goto="${sec}" style="margin-left:auto;text-decoration:none">Abrir a aba</a>`:""}</div><div class="pj-body">${body}</div></section>`;
   window.scrollTo(0,sy);bind()}
 function bind(){el.querySelectorAll("[data-sec]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();G.sec=b.dataset.sec;grava();untip();draw();const t=el.querySelector(".card:nth-of-type(2)");if(t&&b.closest(".ag-tiles,.ag-alerts"))t.scrollIntoView({behavior:"smooth",block:"start"})}));
   el.querySelectorAll("[data-ag]").forEach(s=>s.addEventListener("change",()=>{G[s.dataset.ag]=s.value;grava();draw()}));
@@ -10483,8 +10494,10 @@ function bind(){el.querySelectorAll("[data-sec]").forEach(b=>b.addEventListener(
       const c=T(()=>corrDe(k),null);if(c)tip(e,`<b>${E(k==="dash"?"Painel":NOME[k])}</b>${c.de.length?`<div>recebe de: ${E(c.de.map(x=>NOME[x]||x).join(", "))}</div>`:""}${c.para.length?`<div>alimenta: ${E(c.para.map(x=>x==="dash"?"Painel":NOME[x]||x).join(", "))}</div>`:""}`)});
       n.addEventListener("pointerleave",()=>{mp.classList.remove("hl");mp.querySelectorAll(".ed.on").forEach(x=>x.classList.remove("on"));untip()});n.addEventListener("click",()=>{G.sec=n.dataset.goSec;grava();untip();draw()})})}
   try{if(window.gestProp&&el.querySelector(".pr-sub"))gestProp.bind(el)}catch(e){console.warn(e)}
+  try{const de=el.querySelector("[data-dd-emb]");if(de&&window.dadosEmb)dadosEmb.bind(de)}catch(e){console.warn(e)}
   bindLine(el)}
 window.gestResumo=()=>{try{const st=resumo(),ks=ABAS.map(a=>a[0]).filter(pode);return {st,ks,NOME,ICO,A:alertas(),prop:T(()=>window.gestProp&&gestProp.resumo(),null)}}catch(e){return null}};
+window.agCharts={line,bindLine,bars,donut,kp};
 window.drawGest=draw;
 /* tempo real: redesenha a cada 15 s quando a aba está aberta e o usuário não está mexendo num gráfico */
 let mexendo=false;el.addEventListener("pointerenter",()=>{mexendo=true});el.addEventListener("pointerleave",()=>{mexendo=false});
@@ -10669,5 +10682,166 @@ window.gestProp={
       "add-eqp":()=>{const n=v("#pq-nome").trim();if(!n)return alert("Informe o nome.");P.equip.push({id:"q"+uid(),nome:n,tipo:v("#pq-tipo"),uid:v("#pq-u"),pot:v("#pq-pot").trim(),ult:v("#pq-ult"),int:v("#pq-int")})}};
     el.querySelectorAll("[data-pa]").forEach(b=>b.addEventListener("click",()=>{const f=A[b.dataset.pa];if(f&&f()!==false)redraw()}))}
 };
+})();
+</script>
+<style>
+#view-dados .pj-body{grid-template-columns:minmax(0,1fr)}#view-dados .pj-body>*{min-width:0}
+.dd-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px}
+.dd-in textarea{width:100%;box-sizing:border-box;min-height:70px;font:12px var(--f-mono,monospace);padding:7px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.dd-in input[type=url],.dd-in input[type=text]{width:100%;box-sizing:border-box;font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.dd-drop{border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;background:var(--bg);cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:center;justify-content:center}
+.dd-drop.on{border-color:var(--accent);background:var(--accent-soft)}
+.dd-pastas{display:flex;flex-wrap:wrap;gap:8px}
+.dd-p{border:1px solid var(--line);border-left:5px solid var(--pc,#b9c2c0);border-radius:10px;padding:7px 10px;background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:2px;min-width:170px;max-width:100%}
+.dd-p[aria-pressed="true"]{outline:2px solid var(--accent)}.dd-p b{font-size:13px}.dd-p small{font-size:11.5px;color:var(--muted)}
+.dd-cor{display:flex;flex-wrap:wrap;gap:6px}
+.dd-cor label{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font:600 12.5px var(--f-body);cursor:pointer;background:var(--surface)}
+.dd-cor label.on{background:var(--accent);border-color:var(--accent);color:#fff}.dd-cor label.dis{opacity:.45;cursor:not-allowed}
+.dd-cor label small{font-weight:500;opacity:.85}.dd-cor input{accent-color:#fff}
+.dd-tag{display:inline-block;font:600 11px var(--f-body);padding:1px 7px;border-radius:999px;background:var(--bg);border:1px solid var(--line);margin-right:3px}
+.dd-tag.agua{background:#e3f0fb;border-color:transparent;color:#255d8f}.dd-tag.bio{background:#e5f5ec;border-color:transparent;color:#1f7a50}.dd-tag.fin{background:#fff3d6;border-color:transparent;color:#8a5a00}.dd-tag.gen{background:#eee;border-color:transparent;color:#555}
+.dd-y{display:flex;flex-wrap:wrap;gap:5px}.dd-y label{display:inline-flex;gap:4px;align-items:center;font-size:12.5px;border:1px solid var(--line);border-radius:8px;padding:3px 8px;background:var(--surface);cursor:pointer}
+.dd-t{width:100%;border-collapse:collapse;font-size:12.5px}.dd-t th,.dd-t td{padding:5px 7px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}.dd-t th{font-size:11px;text-transform:uppercase;color:var(--muted);background:var(--bg);position:sticky;top:0}
+.dd-t td.r{text-align:right;font-family:var(--f-mono,monospace)}
+#view-dados table.dd-t,#view-gest table.dd-t,.dd-bar table.dd-t{min-width:0}
+.dd-scroll{max-height:380px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.dd-msg{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--accent-soft);margin:4px 0}.dd-msg.err{background:#fde8e6;color:#8c2414}
+.dd-bar{margin:0 0 12px;display:grid;gap:8px}
+.dd-bar .dd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:6px 10px;background:var(--surface)}
+.dd-bar .dd-row b{font-size:13px}.dd-bar .dd-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:10px}
+.dd-card{border:1px solid var(--line);border-top:4px solid var(--accent);border-radius:12px;padding:8px 11px;background:var(--surface);min-width:0}
+.dd-card h4{margin:0 0 4px;font-size:13.5px;display:flex;gap:6px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.dd-mini{border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:8px;padding:3px 8px;font:600 12px var(--f-body);cursor:pointer}
+</style>
+<script>
+/* ===================== v144: Análise de dados de qualquer origem, com correlação liga/desliga por aba ===================== */
+(function(){
+const DK="ras-multitanques-v1-dados",MAXL=4000,MAXC=60;
+const rd=()=>{try{return JSON.parse(localStorage.getItem(DK))||{}}catch(e){return {}}};
+let D=Object.assign({pastas:[],sel:""},rd()),msg="",msgErr=false,ocup=false;
+let pidD=null;const recarrega=()=>{let pid="";try{pid=(window.projAtual&&projAtual()||{}).id||""}catch(e){}if(pid!==pidD){pidD=pid;D=Object.assign({pastas:[],sel:""},rd())}};
+const grava=()=>{try{localStorage.setItem(DK,JSON.stringify(D));return true}catch(e){msg="Pouco espaço no aparelho para guardar esta pasta: apague pastas antigas ou use um arquivo menor.";msgErr=true;return false}};
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf=(x,d=1)=>isFinite(x)?Number(x).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:d}):"—";
+const U=()=>window.aquaPlugUtil||{},C=()=>window.agCharts||null,T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const num=v=>{if(typeof v==="number")return v;const f=U().numBR;return f?f(v):parseFloat(String(v).replace(",","."))};
+const dh=v=>{const f=U().dataHora;const d=f?f(v):new Date(v);return d&&!isNaN(d)?d:null};
+const uid=()=>"d"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+
+/* abas que podem ser correlacionadas (as de dados recebem as linhas; as outras mostram a pasta no topo da aba) */
+const ABAS=[["calc","🧮","Calculadora"],["local","📍","Local e viabilidade"],["topo","🗺","Levantamentos"],["gest","🧭","AquaGestão"],["repro","🥚","Reprodução"],["aqua","📈","AquaNictemeral"],["bio","🐟","Biomassa/biometria"],["racao","🍽","Arraçoamento"],["dash","📊","Painel"],["merc","🛒","Camada de mercado"],["benef","🔪","Beneficiamento"],["fin","💼","Financeiro"]];
+const NOME=Object.fromEntries(ABAS.map(a=>[a[0],a[2]])),ICO=Object.fromEntries(ABAS.map(a=>[a[0],a[1]]));
+const ENTRA={aqua:"agua",bio:"bio",fin:"fin"};   // aba → tipo de dado que ela recebe de verdade
+
+/* ---------- leitura e tipos de coluna ---------- */
+function tipar(rows,cols){const out={};for(const c of cols){const vs=rows.slice(0,300).map(r=>r[c]).filter(v=>v!=null&&String(v).trim()!=="");if(!vs.length){out[c]="vazio";continue}
+  const nN=vs.filter(v=>isFinite(num(v))).length,nome=String(c).toLowerCase();
+  if(/data|date|hora|time|dia|dt\b|timestamp/.test(nome)&&vs.filter(v=>dh(v)).length>=vs.length*.7)out[c]="data";
+  else if(nN>=vs.length*.8)out[c]="num";
+  else if(vs.filter(v=>/^\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}|^\d{4}-\d{2}-\d{2}/.test(String(v))).length>=vs.length*.7)out[c]="data";
+  else out[c]="txt"}return out}
+function detectar(p){const k=[];try{const m=U().autoMap?U().autoMap(p.cols,p.rows):null;if(m){const ps=Object.values(m);if(ps.some(x=>["od","temperatura","ph","tan","nitrito","co2","salinidade","alcalinidade","od_saturacao","transparencia"].includes(x))&&ps.some(x=>["dt","data"].includes(x)))k.push("agua")}}catch(e){}
+  try{if(window.bioAutoMap){const m=bioAutoMap(p.cols);const v=Object.values(m);if(v.includes("peso")||v.includes("peso_total"))k.push("bio")}}catch(e){}
+  const nm=p.cols.map(c=>String(c).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""));if(nm.some(c=>/^(valor|value|debito|credito|montante|total)/.test(c))&&nm.some(c=>/^(data|date|vencimento|pagamento)/.test(c)))k.push("fin");
+  return k.length?k:["gen"]}
+const KIND={agua:["💧 água","agua"],bio:["📏 biometria","bio"],fin:["💰 financeiro","fin"],gen:["📄 dados gerais","gen"]};
+async function lerOrigem(tipo,val){const u=U();if(tipo==="arquivo"){const f=val;if(/\.(pdf|jpe?g|png|heic|docx?)$/i.test(f.name))throw new Error("PDF, imagem e Word não trazem a tabela pronta. Abra o documento e copie a tabela (ou exporte em CSV/Excel) e cole aqui.");return {rows:await u.lerArquivo(f),nome:f.name}}
+  if(tipo==="colado")return {rows:u.lerTexto(val),nome:"colado em "+new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})};
+  if(tipo==="link"){let url=String(val||"").trim();const g=url.match(/docs\.google\.com\/spreadsheets\/d\/([^/]+)/);if(g)url=`https://docs.google.com/spreadsheets/d/${g[1]}/export?format=csv`;const r=await fetch(url);if(!r.ok)throw new Error("O link não respondeu ("+r.status+"). Ele precisa ser público.");return {rows:u.lerTexto(await r.text()),nome:val}}}
+async function nova(tipo,val){if(ocup)return;ocup=true;msg="Lendo…";msgErr=false;redraw();
+  try{const {rows,nome}=await lerOrigem(tipo,val);if(!rows||!rows.length)throw new Error("Não encontrei linhas de dados.");
+    let cols=[...new Set(rows.slice(0,500).flatMap(o=>Object.keys(o)))].slice(0,MAXC);const R=rows.slice(0,MAXL).map(r=>{const o={};for(const c of cols){const v=r[c];o[c]=v instanceof Date?v.toISOString():v}return o});
+    const p={id:uid(),nome:String(nome).slice(0,80),origem:tipo,em:Date.now(),cols,rows:R,total:rows.length,tipos:tipar(R,cols),liga:{},modo:"evidencia",int:{},cfg:{}};p.kind=detectar(p);
+    const tc=cols.find(c=>p.tipos[c]==="data"),nums=cols.filter(c=>p.tipos[c]==="num");const gc=cols.find(c=>p.tipos[c]==="txt"&&/tanque|viveiro|unidade|ponto|lote|grupo|local/i.test(c)&&new Set(R.map(r=>r[c])).size<=30)||"";p.cfg={x:tc||cols.find(c=>p.tipos[c]==="num")||"",ys:nums.filter(c=>c!==tc).slice(0,gc?1:3),grp:gc};
+    D.pastas.unshift(p);D.sel=p.id;if(grava())msg=`Pasta “${E(p.nome)}” criada: ${rows.length} linha(s)${rows.length>MAXL?` (guardadas as primeiras ${MAXL})`:""} e ${cols.length} coluna(s). Ela está isolada: ligue abaixo as abas com que quer correlacionar.`;else D.pastas.shift()}
+  catch(e){msg=E(e.message||e);msgErr=true}ocup=false;redraw()}
+
+/* ---------- correlação: liga/desliga por aba ---------- */
+async function ligar(p,aba,on){p.liga[aba]=!!on;const tipo=ENTRA[aba],st=p.modo==="integrado"?"integrado":"evidencia",nome="Análise: "+p.nome;
+  try{
+    if(tipo==="agua"&&p.kind.includes("agua")){const w=await U().pronto();if(!w||!w.aquaImport)throw new Error("O AquaNictemeral ainda não abriu.");const key="analise|"+nome.slice(0,120);
+      if(on){const m=U().autoMap(p.cols,p.rows),r=U().normalizar(p.rows,m,true);const res=w.aquaImport(r.lista,{tipo:"analise",nome,criar:true,tipoNum:T(()=>window.tipoNumero(),"tanque"),isolar:true});w.aquaLoteEstado(key,st);p.int.aqua={key,n:r.lista.length};msg=`${r.lista.length} leitura(s) enviadas ao AquaNictemeral (${st==="integrado"?"integradas":"em evidência"}).${res.criadas&&res.criadas.length?" Tanques/viveiros novos: "+E(res.criadas.join(", "))+".":""}`}
+      else if(p.int.aqua){const n=w.aquaDescartarLote(p.int.aqua.key);delete p.int.aqua;msg=`${n} leitura(s) retiradas do AquaNictemeral.`}}
+    else if(tipo==="bio"&&p.kind.includes("bio")&&window.bioImportarAnalise){
+      if(on){const r=bioImportarAnalise(p.rows,nome,st);p.int.bio={key:r.k,n:r.n};msg=`${r.n} biometria(s) enviadas (${st==="integrado"?"integradas":"em evidência"}).`}
+      else if(p.int.bio){const n=window.bioDescartarLote(p.int.bio.key);delete p.int.bio;msg=`${n} biometria(s) retiradas.`}}
+    else if(tipo==="fin"&&p.kind.includes("fin")&&window.finImportarAnalise){
+      if(on){const r=finImportarAnalise(p.rows,nome,st);p.int.fin={key:r.k,n:r.n};msg=`${r.n} lançamento(s) enviados ao Financeiro (${st==="integrado"?"integrados":"em evidência"}).`}
+      else if(p.int.fin){const n=window.finRemoverImp(p.int.fin.key);delete p.int.fin;msg=`${n} lançamento(s) retirados do Financeiro.`}}
+    else msg=on?`“${E(p.nome)}” correlacionada com ${E(NOME[aba])}: a pasta aparece no topo dessa aba enquanto estiver ligada.`:`“${E(p.nome)}” retirada de ${E(NOME[aba])}.`;
+    msgErr=false}catch(e){p.liga[aba]=!on;msg=E(e.message||e);msgErr=true}
+  grava();outros();redraw()}
+async function modo(p,m){p.modo=m;const st=m==="integrado"?"integrado":"evidencia";try{const w=await U().pronto();if(p.int.aqua&&w)w.aquaLoteEstado(p.int.aqua.key,st)}catch(e){}
+  try{if(p.int.bio)window.bioLoteEstado(p.int.bio.key,st)}catch(e){}try{if(p.int.fin&&window.finEstadoImp)finEstadoImp(p.int.fin.key,st)}catch(e){}
+  msg=m==="integrado"?"Integrada: os dados entram nos cálculos, no Painel e nos projetos das abas ligadas.":"Em evidência: os dados aparecem nas abas ligadas para comparar, mas ficam fora dos cálculos e do Painel.";msgErr=false;grava();outros();redraw()}
+async function isolarTudo(p){for(const a of Object.keys(p.liga))if(p.liga[a])await ligar(p,a,false);msg=`“${E(p.nome)}” isolada: só aparece aqui na análise.`}
+const outros=()=>{try{window.focoRefresh&&focoRefresh()}catch(e){}try{window.drawGest&&!document.getElementById("view-gest").hidden&&drawGest()}catch(e){}};
+
+/* ---------- análise ---------- */
+function stats(p,c){const v=p.rows.map(r=>num(r[c])).filter(isFinite);if(!v.length)return null;const m=v.reduce((a,b)=>a+b,0)/v.length,sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)*(b-m),0)/Math.max(1,v.length-1));return {n:v.length,min:Math.min(...v),max:Math.max(...v),m,sd,ult:v[v.length-1]}}
+function xVal(p,r){const c=p.cfg.x;if(!c)return NaN;if(p.tipos[c]==="data"){const d=dh(r[c]);if(!d)return NaN;const hc=p.cols.find(k=>k!==c&&/^(hora|time|horario|horário)/i.test(k));if(hc&&!/\d{1,2}:\d{2}/.test(String(r[c]))){const m=String(r[hc]||"").match(/(\d{1,2})[:h](\d{2})?/);if(m)d.setHours(+m[1],+(m[2]||0))}return d.getTime()}return num(r[c])}
+function series(p){const ys=(p.cfg.ys||[]).filter(c=>p.cols.includes(c));if(!ys.length||!p.cfg.x)return [];const g=p.cfg.grp&&p.cols.includes(p.cfg.grp)?p.cfg.grp:"";
+  if(g){const by={};for(const r of p.rows){const k=String(r[g]==null?"—":r[g]).slice(0,30),x=xVal(p,r),y=num(r[ys[0]]);if(!isFinite(x)||!isFinite(y))continue;(by[k]=by[k]||[]).push([x,y])}return Object.entries(by).slice(0,10).map(([n,pts])=>({n:n+" · "+ys[0],pts}))}
+  return ys.map(c=>({n:c,pts:p.rows.map(r=>[xVal(p,r),num(r[c])]).filter(q=>isFinite(q[0])&&isFinite(q[1]))}))}
+function grafico(p,id,mini){const ch=C();if(!ch)return "";const s=series(p);if(!s.length)return `<p class="muted">Escolha a coluna do eixo X e ao menos uma coluna numérica.</p>`;const isD=p.tipos[p.cfg.x]==="data",xs=s.flatMap(q=>q.pts.map(z=>z[0])),curto=isD&&Math.max(...xs)-Math.min(...xs)<=2*864e5;
+  return ch.line(id,s,{fx:isD?(v,c)=>new Date(v).toLocaleString("pt-BR",c?(curto?{hour:"2-digit",minute:"2-digit"}:{day:"2-digit",month:"2-digit"}):{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"}):(v=>nf(v,2)),fy:v=>nf(v,1),fty:v=>nf(v,3),h:mini?170:undefined})}
+function corHTML(p){return `<div class="dd-cor">${ABAS.filter(([k])=>!window.abaPermitida||abaPermitida(k)).map(([k,i,n])=>{const t=ENTRA[k],ok=!t||p.kind.includes(t),on=!!p.liga[k];
+   return `<label class="${on?"on":""}${ok?"":" dis"}" title="${ok?(t?"os dados entram nesta aba":"a pasta aparece no topo desta aba"):"esta pasta não tem o tipo de dado desta aba"}"><input type="checkbox" data-dl="${k}"${on?" checked":""}${ok?"":" disabled"}>${i} ${E(n)}${t&&ok?" <small>· recebe os dados</small>":""}</label>`}).join("")}</div>`}
+function pastaHTML(p,ctx){const nums=p.cols.filter(c=>p.tipos[c]==="num"),txts=p.cols.filter(c=>p.tipos[c]==="txt"&&new Set(p.rows.map(r=>r[c])).size<=30),ligadas=Object.keys(p.liga).filter(k=>p.liga[k]);
+  const tc=p.cols.find(c=>p.tipos[c]==="data");let per="";if(tc){const ts=p.rows.map(r=>dh(r[tc])).filter(Boolean).map(d=>d.getTime());if(ts.length)per=new Date(Math.min(...ts)).toLocaleDateString("pt-BR")+" a "+new Date(Math.max(...ts)).toLocaleDateString("pt-BR")}
+  const q=(p.busca||"").toLowerCase(),R=q?p.rows.filter(r=>p.cols.some(c=>String(r[c]==null?"":r[c]).toLowerCase().includes(q))):p.rows,ch=C();
+  return `<div class="ag-kpis">${ch?ch.kp("Linhas",nf(p.total,0),p.total>p.rows.length?`analisando ${nf(p.rows.length,0)}`:""):""}${ch?ch.kp("Colunas",String(p.cols.length),`${nums.length} numérica(s)`):""}${ch&&per?ch.kp("Período",per,""):""}${ch?ch.kp("Tipo de dado",p.kind.map(k=>KIND[k][0]).join(" · "),""):""}${ch?ch.kp("Correlação",ligadas.length?`${ligadas.length} aba(s)`:"isolada",ligadas.map(k=>NOME[k]).join(", "),ligadas.length?"ok":""):""}</div>
+   <div class="ag-box"><h3>🔗 Correlacionar esta pasta enquanto analisa</h3>${corHTML(p)}
+    <div class="pr-chk" style="margin-top:8px"><b style="font-size:12.5px">Como entra nas abas ligadas:</b><label><input type="radio" name="dd-modo-${p.id}" data-dm="evidencia"${p.modo!=="integrado"?" checked":""}> 📌 Em evidência (só para comparar)</label><label><input type="radio" name="dd-modo-${p.id}" data-dm="integrado"${p.modo==="integrado"?" checked":""}> ✅ Integrada (entra nos cálculos e no Painel)</label>${ligadas.length?`<button type="button" class="dd-mini" data-da="isolar">⛔ Desligar de todas</button>`:""}</div>
+    <p class="ag-h">Ligue e desligue à vontade durante a análise. AquaNictemeral, Biomassa/biometria e Financeiro recebem as linhas de verdade (e as perdem ao desligar); nas outras abas a pasta aparece como um quadro no topo, com o gráfico.</p></div>
+   <div class="ag-box"><h3>📈 Gráfico</h3><div class="pr-form"><label>Eixo X<select data-dc="x">${p.cols.map(c=>`<option value="${E(c)}"${p.cfg.x===c?" selected":""}>${E(c)} (${p.tipos[c]==="data"?"data":p.tipos[c]==="num"?"número":"texto"})</option>`).join("")}</select></label>
+     <label>Separar por<select data-dc="grp"><option value="">— nada —</option>${txts.map(c=>`<option value="${E(c)}"${p.cfg.grp===c?" selected":""}>${E(c)}</option>`).join("")}</select></label></div>
+    <div class="dd-y" style="margin:6px 0">${nums.map(c=>`<label><input type="checkbox" data-dy="${E(c)}"${(p.cfg.ys||[]).includes(c)?" checked":""}>${E(c)}</label>`).join("")||'<span class="muted">Sem colunas numéricas.</span>'}</div>
+    ${grafico(p,"dd-g-"+p.id+(ctx||""))}</div>
+   ${nums.length?`<div class="ag-box"><h3>🧮 Estatísticas das colunas numéricas</h3><div class="scroll"><table class="dd-t"><thead><tr><th>Coluna</th><th class="r">N</th><th class="r">Mín.</th><th class="r">Máx.</th><th class="r">Média</th><th class="r">Desvio</th><th class="r">Último</th></tr></thead><tbody>${nums.map(c=>{const s=stats(p,c);return s?`<tr><td><b>${E(c)}</b></td><td class="r">${s.n}</td><td class="r">${nf(s.min,3)}</td><td class="r">${nf(s.max,3)}</td><td class="r">${nf(s.m,3)}</td><td class="r">${nf(s.sd,3)}</td><td class="r">${nf(s.ult,3)}</td></tr>`:""}).join("")}</tbody></table></div></div>`:""}
+   <div class="ag-box"><h3>📋 Dados <input type="text" class="ag-sel" data-db placeholder="🔎 filtrar…" value="${E(p.busca||"")}" style="font-weight:400;margin-left:6px"></h3><p class="ag-h">${nf(R.length,0)} linha(s)${R.length>200?" · mostrando as 200 primeiras":""}</p>
+    <div class="dd-scroll"><table class="dd-t"><thead><tr>${p.cols.map(c=>`<th>${E(c)}</th>`).join("")}</tr></thead><tbody>${R.slice(0,200).map(r=>`<tr>${p.cols.map(c=>`<td class="${p.tipos[c]==="num"?"r":""}">${E(r[c]==null?"":String(r[c]).slice(0,40))}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>
+   <div class="pr-chk"><label>Nome da pasta <input type="text" class="ag-sel" data-dn value="${E(p.nome)}"></label><button type="button" class="dd-mini" data-da="apagar">🗑 Apagar pasta</button></div>`}
+function html(ctx){recarrega();const p=D.pastas.find(x=>x.id===D.sel)||D.pastas[0];
+  return `${msg?`<div class="dd-msg${msgErr?" err":""}">${msg}</div>`:""}
+   <div class="ag-box"><h3>📥 Nova pasta de dados (qualquer origem)</h3><div class="dd-in">
+     <label class="dd-drop" data-ddrop><span style="font-size:22px">📂</span><b>Escolher ou arrastar arquivo</b><small class="muted">Excel, Numbers, ODS, CSV, TXT, JSON (sondas, oxímetros, estações, extratos)</small><input type="file" data-df accept="${E((U().ACEITA||".csv,.txt,.json,.xlsx,.xls,.ods"))}" hidden></label>
+     <div><textarea data-dt placeholder="Cole aqui uma tabela copiada de qualquer lugar (planilha, site, PDF, e-mail)…"></textarea><button type="button" class="btn" data-da="colar" style="margin-top:4px">Ler o texto colado</button></div>
+     <div><input type="url" data-du placeholder="Link público: Google Sheets, CSV ou JSON online"><button type="button" class="btn" data-da="link" style="margin-top:4px">Buscar o link</button></div></div>
+     <p class="ag-h">Cada documento vira uma pasta isolada. Você analisa (gráfico, estatísticas, tabela) e decide, aba por aba, se ela entra em correlação, podendo tirar a qualquer momento.</p></div>
+   ${D.pastas.length?`<div class="dd-pastas">${D.pastas.map(x=>{const lig=Object.keys(x.liga).filter(k=>x.liga[k]);return `<button type="button" class="dd-p" style="--pc:${lig.length?(x.modo==="integrado"?"#2e9e6a":"#d69a1c"):"#b9c2c0"}" data-dp="${x.id}" aria-pressed="${p&&x.id===p.id}"><b>${E(x.nome)}</b><small>${x.kind.map(k=>`<span class="dd-tag ${KIND[k][1]}">${KIND[k][0]}</span>`).join("")}</small><small>${nf(x.total,0)} linha(s) · ${lig.length?`ligada a ${lig.length} aba(s) · ${x.modo==="integrado"?"integrada":"em evidência"}`:"isolada"}</small></button>`}).join("")}</div>`:""}
+   ${p?pastaHTML(p,ctx):`<p class="muted">Nenhuma pasta ainda. Carregue um arquivo, cole uma tabela ou informe um link.</p>`}`}
+function bind(el){if(!el)return;const p=D.pastas.find(x=>x.id===D.sel)||D.pastas[0],q=s=>el.querySelector(s);
+  const fi=q("[data-df]"),drop=q("[data-ddrop]");if(fi){fi.addEventListener("change",()=>{const f=fi.files&&fi.files[0];if(f)nova("arquivo",f)});
+    drop.addEventListener("dragover",e=>{e.preventDefault();drop.classList.add("on")});drop.addEventListener("dragleave",()=>drop.classList.remove("on"));drop.addEventListener("drop",e=>{e.preventDefault();drop.classList.remove("on");const f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)nova("arquivo",f)})}
+  el.querySelectorAll("[data-dp]").forEach(b=>b.addEventListener("click",()=>{D.sel=b.dataset.dp;msg="";grava();redraw()}));
+  el.querySelectorAll("[data-da]").forEach(b=>b.addEventListener("click",async()=>{const a=b.dataset.da;
+    if(a==="colar"){const t=(q("[data-dt]")||{}).value||"";if(!t.trim()){msg="Cole a tabela primeiro.";msgErr=true;return redraw()}return nova("colado",t)}
+    if(a==="link"){const u=(q("[data-du]")||{}).value||"";if(!/^https?:\/\//.test(u.trim())){msg="Informe um link que comece com http.";msgErr=true;return redraw()}return nova("link",u)}
+    if(!p)return;if(a==="isolar"){await isolarTudo(p);grava();outros();return redraw()}
+    if(a==="apagar"){if(!confirm(`Apagar a pasta “${p.nome}”? As linhas enviadas às abas ligadas também saem.`))return;await isolarTudo(p);D.pastas=D.pastas.filter(x=>x.id!==p.id);D.sel="";msg="Pasta apagada.";msgErr=false;grava();outros();return redraw()}}));
+  if(!p)return;
+  el.querySelectorAll("[data-dl]").forEach(c=>c.addEventListener("change",()=>ligar(p,c.dataset.dl,c.checked)));
+  el.querySelectorAll("[data-dm]").forEach(r=>r.addEventListener("change",()=>{if(r.checked)modo(p,r.dataset.dm)}));
+  el.querySelectorAll("[data-dc]").forEach(s=>s.addEventListener("change",()=>{p.cfg[s.dataset.dc]=s.value;grava();redraw()}));
+  el.querySelectorAll("[data-dy]").forEach(c=>c.addEventListener("change",()=>{const k=c.dataset.dy,ys=new Set(p.cfg.ys||[]);if(c.checked)ys.add(k);else ys.delete(k);p.cfg.ys=[...ys];grava();redraw()}));
+  const bs=q("[data-db]");if(bs)bs.addEventListener("change",()=>{p.busca=bs.value;grava();redraw()});
+  const dn=q("[data-dn]");if(dn)dn.addEventListener("change",()=>{const v=dn.value.trim();if(v){p.nome=v.slice(0,80);grava();outros();redraw()}});
+  try{C()&&C().bindLine(el)}catch(e){}}
+/* desenho: aba própria, AquaGestão (embutido) e quadro no topo das abas ligadas */
+const view=()=>document.getElementById("view-dados");
+function drawTab(){const v=view();if(!v||v.hidden)return;v.innerHTML=`<section class="card wide"><div class="card-head"><h2>📂 Análise de dados<span>${T(()=>projAtual()?"Projeto "+E(projAtual().nome)+" · ":"","")}qualquer origem · correlação liga/desliga por aba</span></h2></div><div class="pj-body">${html("t")}</div></section>`;bind(v)}
+function redraw(){drawTab();try{const g=document.getElementById("view-gest");if(g&&!g.hidden&&g.querySelector("[data-dd-emb]"))window.drawGest&&drawGest()}catch(e){}try{const t=document.querySelector('.tab[aria-selected="true"]');drawBar(t?t.dataset.view:"")}catch(e){}}
+function drawBar(v){const b=document.getElementById("dados-bar");if(!b)return;recarrega();if(!v||v==="dados"||v==="proj"||v==="users"){b.hidden=true;b.innerHTML="";return}
+  const L=D.pastas.filter(p=>p.liga[v]);b.hidden=false;
+  b.innerHTML=`<div class="dd-row">📂 <b>Dados correlacionados${NOME[v]?" com "+E(NOME[v]):""}:</b> ${L.length?L.map(p=>`<span class="dd-tag ${p.modo==="integrado"?"bio":"fin"}">${E(p.nome)}</span>`).join(""):'<span class="muted">nenhuma pasta ligada</span>'}<span style="margin-left:auto;display:flex;gap:6px"><button type="button" class="dd-mini" data-dgo="${E(v)}">📂 Analisar dados</button></span></div>
+   ${L.length?`<div class="dd-cards">${L.map(p=>`<div class="dd-card" style="border-top-color:${p.modo==="integrado"?"#2e9e6a":"#d69a1c"}"><h4><span>📂 ${E(p.nome)} <small class="muted">${p.modo==="integrado"?"integrada":"em evidência"} · ${nf(p.total,0)} linha(s)</small></span><span style="display:flex;gap:5px"><button type="button" class="dd-mini" data-dabre="${p.id}">Abrir análise</button><button type="button" class="dd-mini" data-dtira="${p.id}" data-aba="${E(v)}">✕ Tirar desta aba</button></span></h4>${grafico(p,"dd-b-"+v+"-"+p.id,true)}</div>`).join("")}</div>`:""}`;
+  b.querySelectorAll("[data-dgo]").forEach(x=>x.addEventListener("click",()=>{D.alvo=x.dataset.dgo;grava();setView("dados")}));
+  b.querySelectorAll("[data-dabre]").forEach(x=>x.addEventListener("click",()=>{D.sel=x.dataset.dabre;grava();setView("dados")}));
+  b.querySelectorAll("[data-dtira]").forEach(x=>x.addEventListener("click",()=>{const p=D.pastas.find(y=>y.id===x.dataset.dtira);if(p)ligar(p,x.dataset.aba,false)}));
+  try{C()&&C().bindLine(b)}catch(e){}}
+window.drawDados=()=>{msg=msg||"";drawTab()};window.drawDadosBar=drawBar;
+window.dadosEmb={html:()=>`<div data-dd-emb>${html("g")}</div>`,bind};
+window.dadosResumo=()=>{recarrega();return {n:D.pastas.length,lig:D.pastas.filter(p=>Object.values(p.liga).some(Boolean)).length}};
 })();
 </script>
