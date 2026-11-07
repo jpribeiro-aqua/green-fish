@@ -888,6 +888,7 @@ body.has-bnav .imp-box{bottom:76px}
     <button type="button" class="tab" role="tab" id="tab-topo" aria-controls="view-topo" data-view="topo">Levantamentos e projetos</button>
     <button type="button" class="tab" role="tab" id="tab-merc" aria-controls="view-merc" data-view="merc">Camada de mercado</button>
     <button type="button" class="tab" role="tab" id="tab-benef" aria-controls="view-benef" data-view="benef">Beneficiamento do pescado</button>
+    <button type="button" class="tab" role="tab" id="tab-fin" aria-controls="view-fin" data-view="fin">Financeiro</button>
     <button type="button" class="tab" role="tab" id="tab-proj" aria-controls="view-proj" data-view="proj">Projetos</button>
     <button type="button" class="tab" role="tab" id="tab-users" aria-controls="view-users" data-view="users">Usuários e acesso</button>
     <span class="sp"></span>
@@ -904,6 +905,7 @@ body.has-bnav .imp-box{bottom:76px}
   <div class="dash" id="view-topo" role="tabpanel" aria-labelledby="tab-topo" hidden></div>
   <div class="dash" id="view-merc" role="tabpanel" aria-labelledby="tab-merc" hidden></div>
   <div class="dash" id="view-benef" role="tabpanel" aria-labelledby="tab-benef" hidden></div>
+  <div class="dash" id="view-fin" role="tabpanel" aria-labelledby="tab-fin" hidden></div>
   <div class="dash" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden></div>
   <div class="dash" id="view-users" role="tabpanel" aria-labelledby="tab-users" hidden></div>
 
@@ -2971,7 +2973,7 @@ function dcard(title,sub,body,wide){
 }
 
 /* ---------- Aba em evidência: o Painel mostra só os dados da aba escolhida (ou de todas) ---------- */
-const FOCO_K="ras-foco-painel",FOCOS=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"]];
+const FOCO_K="ras-foco-painel",FOCOS=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa"],["racao","Arraçoamento"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"]];
 let foco=(()=>{try{return localStorage.getItem(FOCO_K)||""}catch(e){return ""}})(),focoTent=0,focoTimer=null;
 const focoPode=a=>!window.abaPermitida||abaPermitida(a);
 const focoVe=a=>(!foco||foco===a)&&focoPode(a);
@@ -3079,17 +3081,38 @@ function heroBenef(eF){const R=window.gfBenefResumo&&gfBenefResumo();const base=
       {i:"🧪",l:"Qualidade",v:R.qual.feitas?(R.qual.falhas.length?R.qual.falhas.length+" fora":"dentro"):"—",d:R.qual.feitas?`${R.qual.feitas} análise(s)`:"sem análises",c:R.qual.feitas?(R.qual.falhas.length?"crit":"ok"):"n"}],
     chartT:parts.length?`📐 Rendimento das partes (% do peso vivo, ${isFinite(R.pw)?n(R.pw,0)+" g":""})`:"",chart:parts.length?heroBars(parts,v=>n(v,1)+" %"):"",
     todo:todo.slice(0,6),como:`<p>Os rendimentos vêm da literatura para a espécie e o peso (Souza e Maranhão 2001, Macedo-Viegas 2000 e outros) ou das suas medições. Os limites de qualidade são do RIISPOA (art. 211) e da IN 21/2017. As ligações com as outras abas seguem o painel 🔗 Correlações entre abas.</p>`})}
+/* v134: Financeiro em evidência no Painel */
+function heroFin(eF){const R=window.gfFinResumo&&gfFinResumo(),base={foco:eF,aba:"Financeiro",ico:"💼",goto:"fin"};
+  if(!R)return heroBox({...base,tone:"info",titulo:"Abrindo o Financeiro…",sub:"Abra a aba uma vez para carregar os dados."});
+  const o=R.o,re=R.real,todo=[],brl=v=>isFinite(v)?(v<0?"− ":"")+"R$ "+n(Math.abs(v),Math.abs(v)>=1000?0:2):"—";
+  if(!o)todo.push(["warn","Complete a <b>Calculadora</b> e a <b>Local e viabilidade</b>: delas saem o investimento, os custos e a receita previstos."]);
+  if(o&&o.LO<0)todo.push(["crit",`Prejuízo previsto de ${brl(o.LO)}/ano: o custo (${brl(o.cKg)}/kg) passa do preço de venda (${brl(o.pV)}/kg). Veja em 🎚 Cenários o que mais pesa.`]);
+  if(o&&o.LO>=0&&o.IL<10)todo.push(["warn",`Margem baixa (${n(o.IL,1)} %): pequenas altas na ração ou quedas no preço tiram o lucro.`]);
+  if(!re.n)todo.push(["info","Lance as despesas e receitas reais em <b>🧾 Lançamentos</b> (ou importe o extrato) para comparar com o previsto."]);
+  else if(o&&R.meses){const pr=o.COE/12*R.meses,d=re.desOp;if(d>pr*1.1)todo.push(["warn",`Despesas ${n((d/pr-1)*100,0)} % acima do previsto para ${R.meses} mês(es).`])}
+  for(const l of (R.lotes||[]).filter(x=>x.lucro<0).slice(0,2))todo.push(["warn",`<b>${esc(l.nome)}</b>: lote com prejuízo previsto (${brl(l.lucro)}; custo ${brl(l.cKg)}/kg).`]);
+  if(R.cen)todo.push(["info",`Cenário ativo (${esc(R.cenTxt)}): lucro de ${brl(R.cen.LO)}/ano.`]);
+  if(!todo.length)todo.push(["ok","Projeto com lucro previsto e despesas dentro do planejado. Continue lançando os custos reais."]);
+  const tone=todo.some(t=>t[0]==="crit")?"crit":todo.some(t=>t[0]==="warn")?"warn":"ok";
+  return heroBox({...base,tone,badge:o?(o.LO>=0?"Lucro previsto":"Prejuízo previsto"):"Sem viabilidade",
+    titulo:o?`${o.LO>=0?"Lucro":"Prejuízo"} previsto de ${brl(Math.abs(o.LO))} por ano · custo ${brl(o.cKg)}/kg`:`Saldo realizado: ${brl(re.saldo)}`,
+    sub:`Levantamento econômico do projeto${R.proj?" "+esc(R.proj.nome):""}: investimento, custos e receita da viabilidade, lotes da Biomassa, ração do Arraçoamento, preços do Mercado e os seus lançamentos.`,
+    kpis:[...(o?[{i:"🏗",l:"Investimento",v:brl(o.invTot),d:isFinite(o.PRC)?`retorno em ${n(o.PRC,1)} anos`:"não se paga no horizonte",c:isFinite(o.PRC)?"ok":"warn"},{i:"💰",l:"Receita",v:brl(o.RB)+"/ano",d:`${n(o.prod,0)} kg a ${brl(o.pV)}/kg`},{i:"📉",l:"Custo total",v:brl(o.COT)+"/ano",d:`operacional ${brl(o.COE)}/ano`},{i:"📈",l:"VPL · TIR",v:brl(o.VPL),d:isFinite(o.TIR)?`TIR ${n(o.TIR,1)} %`:"",c:o.VPL>=0?"ok":"crit"}]:[]),
+      {i:"🧾",l:"Realizado",v:re.n?brl(re.saldo):"—",d:re.n?`${brl(re.rec)} entradas · ${brl(re.des)} saídas`:"sem lançamentos",c:re.n?(re.saldo>=0?"ok":"warn"):"n"}],
+    chartT:o?"📉 Custos do ano (R$)":"",chart:o?heroBars(o.ops.filter(x=>isFinite(x[2])&&x[2]>0).sort((a,b)=>b[2]-a[2]).map(x=>({n:x[0],v:x[2],c:"warn"})),v=>"R$ "+n(v,0)):"",
+    todo:todo.slice(0,6),como:`<p>O <b>previsto</b> vem da aba Local e viabilidade (com a Calculadora e o Levantamento); o resultado por lote usa a Biomassa e o Arraçoamento; o preço dos clientes vem da Camada de mercado. O <b>realizado</b> são os lançamentos manuais e as importações integradas. Ponto de equilíbrio = custo total ÷ preço de venda.</p>`})}
 function heroVisao(){const tiles=[];
   try{const w=aquaFrame.contentWindow,R=w&&w.aquaRelatorio?w.aquaRelatorio().filter(r=>!r.exemplo):[];if(R.length){const ult={};R.forEach(r=>{if(!ult[r.id]||r.data+r.ini>ult[r.id].data+ult[r.id].ini)ult[r.id]=r});const L=Object.values(ult),c=gfContaU(L.filter(r=>r.st==="critico"||r.st==="letal")).nv,al=gfContaU(L.filter(r=>r.st==="alerta")).nv;tiles.push(["aqua","📈","AquaNictemeral",c?`${c} crítico${c===1?"":"s"}`:al?`${al} em alerta`:"água no ideal",c?"crit":al?"warn":"ok",`${gfContaU(L).txt}${gfContaU(L).det?" · "+gfContaU(L).det:""}`])}else tiles.push(["aqua","📈","AquaNictemeral","sem leituras","info","importe as leituras"])}catch(e){}
   if(dashState&&dashState.ok)tiles.push(["calc","🧮","Calculadora",`${n(dashState.r.BM,0)} kg`,"ok","biomassa máxima do RAS"]);
   const fms=feedModels()||[];let bio=0,ra=0;fms.forEach(m=>{const v=m.ok?m.at(Date.now()):{};if(v.on){bio+=v.bio;ra+=v.feed}});if(fms.length){tiles.push(["bio","🐟","Biomassa",`${n(bio,0)} kg`,bio?"ok":"info","biomassa estimada hoje"]);tiles.push(["racao","🍽","Arraçoamento",`${n(ra,1)} kg/d`,ra?"ok":"info","ração de hoje"])}
   try{const M=window.gfMercResumo&&gfMercResumo();if(M&&focoPode("merc"))tiles.push(["merc","🛒","Camada de mercado",M.prosp?`${M.ativos} cliente${M.ativos===1?"":"s"} ativo${M.ativos===1?"":"s"}`:"sem prospecção",M.ativos?"ok":M.prosp?"warn":"info",M.prosp?`${n(M.volAt,0)} kg/semana · ${M.funil} no funil`:"prospecte o município"])}catch(e){}
   try{const Bn=window.gfBenefResumo&&gfBenefResumo();if(Bn&&focoPode("benef")){const fp=Bn.rend?Bn.rend[0]:NaN;tiles.push(["benef","🔪","Beneficiamento",isFinite(fp)?`filé ${n(fp,1)} %`:"—",Bn.qual.falhas.length?"crit":"ok",Bn.qual.falhas.length?`qualidade: ${Bn.qual.falhas.join(", ")} fora`:`${esc(Bn.esp)}${Bn.plan?` · ${n(Bn.plan.kg,1)} kg de derivado`:""}`])}}catch(e){}
+  try{const Fi=window.gfFinResumo&&gfFinResumo();if(Fi&&focoPode("fin")&&(Fi.o||Fi.nL)){const o=Fi.o;tiles.push(["fin","💼","Financeiro",o?`${o.LO>=0?"lucro":"prejuízo"} R$ ${n(Math.abs(o.LO)/1000,0)} mil/ano`:`saldo R$ ${n(Fi.real.saldo,0)}`,o?(o.LO>=0?"ok":"crit"):(Fi.real.saldo>=0?"ok":"warn"),o?`custo R$ ${n(o.cKg,2)}/kg · venda R$ ${n(o.pV,2)}/kg`:`${Fi.nL} lançamento(s)`])}}catch(e){}
   if(!tiles.length)return "";
   return `<section class="gfh gfh-info gfh-geral"><div class="gfh-top"><div class="gfh-ico">📊</div><div class="gfh-tt"><small>Visão geral · todas as abas</small><h2>Resumo do projeto</h2><p>Toque num cartão para pôr a aba em evidência e ver o painel explicado dela.</p></div></div>
    <div class="gfh-tiles">${tiles.map(([a,i,t,v,c,d])=>`<button type="button" class="ht ht-${c}" data-foco="${a}"><span class="ht-i">${i}</span><span class="ht-t">${t}</span><b>${v}</b><small>${d}</small><span class="ht-go">📌 pôr em evidência</span></button>`).join("")}</div></section>`}
 function heroHTML(){try{if(!foco)return heroVisao();const f=foco;
-  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);if(f==="merc")return heroMerc(true);if(f==="benef")return heroBenef(true);return heroGeral(true,f)}catch(e){return ""}}
+  if(f==="aqua")return heroAqua(true);if(f==="calc")return heroCalc(true);if(f==="bio")return heroLotes(true,false);if(f==="racao")return heroLotes(true,true);if(f==="merc")return heroMerc(true);if(f==="benef")return heroBenef(true);if(f==="fin")return heroFin(true);return heroGeral(true,f)}catch(e){return ""}}
 function focoRender(blocos){
   if(foco&&!focoPode(foco))foco="";
   const ord=a=>FOCOS.findIndex(x=>x[0]===a);
@@ -3105,6 +3128,7 @@ function focoOutros(){const B=[];
   if(focoVe("topo"))B.push(["topo",topoDashHTML()]);
   if(focoVe("merc"))B.push(["merc",mercDashHTML()]);
   if(focoVe("benef"))B.push(["benef",benefDashHTML()]);
+  if(focoVe("fin")&&window.finDashHTML)B.push(["fin",finDashHTML()]);
   return B}
 function mercDashHTML(){const R=window.gfMercResumo&&gfMercResumo();if(!R)return "";
   return `<section class="card wide">${fcHead("Camada de mercado",R.prosp?`Pesquisa de mercado · ${esc(R.mun)}`:"Pesquisa de mercado ainda não feita","merc","Abrir Camada de mercado")}<div class="pj-body">
@@ -3169,7 +3193,8 @@ const CORR={
   repro:{de:[],para:["dash"],txt:"reprodutores e lotes de reprodução, independentes das outras abas"},
   topo:{de:[],para:["calc","local","dash"],txt:"os viveiros projetados viram grupos na Calculadora; área e terraplenagem entram na Viabilidade"},
   merc:{de:["local","bio","aqua"],para:["dash"],txt:"prospecção, funil, ponto de venda e nichos; usa o preço e os custos do Local, as despescas da Biomassa e a água do AquaNictemeral"},
-  benef:{de:[],para:["dash"],txt:"rendimentos, derivados e qualidade; as ligações com as outras abas são as que você marcou em 🔗 Correlações entre abas"}};
+  benef:{de:[],para:["dash"],txt:"rendimentos, derivados e qualidade; as ligações com as outras abas são as que você marcou em 🔗 Correlações entre abas"},
+  fin:{de:["local","calc","bio","racao","merc","benef","topo","aqua"],para:["dash"],txt:"investimento, custos e receita da Viabilidade, custo e lucro por lote da Biomassa e do Arraçoamento, preço dos clientes do Mercado e os seus lançamentos reais"}};
 const CORR_GF=[["bio","benef","bio_peso"],["bio","benef","bio_lote"],["local","benef","local_preco"],["aqua","benef","aqua_qual"],["merc","benef","merc_prod"],["merc","benef","merc_frete"],["benef","merc","benef_rend"],["benef","merc","benef_prod"],["benef","merc","benef_qual"]];
 function corrDe(v){const c=CORR[v];if(!c)return null;const o={de:[...c.de],para:[...c.para],txt:c.txt},on=id=>!window.gfCorrOn||gfCorrOn(id);
   for(const [a,b,id] of CORR_GF){if(!on(id))continue;if(b===v&&!o.de.includes(a))o.de.push(a);if(a===v&&!o.para.includes(b))o.para.splice(o.para.length-(o.para.includes("dash")?1:0),0,b)}return o}
@@ -3977,7 +4002,7 @@ function drawPlan(){
 }
 
 /* ---------- Abas ---------- */
-const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","merc","benef","proj","users"];
+const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","merc","benef","fin","proj","users"];
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
@@ -3991,6 +4016,7 @@ function setView(v){
   document.getElementById("view-topo").hidden=v!=="topo";if(v==="topo"&&window.drawTopo)drawTopo();
   document.getElementById("view-merc").hidden=v!=="merc";if(v==="merc"&&window.drawMerc)drawMerc();
   document.getElementById("view-benef").hidden=v!=="benef";if(v==="benef"&&window.drawBenef)drawBenef();
+  document.getElementById("view-fin").hidden=v!=="fin";if(v==="fin"&&window.drawFin)drawFin();
   document.getElementById("view-proj").hidden=v!=="proj";if(v==="proj"&&window.drawProj)drawProj();
   document.getElementById("view-users").hidden=v!=="users";if(v==="users"&&window.drawUsers)drawUsers();
 }
@@ -4985,7 +5011,7 @@ function nichosResHTML(){const R=nichosRank();const tit=`<section class="card wi
 document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-nisel]");if(!t||e.target.closest("[data-sugnicho]")||!t.closest("#view-merc"))return;niSel=t.dataset.nisel;draw();document.getElementById("mk-ni")?.scrollIntoView({block:"nearest"})});
 window.gfMerc={freteKg:()=>{try{const r=rotas();return r&&isFinite(r.freteKg)?r.freteKg:NaN}catch(e){return NaN}}};
 window.gfMercResumo=()=>{const C=(S.crm&&S.crm.clientes)||[],at=C.filter(c=>c.etapa==="cli"),fu=C.filter(c=>c.etapa!=="perd"&&c.etapa!=="cli");let top=null,fr=NaN;try{top=nichosRank()[0]||null}catch(e){}try{const r=rotas();fr=r&&isFinite(r.freteKg)?r.freteKg:NaN}catch(e){}const L=S.crm&&S.crm.local;
-  return {mun:S.res&&S.res.mun?S.res.mun.n:(S.mun||""),prosp:!!(S.res&&S.res.mun),pts:((S.res&&S.res.pts)||[]).length,nCli:C.length,ativos:at.length,volAt:at.reduce((a,c)=>a+volSem(c),0),funil:fu.length,volFun:fu.reduce((a,c)=>a+volSem(c)*(ET[c.etapa]?ET[c.etapa].p:0),0),
+  return {mun:S.res&&S.res.mun?S.res.mun.n:(S.mun||""),prosp:!!(S.res&&S.res.mun),pts:((S.res&&S.res.pts)||[]).length,nCli:C.length,ativos:at.length,volAt:at.reduce((a,c)=>a+volSem(c),0),recAt:at.reduce((a,c)=>a+volSem(c)*prec(c),0),funil:fu.length,volFun:fu.reduce((a,c)=>a+volSem(c)*(ET[c.etapa]?ET[c.etapa].p:0),0),
     etapas:ETAPAS.filter(e=>e[0]!=="perd").map(e=>{const l=C.filter(c=>c.etapa===e[0]);return {k:e[0],n:e[1],c:e[3],q:l.length,v:l.reduce((a,c)=>a+volSem(c),0)}}),local:L&&isFinite(L.lat)?{nome:L.nome,fixo:!!L.fixo}:null,top:top?{n:top.n,nota:top.a.nota,v:top.a.v[0]}:null,frete:fr}};
 window.drawMerc=()=>{if(!S.mun){try{const lr=window.lvResumo&&lvResumo();if(lr&&lr.LV&&lr.LV.loc)S.mun=String(lr.LV.loc)}catch(e){}}draw()};
 })();
@@ -6027,6 +6053,7 @@ function drawLocal(){
 }
 window.drawLocal=drawLocal;
 window.lvResumo=()=>{try{return {o:compute(),LV}}catch(e){return null}};
+window.lvPreco=k=>{try{return qv(k)}catch(e){return NaN}};
 window.refreshLocal=()=>{if(LV.est!=="manual")applyClimate();saveLV();if(!el.hidden){build();drawLocal()}};
 /* ---------- resumo de Local e viabilidade dentro da aba Painel ---------- */
 const tt=(t,v)=>`data-tt="${esc(t)}" data-tv="${esc(v)}" tabindex="0"`;
@@ -7899,7 +7926,7 @@ const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?
 const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){return false}};
 const dataBR=t=>{if(!t)return"—";const d=new Date(t);return d.toLocaleDateString("pt-BR")+" "+d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})};
 const SIT={ativo:["Ativo","ok"],pendente:["Aguardando aprovação","wait"],suspenso:["Suspenso","bad"],cancelado:["Cancelado pelo administrador","bad"],cancelada:["Inscrição cancelada pelo usuário","off"],sem:["Sem inscrição","off"]};
-const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"],["topo","Levantamentos e projetos","Levantamentos"]];
+const ABAS=[["local","Local e viabilidade","Local"],["calc","Calculadora","Calculadora"],["aqua","AquaNictemeral","Aqua"],["bio","Biomassa total em tempo real","Biomassa"],["racao","Arraçoamento","Arraçoamento"],["dash","Painel","Painel"],["repro","Reprodução","Reprodução"],["topo","Levantamentos e projetos","Levantamentos"],["fin","Financeiro","Financeiro"]];
 const SO_ADMIN=["local","calc"];          // Local e viabilidade e Calculadora: só administrador (versão avançada)
 const ABAS_USU=ABAS.filter(a=>!SO_ADMIN.includes(a[0]));
 const LPLANO=PK+"-planos";
@@ -9757,6 +9784,7 @@ const ICO={
   racao:'<path d="M5 9h14l-1.5 11h-11z"/><path d="M8 9V6a4 4 0 0 1 8 0v3"/>',
   topo:'<path d="M3 19l5-8 4 5 3-4 6 7z"/><path d="M6 8c2-2 4-2 6 0s4 2 6 0"/>',
   benef:'<path d="M3 12c3-4 7-5 11-3l4-3v12l-4-3c-4 2-8 1-11-3z"/><circle cx="7.5" cy="11" r=".8"/><path d="M12 9v6"/>',
+  fin:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.5"/><path d="M7 3h10"/>',
   merc:'<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/><path d="M3 21h18"/>',
   repro:'<ellipse cx="12" cy="13" rx="6" ry="7.5"/><circle cx="12" cy="11" r="2"/><path d="M9.5 16.5c1.4 1 3.6 1 5 0"/>',
   proj:'<path d="M4 6a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/>',
@@ -9765,7 +9793,7 @@ const ICO={
 };
 const svg=k=>`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICO[k]}</svg>`;
 const MAIN=[["local","Local"],["calc","Calcular"],["aqua","Água"],["dash","Painel"]];
-const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["proj","Projetos"],["users","Usuários e acesso"]];
+const ALL=[["local","Local e viabilidade"],["calc","Calculadora"],["aqua","AquaNictemeral"],["bio","Biomassa total em tempo real"],["racao","Arraçoamento"],["dash","Painel"],["repro","Reprodução"],["topo","Levantamentos e projetos"],["merc","Camada de mercado"],["benef","Beneficiamento do pescado"],["fin","Financeiro"],["proj","Projetos"],["users","Usuários e acesso"]];
 
 const nav=document.createElement("nav");nav.className="bnav";nav.setAttribute("aria-label","Navegação do app");
 nav.innerHTML=MAIN.map(([v,t])=>`<button type="button" data-bv="${v}">${svg(v)}<span>${t}</span></button>`).join("")+`<button type="button" data-bv="mais" aria-haspopup="dialog" aria-expanded="false">${svg("mais")}<span>Mais</span></button>`;
@@ -9804,7 +9832,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v133";
+  const APP_VERSAO="ras-v134";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -9855,5 +9883,320 @@ box.addEventListener("click",e=>{const b=e.target.closest("[data-lt]");if(!b)ret
 window.drawLotes=draw;
 const vw=document.getElementById("view-aqua");if(vw)new MutationObserver(()=>{if(!vw.hidden)setTimeout(draw,600)}).observe(vw,{attributes:true,attributeFilter:["hidden"]});
 setInterval(()=>{if(vw&&!vw.hidden)draw()},15000);setTimeout(draw,2500);
+})();
+</script>
+<style>
+#view-fin .fin-wrap{display:grid;gap:16px}
+.fin-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:8px 0}
+.fin-k{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface);display:flex;flex-direction:column;gap:2px;min-width:0}
+.fin-k span{font-size:12px;color:var(--muted)}.fin-k b{font:600 18px var(--f-mono,monospace);word-break:break-word}.fin-k small{font-size:11.5px;color:var(--muted)}
+.fin-k.ok b{color:var(--accent)}.fin-k.bad b{color:#b4321c}.fin-k.warn b{color:var(--warn,#a86a00)}
+.fin-src{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px;margin:6px 0}
+.fin-src a{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-decoration:none;color:inherit;background:var(--surface)}
+.fin-src a i{font-style:normal;font-size:18px}.fin-src a b{display:block;font-size:13px}.fin-src a small{display:block;font-size:12px;color:var(--muted)}
+.fin-src a.off{opacity:.65;border-style:dashed}
+.fin-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.fin-tabs button{border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:6px 12px;font:600 13px var(--f-body);cursor:pointer}
+.fin-tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.fin-t{width:100%;border-collapse:collapse;font-size:13px}.fin-t th,.fin-t td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.fin-t th{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--bg)}
+.fin-t td.fn,.fin-t th.fn{text-align:right;font-family:var(--f-mono,monospace);white-space:nowrap}.fin-t tfoot td{font-weight:700}
+.fin-t small{display:block;color:var(--muted);font-size:11.5px}
+.fin-pos{color:var(--accent)}.fin-neg{color:#b4321c}
+.fin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;margin:6px 0}
+.fin-form label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.fin-form input,.fin-form select,.fin-imp textarea,.fin-cen input[type=number]{font:inherit;font-size:14px;padding:7px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%;box-sizing:border-box}
+.fin-tag{display:inline-block;font:600 11px var(--f-body);padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.fin-tag.ev{background:var(--warn-soft,#fff4d6);color:var(--warn,#8a5a00)}.fin-tag.iso{background:#eee;color:#555}
+.fin-msg{font-size:13px;padding:8px 10px;border-radius:8px;background:var(--accent-soft);margin:6px 0}
+.fin-msg.err{background:#fde8e6;color:#8c2414}
+.fin-chart{width:100%;height:auto;display:block}
+.fin-cen{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:8px 0}
+.fin-cen label{display:flex;flex-direction:column;gap:4px;font-size:13px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}
+.fin-cen label b{font-family:var(--f-mono,monospace)}.fin-cen input[type=range]{width:100%}
+.fin-pre{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.fin-bar{height:10px;border-radius:5px;background:var(--line);position:relative;min-width:80px}.fin-bar i{position:absolute;top:0;bottom:0;border-radius:5px}
+.fin-imp textarea{min-height:90px;font-family:var(--f-mono,monospace);font-size:12px}
+.fin-leg{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin:4px 0}.fin-leg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px}
+#view-fin .pj-body{grid-template-columns:minmax(0,1fr)}#view-fin .pj-body>*{min-width:0}#view-fin .scroll{max-width:100%;min-width:0!important}
+@media (max-width:640px){#view-fin .scroll{width:100%!important}.fin-t.rsp,.fin-t.rsp tbody,.fin-t.rsp tfoot{display:block;min-width:0!important;width:100%!important}.fin-t.rsp thead{display:none}.fin-t.rsp tr{display:block;border-bottom:1px solid var(--line);padding:6px 0}.fin-t.rsp td{display:block;border:0;padding:3px 4px;text-align:right;white-space:normal}.fin-t.rsp td::before{content:attr(data-l);float:left;color:var(--muted);font-size:12px;text-align:left;font-family:var(--f-body)}.fin-t.rsp td small{white-space:normal}.fin-t.rsp td:empty{display:none}.fin-t.rsp td:first-child{display:block;text-align:left}.fin-t.rsp td:first-child::before{content:none}}
+</style>
+<script>
+/* ===================== v134: aba Financeiro ===================== */
+(function(){
+const el=document.getElementById("view-fin");if(!el)return;
+const FK="ras-multitanques-v1-fin",DAYMS=864e5;
+const rd=()=>{try{return JSON.parse(localStorage.getItem(FK))||{}}catch(e){return {}}};
+let F=Object.assign({lanc:[],imps:{},cen:{pv:0,rac:0,fca:0,ene:0,prod:0,mo:0},sec:"painel",invMes:false},rd());
+const grava=()=>{try{localStorage.setItem(FK,JSON.stringify(F))}catch(e){}};
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf=(x,d=0)=>isFinite(x)?Number(x).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const brl=(x,d)=>isFinite(x)?(x<0?"− ":"")+"R$ "+nf(Math.abs(x),d==null?(Math.abs(x)>=1000?0:2):d):"—";
+const pct=(x,d=1)=>isFinite(x)?nf(x,d)+" %":"—";
+const P=s=>{if(typeof s==="number")return s;s=String(s==null?"":s).trim().replace(/[R$\s]/g,"");if(!s)return NaN;if(/,\d{1,2}$/.test(s)||/\.\d{3}(,|$)/.test(s))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"");return parseFloat(s)};
+const hoje=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const dBR=s=>s?String(s).slice(0,10).split("-").reverse().join("/"):"—";
+const MES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+const mk=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const mNome=k=>{const [y,m]=k.split("-");return MES[+m-1]+"/"+y.slice(2)};
+const uid=()=>"f"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+/* categorias: as de custo seguem a Viabilidade (Local e viabilidade) */
+const CAT_D=[["racao","Ração","🍽"],["juv","Formas jovens (alevinos/pós-larvas)","🐟"],["ene","Energia elétrica","⚡"],["mo","Mão de obra","👷"],["enc","Encargos sociais","📑"],["ins","Outros insumos","🧪"],["man","Manutenção","🔧"],["frete","Frete e transporte","🚚"],["benef","Beneficiamento e embalagem","🔪"],["inv","Investimento (obras e equipamentos)","🏗"],["outd","Outras despesas","➖"]];
+const CAT_R=[["venda","Venda do pescado","💰"],["deriv","Venda de derivados","🌭"],["outr","Outras receitas","➕"]];
+const CATN=Object.fromEntries([...CAT_D,...CAT_R].map(c=>[c[0],c]));
+const catAuto=(txt,tipo)=>{const t=String(txt||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  if(tipo==="r"){if(/derivad|file|fil[eé]|linguica|hamburg|empanad|defumad|polpa|cms/.test(t))return "deriv";if(/venda|vendid|despesca|cliente|feira|peixe|camarao|pescado|tilapia|tambaqui/.test(t))return "venda";return "outr"}
+  if(/racao|ração|alimento|extrusad/.test(t))return "racao";if(/alevin|pos.?larva|juvenil|formas jovens|post.?larv|pl\b/.test(t))return "juv";
+  if(/energia|luz|kwh|eletric|equatorial|cemar|enel|cpfl|coelba|celpe/.test(t))return "ene";if(/salario|mao de obra|diaria|diarista|funcion|tratador|pagamento pessoal/.test(t))return "mo";
+  if(/inss|fgts|encargo|13o|ferias/.test(t))return "enc";if(/frete|transport|combust|gasolina|diesel|entrega/.test(t))return "frete";if(/manuten|conserto|reparo|peca/.test(t))return "man";
+  if(/gelo|embalag|abate|beneficia|filetag|caixa termica/.test(t))return "benef";if(/obra|constru|escava|terraplen|bomba|soprador|aerador|filtro|tanque|lona|geomembrana|galpao|equipament|investiment/.test(t))return "inv";
+  if(/cal\b|calcario|probiotico|sal\b|medicament|kit|reagente|insumo|melaco|fertiliz/.test(t))return "ins";return "outd"};
+const PREV_IDX={racao:0,juv:1,ene:2,mo:3,enc:4,ins:5,man:6};
+
+/* ---------- dados das outras abas ---------- */
+const pid=()=>{try{const p=window.projAtual&&projAtual();return p?p:null}catch(e){return null}};
+const lv=()=>{try{const r=window.lvResumo&&lvResumo();return r&&r.o&&r.o.okCalc?r.o:null}catch(e){return null}};
+const preco=(k,ref)=>{try{const v=window.lvPreco&&lvPreco(k);return isFinite(v)&&v>0?v:ref}catch(e){return ref}};
+const lotesM=()=>{try{return typeof feedModels==="function"?(feedModels()||[]).filter(m=>m&&m.ok):[]}catch(e){return []}};
+const fb=(m,a,b)=>{try{return typeof feedBetween==="function"?feedBetween(m,a,b):NaN}catch(e){return NaN}};
+const unidadesAq=()=>{try{const w=document.getElementById("aqua-frame").contentWindow;return (w&&w.aquaUnidades?w.aquaUnidades():[]).filter(u=>u.id!=="ras-sistema")}catch(e){return []}};
+const merc=()=>{try{return window.gfMercResumo?gfMercResumo():null}catch(e){return null}};
+const benef=()=>{try{return window.gfBenefResumo?gfBenefResumo():null}catch(e){return null}};
+const topo=()=>{try{return window.topoResumo?topoResumo():null}catch(e){return null}};
+const bioNome=()=>{try{return window.bioPorNome?bioPorNome():{}}catch(e){return {}}};
+
+/* lançamentos visíveis: manuais + importações em evidência/integradas (painel: só manuais e integradas) */
+const impEst=k=>(F.imps[k]||{}).est||"isolado";
+const visL=(painel)=>F.lanc.filter(l=>!l.imp||impEst(l.imp)==="integrado"||(!painel&&impEst(l.imp)==="evidencia"));
+
+/* ---------- cálculo central ---------- */
+function calc(painel){
+  const o=lv(),L=visL(painel),now=Date.now();
+  const pR=preco("pRacao",3.5),pJ=preco("pJuv",300),pV=o&&isFinite(o.pV)?o.pV:preco("pVenda",10);
+  const M=merc(),pMerc=M&&M.recAt>0&&M.volAt>0?M.recAt/M.volAt:NaN,frete=M&&isFinite(M.frete)?M.frete:NaN;
+  const des=L.filter(l=>l.t==="d"),rec=L.filter(l=>l.t==="r"),sum=a=>a.reduce((s,l)=>s+(isFinite(l.v)?l.v:0),0);
+  const real={des:sum(des),rec:sum(rec)};real.saldo=real.rec-real.des;
+  real.kgV=rec.filter(l=>l.cat==="venda"&&/kg/i.test(l.un||"kg")).reduce((s,l)=>s+(isFinite(l.q)?l.q:0),0);
+  real.desOp=sum(des.filter(l=>l.cat!=="inv"));real.cKg=real.kgV>0?real.desOp/real.kgV:NaN;real.pMed=real.kgV>0?sum(rec.filter(l=>l.cat==="venda"))/real.kgV:NaN;
+  const ds=L.map(l=>l.d).filter(Boolean).sort();real.de=ds[0]||"";real.ate=ds[ds.length-1]||"";real.n=L.length;
+  const porCat={};for(const l of L){const k=l.cat||"outd";porCat[k]=(porCat[k]||0)+(isFinite(l.v)?l.v:0)}
+  /* meses de operação registrados (para comparar com o previsto) */
+  let meses=0;if(real.de){const a=new Date(real.de+"T12:00"),b=new Date();meses=Math.max(1,(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()+1)}
+  /* lotes da Biomassa: custo, receita e conversão por lote */
+  const lotes=[],ms=lotesM(),Vt=ms.reduce((s,m)=>s+((m.g&&m.g.v)||0),0)||(o?o.V:0)||1;
+  const fixoAno=o?(o.COT-(o.ops[0][2]||0)-(o.ops[1][2]||0)):0;
+  for(const m of ms){const fim=m.harvest,ini=m.start,dias=(fim-ini)/DAYMS,vol=(m.g&&m.g.v)||0,sh=vol/Vt;
+    const rTot=fb(m,ini,fim),rHoje=fb(m,ini,Math.min(now,fim)),bF=m.at(fim-DAYMS/2).bio,bH=m.at(Math.min(now,fim-DAYMS/2)).bio,b0=m.nT*m.w0/1000;
+    const cR=rTot*pR,cJ=m.nT/1000*pJ,cF=fixoAno*sh*dias/365,cT=cR+cJ+cF,rc=bF*pV,nome=m.name||("Lote "+(lotes.length+1));
+    const mL=L.filter(l=>l.u&&String(l.u).trim().toLowerCase()===String(nome).trim().toLowerCase());
+    lotes.push({nome,esp:m.sp&&m.sp.name,ini,fim,dias,vol,n:m.nT,bF,bH,rTot,rHoje,cR,cJ,cF,cT,rc,lucro:rc-cT,cKg:bF>0?cT/bF:NaN,fca:bF-b0>0?rTot/(bF-b0):NaN,cHoje:rHoje*pR+cJ+fixoAno*sh*Math.max(0,Math.min(now,fim)-ini)/DAYMS/365,
+      realD:sum(mL.filter(l=>l.t==="d")),realR:sum(mL.filter(l=>l.t==="r")),ativo:now>=ini&&now<fim})}
+  /* tanques/viveiros com lançamentos (sem lote) */
+  const nLotes=new Set(lotes.map(x=>String(x.nome).trim().toLowerCase())),porU={};
+  for(const l of L){const u=String(l.u||"").trim();if(!u||nLotes.has(u.toLowerCase()))continue;const k=u.toLowerCase();porU[k]=porU[k]||{nome:u,d:0,r:0,n:0};porU[k][l.t==="r"?"r":"d"]+=isFinite(l.v)?l.v:0;porU[k].n++}
+  return {o,L,real,porCat,meses,lotes,porU:Object.values(porU),pR,pJ,pV,pMerc,frete,M,now}}
+
+/* cenários: recalcula a viabilidade com variações */
+function cenario(o,c){if(!o)return null;const k=x=>1+(x||0)/100,op=o.ops.map(x=>isFinite(x[2])?x[2]:0);
+  const rac=op[0]*k(c.rac)*k(c.fca)*k(c.prod),juv=op[1]*k(c.prod),ene=op[2]*k(c.ene),mo=op[3]*k(c.mo),enc=op[4]*k(c.mo),ins=op[5];
+  const sub=rac+juv+ene+mo+enc+ins,COE=sub*1.02,COT=COE+o.dep,prod=o.prod*k(c.prod),pV=o.pV*k(c.pv),RB=prod*pV,LO=RB-COT;
+  const tma=(()=>{try{return (window.lvResumo&&lvResumo().LV&&P(lvResumo().LV.tma))/100}catch(e){return NaN}})(),t=isFinite(tma)?tma:0.1;
+  const fl=o.fc.map(x=>({y:x.y,f:(x.y?RB:0)-(x.y?COE:0)-x.inv}));const npv=i=>fl.reduce((s,x)=>s+x.f/Math.pow(1+i,x.y),0);
+  let TIR=NaN;if(npv(-0.99)*npv(5)<0){let lo=-0.99,hi=5;for(let i=0;i<200;i++){const m=(lo+hi)/2;if(npv(lo)*npv(m)<=0)hi=m;else lo=m}TIR=(lo+hi)/2*100}
+  let acc=0,PRC=NaN;for(let i=0;i<fl.length;i++){const a=acc;acc+=fl[i].f;if(i&&a<0&&acc>=0){PRC=i-1+(-a)/(acc-a);break}}
+  return {COE,COT,RB,LO,IL:LO/RB*100,cKg:COT/prod,VPL:npv(t),TIR,PRC,prod,pV,peq:COT/pV}}
+
+/* fluxo de caixa mês a mês: previsto (lotes + custos fixos da Viabilidade) e realizado (lançamentos) */
+function fluxo(C){const o=C.o,now=new Date(),i0=new Date(now.getFullYear(),now.getMonth(),1);let ini=i0;
+  if(C.real.de){const d=new Date(C.real.de+"T12:00");const m0=new Date(d.getFullYear(),d.getMonth(),1);if(m0<ini)ini=m0}
+  const ms=lotesM();for(const m of ms){const d=new Date(m.start);const m0=new Date(d.getFullYear(),d.getMonth(),1);if(m0<ini&&m.harvest>now-400*DAYMS)ini=m0}
+  const n=Math.min(36,Math.max(12,(i0.getFullYear()-ini.getFullYear())*12+i0.getMonth()-ini.getMonth()+12));
+  const fixMes=o?(o.COE-(o.ops[0][2]||0)-(o.ops[1][2]||0))/12:0,R=[];let accP=0,accR=0,accM=0;
+  for(let i=0;i<n;i++){const a=new Date(ini.getFullYear(),ini.getMonth()+i,1),b=new Date(ini.getFullYear(),ini.getMonth()+i+1,1),k=mk(a);
+    let sP=fixMes,eP=0;if(ms.length){for(const m of ms){sP+=fb(m,Math.max(+a,m.start),Math.min(+b,m.harvest))*C.pR||0;if(m.start>=+a&&m.start<+b)sP+=m.nT/1000*C.pJ;if(m.harvest>=+a&&m.harvest<+b)eP+=m.at(m.harvest-DAYMS/2).bio*C.pV}}
+    else if(o){sP=o.COE/12;eP=o.RB/12}
+    if(i===0&&F.invMes&&o)sP+=o.invTot;
+    const lm=C.L.filter(l=>String(l.d||"").slice(0,7)===k),sR=lm.filter(l=>l.t==="d").reduce((s,l)=>s+(l.v||0),0),eR=lm.filter(l=>l.t==="r").reduce((s,l)=>s+(l.v||0),0);
+    const pass=b<=new Date(now.getFullYear(),now.getMonth()+1,1);accP+=eP-sP;accR+=eR-sR;accM+=pass?eR-sR:eP-sP;
+    R.push({k,sP,eP,sR,eR,pass,cur:k===mk(now),accP,accR,accM,nL:lm.length})}
+  return R}
+
+/* ---------- gráficos SVG ---------- */
+function chartFluxo(R){if(!R.length)return "";const W=760,H=240,pl=56,pr=10,pt=12,pb=34,w=(W-pl-pr)/R.length;
+  const vals=R.flatMap(r=>[r.sP,r.eP,r.sR,r.eR,Math.abs(r.accM)]),mx=Math.max(1,...vals.filter(isFinite)),mnA=Math.min(0,...R.map(r=>r.accM)),mxA=Math.max(mx,...R.map(r=>r.accM));
+  const y=v=>pt+(H-pt-pb)*(1-(v-mnA)/(mxA-mnA||1)),z=y(0);let g="";
+  for(let t=0;t<=4;t++){const v=mnA+(mxA-mnA)*t/4,yy=y(v);g+=`<line x1="${pl}" x2="${W-pr}" y1="${yy}" y2="${yy}" stroke="currentColor" stroke-opacity=".12"/><text x="${pl-6}" y="${yy+4}" text-anchor="end" font-size="10" fill="currentColor" fill-opacity=".6">${Math.abs(v)>=1000?nf(v/1000,0)+" mil":nf(v,0)}</text>`}
+  R.forEach((r,i)=>{const x=pl+i*w,bw=Math.max(2,w/2-3),eV=r.pass?r.eR:r.eP,sV=r.pass?r.sR:r.sP,op=r.pass?1:.45;
+    g+=`<rect x="${x+2}" y="${Math.min(y(eV),z)}" width="${bw}" height="${Math.abs(z-y(eV))}" fill="var(--accent)" opacity="${op}"><title>${mNome(r.k)} · entradas ${r.pass?"realizadas":"previstas"}: ${brl(eV)}</title></rect>`;
+    g+=`<rect x="${x+2+bw+1}" y="${Math.min(y(sV),z)}" width="${bw}" height="${Math.abs(z-y(sV))}" fill="#c0563b" opacity="${op}"><title>${mNome(r.k)} · saídas ${r.pass?"realizadas":"previstas"}: ${brl(sV)}</title></rect>`;
+    if(i%Math.ceil(R.length/12)===0||r.cur)g+=`<text x="${x+w/2}" y="${H-pb+14}" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="${r.cur?1:.6}" font-weight="${r.cur?700:400}">${mNome(r.k)}</text>`;
+    if(r.cur)g+=`<line x1="${x+w}" x2="${x+w}" y1="${pt}" y2="${H-pb}" stroke="currentColor" stroke-dasharray="3 3" stroke-opacity=".5"/><text x="${x+w+3}" y="${pt+10}" font-size="10" fill="currentColor" fill-opacity=".7">hoje</text>`});
+  g+=`<line x1="${pl}" x2="${W-pr}" y1="${z}" y2="${z}" stroke="currentColor" stroke-opacity=".4"/>`;
+  g+=`<polyline fill="none" stroke="currentColor" stroke-width="2" points="${R.map((r,i)=>`${pl+i*w+w/2},${y(r.accM)}`).join(" ")}"/>`+R.map((r,i)=>`<circle cx="${pl+i*w+w/2}" cy="${y(r.accM)}" r="2.5" fill="currentColor"><title>${mNome(r.k)} · saldo acumulado: ${brl(r.accM)}</title></circle>`).join("");
+  return `<svg class="fin-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fluxo de caixa mês a mês">${g}</svg>
+   <div class="fin-leg"><span><i style="background:var(--accent)"></i>Entradas</span><span><i style="background:#c0563b"></i>Saídas</span><span><i style="background:currentColor;height:3px;vertical-align:3px"></i>Saldo acumulado</span><span>barras cheias = realizado (até hoje) · claras = previsto</span></div>`}
+function barras(L,fmt){if(!L.length)return "";const mx=Math.max(...L.map(x=>Math.abs(x.v)))||1;
+  return `<table class="fin-t">${L.map(x=>`<tr><td style="width:40%">${E(x.n)}</td><td><div class="fin-bar"><i style="left:0;width:${Math.max(2,Math.abs(x.v)/mx*100)}%;background:${x.c||"var(--accent)"}"></i></div></td><td class="fn" style="width:110px">${fmt(x.v)}</td></tr>`).join("")}</table>`}
+
+/* ---------- telas ---------- */
+let msg="",msgErr=false,impPrev=null,editId=null;
+const kp=(t,v,s,c)=>`<div class="fin-k${c?" "+c:""}"><span>${t}</span><b>${v}</b>${s?`<small>${s}</small>`:""}</div>`;
+const card=(t,s,body,extra)=>`<section class="card wide"><div class="card-head"><h2>${t}${s?`<span>${s}</span>`:""}</h2>${extra||""}</div><div class="pj-body">${body}</div></section>`;
+function fontesHTML(C){const o=C.o,ms=lotesM(),M=C.M,Bn=benef(),T=topo(),U=unidadesAq(),bn=bioNome(),nB=Object.keys(bn).length;
+  const it=[["local","📍","Local e viabilidade",o?`investimento ${brl(o.invTot)} · custo ${brl(o.COT)}/ano`:"complete a viabilidade",!!o],
+    ["calc","🧮","Calculadora",o?`${nf(o.V,0)} m³ · produção ${nf(o.prod,0)} kg/ano`:"sem dimensionamento",!!o],
+    ["bio","🐟","Biomassa",ms.length?`${ms.length} lote${ms.length===1?"":"s"} · custo e receita por lote`:"nenhum lote cadastrado",ms.length>0],
+    ["racao","🍽","Arraçoamento",ms.length?`ração a R$ ${nf(C.pR,2)}/kg`:"sem lotes",ms.length>0],
+    ["merc","🛒","Camada de mercado",M&&M.ativos?`${M.ativos} cliente(s) · ${brl(M.recAt)}/semana${isFinite(C.frete)?` · frete R$ ${nf(C.frete,2)}/kg`:""}`:"sem clientes ativos",!!(M&&M.ativos)],
+    ["benef","🔪","Beneficiamento",Bn&&Bn.plan?`${nf(Bn.plan.kg,1)} kg de derivado planejado`:"sem derivado planejado",!!(Bn&&Bn.plan)],
+    ["topo","🗺","Levantamentos",T&&T.custo?`terraplenagem ${brl(T.custo)}`:"sem terraplenagem",!!(T&&T.custo)],
+    ["aqua","📈","AquaNictemeral",U.length?`${U.length} tanque(s)/viveiro(s) para lançar custos${nB?` · ${nB} com biometria`:""}`:"sem tanques",U.length>0]];
+  return `<div class="fin-src">${it.map(([g,i,t,s,on])=>`<a href="#" data-goto="${g}" class="${on?"":"off"}"><i>${i}</i><span><b>${t} ${on?"✓":""}</b><small>${E(s)}</small></span></a>`).join("")}</div>`}
+function painelHTML(C){const o=C.o,R=C.real,pr=o?o.COE/12*C.meses:NaN;
+  let h=card("💼 Painel econômico",`${pid()?E(pid().nome):"sem projeto aberto"} · previsto (Viabilidade) × realizado (lançamentos)`,
+   `${o?`<h3 class="bi-h">Previsto pela viabilidade do projeto</h3><div class="fin-kpis">
+     ${kp("Investimento total",brl(o.invTot),`obras e equipamentos · depreciação ${brl(o.dep)}/ano`)}
+     ${kp("Custo operacional",brl(o.COE)+"/ano",`custo total ${brl(o.COT)}/ano`)}
+     ${kp("Produção",nf(o.prod,0)+" kg/ano",`${nf(o.ciclos,1)} ciclo(s) por ano`)}
+     ${kp("Custo por kg",brl(o.cKg,2),`preço de venda ${brl(o.pV,2)}/kg${isFinite(C.pMerc)?` · clientes pagam ${brl(C.pMerc,2)}`:""}`,o.cKg<o.pV?"ok":"bad")}
+     ${kp("Receita bruta",brl(o.RB)+"/ano","")}
+     ${kp("Lucro operacional",brl(o.LO)+"/ano",`${brl(o.LOM)}/mês · margem ${pct(o.IL)}`,o.LO>=0?"ok":"bad")}
+     ${kp("Ponto de equilíbrio",nf(o.COT/o.pV,0)+" kg/ano",`ou preço mínimo de ${brl(o.cKg,2)}/kg`)}
+     ${kp("Retorno",isFinite(o.PRC)?nf(o.PRC,1)+" anos":"não paga",`VPL ${brl(o.VPL)} · TIR ${pct(o.TIR)} · B/C ${nf(o.RBC,2)}`,o.VPL>=0?"ok":"bad")}
+   </div>`:`<p class="fin-msg">Complete a <a href="#" data-goto="calc">Calculadora</a> e a <a href="#" data-goto="local">Local e viabilidade</a> para ver o previsto (investimento, custos, receita, VPL e TIR).</p>`}
+   <h3 class="bi-h">Realizado (seus lançamentos${R.de?` de ${dBR(R.de)} a ${dBR(R.ate)}`:""})</h3>
+   ${R.n?`<div class="fin-kpis">${kp("Despesas",brl(R.des),`${C.L.filter(l=>l.t==="d").length} lançamento(s)`)}${kp("Receitas",brl(R.rec),R.kgV?`${nf(R.kgV,0)} kg vendidos · ${brl(R.pMed,2)}/kg`:"")}${kp("Saldo",brl(R.saldo),"",R.saldo>=0?"ok":"bad")}
+     ${kp("Custo por kg vendido",isFinite(R.cKg)?brl(R.cKg,2):"—",isFinite(R.cKg)&&o?`previsto ${brl(o.cKg,2)}/kg`:"lance as vendas com a quantidade em kg",isFinite(R.cKg)&&o?(R.cKg<=o.cKg*1.05?"ok":"warn"):"")}
+     ${o?kp("Despesas × previsto",pct(R.desOp/pr*100,0),`custeio previsto em ${C.meses} mês(es): ${brl(pr)}`,R.desOp<=pr?"ok":"warn"):""}</div>`
+   :`<p class="muted">Nenhum lançamento ainda. Registre despesas e receitas em <b>🧾 Lançamentos</b> ou importe um extrato/planilha.</p>`}
+   <h3 class="bi-h">🔗 De onde vêm os números (abas correlacionadas)</h3>${fontesHTML(C)}`);
+  if(o){const rows=[...CAT_D.filter(c=>PREV_IDX[c[0]]!=null||C.porCat[c[0]]),...CAT_R.filter(c=>C.porCat[c[0]])].map(c=>{const i=PREV_IDX[c[0]],pa=i!=null&&o.ops[i]?o.ops[i][2]:c[0]==="venda"?o.RB:c[0]==="inv"?o.invTot:NaN,pm=isFinite(pa)?(c[0]==="inv"?pa:pa/12*C.meses):NaN,re=C.porCat[c[0]]||0,df=re-pm;
+      return `<tr><td>${c[2]} ${E(c[1])}${i!=null&&o.ops[i]?`<small>${E(o.ops[i][1])}</small>`:""}</td><td class="fn" data-l="Previsto/ano">${brl(pa)}</td><td class="fn" data-l="Previsto no período">${C.meses?brl(pm):"—"}</td><td class="fn" data-l="Realizado">${brl(re)}</td><td class="fn ${isFinite(df)&&C.meses?(CATN[c[0]]&&CAT_R.includes(CATN[c[0]])?(df>=0?"fin-pos":"fin-neg"):(df<=0?"fin-pos":"fin-neg")):""}" data-l="Diferença">${C.meses&&isFinite(df)?brl(df):"—"}</td></tr>`}).join("");
+    h+=card("📊 Previsto × realizado por categoria",C.meses?`período de ${C.meses} mês(es) desde o primeiro lançamento`:"o realizado aparece quando houver lançamentos",
+      `<div class="scroll"><table class="fin-t rsp"><thead><tr><th>Categoria</th><th class="fn">Previsto/ano</th><th class="fn">Previsto no período</th><th class="fn">Realizado</th><th class="fn">Diferença</th></tr></thead><tbody>${rows}</tbody></table></div>
+       <p class="muted">Custos previstos da aba Local e viabilidade (ração, formas jovens, energia, mão de obra, encargos, insumos e manutenção de 2 %). O investimento aparece inteiro, não proporcional. Despesa abaixo do previsto fica verde; receita acima do previsto também.</p>
+       ${barras(o.ops.filter(x=>isFinite(x[2])&&x[2]>0).map(x=>({n:x[0],v:x[2],c:"#c0563b"})).sort((a,b)=>b.v-a.v),v=>brl(v)+"/ano")}`)}
+  return h}
+function lotesHTML(C){const Ls=C.lotes,U=C.porU;
+  if(!Ls.length&&!U.length)return card("🐟 Por tanque/viveiro e lote","","<p class=\"muted\">Cadastre os lotes (povoamento) na aba <a href=\"#\" data-goto=\"bio\">Biomassa</a> ou lance despesas e receitas com o tanque/viveiro preenchido para ver o resultado de cada um.</p>");
+  const tot=Ls.reduce((a,x)=>({cT:a.cT+x.cT,rc:a.rc+x.rc,bF:a.bF+x.bF,rTot:a.rTot+x.rTot}),{cT:0,rc:0,bF:0,rTot:0});
+  return card("🐟 Por tanque/viveiro e lote",`ração a ${brl(C.pR,2)}/kg · formas jovens a ${brl(C.pJ,0)}/milheiro · venda a ${brl(C.pV,2)}/kg · custos fixos rateados pelo volume e pelos dias do ciclo`,
+   `${Ls.length?`<div class="scroll"><table class="fin-t rsp"><thead><tr><th>Lote (grupo)</th><th class="fn">Ciclo</th><th class="fn">Despesca</th><th class="fn">Ração</th><th class="fn">FCA</th><th class="fn">Custo do ciclo</th><th class="fn">Receita prevista</th><th class="fn">Lucro</th><th class="fn">Custo/kg</th><th class="fn">Lançado</th></tr></thead><tbody>
+     ${Ls.map(x=>`<tr><td><b>${E(x.nome)}</b><small>${E(x.esp||"")} · ${nf(x.n,0)} animais · ${dBR(new Date(x.ini).toISOString())} → ${dBR(new Date(x.fim).toISOString())}${x.ativo?` · <span class="fin-tag">em curso</span>`:""}</small></td>
+       <td class="fn" data-l="Ciclo">${nf(x.dias,0)} dias</td><td class="fn" data-l="Despesca">${nf(x.bF,0)} kg</td><td class="fn" data-l="Ração">${nf(x.rTot,0)} kg<small>${brl(x.cR)}</small></td><td class="fn" data-l="FCA">${nf(x.fca,2)}</td>
+       <td class="fn" data-l="Custo do ciclo">${brl(x.cT)}<small>até hoje ${brl(x.cHoje)}</small></td><td class="fn" data-l="Receita prevista">${brl(x.rc)}</td><td class="fn ${x.lucro>=0?"fin-pos":"fin-neg"}" data-l="Lucro">${brl(x.lucro)}</td><td class="fn" data-l="Custo/kg">${brl(x.cKg,2)}</td>
+       <td class="fn" data-l="Lançado">${x.realD||x.realR?`− ${brl(x.realD)}<small>+ ${brl(x.realR)}</small>`:"—"}</td></tr>`).join("")}</tbody>
+     <tfoot><tr><td>Total</td><td></td><td class="fn" data-l="Despesca">${nf(tot.bF,0)} kg</td><td class="fn" data-l="Ração">${nf(tot.rTot,0)} kg</td><td class="fn" data-l="FCA"></td><td class="fn" data-l="Custo">${brl(tot.cT)}</td><td class="fn" data-l="Receita">${brl(tot.rc)}</td><td class="fn ${tot.rc-tot.cT>=0?"fin-pos":"fin-neg"}" data-l="Lucro">${brl(tot.rc-tot.cT)}</td><td class="fn" data-l="Custo/kg">${brl(tot.cT/tot.bF,2)}</td><td></td></tr></tfoot></table></div>
+     <h3 class="bi-h">Lucro previsto por lote</h3>${barras(Ls.map(x=>({n:x.nome,v:x.lucro,c:x.lucro>=0?"var(--accent)":"#c0563b"})),v=>brl(v))}`:""}
+   ${U.length?`<h3 class="bi-h">Tanques/viveiros com lançamentos</h3><div class="scroll"><table class="fin-t rsp"><thead><tr><th>Tanque/viveiro</th><th class="fn">Despesas</th><th class="fn">Receitas</th><th class="fn">Saldo</th></tr></thead><tbody>${U.map(u=>`<tr><td><b>${E(u.nome)}</b><small>${u.n} lançamento(s)</small></td><td class="fn" data-l="Despesas">${brl(u.d)}</td><td class="fn" data-l="Receitas">${brl(u.r)}</td><td class="fn ${u.r-u.d>=0?"fin-pos":"fin-neg"}" data-l="Saldo">${brl(u.r-u.d)}</td></tr>`).join("")}</tbody></table></div>`:""}
+   <p class="muted">Ração integrada dia a dia pela curva de crescimento e pela tabela de alimentação (aba Arraçoamento); a despesca usa o peso de abate e a mortalidade da Biomassa, corrigidos pelas biometrias. Energia, mão de obra, encargos, insumos, manutenção e depreciação são rateados pelo volume do grupo e pela duração do ciclo. A coluna "Lançado" soma os seus lançamentos com o mesmo nome de tanque/viveiro.</p>`)}
+function fluxoHTML(C){const R=fluxo(C),tP=R.reduce((a,r)=>a+(r.pass?0:r.eP-r.sP),0);
+  return card("📅 Fluxo de caixa mês a mês",`${R.length} meses · realizado até ${mNome(mk(new Date()))}, previsto depois`,
+   `<label style="font-size:13px;display:flex;gap:6px;align-items:center;margin-bottom:6px"><input type="checkbox" id="fin-invmes"${F.invMes?" checked":""}> Incluir o investimento (${C.o?brl(C.o.invTot):"—"}) no primeiro mês</label>
+    ${chartFluxo(R)}
+    <div class="scroll"><table class="fin-t rsp"><thead><tr><th>Mês</th><th class="fn">Entradas previstas</th><th class="fn">Saídas previstas</th><th class="fn">Entradas realizadas</th><th class="fn">Saídas realizadas</th><th class="fn">Saldo do mês</th><th class="fn">Saldo acumulado</th></tr></thead><tbody>
+    ${R.map(r=>{const s=r.pass?r.eR-r.sR:r.eP-r.sP;return `<tr${r.cur?' style="background:var(--accent-soft)"':""}><td><b>${mNome(r.k)}</b>${r.cur?' <span class="fin-tag">hoje</span>':""}${r.nL?`<small>${r.nL} lançamento(s)</small>`:""}</td><td class="fn" data-l="Entradas previstas">${brl(r.eP)}</td><td class="fn" data-l="Saídas previstas">${brl(r.sP)}</td><td class="fn" data-l="Entradas realizadas">${r.pass?brl(r.eR):"—"}</td><td class="fn" data-l="Saídas realizadas">${r.pass?brl(r.sR):"—"}</td><td class="fn ${s>=0?"fin-pos":"fin-neg"}" data-l="Saldo do mês">${brl(s)}</td><td class="fn ${r.accM>=0?"fin-pos":"fin-neg"}" data-l="Saldo acumulado">${brl(r.accM)}</td></tr>`}).join("")}</tbody></table></div>
+    <p class="muted">Previsto: ração mês a mês de cada lote (Arraçoamento), formas jovens no mês do povoamento, venda da despesca no mês da colheita (Biomassa) e os demais custos da Viabilidade divididos por 12. Sem lotes, usa a média mensal da Viabilidade. Realizado: seus lançamentos. O saldo acumulado usa o realizado até este mês e o previsto daqui para frente${isFinite(tP)?` (previsto a partir de agora: ${brl(tP)})`:""}.</p>`)}
+const CEN=[["pv","Preço de venda","💰"],["rac","Preço da ração","🍽"],["fca","Conversão alimentar (FCA)","⚖️"],["ene","Energia elétrica","⚡"],["prod","Produção (kg/ano)","🐟"],["mo","Mão de obra","👷"]];
+function cenHTML(C){const o=C.o;if(!o)return card("🎚 Cenários","","<p class=\"fin-msg\">Os cenários usam a viabilidade do projeto: complete a <a href=\"#\" data-goto=\"calc\">Calculadora</a> e a <a href=\"#\" data-goto=\"local\">Local e viabilidade</a>.</p>");
+  const c=F.cen,b=cenario(o,{}),s=cenario(o,c),d=(a,z,inv)=>{const v=z-a;return isFinite(v)&&Math.abs(v)>0.005?`<small class="${(inv?-v:v)>=0?"fin-pos":"fin-neg"}">${v>0?"+":""}${Math.abs(a)>0?nf(v/Math.abs(a)*100,1)+" %":""}</small>`:"<small>igual ao base</small>"};
+  const tor=CEN.map(([k,n])=>{const up=cenario(o,{[k]:10}).LO-b.LO,dn=cenario(o,{[k]:-10}).LO-b.LO;return {k,n,up,dn,a:Math.max(Math.abs(up),Math.abs(dn))}}).sort((x,y)=>y.a-x.a),mx=Math.max(1,...tor.map(t=>t.a));
+  return card("🎚 Cenários e sensibilidade","mexa nas variações e veja o resultado do projeto",
+   `<div class="fin-pre"><button type="button" class="btn" data-fcen="base">Base</button><button type="button" class="btn" data-fcen="otim">Otimista</button><button type="button" class="btn" data-fcen="pess">Pessimista</button><button type="button" class="btn" data-fcen="rac10">Ração +10 %</button><button type="button" class="btn" data-fcen="pv10">Preço −10 %</button></div>
+    <div class="fin-cen">${CEN.map(([k,n,i])=>`<label>${i} ${n}<b id="fcv-${k}">${(c[k]>0?"+":"")+nf(c[k]||0,0)} %</b><input type="range" min="-50" max="50" step="1" value="${c[k]||0}" data-fcr="${k}" aria-label="${n}"></label>`).join("")}</div>
+    <div class="fin-kpis">${kp("Lucro operacional",brl(s.LO)+"/ano",d(b.LO,s.LO),s.LO>=0?"ok":"bad")}${kp("Margem",pct(s.IL),`base ${pct(b.IL)}`,s.IL>=0?"ok":"bad")}${kp("Custo por kg",brl(s.cKg,2),d(b.cKg,s.cKg,true))}${kp("Preço de venda",brl(s.pV,2)+"/kg",`equilíbrio: ${nf(s.peq,0)} kg/ano`)}
+      ${kp("Receita",brl(s.RB)+"/ano",d(b.RB,s.RB))}${kp("Custo operacional",brl(s.COE)+"/ano",d(b.COE,s.COE,true))}${kp("VPL",brl(s.VPL),d(b.VPL,s.VPL),s.VPL>=0?"ok":"bad")}${kp("TIR · retorno",`${pct(s.TIR)} · ${isFinite(s.PRC)?nf(s.PRC,1)+" anos":"não paga"}`,`base ${pct(b.TIR)} · ${isFinite(b.PRC)?nf(b.PRC,1)+" anos":"—"}`)}</div>
+    <h3 class="bi-h">Sensibilidade: efeito de ±10 % no lucro anual</h3>
+    <div class="scroll"><table class="fin-t"><thead><tr><th>Variável</th><th class="fn">−10 %</th><th style="width:40%"></th><th class="fn">+10 %</th></tr></thead><tbody>${tor.map(t=>`<tr><td>${E(t.n)}</td><td class="fn ${t.dn>=0?"fin-pos":"fin-neg"}">${brl(t.dn)}</td><td><div class="fin-bar" style="background:none;border-left:1px solid var(--line)"><i style="${t.dn<0?`right:50%;width:${Math.abs(t.dn)/mx*50}%;background:#c0563b`:`left:50%;width:${Math.abs(t.dn)/mx*50}%;background:var(--accent)`};opacity:.55"></i><i style="${t.up<0?`right:50%;width:${Math.abs(t.up)/mx*50}%;background:#c0563b`:`left:50%;width:${Math.abs(t.up)/mx*50}%;background:var(--accent)`}"></i></div></td><td class="fn ${t.up>=0?"fin-pos":"fin-neg"}">${brl(t.up)}</td></tr>`).join("")}</tbody></table></div>
+    <p class="muted">A variável do topo é a que mais mexe no resultado: é nela que vale negociar ou controlar primeiro. A conversão alimentar (FCA) e a produção mudam a quantidade de ração; a produção também muda as formas jovens e a receita. Base: aba Local e viabilidade.</p>`)}
+function lancHTML(C){const U=unidadesAq().map(u=>u.nome),ed=editId?F.lanc.find(l=>l.id===editId):null,l0=ed||{t:"d",d:hoje(),cat:"racao",un:"kg"};
+  const L=F.lanc.slice().sort((a,b)=>(b.d||"").localeCompare(a.d||"")||0),cats=t=>(t==="r"?CAT_R:CAT_D).map(c=>`<option value="${c[0]}"${l0.cat===c[0]?" selected":""}>${c[2]} ${c[1]}</option>`).join("");
+  const imps=Object.entries(F.imps);
+  return card("🧾 Lançamentos",`${F.lanc.length} lançamento(s) · despesas e receitas reais do projeto`,
+   `<div class="fin-form" id="fin-form">
+     <label>Tipo<select id="fl-t"><option value="d"${l0.t==="d"?" selected":""}>➖ Despesa</option><option value="r"${l0.t==="r"?" selected":""}>➕ Receita</option></select></label>
+     <label>Data<input type="date" id="fl-d" value="${E(l0.d)}"></label>
+     <label>Categoria<select id="fl-c">${cats(l0.t)}</select></label>
+     <label>Valor (R$)<input id="fl-v" inputmode="decimal" placeholder="ex.: 1.250,00" value="${isFinite(l0.v)?nf(l0.v,2):""}"></label>
+     <label>Quantidade<input id="fl-q" inputmode="decimal" placeholder="ex.: 500" value="${isFinite(l0.q)?nf(l0.q,2):""}"></label>
+     <label>Unidade<input id="fl-un" list="fl-uns" value="${E(l0.un||"")}" placeholder="kg, saco, kWh"><datalist id="fl-uns"><option value="kg"><option value="saco"><option value="milheiro"><option value="kWh"><option value="mês"><option value="un"></datalist></label>
+     <label>Tanque/viveiro (opcional)<input id="fl-u" list="fl-us" value="${E(l0.u||"")}" placeholder="todos"><datalist id="fl-us">${[...new Set([...U,...C.lotes.map(x=>x.nome)])].map(x=>`<option value="${E(x)}">`).join("")}</datalist></label>
+     <label style="grid-column:span 2">Descrição<input id="fl-ds" maxlength="120" value="${E(l0.desc||"")}" placeholder="ex.: ração 32 % PB, nota 1234"></label>
+     <button type="button" class="btn solid" data-fin="salvar">${ed?"Salvar alteração":"➕ Lançar"}</button>${ed?`<button type="button" class="btn" data-fin="cancelar">Cancelar</button>`:""}
+   </div>
+   <details class="fin-imp"${impPrev?" open":""}><summary><b>📥 Importar planilha ou extrato</b> (CSV, Excel, TXT ou colar) · entra isolado até você pôr em evidência</summary>
+     <p class="muted">Colunas reconhecidas: data, descrição/histórico, valor (negativo = despesa) ou débito/crédito, categoria, tipo (despesa/receita), quantidade, unidade e tanque/viveiro. A categoria é adivinhada pela descrição quando não vier.</p>
+     <div class="fin-form"><label>Arquivo<input type="file" id="fi-arq" accept=".csv,.txt,.tsv,.json,.xlsx,.xls,.ods,.numbers"></label></div>
+     <textarea id="fi-txt" placeholder="data;descricao;valor&#10;05/11/2026;Ração 32% 40 sacos;-4200&#10;20/11/2026;Venda tilápia 800 kg;9600"></textarea>
+     <div class="fin-pre"><button type="button" class="btn" data-fin="ler">Ler o texto colado</button></div>
+     ${impPrev?`<div class="fin-msg">${impPrev.L.length} lançamento(s) lidos de “${E(impPrev.nome)}” (${brl(impPrev.L.filter(l=>l.t==="d").reduce((s,l)=>s+l.v,0))} em despesas · ${brl(impPrev.L.filter(l=>l.t==="r").reduce((s,l)=>s+l.v,0))} em receitas)${impPrev.ruins?` · ${impPrev.ruins} linha(s) sem data ou valor ignoradas`:""}.</div>
+       <div class="scroll"><table class="fin-t rsp"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th class="fn">Valor</th></tr></thead><tbody>${impPrev.L.slice(0,8).map(l=>`<tr><td>${dBR(l.d)}</td><td data-l="Descrição">${E(l.desc)}</td><td data-l="Categoria">${E((CATN[l.cat]||["","—"])[1])}</td><td class="fn ${l.t==="r"?"fin-pos":"fin-neg"}" data-l="Valor">${l.t==="r"?"+":"−"} ${brl(l.v)}</td></tr>`).join("")}</tbody></table></div>${impPrev.L.length>8?`<p class="muted">… e mais ${impPrev.L.length-8}.</p>`:""}
+       <div class="fin-pre"><button type="button" class="btn solid" data-fin="imp-ok">Guardar isolado</button><button type="button" class="btn" data-fin="imp-x">Descartar</button></div>`:""}
+   </details>
+   ${imps.length?`<h3 class="bi-h">📥 Importações</h3><div class="scroll"><table class="fin-t rsp"><thead><tr><th>Arquivo</th><th>Estado</th><th class="fn">Lançamentos</th><th></th></tr></thead><tbody>${imps.map(([k,m])=>{const n=F.lanc.filter(l=>l.imp===k).length,st=m.est||"isolado";
+     return `<tr><td><b>${E(m.nome)}</b><small>${dBR(new Date(m.em||Date.now()).toISOString())}</small></td><td data-l="Estado"><span class="fin-tag ${st==="isolado"?"iso":st==="evidencia"?"ev":""}">${st==="isolado"?"isolado":st==="evidencia"?"📌 em evidência":"✅ integrado"}</span></td><td class="fn" data-l="Lançamentos">${n}</td>
+       <td data-l=""><span class="fin-pre" style="margin:0">${st!=="evidencia"?`<button type="button" class="btn" data-fimp="evidencia" data-k="${E(k)}">📌 Evidência</button>`:""}${st!=="integrado"?`<button type="button" class="btn" data-fimp="integrado" data-k="${E(k)}">✅ Integrar</button>`:""}${st!=="isolado"?`<button type="button" class="btn" data-fimp="isolado" data-k="${E(k)}">Isolar</button>`:""}<button type="button" class="btn" data-fimp="apagar" data-k="${E(k)}">🗑</button></span></td></tr>`}).join("")}</tbody></table></div>
+     <p class="muted">Isolado: fica guardado, sem entrar em nada. 📌 Em evidência: entra nas contas da aba Financeiro para você analisar, mas fica fora do Painel. ✅ Integrado: entra em tudo, inclusive no Painel.</p>`:""}
+   <h3 class="bi-h">Histórico</h3>
+   ${L.length?`<div class="scroll"><table class="fin-t rsp"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tanque/viveiro</th><th class="fn">Valor</th><th></th></tr></thead><tbody>${L.slice(0,200).map(l=>{const st=l.imp?impEst(l.imp):"";
+     return `<tr${st==="isolado"?' style="opacity:.5"':""}><td>${dBR(l.d)}${l.imp?` <span class="fin-tag ${st==="isolado"?"iso":st==="evidencia"?"ev":""}">${st==="isolado"?"isolado":st==="evidencia"?"📌":"importado"}</span>`:""}</td><td data-l="Descrição">${E(l.desc||"—")}${isFinite(l.q)?`<small>${nf(l.q,2)} ${E(l.un||"")}${isFinite(l.q)&&l.q>0?` · ${brl(l.v/l.q,2)}/${E(l.un||"un")}`:""}</small>`:""}</td><td data-l="Categoria">${E((CATN[l.cat]||["","—"])[1])}</td><td data-l="Tanque/viveiro">${E(l.u||"—")}</td><td class="fn ${l.t==="r"?"fin-pos":"fin-neg"}" data-l="Valor">${l.t==="r"?"+":"−"} ${brl(l.v,2)}</td>
+       <td data-l=""><span class="fin-pre" style="margin:0">${l.imp?"":`<button type="button" class="btn" data-fed="${l.id}" aria-label="Editar">✏️</button>`}<button type="button" class="btn" data-fdel="${l.id}" aria-label="Apagar">🗑</button></span></td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted">Nenhum lançamento ainda.</p>`}`)}
+const SEC=[["painel","💼 Painel econômico"],["lotes","🐟 Por tanque/viveiro e lote"],["fluxo","📅 Fluxo de caixa"],["cen","🎚 Cenários"],["lanc","🧾 Lançamentos"]];
+function draw(){if(el.hidden)return;const C=calc(false),sc=SEC.some(s=>s[0]===F.sec)?F.sec:"painel";
+  const body=sc==="painel"?painelHTML(C):sc==="lotes"?lotesHTML(C):sc==="fluxo"?fluxoHTML(C):sc==="cen"?cenHTML(C):lancHTML(C);
+  el.innerHTML=`<section class="card wide"><div class="card-head"><h2>💼 Financeiro<span>${pid()?`Projeto ${E(pid().nome)}`:"Sem projeto aberto"} · levantamento econômico de todo o sistema, correlacionado com as outras abas</span></h2></div>
+    <div class="pj-body"><div class="fin-tabs" role="tablist">${SEC.map(([k,t])=>`<button type="button" role="tab" data-fsec="${k}" aria-pressed="${k===sc}">${t}</button>`).join("")}</div>${msg?`<div class="fin-msg${msgErr?" err":""}">${msg}</div>`:""}</div></section>${body}`;
+  bind()}
+function lerForm(){const g=id=>(el.querySelector("#"+id)||{}).value||"";const t=g("fl-t"),v=P(g("fl-v"));if(!(v>0))throw new Error("Informe o valor em R$ (maior que zero).");if(!g("fl-d"))throw new Error("Informe a data.");
+  return {t,d:g("fl-d"),cat:g("fl-c")||(t==="r"?"venda":"outd"),v,q:P(g("fl-q")),un:g("fl-un").trim(),u:g("fl-u").trim(),desc:g("fl-ds").trim()}}
+/* importação: reconhece colunas comuns de extrato e planilha de custos */
+function normImp(rows){const cols=[...new Set(rows.flatMap(o=>Object.keys(o)))],nm=c=>c.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim(),f=re=>cols.find(c=>re.test(nm(c)));
+  const cD=f(/^(data|date|dt|lancamento|vencimento|pagamento)/),cDs=f(/(descri|histor|memo|produto|item|detalhe|observ)/),cV=f(/^(valor|value|montante|total|quantia|r\$)/),cDeb=f(/(debito|saida|despesa)/),cCre=f(/(credito|entrada|receita)/),cC=f(/^(categoria|classe|conta|grupo)/),cT=f(/^(tipo|natureza|operacao)/),cQ=f(/^(qtd|quantidade|qtde|quant)/),cU=f(/^(unidade|un|und)$/),cTq=f(/(tanque|viveiro|lote)/);
+  if(!cD)throw new Error("Não achei a coluna de data.");if(!cV&&!cDeb&&!cCre)throw new Error("Não achei a coluna de valor (ou débito/crédito).");
+  const U=window.aquaPlugUtil||{},L=[],temNeg=!!cV&&rows.some(x=>P(x[cV])<0);let ruins=0;
+  for(const r of rows){const dt=U.dataHora?U.dataHora(r[cD]):new Date(r[cD]);let v=cV?P(r[cV]):NaN,t="";
+    if(!isFinite(v)){const db=cDeb?P(r[cDeb]):NaN,cr=cCre?P(r[cCre]):NaN;if(isFinite(cr)&&cr!==0){v=Math.abs(cr);t="r"}else if(isFinite(db)&&db!==0){v=Math.abs(db);t="d"}}
+    if(!dt||isNaN(dt)||!isFinite(v)||v===0){ruins++;continue}
+    if(!t){const tp=cT?nm(String(r[cT]||"")):"";
+      if(/receit|entrad|credit|venda|^c$|^r$/.test(tp))t="r";else if(/despes|saida|debit|compra|pagament|^d$/.test(tp))t="d";
+      else if(v<0)t="d";else if(temNeg)t="r";else t=/venda|receita|recebid|deposito|pix recebido/i.test(String(cDs?r[cDs]:""))?"r":"d"}
+    const desc=cDs?String(r[cDs]||"").trim():"",cs=cC?nm(String(r[cC]||"")):"",cat=(CATN[cs]&&cs)||catAuto((cs?cs+" ":"")+desc,t);
+    L.push({t,d:dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"),cat:(t==="r"?CAT_R:CAT_D).some(c=>c[0]===cat)?cat:(t==="r"?"outr":"outd"),v:Math.abs(v),q:cQ?P(r[cQ]):NaN,un:cU?String(r[cU]||""):"",u:cTq?String(r[cTq]||"").trim():"",desc:desc.slice(0,120)})}
+  if(!L.length)throw new Error("Nenhuma linha com data e valor.");return {L,ruins}}
+const setMsg=(t,e)=>{msg=t;msgErr=!!e};
+function bind(){
+  el.querySelectorAll("[data-fsec]").forEach(b=>b.addEventListener("click",()=>{F.sec=b.dataset.fsec;msg="";grava();draw()}));
+  const ft=el.querySelector("#fl-t");ft&&ft.addEventListener("change",()=>{const c=el.querySelector("#fl-c");c.innerHTML=(ft.value==="r"?CAT_R:CAT_D).map(x=>`<option value="${x[0]}">${x[2]} ${x[1]}</option>`).join("")});
+  const ds=el.querySelector("#fl-ds");ds&&ds.addEventListener("change",()=>{const c=el.querySelector("#fl-c"),t=el.querySelector("#fl-t").value;if(c&&ds.value.trim()){const k=catAuto(ds.value,t);if([...c.options].some(o=>o.value===k))c.value=k}});
+  const im=el.querySelector("#fin-invmes");im&&im.addEventListener("change",()=>{F.invMes=im.checked;grava();draw()});
+  el.querySelectorAll("[data-fcr]").forEach(r=>{r.addEventListener("input",()=>{const v=el.querySelector("#fcv-"+r.dataset.fcr);if(v)v.textContent=(+r.value>0?"+":"")+r.value+" %"});r.addEventListener("change",()=>{F.cen[r.dataset.fcr]=+r.value;grava();draw();outros()})});
+  el.querySelectorAll("[data-fcen]").forEach(b=>b.addEventListener("click",()=>{const P0={base:{},otim:{pv:10,rac:-5,fca:-5,prod:5},pess:{pv:-10,rac:10,fca:10,ene:10,prod:-10},rac10:{rac:10},pv10:{pv:-10}}[b.dataset.fcen]||{};F.cen=Object.assign({pv:0,rac:0,fca:0,ene:0,prod:0,mo:0},P0);grava();draw();outros()}));
+  el.querySelectorAll("[data-fin]").forEach(b=>b.addEventListener("click",async()=>{const a=b.dataset.fin;
+    try{if(a==="salvar"){const l=lerForm();if(editId){const i=F.lanc.findIndex(x=>x.id===editId);if(i>=0)F.lanc[i]={...F.lanc[i],...l};editId=null;setMsg("Lançamento alterado.")}else{F.lanc.push({id:uid(),...l,em:Date.now()});setMsg(`${l.t==="r"?"Receita":"Despesa"} de ${brl(l.v,2)} lançada.`)}grava();outros()}
+      else if(a==="cancelar"){editId=null;msg=""}
+      else if(a==="ler"){const t=(el.querySelector("#fi-txt")||{}).value||"";const U=window.aquaPlugUtil;if(!U||!U.lerTexto)throw new Error("Leitor indisponível.");const r=normImp(U.lerTexto(t));impPrev={...r,nome:"colado em "+new Date().toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})};msg=""}
+      else if(a==="imp-ok"&&impPrev){const k="i"+Date.now().toString(36);F.imps[k]={nome:impPrev.nome,est:"isolado",em:Date.now()};for(const l of impPrev.L)F.lanc.push({id:uid(),...l,imp:k,em:Date.now()});setMsg(`${impPrev.L.length} lançamento(s) guardados isolados. Ponha em 📌 evidência para analisar aqui ou ✅ integre para entrar no Painel.`);impPrev=null;grava()}
+      else if(a==="imp-x"){impPrev=null;msg=""}}
+    catch(e){setMsg(e.message||String(e),true)}draw()}));
+  const fa=el.querySelector("#fi-arq");fa&&fa.addEventListener("change",async()=>{const f=fa.files&&fa.files[0];if(!f)return;try{const U=window.aquaPlugUtil;const r=normImp(await U.lerArquivo(f));impPrev={...r,nome:f.name};msg=""}catch(e){setMsg(e.message||String(e),true)}draw()});
+  el.querySelectorAll("[data-fimp]").forEach(b=>b.addEventListener("click",()=>{const k=b.dataset.k,a=b.dataset.fimp;if(!F.imps[k])return;
+    if(a==="apagar"){if(!confirm("Apagar esta importação e os lançamentos dela?"))return;F.lanc=F.lanc.filter(l=>l.imp!==k);delete F.imps[k];setMsg("Importação apagada.")}
+    else{F.imps[k].est=a;setMsg(a==="integrado"?"Importação integrada: entra no Financeiro e no Painel.":a==="evidencia"?"Importação em evidência: entra nas contas do Financeiro, fora do Painel.":"Importação isolada.")}grava();draw();outros()}));
+  el.querySelectorAll("[data-fed]").forEach(b=>b.addEventListener("click",()=>{editId=b.dataset.fed;msg="";draw();const f=el.querySelector("#fin-form");f&&f.scrollIntoView({behavior:"smooth",block:"center"})}));
+  el.querySelectorAll("[data-fdel]").forEach(b=>b.addEventListener("click",()=>{if(!confirm("Apagar este lançamento?"))return;F.lanc=F.lanc.filter(l=>l.id!==b.dataset.fdel);setMsg("Lançamento apagado.");grava();draw();outros()}));
+}
+function outros(){try{window.focoRefresh&&focoRefresh()}catch(e){}}
+
+/* ---------- para o Painel e as outras abas ---------- */
+window.gfFinResumo=()=>{try{const C=calc(true),o=C.o,s=o?cenario(o,F.cen):null,cenOn=Object.values(F.cen).some(v=>v);
+  return {o,real:C.real,meses:C.meses,lotes:C.lotes,pV:C.pV,pMerc:C.pMerc,cen:cenOn?s:null,cenTxt:cenOn?CEN.filter(c=>F.cen[c[0]]).map(c=>`${c[1]} ${F.cen[c[0]]>0?"+":""}${F.cen[c[0]]} %`).join(", "):"",nL:C.L.length,proj:pid()}}catch(e){return null}};
+window.finDashHTML=()=>{const R=window.gfFinResumo&&gfFinResumo();if(!R||(!R.o&&!R.nL))return "";const o=R.o,re=R.real;
+  return `<section class="card wide"><div class="card-head"><h2>Financeiro<span>${R.proj?E(R.proj.nome)+" · ":""}previsto × realizado${R.cen?" · cenário: "+E(R.cenTxt):""}</span></h2><a href="#" class="btn" data-goto="fin" style="margin-left:auto;text-decoration:none">Abrir Financeiro</a></div><div class="pj-body"><div class="fin-kpis">
+   ${o?kp("Lucro previsto",brl(o.LO)+"/ano",`margem ${pct(o.IL)}`,o.LO>=0?"ok":"bad")+kp("Custo por kg",brl(o.cKg,2),`venda a ${brl(o.pV,2)}/kg`,o.cKg<o.pV?"ok":"bad")+kp("Investimento",brl(o.invTot),isFinite(o.PRC)?`retorno em ${nf(o.PRC,1)} anos`:"não se paga no horizonte")+kp("VPL · TIR",brl(o.VPL),pct(o.TIR),o.VPL>=0?"ok":"bad"):""}
+   ${re.n?kp("Realizado",brl(re.saldo),`${brl(re.rec)} entradas · ${brl(re.des)} saídas`,re.saldo>=0?"ok":"bad"):kp("Realizado","—","sem lançamentos")}
+   ${R.cen?kp("No cenário",brl(R.cen.LO)+"/ano",E(R.cenTxt),R.cen.LO>=0?"ok":"bad"):""}</div></div></section>`};
+window.drawFin=draw;
+document.addEventListener("click",e=>{const g=e.target.closest('[data-goto="fin"]');if(g)setTimeout(draw,30)});
 })();
 </script>
