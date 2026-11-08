@@ -10068,7 +10068,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v154";
+  const APP_VERSAO="ras-v155";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11656,7 +11656,9 @@ const v0=view();if(v0){build();new MutationObserver(()=>{if(!v0.hidden)draw()}).
 .cp-hist{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:12.5px}.cp-hist li{border-left:3px solid var(--accent);padding:2px 8px}.cp-hist small{color:var(--muted)}
 .cp-al{border-left:4px solid #d69a1c;background:#d69a1c14;padding:6px 10px;border-radius:6px;font-size:13px}.cp-al.cr{border-color:#c2410c;background:#c2410c12}.cp-al.ok{border-color:#2e9e6a;background:#2e9e6a12}
 .cp-k{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));gap:6px}.cp-k div{border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface)}.cp-k span{display:block;font-size:11px;color:var(--muted)}.cp-k b{font-size:18px}
-#cp-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:900;border:0;border-radius:999px;background:var(--accent);color:#fff;font:700 14px var(--f-body);padding:11px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+#cp-fab{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));z-index:900;touch-action:none;user-select:none;-webkit-user-select:none;border:0;border-radius:999px;background:var(--accent);color:#fff;font:700 14px var(--f-body);padding:11px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer}
+body.has-bnav #cp-fab{bottom:calc(76px + env(safe-area-inset-bottom))}
+#cp-fab.cp-solto{right:auto!important;bottom:auto!important}#cp-fab.cp-arrasta{cursor:grabbing;opacity:.9;transform:scale(1.05);transition:none}
 #cp-fab b{background:#fff;color:var(--accent);border-radius:999px;padding:0 7px;margin-left:6px}
 #cp-ov{position:fixed;inset:0;z-index:950;background:var(--bg);overflow:auto;padding:12px 12px calc(20px + env(safe-area-inset-bottom))}
 #cp-ov .cp-top{position:sticky;top:-12px;z-index:2;background:var(--bg);display:flex;gap:8px;align-items:center;padding:6px 0 8px;border-bottom:1px solid var(--line);margin-bottom:10px}
@@ -11774,9 +11776,23 @@ function camera(t){return new Promise(res=>{let stream=null,face="environment",g
   abrir()})}
 
 /* ---------- colaborador: minhas tarefas ---------- */
+// v155: botão “Minhas tarefas” flutuante — fica acima da barra de baixo do celular e pode ser arrastado para qualquer lugar (a posição fica guardada)
+const FABK="greenfish-campo-fab";
+function fabLimites(b){const r=b.getBoundingClientRect(),nav=document.querySelector(".bnav"),navH=nav&&getComputedStyle(nav).display!=="none"?nav.getBoundingClientRect().height:0,m=8;return {minX:m,minY:m,maxX:innerWidth-r.width-m,maxY:innerHeight-navH-r.height-m}}
+function fabPor(b,x,y){const L=fabLimites(b);x=Math.max(L.minX,Math.min(L.maxX,x));y=Math.max(L.minY,Math.min(L.maxY,y));b.classList.add("cp-solto");b.style.left=x+"px";b.style.top=y+"px";return [x,y]}
+function fabRestaura(b){let p=null;try{p=JSON.parse(localStorage.getItem(FABK)||"null")}catch(e){}if(!p||!isFinite(p.fx)||!isFinite(p.fy)){b.classList.remove("cp-solto");b.style.left=b.style.top="";return}
+  requestAnimationFrame(()=>{const L=fabLimites(b);fabPor(b,L.minX+p.fx*(L.maxX-L.minX),L.minY+p.fy*(L.maxY-L.minY))})}
+function fabArrastar(b){let ini=null;
+  b.addEventListener("pointerdown",e=>{if(e.button)return;const r=b.getBoundingClientRect();ini={px:e.clientX,py:e.clientY,x:r.left,y:r.top,mov:false,id:e.pointerId};try{b.setPointerCapture(e.pointerId)}catch(_){}});
+  b.addEventListener("pointermove",e=>{if(!ini||e.pointerId!==ini.id)return;const dx=e.clientX-ini.px,dy=e.clientY-ini.py;if(!ini.mov&&Math.hypot(dx,dy)<8)return;
+    if(!ini.mov){ini.mov=true;try{b.setPointerCapture(e.pointerId)}catch(_){}b.classList.add("cp-arrasta")}e.preventDefault();fabPor(b,ini.x+dx,ini.y+dy)});
+  const fim=e=>{if(!ini)return;if(ini.mov){b.dataset.arrastou="1";b.classList.remove("cp-arrasta");const L=fabLimites(b),r=b.getBoundingClientRect();
+      try{localStorage.setItem(FABK,JSON.stringify({fx:(r.left-L.minX)/Math.max(1,L.maxX-L.minX),fy:(r.top-L.minY)/Math.max(1,L.maxY-L.minY)}))}catch(_){}setTimeout(()=>{delete b.dataset.arrastou},400)}ini=null};
+  b.addEventListener("pointerup",fim);b.addEventListener("pointercancel",fim);
+  addEventListener("resize",()=>fabRestaura(b));fabRestaura(b)}
 function fab(){const n=pendMinhas().length,logado=T(()=>!A().ok||A().ok(),true);let b=document.getElementById("cp-fab");
   if(!logado||(!n&&!minhas().length)){if(b)b.remove();return}
-  if(!b){b=document.createElement("button");b.type="button";b.id="cp-fab";b.addEventListener("click",()=>abrirOv());document.body.appendChild(b)}
+  if(!b){b=document.createElement("button");b.type="button";b.id="cp-fab";b.title="Toque para abrir · arraste para mudar de lugar";b.addEventListener("click",e=>{if(b.dataset.arrastou){delete b.dataset.arrastou;e.preventDefault();return}abrirOv()});document.body.appendChild(b);fabArrastar(b)}
   b.innerHTML=`📲 Minhas tarefas${n?`<b>${n}</b>`:""}`;b.hidden=C.ov}
 function abrirOv(id){C.ov=true;C.msel=id||C.msel||"";let o=document.getElementById("cp-ov");if(!o){o=document.createElement("div");o.id="cp-ov";o.setAttribute("role","dialog");o.setAttribute("aria-label","Minhas tarefas de campo");document.body.appendChild(o)}pintarOv();fab();carregar().then(()=>{pintarOv();fab()})}
 function fecharOv(){C.ov=false;const o=document.getElementById("cp-ov");if(o)o.remove();fab()}
