@@ -4513,7 +4513,8 @@ function draw(){const el=document.getElementById("view-merc");if(!el||el.hidden)
      <section class="card wide"><div class="card-head"><h2>Plano de negócios<span>Montado com os dados do mercado e os números do projeto</span></h2></div><div class="body"><div class="mk-acts"><button type="button" class="btn solid" data-mk="baixar">⬇ Baixar plano (HTML)</button><button type="button" class="btn" data-mk="imprimir">🖨 Imprimir / PDF</button></div>${plano(res)}</div></section>`}
   else h+=`<section class="card wide"><div class="body"><div class="note">Escolha o ramo e o município e toque em <b>🔎 Prospectar mercado</b>. Os resultados ficam guardados neste aparelho.</div></div></section>`;
   if(!el.querySelector("#mk-env"))el.innerHTML='<div id="mk-a" style="display:contents"></div><div id="mk-env" style="display:contents"></div><div id="mk-b" style="display:contents"></div>';
-  el.querySelector("#mk-a").innerHTML=h;el.querySelector("#mk-b").innerHTML=hB;envDraw();
+  if(!el.querySelector("#mk-rp")){const d=document.createElement("div");d.id="mk-rp";d.style.display="contents";el.querySelector("#mk-env").before(d)}
+  el.querySelector("#mk-a").innerHTML=h;el.querySelector("#mk-b").innerHTML=hB;envDraw();try{window.gfRpMount&&gfRpMount(el.querySelector("#mk-rp"))}catch(e){console.warn("prospecção rural",e)}
   const dl=el.querySelector("#mk-muns");municipios().then(L=>{const q=norm(el.querySelector("#mk-mun").value);if(dl)dl.innerHTML=L.filter(m=>!q||norm(m.n).startsWith(q.slice(0,3))).slice(0,60).map(m=>`<option value="${esc(m.n)} – ${m.uf}">`).join("")}).catch(()=>{});
 }
 document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#view-merc"))return;
@@ -4543,6 +4544,7 @@ const localEmp=()=>S.crm.local||null;
 const pontoCorr=()=>{const L=S.crm.local;return L&&L.sug?L:null};
 const cliById=id=>S.crm.clientes.find(c=>c.id===id);
 const kmRota=(a,b)=>distKm(a.lat,a.lon,b.lat,b.lon)*(P(S.crm.ent.fator)||1.3);
+window.gfMercAPI={add:(o,x)=>{const c=addCliente(o);Object.assign(c,x||{});grava();return c},clientes:()=>(S.crm&&S.crm.clientes)||[],res:()=>S.res||null,redraw:()=>{try{draw()}catch(e){}}};
 function addCliente(o){const c={id:"c"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome:o.nome||"Novo cliente",tipo:o.tipo||"",lat:o.lat,lon:o.lon,end:o.end||"",tel:o.tel||"",wa:o.wa||"",email:o.email||"",insta:o.insta||"",face:o.face||"",site:o.site||"",hor:o.hor||"",seg:o.seg||"",etapa:"prosp",vol:o.vol||"",preco:"",freq:"1",prox:"",data:"",obs:"",osm:o.osm||"",hist:[{d:new Date().toISOString().slice(0,10),e:"prosp"}]};S.crm.clientes.push(c);try{sugCliente(c)}catch(_){}selId=c.id;grava();return c}
 function moverEtapa(c,dir){const i=ETAPAS.findIndex(e=>e[0]===c.etapa),j=Math.max(0,Math.min(ETAPAS.length-1,i+dir));if(j===i)return;c.etapa=ETAPAS[j][0];(c.hist=c.hist||[]).push({d:new Date().toISOString().slice(0,10),e:c.etapa});grava()}
 const volSem=c=>P(c.vol)||0,prec=c=>P(c.preco)||precoPad(),frq=c=>Math.max(1,Math.round(P(c.freq)||1));
@@ -10026,7 +10028,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v150";
+  const APP_VERSAO="ras-v151";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11904,3 +11906,323 @@ window.campoAbrir=()=>abrirOv();
   await esvaziarFila();await carregar();pintar();poll()})();
 })();
 </script>
+<style>
+.rp-wrap{display:block;min-width:0;max-width:100%}
+.rp-wrap .body{min-width:0;max-width:100%;overflow-wrap:anywhere}.rp-wrap .body>*{min-width:0;max-width:100%}.rp-row>*,.rp-src>*{max-width:100%;min-width:0}.rp-src label{flex-wrap:wrap}.rp-wrap textarea{box-sizing:border-box}
+.rp-modes{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.rp-modes .chip.on{background:var(--accent,#1a6b5a);color:#fff;border-color:transparent}
+.rp-map{height:420px;border-radius:12px;border:1px solid var(--line);overflow:hidden;position:relative;background:var(--bg)}
+.rp-map.drawing{cursor:crosshair}
+.rp-map .leaflet-container{cursor:inherit}
+.rp-tip{position:absolute;left:8px;top:8px;z-index:500;background:rgba(17,17,17,.82);color:#fff;font-size:12.5px;padding:6px 10px;border-radius:8px;max-width:calc(100% - 16px);pointer-events:none}
+.rp-row{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:8px 0}
+.rp-row .jr-f input,.rp-row .jr-f select{min-width:0}
+.rp-src{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}
+.rp-src label{display:flex;gap:6px;align-items:center}
+.rp-prog{font-size:13px;margin:8px 0;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,#2a78d6 9%,var(--bg));border:1px solid color-mix(in srgb,#2a78d6 30%,var(--line))}
+.rp-prog.err{background:color-mix(in srgb,#d33f2e 9%,var(--bg));border-color:color-mix(in srgb,#d33f2e 35%,var(--line))}
+.rp-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.rp-chips .chip{font-size:12.5px}
+.rp-chips .chip.on{outline:2px solid var(--accent,#1a6b5a);outline-offset:1px}
+.rp-chips .chip i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.rp-t td small{display:block;color:var(--muted);font-size:11px}
+.rp-t select{max-width:190px;font-size:12px}
+.rp-st{font-size:10.5px;padding:1px 6px;border-radius:8px;white-space:nowrap}
+.rp-st.conf{background:#1baf7a22;color:#0f7a55}.rp-st.osm{background:#2a78d622;color:#1d5fae}.rp-st.cnpj{background:#7b4bb722;color:#5d339a}.rp-st.prov{background:#e09a0022;color:#a46f00}
+.rp-funil td,.rp-funil th{font-size:12.5px}
+.rp-pag{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin:6px 0;font-size:13px}
+.rp-leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12px;margin:6px 0}
+.rp-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+@media (max-width:560px){.rp-map{height:330px}.rp-t select{max-width:130px}}
+</style>
+<script>
+/* ---------- v151: Prospecção rural em todo o Brasil — CAR/SICAR, OpenStreetMap, IBGE (Censo Agro 2017) e Receita Federal (CNPJ), com área por raio, município, retângulo, círculo, polígono ou desenho livre, e classificação de cada cliente pela atividade ---------- */
+(()=>{
+const RK="greenfish-rural",esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const P=v=>{let t=String(v??"").trim();if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+let R;try{R=JSON.parse(localStorage.getItem(RK)||"null")}catch(e){}
+R=Object.assign({modo:"raio",raio:"20",munTxt:"",munId:null,area:null,fontes:{car:true,osm:true,cnpj:true},limite:"1500",ufs:"",itens:[],quando:null,resumo:null,f:{atv:"",porte:"",fonte:"",q:"",grupo:""},pag:0,cnpjs:""},R||{});R.f=Object.assign({atv:"",porte:"",fonte:"",q:"",grupo:""},R.f||{});R.fontes=Object.assign({car:true,osm:true,cnpj:true},R.fontes||{});
+const grava=()=>{try{localStorage.setItem(RK,JSON.stringify(R))}catch(e){try{const t=Object.assign({},R,{itens:R.itens.slice(0,1200)});localStorage.setItem(RK,JSON.stringify(t))}catch(_){}}};
+
+/* ---- atividades: grupos rurais e não rurais ---- */
+const ATV={
+ aqua:["Aquicultura","🐟","#0f8fb5","rural"],pesca:["Pesca","🎣","#2a78d6","rural"],pec:["Pecuária (geral)","🐄","#8a5a2b","rural"],bov:["Bovinos (corte e leite)","🐂","#a0522d","rural"],aves:["Avicultura","🐔","#d98c1c","rural"],sui:["Suinocultura","🐖","#d4628a","rural"],ovc:["Ovinos e caprinos","🐐","#9c7c5a","rural"],api:["Apicultura","🐝","#e0b100","rural"],
+ lavt:["Lavouras temporárias (grãos, mandioca…)","🌾","#c9a227","rural"],lavp:["Lavouras permanentes (frutas, café…)","🍊","#ef7d22","rural"],hort:["Horticultura e floricultura","🥬","#5fae3b","rural"],sem:["Sementes e mudas","🌱","#7cbf54","rural"],
+ flp:["Florestas plantadas (silvicultura)","🌲","#2e7d4f","rural"],fln:["Florestas nativas (extrativismo)","🌳","#1d5e3a","rural"],
+ agi:["Agroindústria (abate, laticínio, beneficiamento)","🏭","#6b4fa0","rural"],ins:["Insumos, máquinas e serviços agro","🧰","#5a6b7a","rural"],coop:["Cooperativas e associações","🤝","#1a6b5a","rural"],
+ asent:["Assentamentos e comunidades tradicionais","🏘️","#b5651d","rural"],rur:["Imóvel rural — atividade a confirmar","🏡","#8a9690","rural"],
+ ali:["Comércio de alimentos (supermercado, peixaria, feira)","🛒","#d33f2e","nao"],rest:["Restaurantes e lanchonetes","🍽️","#e35d6a","nao"],hot:["Hotéis e turismo","🏨","#7b4bb7","nao"],pub:["Escolas e órgãos públicos (PNAE/PAA)","🏫","#3a5fcd","nao"],log:["Transporte e logística","🚚","#555","nao"],out:["Outros","📍","#999","nao"]};
+const atvN=k=>(ATV[k]||ATV.out)[0],atvI=k=>(ATV[k]||ATV.out)[1],atvC=k=>(ATV[k]||ATV.out)[2];
+/* porte pelos módulos fiscais (Lei 8.629/1993, art. 4º) */
+const PORTE={mini:"Minifúndio (< 1 módulo fiscal)",peq:"Pequena (1 a 4 MF)",med:"Média (4 a 15 MF)",gra:"Grande (> 15 MF)"};
+const porteDe=mf=>!isFinite(mf)?"":mf<1?"mini":mf<=4?"peq":mf<=15?"med":"gra";
+/* Censo Agropecuário 2017 (SIDRA 6778): grupos de atividade econômica → atividade do app */
+const CENSO={111519:"lavt",111520:"hort",111521:"lavp",111522:"sem",111523:"pec",111524:"flp",111525:"fln",114349:"pesca",111526:"aqua"};
+
+/* ---- geometria ---- */
+const R_T=6371.0088,rad=x=>x*Math.PI/180;
+const dist=(a,b)=>{const dl=rad(b[0]-a[0]),dn=rad(b[1]-a[1]),h=Math.sin(dl/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dn/2)**2;return 2*R_T*Math.asin(Math.sqrt(h))};
+const circPoly=(c,km,n=48)=>{const o=[];for(let i=0;i<n;i++){const a=2*Math.PI*i/n,dlat=km/111.32*Math.cos(a),dlon=km/(111.32*Math.cos(rad(c[0])))*Math.sin(a);o.push([c[0]+dlat,c[1]+dlon])}return o};
+const bboxOf=r=>{let a=90,b=180,c=-90,d=-180;for(const [la,lo] of r){if(la<a)a=la;if(lo<b)b=lo;if(la>c)c=la;if(lo>d)d=lo}return [a,b,c,d]};// [s,w,n,e]
+const inPoly=(p,r)=>{let ins=false;for(let i=0,j=r.length-1;i<r.length;j=i++){const [yi,xi]=r[i],[yj,xj]=r[j];if(((yi>p[0])!==(yj>p[0]))&&(p[1]<(xj-xi)*(p[0]-yi)/((yj-yi)||1e-12)+xi))ins=!ins}return ins};
+const areaKm2=r=>{let s=0;const la0=rad(r.reduce((a,p)=>a+p[0],0)/r.length);for(let i=0,j=r.length-1;i<r.length;j=i++){const xi=rad(r[i][1])*Math.cos(la0)*R_T,yi=rad(r[i][0])*R_T,xj=rad(r[j][1])*Math.cos(la0)*R_T,yj=rad(r[j][0])*R_T;s+=xj*yi-xi*yj}return Math.abs(s/2)};
+const centro=r=>{const b=bboxOf(r);return [(b[0]+b[2])/2,(b[1]+b[3])/2]};
+function simplifica(r,maxN){if(r.length<=maxN)return r.slice();const sq=(p,a,b)=>{let x=a[1],y=a[0],dx=b[1]-x,dy=b[0]-y;if(dx||dy){const t=((p[1]-x)*dx+(p[0]-y)*dy)/(dx*dx+dy*dy);if(t>1){x=b[1];y=b[0]}else if(t>0){x+=dx*t;y+=dy*t}}dx=p[1]-x;dy=p[0]-y;return dx*dx+dy*dy};
+  let tol=1e-10,out=r;for(let k=0;k<40&&out.length>maxN;k++){tol*=4;const keep=new Uint8Array(r.length);keep[0]=keep[r.length-1]=1;const st=[[0,r.length-1]];while(st.length){const [a,b]=st.pop();let mx=0,ix=-1;for(let i=a+1;i<b;i++){const d=sq(r[i],r[a],r[b]);if(d>mx){mx=d;ix=i}}if(mx>tol&&ix>0){keep[ix]=1;st.push([a,ix],[ix,b])}}out=r.filter((_,i)=>keep[i])}
+  if(out.length>maxN){const s=out.length/maxN;out=Array.from({length:maxN},(_,i)=>out[Math.floor(i*s)])}return out}
+/* extensão aproximada de cada UF (para saber em quais camadas do CAR procurar) — [s,w,n,e] */
+const UFB={AC:[-11.2,-74,-7.1,-66.6],AL:[-10.6,-38.3,-8.8,-35.1],AP:[-1.3,-54.9,4.5,-49.8],AM:[-9.9,-73.9,2.3,-56],BA:[-18.4,-46.7,-8.5,-37.3],CE:[-7.9,-41.5,-2.7,-37.2],DF:[-16.1,-48.3,-15.5,-47.3],ES:[-21.4,-41.9,-17.8,-39.6],GO:[-19.6,-53.3,-12.3,-45.9],MA:[-10.3,-48.8,-1,-41.7],MT:[-18.1,-61.7,-7.3,-50.2],MS:[-24.1,-58.2,-17.1,-50.9],MG:[-22.95,-51.1,-14.2,-39.8],PA:[-9.9,-58.9,2.6,-46],PB:[-8.4,-38.8,-6,-34.7],PR:[-26.8,-54.7,-22.5,-48],PE:[-9.5,-41.4,-3.8,-32.3],PI:[-10.95,-46,-2.7,-40.3],RJ:[-23.4,-44.9,-20.7,-40.9],RN:[-7,-38.6,-4.8,-34.9],RS:[-33.8,-57.7,-27,-49.6],RO:[-13.7,-66.9,-7.9,-59.7],RR:[-1.6,-64.9,5.3,-58.8],SC:[-29.4,-53.9,-25.9,-48.3],SP:[-25.4,-53.2,-19.7,-44.1],SE:[-11.6,-38.3,-9.5,-36.3],TO:[-13.5,-50.8,-5.1,-45.6]};
+const ufsDaArea=b=>Object.entries(UFB).filter(([,u])=>!(u[0]>b[2]||u[2]<b[0]||u[1]>b[3]||u[3]<b[1])).map(([k])=>k);
+
+/* ---- rede ---- */
+const fetchT=async(u,o,ms)=>{const ac=new AbortController(),tm=setTimeout(()=>ac.abort(),ms||30000);try{const r=await fetch(u,Object.assign({signal:ac.signal},o||{}));if(!r.ok)throw new Error("HTTP "+r.status);return r}finally{clearTimeout(tm)}};
+const getJ=async(u,o,ms)=>(await fetchT(u,o,ms)).json();
+const IB="https://servicodados.ibge.gov.br/api";
+let MUN=null;async function municipios(){if(MUN)return MUN;try{const c=sessionStorage.getItem("gf-mun");if(c){MUN=JSON.parse(c);return MUN}}catch(e){}
+  const L=await getJ(IB+"/v1/localidades/municipios?view=nivelado");MUN=L.map(m=>({id:m["municipio-id"],n:m["municipio-nome"],uf:m["UF-sigla"],ufId:m["UF-id"],mi:m["microrregiao-id"],min:m["microrregiao-nome"]}));try{sessionStorage.setItem("gf-mun",JSON.stringify(MUN))}catch(e){}return MUN}
+const acharMun=async txt=>{const L=await municipios(),t=norm(txt).replace(/\s*[-–]\s*[a-z]{2}$/,"").trim(),uf=(String(txt).match(/[-–]\s*([A-Za-z]{2})\s*$/)||[])[1];return L.find(m=>norm(m.n)===t&&(!uf||m.uf===uf.toUpperCase()))||L.find(m=>norm(m.n)===t)||L.find(m=>norm(m.n).startsWith(t))||null};
+async function malhaMun(id){const g=await getJ(`${IB}/v3/malhas/municipios/${id}?formato=application/vnd.geo+json&qualidade=intermediaria`);const f=(g.features||[])[0];if(!f)throw new Error("limite do município não encontrado");
+  const geo=f.geometry,polys=geo.type==="MultiPolygon"?geo.coordinates:[geo.coordinates];const ring=polys.map(p=>p[0]).sort((a,b)=>b.length-a.length)[0];return ring.map(([lo,la])=>[la,lo])}
+
+/* ---- área de busca ---- */
+const mercRes=()=>{try{return window.gfMercAPI&&gfMercAPI.res()}catch(e){return null}};
+function areaAtual(){return R.area&&R.area.ring&&R.area.ring.length>2?R.area:null}
+async function areaRaio(){const res=mercRes();let c=null,src="";if(R.centro){c=R.centro;src="ponto escolhido no mapa"}else if(res&&isFinite(res.lat)){c=[res.lat,res.lon];src="centro da prospecção da Camada de mercado"+(res.mun?` (${res.mun.n} – ${res.mun.uf})`:"")}
+  else if(MAP){const m=MAP.getCenter();c=[m.lat,m.lng];src="centro do mapa"}if(!c)throw new Error("escolha o centro: faça a prospecção da Camada de mercado ou toque no mapa no modo ⭕ Raio");
+  const km=Math.min(300,Math.max(1,P(R.raio)||20));return {tipo:"raio",nome:`Raio de ${F(km)} km — ${src}`,ring:circPoly(c,km,64),centro:c,km}}
+
+/* ---- classificação por etiquetas do OpenStreetMap e pelo nome ---- */
+function atvOSM(t){const n=norm(t.name||""),g=k=>String(t[k]||"").toLowerCase();
+  if(/piscicult|aquicult|tanque.*peixe|alevin|camar(a|ã)o|carcinicult|tilapi|tambaqui/.test(n)||g("landuse")==="aquaculture"||t.aquaculture||g("industrial")==="fish_farm"||g("produce").includes("fish"))return "aqua";
+  if(/col[oô]nia de pescador|pesca|pescado/.test(n)&&!/peixaria/.test(n))return "pesca";
+  if(/cooperativ|associa(c|ç)/.test(n)||g("office")==="cooperative"||g("office")==="association")return "coop";
+  if(/latic|frigor|abatedour|matadour|beneficiad|usina|engenho|torrefa|moinho|serraria|agroind/.test(n)||["slaughterhouse","dairy","food","sawmill","grain","sugar_mill"].includes(g("industrial"))||["cheese_maker","winery","brewery"].includes(g("craft")))return "agi";
+  if(/agropecu|agroveterin|veterin|casa do (produtor|agricultor)|ra(c|ç)(a|õ)o|insumo|sementes|trator|maquinas agric|implementos/.test(n)||["agrarian","farm","garden_centre"].includes(g("shop"))||g("amenity")==="veterinary"||g("craft")==="agricultural_engines")return /sementes|mudas|viveiro/.test(n)?"sem":"ins";
+  if(/granja|avicult|aviario|frango|ovos/.test(n)||/chicken|poultry/.test(g("animal")+g("produce")))return "aves";
+  if(/suin|porco|pocilga/.test(n)||/pig/.test(g("animal")))return "sui";
+  if(/caprin|ovin|bode|cabra|carneiro/.test(n)||/goat|sheep/.test(g("animal")))return "ovc";
+  if(/apiar|apicult|mel\b|abelha/.test(n)||g("craft")==="beekeeper")return "api";
+  if(/curral|bovin|gado|leite|nelore|vaquejada/.test(n)||/cattle|cow/.test(g("animal")+g("produce"))||["cowshed","stable"].includes(g("building")))return "bov";
+  if(/viveiro|mudas/.test(n)||g("landuse")==="plant_nursery")return "sem";
+  if(/horta|hortali|flores|floricult/.test(n)||g("landuse")==="greenhouse_horticulture")return "hort";
+  if(/pomar|fruti|caju|acai|açai|coco|laranj|banan|cafe|cacau/.test(n)||["orchard","vineyard"].includes(g("landuse")))return "lavp";
+  if(/eucalipt|reflorest|silvicult|pinus/.test(n)||g("landuse")==="forest"&&t.name)return "flp";
+  if(/babacu|babaçu|extrativ|castanha/.test(n))return "fln";
+  if(/soja|milho|arroz|feij|mandioca|farinha|roça|roca/.test(n)||g("landuse")==="farmland")return "lavt";
+  if(/assentamento|quilombo|aldeia|comunidade/.test(n))return "asent";
+  if(["supermarket","convenience","greengrocer","butcher","seafood","deli","wholesale"].includes(g("shop"))||g("amenity")==="marketplace"||/peixaria|supermerc|mercadinho|feira/.test(n))return "ali";
+  if(["restaurant","fast_food","cafe","food_court"].includes(g("amenity")))return "rest";
+  if(["hotel","guest_house","motel","hostel","camp_site"].includes(g("tourism")))return "hot";
+  if(["school","college","university","townhall","hospital","clinic","kindergarten"].includes(g("amenity"))||g("office")==="government")return "pub";
+  if(g("office")==="logistics"||g("amenity")==="fuel"||/transport|logistic|frete/.test(n))return "log";
+  if(g("place")==="farm"||g("landuse")==="farmyard"||/fazenda|sitio|sítio|chacara|chácara|rancho|est[aâ]ncia/.test(n))return "rur";
+  return "out"}
+/* CNAE (Receita Federal) → atividade */
+function atvCNAE(c,nat){const s=String(c||"").replace(/\D/g,"");const n=String(nat||"");
+  if(/^214/.test(n.replace(/\D/g,"")))return "coop";if(/^399/.test(n.replace(/\D/g,"")))return "coop";
+  const p=(k)=>s.startsWith(k);
+  if(p("0321")||p("0322"))return "aqua";if(p("031"))return "pesca";if(p("0151"))return "bov";if(p("0155"))return "aves";if(p("0154"))return "sui";if(p("0153"))return "ovc";if(p("01598"))return "api";if(p("015")||p("017"))return "pec";
+  if(p("0121")||p("0122"))return "hort";if(p("013"))return "lavp";if(p("0141")||p("0142"))return "sem";if(p("011"))return "lavt";if(p("016"))return "ins";if(p("021"))return "flp";if(p("022")||p("023"))return "fln";
+  if(p("10")||p("11")||p("16"))return "agi";if(p("4661")||p("4683")||p("4623")||p("46214")||p("4622")||p("75")||p("477170")||p("4789004"))return "ins";
+  if(p("4711")||p("4712")||p("472")||p("4639")||p("4634")||p("4632")||p("4631"))return "ali";if(p("561")||p("562"))return "rest";if(p("55")||p("791"))return "hot";if(p("84")||p("85"))return "pub";if(p("49")||p("52"))return "log";return "out"}
+
+/* ---- Censo Agro 2017: perfil de atividade por classe de área, por município ---- */
+const CENSO_CACHE={};
+async function perfilCenso(munId){if(CENSO_CACHE[munId])return CENSO_CACHE[munId];
+  const u=`https://apisidra.ibge.gov.br/values/t/6778/n6/${munId}/v/183/p/all/c12517/allxt/c220/allxt?formato=json`;
+  const j=await getJ(u,null,25000),H=j[0],rows=j.slice(1);const kA=Object.keys(H).find(k=>H[k]==="Grupos de atividade econômica (Código)"),kB=Object.keys(H).find(k=>H[k]==="Grupos de área total (Código)"),kBn=kB&&kB.replace(/C$/,"N");
+  const cls={},tot={};for(const r of rows){const v=parseInt(r.V,10);if(!(v>0))continue;const a=CENSO[r[kA]];if(!a)continue;const nm=String(r[kBn]||"");const m=nm.match(/([\d.,]+)\s*a menos de\s*([\d.,]+)/),m2=nm.match(/([\d.,]+)\s*ha e mais/i)||nm.match(/Mais de\s*([\d.,]+)/i);
+    const Pb=s=>parseFloat(String(s).replace(/\./g,"").replace(",","."));let lo=NaN,hi=NaN;if(m){lo=Pb(m[1]);hi=Pb(m[2])}else if(/produtor sem área/i.test(nm))continue;else if(m2){lo=Pb(m2[1]);hi=Infinity}else continue;const key=lo+"|"+hi;(cls[key]=cls[key]||{lo,hi,c:{}}).c[a]=(cls[key].c[a]||0)+v;tot[a]=(tot[a]||0)+v}
+  const o={cls:Object.values(cls).sort((a,b)=>a.lo-b.lo),tot};CENSO_CACHE[munId]=o;return o}
+function provavel(perf,ha){if(!perf)return null;const c=perf.cls.find(x=>ha>=x.lo&&ha<x.hi)||perf.cls[perf.cls.length-1];const base=c&&Object.keys(c.c).length?c.c:perf.tot;const s=Object.values(base).reduce((a,v)=>a+v,0);if(!s)return null;
+  return Object.entries(base).map(([k,v])=>[k,v/s*100]).sort((a,b)=>b[1]-a[1]).slice(0,3)}
+
+/* ---- buscas ---- */
+let busy=false,msg="",erro="",RINGS={};
+const prog=(t,e)=>{msg=t;if(e)erro=e;pintaProg()};
+async function buscaCAR(area){const b=bboxOf(area.ring),ufs=(R.ufs?R.ufs.split(/[,\s]+/).filter(Boolean).map(x=>x.toUpperCase()):[]).concat(area.uf?[area.uf]:ufsDaArea(b)).filter((x,i,a)=>UFB[x]&&a.indexOf(x)===i),lim=Math.min(10000,Math.max(100,P(R.limite)||1500)),out=[];
+  const poly=simplifica(area.ring,110);const wkt="POLYGON(("+poly.concat([poly[0]]).map(([la,lo])=>`${la.toFixed(5)} ${lo.toFixed(5)}`).join(",")+"))";
+  for(const uf of ufs){if(out.length>=lim)break;const L="sicar:sicar_imoveis_"+uf.toLowerCase(),base=`https://geoserver.car.gov.br/geoserver/sicar/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=${L}&outputFormat=application/json`;
+    const cql=area.tipo==="mun"&&area.munId?`cod_municipio_ibge=${area.munId}`:`INTERSECTS(geo_area_imovel,${wkt})`;let total=NaN;
+    try{const h=await (await fetchT(base.replace("outputFormat=application/json","resultType=hits")+"&CQL_FILTER="+encodeURIComponent(cql),null,30000)).text();total=parseInt((h.match(/numberMatched="(\d+)"/)||[])[1],10)}catch(e){}
+    if(total===0)continue;prog(`CAR/SICAR ${uf}: ${isFinite(total)?F(total)+" imóveis na área":"consultando"} — baixando os maiores primeiro…`);
+    for(let si=0;out.length<lim;si+=500){const n=Math.min(500,lim-out.length);let j;
+      try{j=await getJ(`${base}&count=${n}&startIndex=${si}&sortBy=area+D&CQL_FILTER=${encodeURIComponent(cql)}`,null,60000)}catch(e){if(!out.length)throw new Error("CAR/SICAR fora do ar ou demorando ("+e.message+")");break}
+      const fs=j.features||[];for(const f of fs){const p=f.properties||{},g=f.geometry;let ring=null;if(g&&g.coordinates){const pol=g.type==="MultiPolygon"?g.coordinates.map(x=>x[0]).sort((a,b)=>b.length-a.length)[0]:g.coordinates[0];ring=pol&&pol.map(([lo,la])=>[la,lo])}
+        const c=ring?(()=>{let la=0,lo=0;for(const q of ring){la+=q[0];lo+=q[1]}return [la/ring.length,lo/ring.length]})():null;if(!c)continue;
+        const id="car:"+p.cod_imovel;if(ring)RINGS[id]=simplifica(ring,40);
+        out.push({id,fonte:"car",nome:`Imóvel rural ${p.municipio||""} · ${F(p.area,1)} ha`,cod:p.cod_imovel,lat:c[0],lon:c[1],ha:p.area,mf:p.m_fiscal,porte:porteDe(p.m_fiscal),tipo:p.tipo_imovel,st:p.status_imovel,cond:p.condicao,mun:p.municipio,munId:p.cod_municipio_ibge,uf:p.uf||uf,atv:p.tipo_imovel==="AST"||p.tipo_imovel==="PCT"?"asent":"rur",atvSt:p.tipo_imovel==="AST"||p.tipo_imovel==="PCT"?"car":"prov"})}
+      prog(`CAR/SICAR ${uf}: ${F(out.length)} imóveis baixados${isFinite(total)?" de "+F(total):""}…`);if(fs.length<n)break}}
+  return out}
+const OSM_SRV=["https://overpass-api.de/api/interpreter","https://overpass.private.coffee/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+async function buscaOSM(area){const ring=simplifica(area.ring,60),pf=`(poly:"${ring.map(([la,lo])=>la.toFixed(5)+" "+lo.toFixed(5)).join(" ")}")`;
+  const S=[`nwr["place"="farm"]`,`nwr["landuse"="farmyard"]["name"]`,`nwr["landuse"="aquaculture"]`,`nwr["aquaculture"]`,`nwr["landuse"~"^(farmland|orchard|vineyard|plant_nursery|greenhouse_horticulture|animal_keeping)$"]["name"]`,`nwr["shop"~"^(agrarian|farm|garden_centre)$"]`,`nwr["amenity"="veterinary"]`,
+   `nwr["industrial"~"^(slaughterhouse|dairy|food|sawmill|grain|fish_farm)$"]`,`nwr["craft"~"^(cheese_maker|beekeeper|agricultural_engines|winery)$"]`,`nwr["office"~"^(cooperative|association)$"]`,`nwr["name"~"[Cc]ooperativa|[Aa]ssocia..o d|[Ff]azenda|[Ss].tio |[Gg]ranja|[Aa]gropecu|[Ll]atic|[Ff]rigor|[Pp]iscicult"]`,
+   `nwr["shop"~"^(supermarket|convenience|greengrocer|butcher|seafood|wholesale)$"]`,`nwr["amenity"~"^(restaurant|marketplace|school|townhall)$"]`,`nwr["tourism"~"^(hotel|guest_house)$"]`,`nwr["office"="logistics"]`];
+  const q=`[out:json][timeout:60];(${S.map(s=>s+pf+";").join("")});out center tags 3000;`;let j=null,ult="";
+  for(const srv of OSM_SRV){try{prog("OpenStreetMap: procurando fazendas, empresas e serviços na área… (pode levar até 1 minuto)");j=await getJ(srv,{method:"POST",body:"data="+encodeURIComponent(q)},70000);break}catch(e){ult=e.message}}
+  if(!j)throw new Error("OpenStreetMap ocupado ("+ult+")");const out=[];
+  for(const e of j.elements||[]){const t=e.tags||{},la=e.lat??(e.center&&e.center.lat),lo=e.lon??(e.center&&e.center.lon);if(!isFinite(la)||!inPoly([la,lo],area.ring))continue;const a=atvOSM(t);
+    out.push({id:`osm:${e.type}/${e.id}`,fonte:"osm",nome:t.name||t["name:pt"]||atvN(a),lat:la,lon:lo,atv:a,atvSt:"osm",tel:t.phone||t["contact:phone"]||"",wa:t["contact:whatsapp"]||"",email:t.email||t["contact:email"]||"",site:t.website||t["contact:website"]||"",insta:t["contact:instagram"]||"",
+      end:[t["addr:street"],t["addr:housenumber"],t["addr:suburb"],t["addr:city"]].filter(Boolean).join(", "),cnpj:(t["ref:vatin"]||t["ref:CNPJ"]||t["ref:cnpj"]||"").replace(/\D/g,""),osm:`${e.type}/${e.id}`,tagsTxt:Object.entries(t).filter(([k])=>/^(shop|amenity|office|craft|industrial|landuse|place|produce|animal|tourism)$/.test(k)).map(([k,v])=>k+"="+v).join(" ")})}
+  return out}
+async function buscaCNPJ(list,area){const out=[];let i=0;for(const raw of list){const c=raw.replace(/\D/g,"");if(c.length!==14)continue;i++;prog(`Receita Federal: CNPJ ${i} de ${list.length}…`);let d=null;
+    for(const u of [`https://brasilapi.com.br/api/cnpj/v1/${c}`,`https://minhareceita.org/${c}`]){try{d=await getJ(u,null,20000);break}catch(e){}}
+    if(!d){out.push({id:"cnpj:"+c,fonte:"cnpj",nome:"CNPJ "+c+" (não encontrado)",cnpj:c,atv:"out",atvSt:"cnpj",erro:true});continue}
+    const a=atvCNAE(d.cnae_fiscal,d.codigo_natureza_juridica||d.natureza_juridica),mun=d.municipio,uf=d.uf;let ll=null;
+    try{const m=await acharMun(`${mun} – ${uf}`);if(m){const r=await malhaMun(m.id);ll=centro(r)}}catch(e){}
+    out.push({id:"cnpj:"+c,fonte:"cnpj",nome:d.nome_fantasia||d.razao_social,razao:d.razao_social,cnpj:c,cnae:`${d.cnae_fiscal} ${d.cnae_fiscal_descricao||""}`.trim(),sit:d.descricao_situacao_cadastral||"",lat:ll?ll[0]:NaN,lon:ll?ll[1]:NaN,aprox:true,
+      tel:d.ddd_telefone_1||"",email:d.email||"",end:[d.descricao_tipo_de_logradouro,d.logradouro,d.numero,d.bairro,mun&&uf?`${mun} – ${uf}`:mun].filter(Boolean).join(", "),mun,uf,atv:a,atvSt:"cnpj"});await new Promise(r=>setTimeout(r,350))}
+  return out}
+/* atividade provável dos imóveis do CAR: OSM dentro do imóvel > perfil do Censo Agro por classe de área */
+async function classifica(itens){const car=itens.filter(x=>x.fonte==="car"&&x.atvSt==="prov"),osm=itens.filter(x=>x.fonte==="osm"&&ATV[x.atv]&&ATV[x.atv][3]==="rural"&&!["rur","out","ins","coop","ali"].includes(x.atv));
+  for(const c of car){const r=RINGS[c.id];if(!r)continue;const o=osm.find(p=>Math.abs(p.lat-c.lat)<.2&&inPoly([p.lat,p.lon],r));if(o){c.atv=o.atv;c.atvSt="osm";c.osmNome=o.nome}}
+  const muns=[...new Set(car.filter(c=>c.atvSt==="prov").map(c=>c.munId).filter(Boolean))].slice(0,25);let k=0;
+  for(const m of muns){k++;prog(`IBGE Censo Agro 2017: perfil de atividade do município ${k} de ${muns.length}…`);let p=null;try{p=await perfilCenso(m)}catch(e){}
+    for(const c of car.filter(x=>x.munId===m&&x.atvSt==="prov")){const pv=provavel(p,c.ha);if(pv&&pv[0]){c.atv=pv[0][0];c.prob=pv.map(([a,v])=>[a,Math.round(v)])}}}}
+async function prospectar(){if(busy)return;busy=true;erro="";msg="";RINGS={};pinta();
+  try{let area=areaAtual();if(R.modo==="raio"){area=await areaRaio();R.area=area}else if(R.modo==="mun"){if(!R.area||R.area.tipo!=="mun"||!R.area.ring)await usarMun();area=areaAtual()}
+    if(!area)throw new Error("defina a área da busca: escolha um modo e desenhe no mapa (ou escolha o município)");
+    const itens=[],avisos=[];
+    if(R.fontes.car){try{itens.push(...await buscaCAR(area))}catch(e){avisos.push("CAR/SICAR: "+e.message)}}
+    if(R.fontes.osm){try{itens.push(...await buscaOSM(area))}catch(e){avisos.push(e.message)}}
+    if(R.fontes.cnpj){const L=String(R.cnpjs||"").split(/[\s,;]+/).filter(x=>x.replace(/\D/g,"").length===14);const fromOsm=itens.filter(x=>x.cnpj&&x.cnpj.length===14).map(x=>x.cnpj);const all=[...new Set(L.concat(fromOsm))].slice(0,60);
+      if(all.length){try{const cs=await buscaCNPJ(all,area);for(const c of cs){const o=itens.find(x=>x.cnpj===c.cnpj&&x.fonte==="osm");if(o){Object.assign(o,{razao:c.razao,cnae:c.cnae,sit:c.sit,tel:o.tel||c.tel,email:o.email||c.email});if(c.atv!=="out"){o.atv=c.atv;o.atvSt="cnpj"}}else itens.push(c)}}catch(e){avisos.push("Receita Federal: "+e.message)}}}
+    await classifica(itens);
+    const ant=Object.fromEntries((R.itens||[]).map(x=>[x.id,x]));for(const x of itens){const a=ant[x.id];if(a){if(a.atvSt==="conf"){x.atv=a.atv;x.atvSt="conf"}if(a.funil)x.funil=a.funil}}
+    R.itens=itens;R.quando=new Date().toISOString();R.pag=0;R.resumo={area:area.nome,km2:areaKm2(area.ring),avisos};erro=avisos.join(" · ");msg="";grava()}
+  catch(e){erro=e.message||String(e)}finally{busy=false;pinta()}}
+async function usarMun(){const m=await acharMun(R.munTxt||((mercRes()||{}).mun?`${mercRes().mun.n} – ${mercRes().mun.uf}`:""));if(!m)throw new Error("município não encontrado — digite o nome e escolha na lista");
+  prog(`IBGE: limite oficial de ${m.n} – ${m.uf}…`);const ring=await malhaMun(m.id);R.area={tipo:"mun",nome:`Município de ${m.n} – ${m.uf} (limite IBGE)`,ring:simplifica(ring,400),centro:centro(ring),munId:m.id,uf:m.uf};R.munTxt=`${m.n} – ${m.uf}`;grava();desenhaArea(true)}
+
+/* ---- mapa e ferramentas de desenho ---- */
+let MAP=null,LFX=null,LYA=null,LYR=null,DR=null,tipTxt="";
+function loadLeaflet(){if(window.L&&window.L.map)return Promise.resolve(window.L);return new Promise((ok,err)=>{if(!document.querySelector('link[href*="leaflet"]')){const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c)}
+  const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>ok(window.L);s.onerror=()=>err(new Error("sem internet para o mapa"));document.head.appendChild(s)})}
+async function montaMapa(){const el=document.getElementById("rp-map");if(!el)return;if(MAP&&MAP.getContainer()===el){MAP.invalidateSize();return}
+  try{LFX=await loadLeaflet()}catch(e){el.innerHTML=`<div class="note" style="margin:10px">Mapa indisponível (${esc(e.message)}). Use ⭕ Raio ou 🏙️ Município.</div>`;return}
+  if(MAP){try{MAP.remove()}catch(e){}}const a=areaAtual(),res=mercRes(),c=a?a.centro:res&&isFinite(res.lat)?[res.lat,res.lon]:[-14.2,-51.9];
+  MAP=LFX.map(el,{zoomControl:true,doubleClickZoom:false}).setView(c,a?9:res?9:4);
+  const osm=LFX.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(MAP);
+  const sat=LFX.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imagens © Esri"});
+  LFX.control.layers({"Mapa":osm,"Satélite":sat},null,{position:"topright"}).addTo(MAP);
+  LYA=LFX.layerGroup().addTo(MAP);LYR=LFX.layerGroup().addTo(MAP);
+  MAP.on("mousedown",dDown);MAP.on("mousemove",dMove);MAP.on("mouseup",dUp);MAP.on("click",dClick);MAP.on("dblclick",dDbl);
+  desenhaArea(!!a);desenhaRes()}
+const tip=t=>{tipTxt=t;const e=document.getElementById("rp-tip");if(e){e.textContent=t;e.hidden=!t}};
+function setModo(m){R.modo=m;grava();DR=null;const el=document.getElementById("rp-map");if(MAP){MAP.dragging.enable()}
+  const T={raio:"⭕ Raio: toque no mapa para escolher o centro (ou use o centro da prospecção) e informe o raio em km.",mun:"🏙️ Município: digite o nome e toque em Usar município.",ret:"▭ Retângulo: pressione e arraste no mapa.",circ:"◯ Círculo: pressione no centro e arraste até a borda.",poli:"⬠ Polígono: toque em cada vértice; toque duas vezes (ou em ✓ Concluir) para fechar.",livre:"✏️ Desenho livre: pressione e desenhe o contorno sem soltar."}[m]||"";
+  if(el)el.classList.toggle("drawing",["ret","circ","poli","livre","raio"].includes(m));tip(T);pintaCtl()}
+const ll=e=>[e.latlng.lat,e.latlng.lng];
+function dDown(e){if(!["ret","circ","livre"].includes(R.modo)||busy)return;MAP.dragging.disable();DR={m:R.modo,a:ll(e),pts:[ll(e)],lay:null}}
+function dMove(e){if(!DR||!LFX)return;const p=ll(e);if(DR.lay)LYA.removeLayer(DR.lay);
+  if(DR.m==="ret")DR.lay=LFX.rectangle([DR.a,p],{color:"#2a78d6",weight:2,fillOpacity:.08}).addTo(LYA);
+  else if(DR.m==="circ"){DR.km=dist(DR.a,p);DR.lay=LFX.circle(DR.a,{radius:DR.km*1000,color:"#2a78d6",weight:2,fillOpacity:.08}).addTo(LYA);tip(`◯ raio ${F(DR.km,1)} km`)}
+  else if(DR.m==="livre"){const q=DR.pts[DR.pts.length-1],px=MAP.latLngToContainerPoint(q),pp=MAP.latLngToContainerPoint(p);if(Math.hypot(px.x-pp.x,px.y-pp.y)>=4)DR.pts.push(p);DR.lay=LFX.polyline(DR.pts,{color:"#2a78d6",weight:2}).addTo(LYA)}
+  else if(DR.m==="poli"&&DR.pts.length){DR.lay=LFX.polyline(DR.pts.concat([p]),{color:"#2a78d6",weight:2,dashArray:"4 4"}).addTo(LYA)}}
+function dUp(e){if(!DR||DR.m==="poli")return;MAP.dragging.enable();const d=DR;DR=null;const p=ll(e);let ring=null,nome="";
+  if(d.m==="ret"){const b=[Math.min(d.a[0],p[0]),Math.min(d.a[1],p[1]),Math.max(d.a[0],p[0]),Math.max(d.a[1],p[1])];if(Math.abs(b[2]-b[0])<1e-4||Math.abs(b[3]-b[1])<1e-4)return;ring=[[b[0],b[1]],[b[0],b[3]],[b[2],b[3]],[b[2],b[1]]];nome="Retângulo desenhado"}
+  else if(d.m==="circ"){const km=dist(d.a,p);if(km<.05)return;ring=circPoly(d.a,km,64);nome=`Círculo de ${F(km,1)} km de raio`}
+  else if(d.m==="livre"){d.pts.push(p);if(d.pts.length<4)return;ring=simplifica(d.pts,300);nome="Área desenhada à mão livre"}
+  fechaArea(ring,nome,d.m)}
+function dClick(e){if(busy)return;if(R.modo==="raio"){R.centro=ll(e);grava();areaRaio().then(a=>{R.area=a;grava();desenhaArea(false);pintaCtl()}).catch(()=>{});return}
+  if(R.modo!=="poli")return;if(!DR)DR={m:"poli",pts:[],lay:null,mk:LFX.layerGroup().addTo(LYA)};DR.pts.push(ll(e));LFX.circleMarker(ll(e),{radius:4,color:"#2a78d6"}).addTo(DR.mk);tip(`⬠ ${DR.pts.length} vértice(s) — toque duas vezes ou em ✓ Concluir para fechar`);pintaCtl()}
+function dDbl(e){if(R.modo==="poli"&&DR){concluiPoli()}}
+function concluiPoli(){if(!DR||DR.pts.length<3){tip("⬠ marque pelo menos 3 vértices");return}const pts=DR.pts.filter((p,i,a)=>!i||dist(p,a[i-1])>.001);DR=null;fechaArea(pts,`Polígono de ${pts.length} vértices`,"poli")}
+function fechaArea(ring,nome,m){R.area={tipo:m,nome,ring,centro:centro(ring)};R.centro=null;grava();desenhaArea(false);tip(`✅ ${nome} — ${F(areaKm2(ring),1)} km². Toque em 🔎 Buscar clientes.`);pintaCtl()}
+function desenhaArea(fit){if(!MAP||!LFX||!LYA)return;LYA.clearLayers();const a=areaAtual();if(!a)return;LFX.polygon(a.ring,{color:"#1a6b5a",weight:2,fillOpacity:.06,dashArray:a.tipo==="mun"?null:"6 4"}).addTo(LYA);if(a.tipo==="raio")LFX.circleMarker(a.centro,{radius:5,color:"#111",fillColor:"#1baf7a",fillOpacity:1}).addTo(LYA);
+  if(fit)try{MAP.fitBounds(LFX.polygon(a.ring).getBounds(),{padding:[20,20]})}catch(e){}}
+function popHTML(x){return `<b>${atvI(x.atv)} ${esc(x.nome)}</b><br>${esc(atvN(x.atv))}${x.prob?` <small>(provável)</small>`:""}${x.fonte==="car"?`<br>CAR ${esc(x.cod)}<br>${F(x.ha,1)} ha · ${F(x.mf,2)} MF · ${esc(PORTE[x.porte]||"")}`:""}${x.cnae?`<br>CNAE ${esc(x.cnae)}`:""}${x.tel?`<br>☎ ${esc(x.tel)}`:""}<br><button type="button" class="chip" data-rpadd="${esc(x.id)}">${x.funil?"✓ no funil":"➕ Enviar ao funil"}</button>`}
+function desenhaRes(){if(!MAP||!LFX||!LYR)return;LYR.clearLayers();const L=filtrados().slice(0,2500);
+  for(const x of L){if(!isFinite(x.lat))continue;const r=RINGS[x.id];const lay=r&&L.length<=1500?LFX.polygon(r,{color:atvC(x.atv),weight:1.5,fillOpacity:.25}):LFX.circleMarker([x.lat,x.lon],{radius:x.fonte==="car"?5:6,color:"#fff",weight:1,fillColor:atvC(x.atv),fillOpacity:.9});lay.bindPopup(()=>popHTML(x));lay.addTo(LYR)}}
+
+/* ---- funil (Camada de mercado) ---- */
+function enviaFunil(x){if(!window.gfMercAPI||x.funil)return false;const nm=atvN(x.atv);
+  const c=gfMercAPI.add({nome:x.fonte==="car"?`${nm.replace(/ —.*/,"")} · CAR ${String(x.cod||"").slice(-6)} (${F(x.ha,1)} ha)`:x.nome,tipo:nm,seg:nm,lat:x.lat,lon:x.lon,end:x.end||[x.mun,x.uf].filter(Boolean).join(" – "),tel:x.tel||"",wa:x.wa||"",email:x.email||"",site:x.site||"",insta:x.insta||"",osm:x.osm||""},
+   {atv:x.atv,atvSt:x.atvSt,porte:x.porte||"",fonte:x.fonte,car:x.cod||"",cnpj:x.cnpj||"",obs:[`Prospecção rural (${{car:"CAR/SICAR",osm:"OpenStreetMap",cnpj:"Receita Federal"}[x.fonte]})`,x.cod?`CAR ${x.cod}`:"",isFinite(x.ha)?`${F(x.ha,1)} ha · ${F(x.mf,2)} módulos fiscais · ${PORTE[x.porte]||""}`:"",x.cnae?`CNAE ${x.cnae}`:"",x.razao?`Razão social: ${x.razao}`:"",`Atividade: ${nm} (${x.atv==="rur"?"a confirmar":{conf:"confirmada",osm:"identificada no OpenStreetMap",cnpj:"pelo CNAE",prov:"provável — Censo Agro 2017",car:"tipo do CAR"}[x.atvSt]||""})`].filter(Boolean).join(" · ")});
+  x.funil=c&&c.id||true;return true}
+function funilPorAtv(){const C=(window.gfMercAPI&&gfMercAPI.clientes())||[],o={};for(const c of C){if(!c.atv)continue;const k=c.atv,e=c.etapa||"prosp";o[k]=o[k]||{n:0,et:{}};o[k].n++;o[k].et[e]=(o[k].et[e]||0)+1}return o}
+
+/* ---- filtros e tela ---- */
+function filtrados(){const f=R.f,q=norm(f.q);return (R.itens||[]).filter(x=>(!f.atv||x.atv===f.atv)&&(!f.grupo||(ATV[x.atv]||ATV.out)[3]===f.grupo)&&(!f.porte||x.porte===f.porte)&&(!f.fonte||x.fonte===f.fonte)&&(!q||norm([x.nome,x.cod,x.cnpj,x.mun,x.end,x.razao,x.cnae,atvN(x.atv)].join(" ")).includes(q)))}
+const stTag=x=>x.atv==="rur"&&x.atvSt!=="conf"?`<span class="rp-st prov">a confirmar</span>`:`<span class="rp-st ${x.atvSt==="conf"?"conf":x.atvSt==="osm"?"osm":x.atvSt==="cnpj"?"cnpj":"prov"}">${{conf:"confirmada",osm:"OSM",cnpj:"CNAE",prov:"provável",car:"CAR"}[x.atvSt]||""}</span>`;
+function ctlHTML(){const a=areaAtual(),M=[["raio","⭕ Raio"],["mun","🏙️ Município inteiro"],["ret","▭ Retângulo"],["circ","◯ Círculo"],["poli","⬠ Polígono"],["livre","✏️ Desenho livre"]];
+  return `<div class="rp-modes" role="group" aria-label="Forma da área de busca">${M.map(([k,t])=>`<button type="button" class="chip${R.modo===k?" on":""}" data-rpmodo="${k}" aria-pressed="${R.modo===k}">${t}</button>`).join("")}${R.modo==="poli"?`<button type="button" class="chip" data-rpfim="1">✓ Concluir polígono</button>`:""}<button type="button" class="chip" data-rplimpa="1">🗑️ Limpar área</button></div>
+   <div class="rp-row">${R.modo==="raio"?`<label class="jr-f">Raio (km)<input data-rp="raio" value="${esc(R.raio)}" inputmode="decimal"></label>`:""}${R.modo==="mun"?`<label class="jr-f">Município<input data-rp="munTxt" list="rp-muns" value="${esc(R.munTxt)}" placeholder="ex.: Pinheiro – MA" autocomplete="off"><datalist id="rp-muns"></datalist></label><button type="button" class="btn" data-rpmun="1">📍 Usar município</button>`:""}
+    <label class="jr-f">Máximo de imóveis do CAR<select data-rp="limite">${["500","1500","3000","5000","10000"].map(v=>`<option${R.limite===v?" selected":""}>${v}</option>`).join("")}</select></label>
+    <label class="jr-f">Estados extras (CAR)<input data-rp="ufs" value="${esc(R.ufs)}" placeholder="ex.: PA, PI" style="width:110px"></label></div>
+   <div class="rp-src"><b style="font-size:13px">Fontes:</b><label><input type="checkbox" data-rpf="car"${R.fontes.car?" checked":""}> CAR/SICAR — imóveis rurais (Serviço Florestal Brasileiro)</label><label><input type="checkbox" data-rpf="osm"${R.fontes.osm?" checked":""}> OpenStreetMap — fazendas, empresas e serviços</label><label><input type="checkbox" data-rpf="cnpj"${R.fontes.cnpj?" checked":""}> Receita Federal — CNPJ</label></div>
+   ${R.fontes.cnpj?`<label class="jr-f" style="margin-top:8px">CNPJs para identificar (um por linha; opcional — os CNPJs achados no OpenStreetMap entram sozinhos)<textarea data-rp="cnpjs" rows="2" style="width:100%;max-width:520px">${esc(R.cnpjs)}</textarea></label>`:""}
+   <div class="rp-row"><button type="button" class="btn solid" data-rpgo="1"${busy?" disabled":""}>${busy?"⏳ Buscando…":"🔎 Buscar clientes"}</button><span class="hint">${a?`Área: <b>${esc(a.nome)}</b> · ${F(areaKm2(a.ring),1)} km²`:"Nenhuma área desenhada ainda."}</span></div>`}
+function progHTML(){return busy||msg?`<div class="rp-prog">⏳ ${esc(msg||"buscando…")}</div>`:erro?`<div class="rp-prog err">⚠️ ${esc(erro)}</div>`:""}
+function resHTML(){const I=R.itens||[];if(!I.length)return R.quando?`<div class="note">Nenhum resultado na área. Aumente a área ou ligue mais fontes.</div>`:"";
+  const L=filtrados(),cnt=k=>I.filter(x=>x.atv===k).length,porte=k=>I.filter(x=>x.porte===k).length,fonte=k=>I.filter(x=>x.fonte===k).length,car=I.filter(x=>x.fonte==="car"),haT=car.reduce((a,x)=>a+(x.ha||0),0),noF=I.filter(x=>x.funil).length;
+  const kp=`<div class="gfh-kpis bx-kpis"><div class="hk hk-ok"><div><span class="hk-l">Prospectados</span><b>${F(I.length)}</b><small>CAR ${F(fonte("car"))} · OSM ${F(fonte("osm"))} · CNPJ ${F(fonte("cnpj"))}</small></div></div><div class="hk"><div><span class="hk-l">Área rural no CAR</span><b>${F(haT/1000,1)} mil ha</b><small>${F(car.length)} imóveis · média ${F(car.length?haT/car.length:NaN,1)} ha</small></div></div><div class="hk"><div><span class="hk-l">Atividade identificada</span><b>${F(I.filter(x=>["osm","cnpj","conf","car"].includes(x.atvSt)).length)}</b><small>${F(I.filter(x=>x.atvSt==="prov").length)} prováveis pelo Censo Agro</small></div></div><div class="hk${noF?" hk-ok":""}"><div><span class="hk-l">No funil</span><b>${F(noF)}</b><small>Camada de mercado → Funil de vendas</small></div></div></div>`;
+  const chipsA=Object.keys(ATV).filter(k=>cnt(k)).map(k=>`<button type="button" class="chip${R.f.atv===k?" on":""}" data-rpfa="${k}"><i style="background:${atvC(k)}"></i>${atvI(k)} ${esc(atvN(k))} <b>${F(cnt(k))}</b></button>`).join("");
+  const chipsP=Object.keys(PORTE).filter(k=>porte(k)).map(k=>`<button type="button" class="chip${R.f.porte===k?" on":""}" data-rpfp="${k}">${esc(PORTE[k])} <b>${F(porte(k))}</b></button>`).join("");
+  const pg=Math.max(0,Math.min(R.pag||0,Math.floor((L.length-1)/100))),V=L.slice(pg*100,pg*100+100);
+  const sel=x=>`<select data-rpatv="${esc(x.id)}" aria-label="Atividade">${Object.keys(ATV).map(k=>`<option value="${k}"${x.atv===k?" selected":""}>${atvI(k)} ${esc(atvN(k))}</option>`).join("")}</select>`;
+  const linhas=V.map(x=>`<tr><td class="l"><b>${esc(x.nome)}</b><small>${x.fonte==="car"?`CAR ${esc(x.cod)} · ${esc(x.cond||"")}${x.tipo?` · ${esc({IRU:"imóvel rural",AST:"assentamento",PCT:"povos e comunidades tradicionais"}[x.tipo]||x.tipo)}`:""}`:x.fonte==="cnpj"?`CNPJ ${esc(x.cnpj)} · ${esc(x.cnae||"")} · ${esc(x.sit||"")}`:esc(x.tagsTxt||"")}</small>${x.end?`<small>${esc(x.end)}</small>`:""}</td>
+   <td class="l">${sel(x)} ${stTag(x)}${x.prob?`<small>${x.prob.map(([a,v])=>`${esc(atvN(a).split(" (")[0])} ${v}%`).join(" · ")}</small>`:x.osmNome?`<small>OSM: ${esc(x.osmNome)}</small>`:""}</td>
+   <td>${x.fonte==="car"?`${F(x.ha,1)} ha<small>${F(x.mf,2)} MF · ${esc((PORTE[x.porte]||"").split(" (")[0])}</small>`:"—"}</td><td class="l">${esc(x.mun||"")}${x.uf?` – ${esc(x.uf)}`:""}<small>${{car:"CAR/SICAR",osm:"OpenStreetMap",cnpj:"Receita Federal"}[x.fonte]}</small></td>
+   <td class="l">${x.tel?`☎ ${esc(x.tel)}`:""}${x.email?`<small>${esc(x.email)}</small>`:""}${x.site?`<small>${esc(x.site)}</small>`:""}</td>
+   <td><button type="button" class="chip" data-rpadd="${esc(x.id)}"${x.funil?" disabled":""}>${x.funil?"✓ no funil":"➕ Funil"}</button>${isFinite(x.lat)?`<button type="button" class="chip" data-rpver="${esc(x.id)}" aria-label="Ver no mapa">🗺️</button>`:""}</td></tr>`).join("");
+  const FA=funilPorAtv(),fk=Object.keys(FA);
+  return `${kp}${R.resumo&&R.resumo.area?`<p class="hint" style="margin:4px 0">Área: ${esc(R.resumo.area)} · ${F(R.resumo.km2,1)} km² · ${new Date(R.quando).toLocaleString("pt-BR")}</p>`:""}
+   <div class="rp-chips"><button type="button" class="chip${!R.f.grupo?" on":""}" data-rpfg="">Todos</button><button type="button" class="chip${R.f.grupo==="rural"?" on":""}" data-rpfg="rural">🌾 Rurais</button><button type="button" class="chip${R.f.grupo==="nao"?" on":""}" data-rpfg="nao">🏙️ Não rurais</button>${["car","osm","cnpj"].filter(fonte).map(k=>`<button type="button" class="chip${R.f.fonte===k?" on":""}" data-rpff="${k}">${{car:"CAR/SICAR",osm:"OpenStreetMap",cnpj:"CNPJ"}[k]} <b>${F(fonte(k))}</b></button>`).join("")}</div>
+   <div class="rp-chips">${R.f.atv?`<button type="button" class="chip" data-rpfa="">✕ todas as atividades</button>`:""}${chipsA}</div>${chipsP?`<div class="rp-chips">${R.f.porte?`<button type="button" class="chip" data-rpfp="">✕ todos os portes</button>`:""}${chipsP}</div>`:""}
+   <div class="rp-row"><label class="jr-f">Procurar nos resultados<input data-rpq="1" value="${esc(R.f.q)}" placeholder="nome, CAR, CNPJ, município…"></label><button type="button" class="btn solid" data-rpaddall="1"${L.filter(x=>!x.funil).length?"":" disabled"}>➕ Enviar ${F(Math.min(200,L.filter(x=>!x.funil).length))} filtrados ao funil</button><button type="button" class="btn" data-rpcsv="1">⬇ CSV</button><button type="button" class="btn" data-rpkml="1">🌍 KML</button><button type="button" class="btn" data-rpgeo="1">⬇ GeoJSON</button></div>
+   <div class="scroll"><table class="lot rp-t"><thead><tr><th class="l">Cliente / imóvel</th><th class="l">Atividade</th><th>Área</th><th class="l">Município · fonte</th><th class="l">Contato</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div>
+   ${L.length>100?`<div class="rp-pag"><button type="button" class="chip" data-rppag="-1"${pg?"":" disabled"}>◀</button>${F(pg*100+1)}–${F(Math.min(L.length,pg*100+100))} de ${F(L.length)}<button type="button" class="chip" data-rppag="1"${(pg+1)*100<L.length?"":" disabled"}>▶</button></div>`:""}
+   ${fk.length?`<h3 class="fx-h">🎯 Funil por atividade (identificação dos clientes prospectados)</h3><div class="scroll"><table class="lot rp-funil"><thead><tr><th class="l">Atividade</th><th>No funil</th><th>Prospecção</th><th>Contato</th><th>Proposta</th><th>Negociação</th><th>Ativos</th></tr></thead><tbody>${fk.sort((a,b)=>FA[b].n-FA[a].n).map(k=>`<tr><td class="l">${atvI(k)} ${esc(atvN(k))}</td><td><b>${F(FA[k].n)}</b></td>${["prosp","cont","prop","neg","cli"].map(e=>`<td>${F(FA[k].et[e]||0)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:""}`}
+function fontesHTML(){return `<details class="dc-det"><summary>📚 De onde vêm os dados e o que cada um traz</summary><ul class="bn-ul">
+  <li><b>CAR/SICAR</b> (Serviço Florestal Brasileiro, geoserver.car.gov.br): polígono de cada imóvel rural declarado, código do CAR, área (ha), módulos fiscais, tipo (imóvel rural, assentamento, povos e comunidades tradicionais), situação e condição. O CAR público <b>não traz o nome do dono</b> (LGPD): o contato é feito pelos canais da região (sindicato rural, cooperativa, EMATER/AGERP, associação) com o código do imóvel.</li>
+  <li><b>OpenStreetMap</b> (Overpass API): fazendas, sítios e granjas com nome, áreas de aquicultura, agropecuárias, veterinárias, laticínios, frigoríficos, serrarias, cooperativas, associações, supermercados, restaurantes, hotéis, escolas — com telefone, site e endereço quando cadastrados.</li>
+  <li><b>IBGE</b>: limites oficiais dos municípios (malhas) e Censo Agropecuário 2017 (SIDRA, tabela 6778 — estabelecimentos por grupo de atividade e por classe de área). O app usa o perfil do município na classe de área de cada imóvel para indicar a <b>atividade provável</b>; confirme no campo Atividade.</li>
+  <li><b>Receita Federal</b> (dados públicos de CNPJ via BrasilAPI / Minha Receita): razão social, nome fantasia, CNAE, situação, endereço e contato da empresa. O app não guarda o quadro de sócios.</li>
+  <li><b>Porte</b> pelos módulos fiscais (Lei 8.629/1993): minifúndio &lt; 1 MF; pequena 1 a 4; média 4 a 15; grande &gt; 15.</li>
+  <li>INCRA/SIGEF e Base Contínua do IBGE não liberam acesso direto pelo navegador; os demais órgãos podem ser somados quando liberarem.</li></ul></details>`}
+let HOST=null;
+function pinta(){if(!HOST)return;const ae=document.activeElement,foc=ae&&HOST.contains(ae)?(ae.dataset&&Object.keys(ae.dataset)[0]):null,cur=ae&&ae.selectionStart;
+  let box=HOST.querySelector(".rp-wrap");if(!box){HOST.innerHTML=`<section class="card wide rp-wrap" id="rp-card"><div class="card-head"><h2>🌾 Prospecção rural — Brasil<span>Donos de imóveis rurais e empresas do agro e de outras atividades, por qualquer área do mapa, classificados pela atividade</span></h2></div><div class="body"><div id="rp-ctl"></div><div class="rp-map" id="rp-map"><div class="rp-tip" id="rp-tip" hidden></div></div><div class="rp-leg" id="rp-leg"></div><div id="rp-prog"></div><div id="rp-res"></div><div id="rp-fon"></div></div></section>`;box=HOST.querySelector(".rp-wrap");MAP=null}
+  pintaCtl();pintaProg();const r=HOST.querySelector("#rp-res");if(r)r.innerHTML=resHTML();const fo=HOST.querySelector("#rp-fon");if(fo&&!fo.innerHTML)fo.innerHTML=fontesHTML();
+  const lg=HOST.querySelector("#rp-leg");if(lg){const ks=[...new Set((R.itens||[]).map(x=>x.atv))];lg.innerHTML=ks.slice(0,16).map(k=>`<span><i style="background:${atvC(k)}"></i>${esc(atvN(k).split(" (")[0])}</span>`).join("")}
+  montaMapa().then(()=>{desenhaRes();tip(tipTxt)});
+  if(foc){const n=HOST.querySelector(`[data-${foc.replace(/[A-Z]/g,m=>"-"+m.toLowerCase())}]`);if(n){n.focus();try{if(cur!=null&&n.setSelectionRange)n.setSelectionRange(cur,cur)}catch(e){}}}}
+function pintaCtl(){const c=HOST&&HOST.querySelector("#rp-ctl");if(!c)return;const ae=document.activeElement,k=ae&&c.contains(ae)&&ae.dataset?ae.dataset.rp:null,cur=ae&&ae.selectionStart;c.innerHTML=ctlHTML();
+  if(R.modo==="mun")municipios().then(L=>{const dl=c.querySelector("#rp-muns"),q=norm(R.munTxt);if(dl)dl.innerHTML=L.filter(m=>!q||norm(m.n+" "+m.uf).includes(q.slice(0,4))).slice(0,60).map(m=>`<option value="${esc(m.n)} – ${m.uf}">`).join("")}).catch(()=>{});
+  if(k){const n=c.querySelector(`[data-rp="${k}"]`);if(n){n.focus();try{if(cur!=null&&n.setSelectionRange)n.setSelectionRange(cur,cur)}catch(e){}}}}
+function pintaProg(){const p=HOST&&HOST.querySelector("#rp-prog");if(p)p.innerHTML=progHTML();const b=HOST&&HOST.querySelector("[data-rpgo]");if(b){b.disabled=busy;b.textContent=busy?"⏳ Buscando…":"🔎 Buscar clientes"}}
+const arq=(n,t,tp)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([t],{type:tp}));a.download=n;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+const csvC=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+let tq=null;
+document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-rpmodo],[data-rpfim],[data-rplimpa],[data-rpmun],[data-rpgo],[data-rpfa],[data-rpfp],[data-rpff],[data-rpfg],[data-rpadd],[data-rpaddall],[data-rpver],[data-rppag],[data-rpcsv],[data-rpkml],[data-rpgeo]");if(!t||!t.closest(".rp-wrap,.leaflet-popup"))return;const d=t.dataset;
+  if(d.rpmodo){setModo(d.rpmodo);if(d.rpmodo==="raio"&&!R.centro)areaRaio().then(a=>{R.area=a;grava();desenhaArea(true);pintaCtl()}).catch(()=>{});return}
+  if(d.rpfim){concluiPoli();return}if(d.rplimpa){R.area=null;R.centro=null;DR=null;grava();if(LYA)LYA.clearLayers();tip("");pintaCtl();return}
+  if(d.rpmun){busy=true;pintaProg();usarMun().catch(er=>{erro=er.message}).finally(()=>{busy=false;msg="";pinta()});return}
+  if(d.rpgo){prospectar();return}
+  if(d.rpfa!=null){R.f.atv=R.f.atv===d.rpfa?"":d.rpfa;R.pag=0}else if(d.rpfp!=null){R.f.porte=R.f.porte===d.rpfp?"":d.rpfp;R.pag=0}else if(d.rpff!=null){R.f.fonte=R.f.fonte===d.rpff?"":d.rpff;R.pag=0}else if(d.rpfg!=null){R.f.grupo=d.rpfg;R.pag=0}
+  else if(d.rppag){R.pag=(R.pag||0)+parseInt(d.rppag,10)}
+  else if(d.rpadd){const x=R.itens.find(i=>i.id===d.rpadd);if(x&&enviaFunil(x)){if(MAP)MAP.closePopup();try{gfMercAPI.redraw()}catch(_){}}}
+  else if(d.rpaddall){let n=0;for(const x of filtrados()){if(n>=200)break;if(!x.funil&&enviaFunil(x))n++}try{gfMercAPI.redraw()}catch(_){}}
+  else if(d.rpver){const x=R.itens.find(i=>i.id===d.rpver);if(x&&MAP){MAP.setView([x.lat,x.lon],14);document.getElementById("rp-map").scrollIntoView({block:"center",behavior:"smooth"})}return}
+  else if(d.rpcsv){const L=filtrados();arq("prospeccao_rural.csv","﻿"+["fonte;nome;atividade;status_atividade;porte;area_ha;modulos_fiscais;codigo_car;cnpj;cnae;municipio;uf;lat;lon;telefone;email;site;endereco"].concat(L.map(x=>[x.fonte,x.nome,atvN(x.atv),x.atvSt,PORTE[x.porte]||"",x.ha,x.mf,x.cod,x.cnpj,x.cnae,x.mun,x.uf,x.lat,x.lon,x.tel,x.email,x.site,x.end].map(csvC).join(";"))).join("\n"),"text/csv;charset=utf-8");return}
+  else if(d.rpkml){const L=filtrados();arq("prospeccao_rural.kml",`<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Prospecção rural</name>${L.filter(x=>isFinite(x.lat)).map(x=>`<Placemark><name>${esc(x.nome)}</name><description>${esc(atvN(x.atv)+(x.cod?" · CAR "+x.cod:"")+(x.ha?" · "+F(x.ha,1)+" ha":""))}</description>${RINGS[x.id]?`<Polygon><outerBoundaryIs><LinearRing><coordinates>${RINGS[x.id].concat([RINGS[x.id][0]]).map(([la,lo])=>lo+","+la).join(" ")}</coordinates></LinearRing></outerBoundaryIs></Polygon>`:`<Point><coordinates>${x.lon},${x.lat}</coordinates></Point>`}</Placemark>`).join("")}</Document></kml>`,"application/vnd.google-earth.kml+xml");return}
+  else if(d.rpgeo){const L=filtrados();arq("prospeccao_rural.geojson",JSON.stringify({type:"FeatureCollection",features:L.filter(x=>isFinite(x.lat)).map(x=>({type:"Feature",geometry:RINGS[x.id]?{type:"Polygon",coordinates:[RINGS[x.id].concat([RINGS[x.id][0]]).map(([la,lo])=>[lo,la])]}:{type:"Point",coordinates:[x.lon,x.lat]},properties:{fonte:x.fonte,nome:x.nome,atividade:atvN(x.atv),status:x.atvSt,porte:PORTE[x.porte]||"",area_ha:x.ha,mf:x.mf,car:x.cod,cnpj:x.cnpj,municipio:x.mun,uf:x.uf}}))}),"application/geo+json");return}
+  grava();pinta()});
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest(".rp-wrap"))return;const d=t.dataset;
+  if(d.rpatv){const x=R.itens.find(i=>i.id===d.rpatv);if(x){x.atv=t.value;x.atvSt="conf";grava();pinta()}return}
+  if(d.rpf){R.fontes[d.rpf]=t.checked;grava();pintaCtl();return}
+  if(d.rp==="limite"){R.limite=t.value;grava()}});
+document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest(".rp-wrap"))return;const d=t.dataset;
+  if(d.rp&&d.rp!=="limite"){R[d.rp]=t.value;if(d.rp==="raio"&&R.modo==="raio"){clearTimeout(tq);tq=setTimeout(()=>areaRaio().then(a=>{R.area=a;grava();desenhaArea(false)}).catch(()=>{}),500)}
+    if(d.rp==="munTxt"){const q=norm(t.value),dl=document.getElementById("rp-muns");if(MUN&&dl&&q.length>=2)dl.innerHTML=MUN.filter(m=>norm(m.n+" "+m.uf).includes(q)).slice(0,40).map(m=>`<option value="${esc(m.n)} – ${m.uf}">`).join("")}grava();return}
+  if(d.rpq){R.f.q=t.value;R.pag=0;grava();clearTimeout(tq);tq=setTimeout(pinta,350)}});
+window.gfRpMount=host=>{if(!host)return;if(HOST!==host||!host.querySelector(".rp-wrap")){HOST=host;MAP=null;pinta();setModo(R.modo)}else{const r=host.querySelector("#rp-res");if(r&&!busy)r.innerHTML=resHTML()}};
+window.gfRuralResumo=()=>({n:(R.itens||[]).length,quando:R.quando,area:R.resumo&&R.resumo.area,porAtv:Object.fromEntries(Object.keys(ATV).map(k=>[k,(R.itens||[]).filter(x=>x.atv===k).length]).filter(x=>x[1]))});
+window.__rp={atvOSM,atvCNAE,provavel,porteDe,inPoly,simplifica,circPoly,areaKm2,ufsDaArea,R:()=>R,perfilCenso};
+})();
+</script>
+
