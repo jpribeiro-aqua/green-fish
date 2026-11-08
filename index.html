@@ -10028,7 +10028,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v151";
+  const APP_VERSAO="ras-v152";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11756,7 +11756,7 @@ function pintarOv(){const o=document.getElementById("cp-ov");if(!o)return;const 
    <div class="cp-box"><h3>Fotos georreferenciadas (${(t.fotos||[]).length})</h3>${fotosHTML(t)}${fechada?"":`<div class="cp-btns"><button type="button" class="cp-mini solid" data-o="foto">📷 Tirar foto agora</button></div>`}</div>
    ${fechada?`<div class="cp-al ok">${t.status==="aprovada"?"✅ Aprovada pelo coordenador":"📨 Enviada em "+dh(t.enviadoEm)+" · aguardando o coordenador"}</div>`:`<div class="cp-btns">${t.status==="aberta"||!t.iniciadoEm?`<button type="button" class="cp-mini" data-o="iniciar">▶ Cheguei no local / iniciar</button>`:""}<button type="button" class="cp-mini" data-o="salvar">💾 Salvar rascunho</button><button type="button" class="cp-mini solid" data-o="enviar">✅ Enviar ao coordenador</button></div>`}
    <div class="cp-box"><h3>Registro (hora do celular · hora do servidor)</h3>${histHTML(t)}</div></div>`;
-  o.innerHTML=h;bindOv(o,t)}
+  if(h===C.lastO&&o.innerHTML)return;C.lastO=h;const sy=o.scrollTop;o.innerHTML=h;o.scrollTop=sy;bindOv(o,t)}
 const stTag=t=>`<span class="cp-st ${atrasada(t)?"atraso":t.status||"aberta"}">${atrasada(t)?"⏰ atrasada · ":""}${ST[t.status||"aberta"]}</span>`;
 const histHTML=t=>(t.hist||[]).length?`<ul class="cp-hist">${t.hist.slice().reverse().map(x=>`<li><b>${E(x.acao)}</b> · ${E(x.quem||"")}<br><small>📱 ${dh(x.em)}${x.srv?` · 🖥 servidor ${dh(x.srv)}${Math.abs(x.srv-x.em)>300000?" ⚠️ diferença de "+nf(Math.abs(x.srv-x.em)/60000,0)+" min":""}`:x.fila?" · ⏳ na fila":" · 🖥 aguardando servidor"}${x.lat!=null?` · 📍 ${Number(x.lat).toFixed(5)}, ${Number(x.lon).toFixed(5)}`:""}</small></li>`).join("")}</ul>`:`<p class="muted" style="margin:0">Sem registros.</p>`;
 function lerValores(o,t){o.querySelectorAll("[data-cv]").forEach(i=>{const k=i.dataset.cv;if(k==="__obs"){t.obs=i.value;return}t.valores=t.valores||{};t.valores[k]=i.type==="checkbox"?i.checked:i.value})}
@@ -11791,7 +11791,7 @@ function coordHTML(U){const D=C.draft,F=C.fil,mod=MODS[D.mod]||MODS.livre,ali=al
   return `<div class="cp-box"><h3>📲 Tarefas de campo da equipe ${liveTag}</h3>
    ${C.msg?`<div class="cp-al ${C.msgErr?"cr":"ok"}">${E(C.msg)}</div>`:""}
    <div class="cp-k">${[["Abertas",cnt("aberta")],["Em campo",cnt("andamento")],["Para aprovar",cnt("enviada")],["Devolvidas",cnt("devolvida")],["Aprovadas",cnt("aprovada")],["Atrasadas",C.tasks.filter(atrasada).length]].map(([a,b])=>`<div><span>${a}</span><b>${b}</b></div>`).join("")}</div>
-   <details${C.tasks.length?"":" open"}><summary style="cursor:pointer;font-weight:700">➕ Nova tarefa para a equipe</summary><div class="cp-f" style="margin-top:8px">
+   <details data-cp-novo${(C.novoAb??!C.tasks.length)?" open":""}><summary style="cursor:pointer;font-weight:700">➕ Nova tarefa para a equipe</summary><div class="cp-f" style="margin-top:8px">
      <label>Modelo<select data-d="mod">${Object.entries(MODS).map(([k,m])=>`<option value="${k}"${D.mod===k?" selected":""}>${m.n}</option>`).join("")}</select></label>
      <label class="w2">Título<input data-d="titulo" value="${E(D.titulo||"")}" placeholder="${E(mod.n.replace(/^\S+\s/,""))}"></label>
      <label>Colaborador<select data-d="resp">${C.members.map(m=>`<option value="${E(m.uid)}"${D.resp===m.uid?" selected":""}>${E(m.nome)}</option>`).join("")}</select></label>
@@ -11895,9 +11895,12 @@ function relHTML(L,fotos){const pj=T(()=>projAtual().nome,""),hoje=dh(Date.now()
 /* ---------- integração ---------- */
 function pintar(){fab();if(C.ov){const o=document.getElementById("cp-ov");if(o&&document.activeElement&&o.contains(document.activeElement)&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))C.pend=true;else pintarOv()}const W=document.getElementById("cp-coord");if(!W)return;
   if(document.activeElement&&W.contains(document.activeElement)&&/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){C.pend=true;return}
-  W.innerHTML=coordHTML(C.U||[]);bindCoord(W.parentElement||document)}
+  const h=coordHTML(C.U||[]);if(h===C.lastH&&W.innerHTML)return;C.lastH=h;
+  const ab=[...W.querySelectorAll("details")].map(d=>d.open),y=window.scrollY;W.innerHTML=h;W.querySelectorAll("details").forEach((d,i)=>{if(!d.hasAttribute("data-cp-novo")&&ab[i])d.open=true});bindCoord(W.parentElement||document);if(Math.abs(window.scrollY-y)>2)window.scrollTo(0,y)}
+// v152: o quadro “Nova tarefa” e os detalhes abertos continuam abertos quando a lista se atualiza sozinha (tempo real)
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.matches&&d.matches("details[data-cp-novo]"))C.novoAb=d.open},true);
 document.addEventListener("focusout",()=>{if(C.pend){C.pend=false;setTimeout(pintar,50)}});
-window.campoHTML=U=>{C.U=U||[];return `<div class="cp-wrap" id="cp-coord">${coordHTML(C.U)}</div>`};
+window.campoHTML=U=>{C.U=U||[];C.lastH=coordHTML(C.U);return `<div class="cp-wrap" id="cp-coord">${C.lastH}</div>`};
 window.campoBind=el=>{bindCoord(el);if(Date.now()-C.carregado>8000)carregar().then(pintar);poll()};
 window.campoResumo=()=>({n:C.tasks.length,abertas:C.tasks.filter(t=>["aberta","andamento","devolvida"].includes(t.status||"aberta")).length,enviadas:C.tasks.filter(t=>t.status==="enviada").length,minhas:pendMinhas().length});
 window.campoAbrir=()=>abrirOv();
