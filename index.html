@@ -10028,7 +10028,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v152";
+  const APP_VERSAO="ras-v153";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11754,7 +11754,7 @@ function pintarOv(){const o=document.getElementById("cp-ov");if(!o)return;const 
    ${cs.length?`<div class="cp-box"><h3>Dados do campo</h3><div class="cp-f">${cs.map(c=>campoInp(t,c,fechada)).join("")}</div></div>`:""}
    <div class="cp-box"><h3>Observações</h3><textarea class="cp-in" data-cv="__obs" rows="3"${fechada?" disabled":""}>${E((C.mv[t.id]||{}).__obs!=null?C.mv[t.id].__obs:t.obs||"")}</textarea></div>
    <div class="cp-box"><h3>Fotos georreferenciadas (${(t.fotos||[]).length})</h3>${fotosHTML(t)}${fechada?"":`<div class="cp-btns"><button type="button" class="cp-mini solid" data-o="foto">📷 Tirar foto agora</button></div>`}</div>
-   ${fechada?`<div class="cp-al ok">${t.status==="aprovada"?"✅ Aprovada pelo coordenador":"📨 Enviada em "+dh(t.enviadoEm)+" · aguardando o coordenador"}</div>`:`<div class="cp-btns">${t.status==="aberta"||!t.iniciadoEm?`<button type="button" class="cp-mini" data-o="iniciar">▶ Cheguei no local / iniciar</button>`:""}<button type="button" class="cp-mini" data-o="salvar">💾 Salvar rascunho</button><button type="button" class="cp-mini solid" data-o="enviar">✅ Enviar ao coordenador</button></div>`}
+   ${fechada?`<div class="cp-al ok">${t.status==="aprovada"?"✅ Aprovada pelo coordenador · para mudar, peça ao coordenador":"📨 Enviada em "+dh(t.enviadoEm)+" · aguardando o coordenador"}</div>${t.status==="enviada"?`<div class="cp-btns"><button type="button" class="cp-mini" data-o="reabrir">✏️ Editar o envio</button></div>`:""}`:`<div class="cp-btns">${t.status==="aberta"||!t.iniciadoEm?`<button type="button" class="cp-mini" data-o="iniciar">▶ Cheguei no local / iniciar</button>`:""}<button type="button" class="cp-mini" data-o="salvar">💾 Salvar rascunho</button><button type="button" class="cp-mini solid" data-o="enviar">✅ Enviar ao coordenador</button></div>`}
    <div class="cp-box"><h3>Registro (hora do celular · hora do servidor)</h3>${histHTML(t)}</div></div>`;
   if(h===C.lastO&&o.innerHTML)return;C.lastO=h;const sy=o.scrollTop;o.innerHTML=h;o.scrollTop=sy;bindOv(o,t)}
 const stTag=t=>`<span class="cp-st ${atrasada(t)?"atraso":t.status||"aberta"}">${atrasada(t)?"⏰ atrasada · ":""}${ST[t.status||"aberta"]}</span>`;
@@ -11769,6 +11769,7 @@ function bindOv(o,t){o.querySelectorAll("[data-o]").forEach(b=>b.addEventListene
       const id="f"+uid(),path="campof/"+t.respUid+"/"+id,full={img:f.img,taskId:t.id,em:f.em,lat:f.lat,lon:f.lon,acc:f.acc,alt:f.alt,dist:f.dist,quem:meuNome(),uid:meu(),fonte:f.fonte};
       const s1=await gravar(path,full);C.fotoCache[path]=full;t.fotos=t.fotos||[];t.fotos.push({path,thumb:f.thumb,em:f.em,lat:f.lat,lon:f.lon,acc:f.acc,dist:f.dist,fonte:f.fonte});if(t.status==="aberta")t.status="andamento";
       const s2=await salvarT(t,"📷 Foto registrada",{lat:f.lat,lon:f.lon,acc:f.acc});aviso(s1==="fila"||s2==="fila"?"Foto guardada no aparelho: sobe para o coordenador quando houver internet.":"Foto enviada"+(f.lat==null?" (sem GPS)":f.dist!=null&&t.alvo&&f.dist>t.alvo.raio?` — atenção: ${nf(f.dist,0)} m do ponto da tarefa`:"")+".",f.lat==null)}
+    else if(a==="reabrir"){if(t.status!=="enviada")return;t.status="andamento";await salvarT(t,"✏️ Envio reaberto pelo colaborador para editar");aviso("Envio reaberto: corrija os dados ou as fotos e toque em ✅ Enviar ao coordenador de novo.")}
     else if(a==="iniciar"){const g=await posAgora();t.status="andamento";t.iniciadoEm=Date.now();t.gpsIni=g;await salvarT(t,"▶ Chegou ao local / iniciou",g||{});aviso("Início registrado"+(g?` com GPS (±${Math.round(g.acc)} m).`:" (sem GPS)."))}
     else if(a==="salvar"){if(t.status==="aberta")t.status="andamento";const st=await salvarT(t,"💾 Dados salvos");aviso(st==="fila"?"Salvo no aparelho; sobe quando houver internet.":"Dados salvos e já visíveis para o coordenador.")}
     else if(a==="enviar"){const nF=(t.fotos||[]).length,falta=(t.campos||[]).filter(c=>c[3]!=="chk"&&String(sv(t,c[0])).trim()==="");
@@ -11815,7 +11816,41 @@ function coordHTML(U){const D=C.draft,F=C.fil,mod=MODS[D.mod]||MODS.livre,ali=al
    ${L.length?`<div class="scroll"><table class="cp-t rsp"><thead><tr><th>Tarefa</th><th>Colaborador</th><th>Situação</th><th>Última atividade</th><th>Fotos</th><th></th></tr></thead><tbody>${L.map(t=>{const u=(t.hist||[]).slice(-1)[0]||{},lg=(t.fotos||[]).filter(f=>t.alvo&&f.dist!=null&&f.dist>t.alvo.raio).length,sg=(t.fotos||[]).filter(f=>f.lat==null).length;
      return `<tr class="${t.id===C.sel?"on":""}"><td>${E(t.titulo)}<small>${E(t.onde||"Propriedade")}${t.prazo?" · prazo "+dhc(Date.parse(t.prazo)):""}</small></td><td data-l="Colaborador">${E(t.respNome||nomeM(t.respUid))}</td><td data-l="Situação">${stTag(t)}</td><td data-l="Última">${E(u.acao||"")}<small>📱 ${dhc(u.em)}${u.srv?" · 🖥 "+dhc(u.srv):""}</small></td><td data-l="Fotos">${(t.fotos||[]).length}${lg?` <span class="cp-st devolvida">${lg} longe</span>`:""}${sg?` <span class="cp-st andamento">${sg} sem GPS</span>`:""}</td><td><button type="button" class="cp-mini${t.id===C.sel?" solid":""}" data-k="ver" data-id="${E(t.id)}">${t.id===C.sel?"Fechar":"Ver"}</button></td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted" style="margin:0">Nenhuma tarefa${C.tasks.length?" com esses filtros":" ainda"}.</p>`}
    ${sel?detalheHTML(sel):""}</div>`}
-function detalheHTML(t){const cs=t.campos||[];
+// v153: o coordenador edita a tarefa a qualquer momento (antes ou depois de enviada); cada mudança fica no registro
+function editHTML(t){const e=C.ed||{},cs=e.campos||[],ev=e.val||{};
+  return `<div class="cp-box" style="border-color:#e09a00"><h3>✏️ Editar tarefa</h3><div class="cp-f">
+   <label class="w2">Título<input data-e="titulo" value="${E(e.titulo||"")}"></label>
+   <label>Colaborador<select data-e="resp">${C.members.concat(C.members.some(m=>m.uid===t.respUid)?[]:[{uid:t.respUid,nome:t.respNome||"colaborador atual"}]).map(m=>`<option value="${E(m.uid)}"${e.resp===m.uid?" selected":""}>${E(m.nome)}</option>`).join("")}</select></label>
+   <label>Onde<select data-e="onde"><option value="">Propriedade</option>${(C.U||[]).map(u=>`<option${e.onde===u.nome?" selected":""}>${E(u.nome)}</option>`).join("")}${e.onde&&!(C.U||[]).some(u=>u.nome===e.onde)?`<option selected>${E(e.onde)}</option>`:""}</select></label>
+   <label>Prazo<input type="datetime-local" data-e="prazo" value="${E(e.prazo||"")}"></label>
+   <label class="w2">Instruções<textarea data-e="instr" rows="2">${E(e.instr||"")}</textarea></label>
+   <label>Foto obrigatória<select data-e="exige"><option value="1"${e.exige!=="0"?" selected":""}>Sim, pela câmera do app</option><option value="0"${e.exige==="0"?" selected":""}>Não</option></select></label>
+   <label>Mínimo de fotos<input data-e="min" inputmode="numeric" value="${E(e.min||"1")}"></label>
+   <label>Conferir distância até (m)<input data-e="raio" inputmode="numeric" value="${E(e.raio||"")}" placeholder="vazio = não conferir"></label>
+   <label>Ponto · latitude<input data-e="lat" inputmode="decimal" value="${E(e.lat||"")}"></label><label>Ponto · longitude<input data-e="lon" inputmode="decimal" value="${E(e.lon||"")}"></label></div>
+   <b style="font-size:13px">Dados da tarefa ${t.status==="enviada"||t.status==="aprovada"?"(você pode corrigir os valores enviados)":""}</b>
+   <div class="cp-f" style="margin-top:4px">${cs.map((c,i)=>`<label>${E(c[1])}${c[2]?" ("+E(c[2])+")":""} <button type="button" class="cp-mini" data-k="etirac" data-i="${i}" data-id="${E(t.id)}" style="padding:0 5px" aria-label="Tirar o campo ${E(c[1])}">✕</button>${c[3]==="chk"?`<select data-ev="${E(c[0])}"><option value=""${ev[c[0]]==null||ev[c[0]]===""?" selected":""}>—</option><option value="1"${ev[c[0]]===true?" selected":""}>sim</option><option value="0"${ev[c[0]]===false?" selected":""}>não</option></select>`:`<input data-ev="${E(c[0])}" value="${E(ev[c[0]]??"")}"${c[3]==="num"?' inputmode="decimal"':""}>`}</label>`).join("")}
+    <label class="w2">Observações<textarea data-e="obs" rows="2">${E(e.obs||"")}</textarea></label></div>
+   <div class="cp-f" style="margin-top:6px"><label>Novo campo<input data-e="cn" value="${E(e.cn||"")}" placeholder="ex.: nível da água"></label><label>Unidade<input data-e="cu" value="${E(e.cu||"")}"></label><label>Tipo<select data-e="ct"><option value="num">Número</option><option value="txt"${e.ct==="txt"?" selected":""}>Texto</option><option value="chk"${e.ct==="chk"?" selected":""}>Sim / não</option></select></label><label>&nbsp;<button type="button" class="cp-mini" data-k="eaddc" data-id="${E(t.id)}">+ Acrescentar campo</button></label></div>
+   ${t.status==="enviada"||t.status==="aprovada"?`<div class="cp-f"><label class="w2">Depois de salvar<select data-e="depois"><option value="manter"${e.depois!=="reabrir"?" selected":""}>Manter a situação (${E(ST[t.status])})</option><option value="reabrir"${e.depois==="reabrir"?" selected":""}>Reabrir para o colaborador completar (devolver)</option></select></label><label class="w2">Mensagem ao colaborador<input data-e="msg" value="${E(e.msg||"")}" placeholder="o que mudou na tarefa"></label></div>`:`<div class="cp-f"><label class="w2">Mensagem ao colaborador (opcional)<input data-e="msg" value="${E(e.msg||"")}" placeholder="o que mudou na tarefa"></label></div>`}
+   <div class="cp-btns"><button type="button" class="cp-mini solid" data-k="esalvar" data-id="${E(t.id)}">💾 Salvar alterações</button><button type="button" class="cp-mini" data-k="ecanc" data-id="${E(t.id)}">Cancelar</button></div>
+   <p class="muted" style="font-size:12px;margin:6px 0 0">A alteração fica no registro da tarefa com a hora do celular e do servidor. As fotos já tiradas continuam na tarefa.</p></div>`}
+function edIni(t){const nl=v=>v==null?"":String(v).replace(".",",");C.ed={id:t.id,titulo:t.titulo||"",resp:t.respUid,onde:t.onde||"",prazo:t.prazo||"",instr:t.instr||"",exige:t.exige===false?"0":"1",min:String(t.min||1),raio:t.alvo?String(Math.round(t.alvo.raio)):"",lat:t.alvo?nl(t.alvo.lat):"",lon:t.alvo?nl(t.alvo.lon):"",campos:(t.campos||[]).map(c=>c.slice()),val:Object.assign({},t.valores||{}),obs:t.obs||"",depois:"manter",msg:""}}
+async function edSalvar(t){const e=C.ed;if(!e||e.id!==t.id)return;const mud=[],ant=JSON.parse(JSON.stringify({...t,_path:undefined}));
+  const set=(k,v,nome)=>{if(JSON.stringify(t[k]??"")!==JSON.stringify(v??"")){t[k]=v;mud.push(nome)}};
+  set("titulo",String(e.titulo||"").trim()||t.titulo,"título");set("onde",e.onde||"","local");set("prazo",e.prazo||"","prazo");set("instr",String(e.instr||"").trim(),"instruções");set("exige",e.exige!=="0","foto obrigatória");set("min",Math.max(1,Math.round(P(e.min)||1)),"mínimo de fotos");
+  const lat=P(e.lat),lon=P(e.lon),raio=P(e.raio),ali=alvoPadrao();set("alvo",isFinite(raio)&&raio>0?(isFinite(lat)&&isFinite(lon)?{lat,lon,raio}:t.alvo?{lat:t.alvo.lat,lon:t.alvo.lon,raio}:ali?{...ali,raio}:null):null,"ponto/distância");
+  set("campos",e.campos,"campos");const val={};for(const c of e.campos){const v=e.val[c[0]];if(v!==undefined&&v!=="")val[c[0]]=v}const vm=Object.keys({...val,...(t.valores||{})}).filter(k=>JSON.stringify((t.valores||{})[k]??"")!==JSON.stringify(val[k]??""));
+  if(vm.length){mud.push("valores ("+vm.map(k=>((e.campos.find(c=>c[0]===k)||ant.campos&&ant.campos.find(c=>c[0]===k)||[,k])[1])).join(", ")+")");t.valores=val}
+  set("obs",e.obs||"","observações");
+  const oldPath=t._path,novoResp=e.resp&&e.resp!==t.respUid?e.resp:null;if(novoResp){t.respUid=novoResp;t.respNome=nomeM(novoResp);t._path="campo/"+novoResp+"/"+t.id;mud.push("colaborador → "+t.respNome)}
+  const reabre=e.depois==="reabrir"&&(t.status==="enviada"||t.status==="aprovada");if(reabre){t.status="devolvida";t.coment=String(e.msg||"").trim()||"Tarefa alterada pelo coordenador: confira e envie de novo.";mud.push("reaberta para o colaborador")}
+  else if(String(e.msg||"").trim())t.coment=String(e.msg).trim();
+  if(!mud.length){C.edit="";C.ed=null;return aviso("Nada foi alterado.")}
+  const st=await salvarT(t,"✏️ Editada pelo coordenador: "+mud.join("; ")+(String(e.msg||"").trim()?" — "+String(e.msg).trim():""));
+  if(novoResp&&oldPath&&oldPath!==t._path){try{await apagar(oldPath)}catch(er){}}
+  C.edit="";C.ed=null;aviso(st==="fila"?"Alteração guardada no aparelho; sobe quando houver internet.":"Tarefa atualizada"+(reabre?" e reaberta para o colaborador.":". O colaborador já vê a versão nova."))}
+function detalheHTML(t){const cs=t.campos||[];if(C.edit===t.id&&C.ed&&C.ed.id===t.id)return editHTML(t);
   return `<div class="cp-box" style="border-color:var(--accent)"><h3>${E(t.titulo)} ${stTag(t)}</h3><div class="muted" style="font-size:13px">${E(t.onde||"Propriedade")} · ${E(t.respNome||nomeM(t.respUid))} · criada ${dh(t.criadoEm)}${t.prazo?` · prazo ${dh(Date.parse(t.prazo))}`:""}${t.alvo?` · ponto ${t.alvo.lat.toFixed(5)}, ${t.alvo.lon.toFixed(5)} (raio ${nf(t.alvo.raio,0)} m)`:""}</div>
    ${cs.length?`<table class="cp-t"><tbody>${cs.map(c=>{const v=sv(t,c[0]);return `<tr><th style="width:55%">${E(c[1])}${c[2]?` (${E(c[2])})`:""}</th><td>${c[3]==="chk"?(v===true?"✓ sim":v===false?"✗ não":"—"):E(v)||"—"}</td></tr>`}).join("")}</tbody></table>`:""}
    ${t.obs?`<div class="cp-al">📝 ${E(t.obs)}</div>`:""}
@@ -11824,12 +11859,14 @@ function detalheHTML(t){const cs=t.campos||[];
    <div class="cp-f"><label class="w2">Comentário para o colaborador<input data-d="coment" value="${E(C.draft.coment||"")}" placeholder="obrigatório para devolver"></label></div>
    <div class="cp-btns">${t.status==="enviada"?`<button type="button" class="cp-mini solid" data-k="aprovar" data-id="${E(t.id)}">✅ Aprovar</button><button type="button" class="cp-mini warn" data-k="devolver" data-id="${E(t.id)}">↩ Devolver para correção</button>`:""}
     ${t.modelo==="agua"?`<button type="button" class="cp-mini" data-k="aqua" data-id="${E(t.id)}">📈 Lançar no AquaNictemeral</button>`:""}${t.modelo==="bio"?`<button type="button" class="cp-mini" data-k="bio" data-id="${E(t.id)}">🐟 Lançar na Biomassa</button>`:""}
-    <button type="button" class="cp-mini" data-k="rel1" data-id="${E(t.id)}">📄 Relatório desta tarefa</button><button type="button" class="cp-mini warn" data-k="del" data-id="${E(t.id)}">🗑 Excluir</button></div></div>`}
+    <button type="button" class="cp-mini" data-k="editar" data-id="${E(t.id)}">✏️ Editar tarefa</button><button type="button" class="cp-mini" data-k="rel1" data-id="${E(t.id)}">📄 Relatório desta tarefa</button><button type="button" class="cp-mini warn" data-k="del" data-id="${E(t.id)}">🗑 Excluir</button></div></div>`}
 function bindCoord(el){const W=el.querySelector("#cp-coord");if(!W)return;
   W.querySelectorAll("[data-d]").forEach(i=>i.addEventListener(i.tagName==="SELECT"?"change":"input",()=>{C.draft[i.dataset.d]=i.value;if(i.dataset.d==="mod")pintar()}));
   W.querySelectorAll("[data-fil]").forEach(i=>i.addEventListener("change",()=>{C.fil[i.dataset.fil]=i.value;pintar()}));
+  W.querySelectorAll("[data-e]").forEach(i=>i.addEventListener(i.tagName==="SELECT"?"change":"input",()=>{if(C.ed)C.ed[i.dataset.e]=i.value}));
+  W.querySelectorAll("[data-ev]").forEach(i=>i.addEventListener(i.tagName==="SELECT"?"change":"input",()=>{if(!C.ed)return;const c=(C.ed.campos||[]).find(x=>x[0]===i.dataset.ev),v=i.value;C.ed.val[i.dataset.ev]=i.tagName==="SELECT"&&c&&c[3]==="chk"?(v===""?"":v==="1"):v}));
   W.querySelectorAll("[data-fver]").forEach(b=>b.addEventListener("click",()=>verFoto(b.dataset.fver)));
-  W.querySelectorAll("[data-k]").forEach(b=>b.addEventListener("click",async()=>{const k=b.dataset.k,t=C.tasks.find(x=>x.id===b.dataset.id),D=C.draft;C.msg="";
+  W.querySelectorAll("[data-k]").forEach(b=>b.addEventListener("click",async()=>{const k=b.dataset.k,t=C.tasks.find(x=>x.id===b.dataset.id),D=C.draft;C.msg="";try{const ae=document.activeElement;if(ae&&ae!==b&&W.contains(ae)&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))ae.blur()}catch(_){}C.pend=false;
    try{if(k==="minhas")return abrirOv();if(k==="atual"){C.memEm=0;await carregar();return pintar()}if(k==="ver"){C.sel=C.sel===b.dataset.id?"":b.dataset.id;return pintar()}
     if(k==="rel")return relatorio(C.tasks.filter(x=>(!C.fil.m||x.respUid===C.fil.m)&&(!C.fil.st||(C.fil.st==="atraso"?atrasada(x):(x.status||"aberta")===C.fil.st))&&(!C.fil.de||(x.criadoEm||0)>=Date.parse(C.fil.de+"T00:00"))&&(!C.fil.ate||(x.criadoEm||0)<=Date.parse(C.fil.ate+"T23:59:59"))));
     if(k==="rel1"&&t)return relatorio([t]);
@@ -11843,6 +11880,11 @@ function bindCoord(el){const W=el.querySelector("#cp-coord");if(!W)return;
       t2._path="campo/"+resp+"/"+t2.id;const st=await salvarT(t2,"📨 Tarefa criada e enviada para "+t2.respNome);C.draft={mod:D.mod,exige:D.exige,min:D.min,raio:D.raio,lat:D.lat,lon:D.lon,resp:D.resp,campos:[]};C.sel=t2.id;
       aviso(st==="fila"?"Tarefa guardada no aparelho; vai para o colaborador quando houver internet.":`Tarefa enviada para ${t2.respNome}. Ela aparece no botão 📲 Minhas tarefas do celular dele.`)}
     if(!t){await carregar();return pintar()}
+    if(k==="editar"){C.edit=t.id;edIni(t);return pintar()}
+    if(k==="ecanc"){C.edit="";C.ed=null;return pintar()}
+    if(k==="eaddc"){const e=C.ed;if(!e)return;if(!String(e.cn||"").trim())return aviso("Digite o nome do novo campo.",true);e.campos=e.campos.concat([["x"+uid().slice(-5),e.cn.trim(),String(e.cu||"").trim(),e.ct||"num"]]);e.cn="";e.cu="";return pintar()}
+    if(k==="etirac"){const e=C.ed;if(!e)return;e.campos.splice(+b.dataset.i,1);return pintar()}
+    if(k==="esalvar")await edSalvar(t);
     if(k==="aprovar"){t.status="aprovada";t.aprovadaEm=Date.now();t.coment=D.coment||"";await salvarT(t,"✅ Aprovada pelo coordenador"+(D.coment?": "+D.coment:""));D.coment="";aviso("Tarefa aprovada.")}
     if(k==="devolver"){if(!String(D.coment||"").trim())return aviso("Escreva o comentário dizendo o que corrigir.",true);t.status="devolvida";t.coment=D.coment;await salvarT(t,"↩ Devolvida: "+D.coment);D.coment="";aviso("Tarefa devolvida ao colaborador.")}
     if(k==="del"){if(!confirm(`Excluir a tarefa “${t.titulo}” e as fotos dela? Não dá para desfazer.`))return;for(const f of t.fotos||[])try{await apagar(f.path)}catch(e){}await apagar(t._path);C.sel="";aviso("Tarefa excluída.")}
