@@ -1,0 +1,17 @@
+name: Limpar copias da base INCRA na raiz
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  limpar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          ls | grep -E '^[a-z]{2}_(index|-?[0-9]+_-?[0-9]+)\.json$' > apagar.txt || true
+          echo "arquivos na raiz: $(wc -l < apagar.txt)"
+          for f in $(cat apagar.txt); do test -f "data/reg/$f" && git rm -q "$f" || echo "mantido (sem copia em data/reg): $f"; done
+          git config user.name "green-fish-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Remove copias duplicadas da base INCRA na raiz" && git push
