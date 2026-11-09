@@ -1,0 +1,67 @@
+name: Base INCRA (SIGEF e SNCI)
+on:
+  workflow_dispatch:
+    inputs:
+      ufs:
+        description: "Estados (siglas separadas por espaço) ou 'todos'"
+        default: "todos"
+permissions:
+  contents: write
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    outputs:
+      ufs: ${{ steps.l.outputs.ufs }}
+    steps:
+      - id: l
+        run: |
+          T="${{ github.event.inputs.ufs }}"
+          if [ "$T" = "todos" ] || [ -z "$T" ]; then T="AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO"; fi
+          echo "ufs=$(echo $T | tr a-z A-Z | jq -R -c 'split(" ")|map(select(length>0))')" >> $GITHUB_OUTPUT
+  estado:
+    needs: prep
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        uf: ${{ fromJson(needs.prep.outputs.ufs) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "pyshp>=2.3,<4"
+      - name: Baixar SIGEF e SNCI (${{ matrix.uf }})
+        run: |
+          B=https://forest-gis.com/downloads/GEO_INCRA
+          mkdir -p z sig snci
+          curl -fsSL --retry 3 -o z/sigef.zip "$B/Sigef_Brasil_${{ matrix.uf }}.zip" && (unzip -q -o z/sigef.zip -d sig || echo "SIGEF ${{ matrix.uf }} corrompido")
+          curl -fsSL --retry 3 -o z/snci.zip "$B/Imovel_certificado_SNCI_Brasil_${{ matrix.uf }}.zip" && (unzip -q -o z/snci.zip -d snci || echo "SNCI ${{ matrix.uf }} corrompido")
+          rm -rf z
+      - run: python tools/sigef_tiles.py ${{ matrix.uf }} sig snci out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reg-${{ matrix.uf }}
+          path: out/
+          retention-days: 2
+  gravar:
+    needs: estado
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: reg-*
+          merge-multiple: true
+          path: data/reg
+      - run: |
+          ls data/reg | wc -l; du -sh data/reg
+          git config user.name "green-fish-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/reg
+          git commit -m "Base INCRA SIGEF/SNCI por estado (Forest-GIS out/2026)" || echo "nada novo"
+          git push
