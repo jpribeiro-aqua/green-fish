@@ -7356,7 +7356,7 @@ const dataBR=t=>t?new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-dig
 const slug=s=>String(s||"projeto").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w-]+/g,"_").replace(/^_+|_+$/g,"").slice(0,40)||"projeto";
 const S=rd();S.proj=S.proj||[];
 let msg="",busy=false,raiz=null,raizOk=false,conf=null,cache=null,vb=null;
-const salvar=()=>{try{localStorage.setItem(TK,JSON.stringify(S));return true}catch(e){aviso("O navegador ficou sem espaço para guardar tantos pontos. Desmarque arquivos de pontos que não vai usar.");return false}};
+const salvar=()=>{try{localStorage.setItem(TK,JSON.stringify(S));try{window.dispatchEvent(new Event("topo-salvo"))}catch(e){}return true}catch(e){aviso("O navegador ficou sem espaço para guardar tantos pontos. Desmarque arquivos de pontos que não vai usar.");return false}};
 const P=()=>S.proj.find(p=>p.id===S.cur)||null;
 
 /* ---- armazenamento dos arquivos: pasta no computador (Chrome/Edge) ou banco do navegador ---- */
@@ -7597,7 +7597,7 @@ function vivHTML(p,a){
      <label>Quantidade<input inputmode="numeric" data-vm="qtd" value="${E(S.vqtd||"4")}"></label>
      <label>Rotação (°)<input inputmode="decimal" data-vm="rot" value="${E(S.vrot||"")}" placeholder="auto: ao longo das curvas de nível"></label>
      <label>Viveiros existentes<select data-vm="subst"><option value="1"${S.vsub!=="0"?" selected":""}>Substituir pelos do modelo</option><option value="0"${S.vsub==="0"?" selected":""}>Manter e acrescentar</option></select></label></div>
-    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-mod">⚙️ Inserir e calcular o projeto</button>${sel?`<button type="button" class="btn" data-a="viv-modsalvar">⭐ Salvar o viveiro selecionado como modelo</button>`:""}${modsUser().length?`<button type="button" class="btn" data-a="viv-moddel">Apagar meus modelos</button>`:""}${vs.length?`<button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button>`:""}</div>
+    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-mod">⚙️ Inserir e calcular o projeto</button>${sel?`<button type="button" class="btn" data-a="viv-modsalvar">⭐ Salvar o viveiro selecionado como modelo</button>`:""}${modsUser().length?`<button type="button" class="btn" data-a="viv-moddel">Apagar meus modelos</button>`:""}${vs.length?`<button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><button type="button" class="btn" onclick="window.gfResultado&&gfResultado()">📋 Resultado do projeto</button>`:""}</div>
     <p class="muted">O app distribui as unidades no centro do levantamento, alinhadas às curvas de nível e dividindo os diques, acha a cota do fundo (ou da plataforma) que equilibra corte e aterro em cada uma e leva o projeto para a Calculadora (Viveiros escavados): limnologia, clima, hidráulica, produção, orçamento e viabilidade. O relatório final junta tudo, da terraplenagem à viabilidade.</p></div>
    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-novo">+ Novo viveiro</button>${S.place?`<span class="pj-tag pj-wait">Clique na planta para posicionar o viveiro</span><button type="button" class="btn" data-a="viv-place-off">Cancelar</button>`:""}</div>
    ${vs.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>Viveiro</th><th class="num">Espelho</th><th class="num">Água</th><th class="num">Fundo / água / crista (m)</th><th class="num">Corte</th><th class="num">Aterro</th><th class="num">Saldo de terra</th><th>Drenagem</th><th></th></tr></thead><tbody>${vs.map(linha).join("")}</tbody></table></div>`:`<p class="muted">Clique em <b>Novo viveiro</b>: ele aparece no centro da planta e você pode arrastar o centro clicando no mapa, girar e mudar as medidas. A cota do fundo começa no valor que equilibra corte e aterro.</p>`}
@@ -7613,7 +7613,7 @@ function vivHTML(p,a){
    ${vs.length?`<div class="subhead">Total dos viveiros e custo da terraplenagem</div>
    <div class="rp-grid"><label>Preço do corte (R$/m³)<input inputmode="decimal" data-cu="corte" value="${E(cu.corte)}"></label><label>Preço do aterro compactado (R$/m³)<input inputmode="decimal" data-cu="aterro" value="${E(cu.aterro)}"></label><label>Fator de compactação (m³ de corte por m³ de aterro)<input inputmode="decimal" data-cu="fat" value="${E(cu.fat)}"></label></div>
    <div class="us-kpis rp-k"><div><b>${N(T.esp/10000,2)} ha</b>de espelho d'água (${vs.length} viveiro${vs.length===1?"":"s"})</div><div><b>${I(T.agua)} m³</b>de água</div><div><b>${I(T.corte)} m³</b>de corte</div><div><b>${I(T.aterro)} m³</b>de aterro</div><div><b>${I(Math.abs(T.corte-T.aterro*fat))} m³</b>${T.corte-T.aterro*fat>=0?"de terra sobrando (bota-fora)":"de terra faltando (empréstimo)"}</div><div><b>${custo.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0})}</b>de terraplenagem</div></div>
-   <div class="pj-btns"><button type="button" class="btn solid" data-a="planilhas">📊 Planilhas de corte e aterro (Excel)</button><button type="button" class="btn" data-a="dxf-proj">📐 Projeto em DXF (CAD)</button><button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><span class="muted">Planilha com resumo, cada viveiro, seções transversais (estacas) e pontos do terreno; DXF com curvas, viveiros, eixos e estacas para AutoCAD, QGIS ou outro CAD.</span></div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="planilhas">📊 Planilhas de corte e aterro (Excel)</button><button type="button" class="btn" data-a="dxf-proj">📐 Projeto em DXF (CAD)</button><button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><button type="button" class="btn" onclick="window.gfResultado&&gfResultado()">📋 Resultado do projeto</button><span class="muted">Planilha com resumo, cada viveiro, seções transversais (estacas) e pontos do terreno; DXF com curvas, viveiros, eixos e estacas para AutoCAD, QGIS ou outro CAD.</span></div>
    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-calc">Enviar volumes para a Calculadora</button><span class="muted">Cria um grupo de tanques por viveiro (nome “… (lev.)”) com o volume de água; a Biomassa, o Arraçoamento e o Painel passam a usar esses volumes. O custo da terraplenagem e a área levantada entram na aba Local e viabilidade.</span></div>`:""}
   </div></section>`}
 function enviarCalc(p){
@@ -10231,7 +10231,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v161";
+  const APP_VERSAO="ras-v162";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11799,7 +11799,7 @@ function vvRelatorio(op){op=op||{};recarrega();if(op.deTopo){V.modo="viv";V.dim=
   const imprimir=()=>{try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){alert("Use Baixar relatório e imprima pelo navegador.")}};
   ov.querySelector('[data-r="print"]').onclick=imprimir;const bx=ov.querySelector('[data-r="xlsx"]'),bd=ov.querySelector('[data-r="dxf"]');if(bx)bx.onclick=()=>window.topoPlanilhas&&topoPlanilhas().catch(e=>alert(e.message));if(bd)bd.onclick=()=>window.topoDXFProjeto&&topoDXFProjeto().catch(e=>alert(e.message));ov.querySelector('[data-r="fechar"]').onclick=()=>ov.remove();
   ov.querySelector('[data-r="baixar"]').onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
-  if(op.print)fr.onload=()=>setTimeout(imprimir,300)}
+  if(op.print)fr.onload=()=>setTimeout(imprimir,300);if(op.baixar)ov.querySelector('[data-r="baixar"]').click()}
 window.vvRelatorio=vvRelatorio;
 window.vvModelo=()=>{recarrega();const o=T(calc,null);if(!o)return null;const t=o.elev?"elev":o.tipo;return {esp:o.S.n,sp:o.sp,tipo:t,cob:o.cob?"1":"0",L:Math.round(o.Lw*10)/10,W:Math.round(o.Ww*10)/10,D:o.elev?Math.round(o.D*10)/10:10,h:Math.round(o.hm*100)/100,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,folga:2}};
 window.vvDeTopo=x=>{recarrega();V.modo="viv";V.dim="topo";if(x&&SPD[x.sp])V.sp=x.sp;V.tipo=x&&x.tipo?x.tipo:"auto";grava();T(()=>{if(!view().hidden)build()})};
@@ -12656,5 +12656,120 @@ window.gfRuralResumo=()=>({n:(R.itens||[]).length,quando:R.quando,area:R.resumo&
 window.__rp={aplicaReg,importa,lerSHP,lerDBF,unzip,utmConv,lerKML,lerCSV,lerGeo,tipoDe,parcela,CAM:()=>CAMADAS,atvOSM,atvCNAE,provavel,porteDe,inPoly,simplifica,circPoly,areaKm2,ufsDaArea,R:()=>R,perfilCenso};
 })();
 </script>
+<style>
+/* v162: botão "Resultado do projeto" — mostra se o projeto está completo e reúne as saídas */
+#gf-res-btn{position:fixed;right:16px;bottom:84px;z-index:85;display:flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:10px 16px 10px 12px;font:600 14px var(--f-body,system-ui);cursor:pointer;box-shadow:0 6px 18px rgb(0 0 0 / .22);background:var(--surface,#fff);color:var(--ink,#123);border:1px solid var(--line,#cdd)}
+#gf-res-btn[hidden]{display:none}
+#gf-res-btn .dot{width:12px;height:12px;border-radius:50%;background:#c98a1b;flex:none}
+#gf-res-btn.ok{background:#0f7a6c;color:#fff;border-color:#0f7a6c}
+#gf-res-btn.ok .dot{background:#7ee0b0;box-shadow:0 0 0 3px rgb(126 224 176 / .35)}
+#gf-res-btn.pulse{animation:gfpulse 1.2s ease-in-out 3}
+@keyframes gfpulse{50%{transform:scale(1.08)}}
+@media (min-width:901px){#gf-res-btn{bottom:24px}}
+#gf-res{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;padding:10px}
+@media (min-width:700px){#gf-res{align-items:center}}
+#gf-res .bx{background:var(--surface,#fff);color:var(--ink,#123);border-radius:14px;width:min(720px,100%);max-height:92vh;overflow:auto;padding:16px 18px;box-shadow:0 12px 40px rgb(0 0 0 / .3)}
+#gf-res h2{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:8px}
+#gf-res .st{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700}
+#gf-res .st.ok{background:#d8f3e8;color:#0b5a4f}#gf-res .st.pend{background:#fbecd2;color:#7a4d00}
+#gf-res ul.ck{list-style:none;padding:0;margin:12px 0;display:grid;gap:6px}
+#gf-res ul.ck li{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+#gf-res ul.ck li .i{flex:none;width:20px;text-align:center}
+#gf-res ul.ck li small{display:block;color:var(--muted,#667);font-size:12px}
+#gf-res .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:12px 0}
+#gf-res .kp div{border:1px solid var(--line,#dde);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted,#667)}
+#gf-res .kp b{display:block;font-size:17px;color:var(--ink,#123)}
+#gf-res table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 12px}
+#gf-res th,#gf-res td{padding:5px 6px;border-bottom:1px solid var(--line,#e3e6e8);text-align:right}
+#gf-res th:first-child,#gf-res td:first-child{text-align:left}
+#gf-res .ac{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+#gf-res .ac .btn{flex:1 1 180px}
+#gf-res .nt{font-size:12px;color:var(--muted,#667);margin:8px 0 0}
+</style>
+<script>
+(()=>{
+const I=x=>Math.round(+x||0).toLocaleString("pt-BR"),N=(x,d)=>(+x||0).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}),
+  R=x=>(+x||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0}),
+  E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ultimoOk=null,btn=null;
 
+/* Confere o que já foi feito no projeto. "leve" pula as seções transversais (cálculo mais pesado). */
+function estado(leve){
+  const r=window.topoResumo&&topoResumo();if(!r)return null;
+  const S=leve?null:(window.topoSecoes&&topoSecoes());
+  const viv=r.viv||[],temSup=leve?(r.pts>=3):!!S,secOk=leve?(r.n>0&&r.pts>=3):!!(S&&S.vs&&S.vs.length);
+  const it=[
+    {ok:r.arqs>0&&r.pts>0,t:"Dados brutos carregados",d:r.pts?`${I(r.pts)} pontos de ${r.arqs} arquivo${r.arqs===1?"":"s"} (RTK, estação total, MDT ou nuvem LAS)`:"Importe os arquivos do levantamento em Levantamento › Dados brutos."},
+    {ok:temSup,t:"Superfície do terreno (MDT)",d:temSup?"Terreno modelado a partir dos pontos":"Precisa de pelo menos 3 pontos com cota."},
+    {ok:r.n>0,t:"Viveiros ou tanques projetados",d:r.n?`${r.n} unidade${r.n===1?"":"s"} · ${N(r.esp/10000,2)} ha de espelho d'água`:"Use “Inserir e calcular o projeto” ou a Calculadora › Aplicar aos viveiros do levantamento."},
+    {ok:r.corte+r.aterro>0,t:"Corte e aterro calculados",d:r.corte+r.aterro>0?`${I(r.corte)} m³ de corte · ${I(r.aterro)} m³ de aterro`:"Sai junto com os viveiros."},
+    {ok:secOk,t:"Seções transversais (estacas)",d:secOk?(S?`${S.vs.length} unidade${S.vs.length===1?"":"s"} com seções a cada ${N(S.vs[0].du,0)} m`:"Prontas para a planilha e o relatório"):"Precisa de terreno e viveiros."},
+    {ok:r.custo>0,t:"Custo da terraplenagem",d:r.custo>0?`${R(r.custo)} (corte a R$ ${N(r.pc,2)}/m³, aterro a R$ ${N(r.pa,2)}/m³)`:"Preencha os preços do corte e do aterro em Levantamento."}
+  ];
+  const falta=it.filter(x=>!x.ok),ok=!falta.length;
+  return {r,S,it,ok,falta,viv}}
 
+function atualizarBotao(){
+  if(!btn)return;const e=estado(true);
+  if(!e){btn.hidden=true;return}
+  btn.hidden=false;btn.classList.toggle("ok",e.ok);
+  btn.querySelector(".tx").textContent=e.ok?"Projeto pronto · ver resultado":`Projeto: faltam ${e.falta.length} etapa${e.falta.length===1?"":"s"}`;
+  btn.title=e.ok?"O relatório está completo: ver, imprimir, baixar ou exportar":"Ver o que falta para fechar o projeto";
+  if(e.ok&&ultimoOk===false){btn.classList.remove("pulse");void btn.offsetWidth;btn.classList.add("pulse")}
+  ultimoOk=e.ok}
+
+function baixar(nome,txt,tipo){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)}
+
+function abrir(){
+  const e=estado(false);let ov=document.getElementById("gf-res");if(ov)ov.remove();
+  ov=document.createElement("div");ov.id="gf-res";
+  if(!e){ov.innerHTML=`<div class="bx"><h2>📋 Resultado do projeto</h2><p>Nenhum levantamento aberto ainda. Comece em Levantamento › Dados brutos.</p><div class="ac"><button type="button" class="btn" data-g="x">Fechar</button></div></div>`}
+  else{const {r,S,it,ok,viv}=e,fat=r.fat||1.25,sal=r.corte-r.aterro*fat;
+    const sec={};if(S)S.vs.forEach(v=>sec[v.nome]=v);
+    ov.innerHTML=`<div class="bx" role="dialog" aria-label="Resultado do projeto">
+    <h2>📋 Resultado do projeto <span class="st ${ok?"ok":"pend"}">${ok?"✅ Relatório completo":"Em andamento"}</span></h2>
+    <div class="nt">${E(r.nome||"Projeto")}${r.local?" · "+E(r.local):""}</div>
+    <ul class="ck">${it.map(x=>`<li><span class="i">${x.ok?"✅":"⬜"}</span><span><b>${x.t}</b><small>${E(x.d)}</small></span></li>`).join("")}
+      <li><span class="i">${ok?"✅":"⬜"}</span><span><b>Relatório final</b><small>${ok?"Pronto para ver, imprimir, baixar ou exportar":"Já dá para abrir, mas os itens acima ainda não aparecem completos nele"}</small></span></li></ul>
+    ${r.n?`<div class="kp"><div><b>${N(r.esp/10000,2)} ha</b>espelho d'água</div><div><b>${I(r.agua)} m³</b>de água</div><div><b>${I(r.corte)} m³</b>de corte</div><div><b>${I(r.aterro)} m³</b>de aterro</div><div><b>${I(Math.abs(sal))} m³</b>${sal>=0?"sobrando (bota-fora)":"faltando (empréstimo)"}</div><div><b>${R(r.custo)}</b>terraplenagem</div></div>
+    <table><thead><tr><th>Unidade</th><th>Espelho (m²)</th><th>Água (m³)</th><th>Corte (m³)</th><th>Aterro (m³)</th>${S?"<th>Estacas</th>":""}</tr></thead><tbody>
+    ${viv.map(v=>`<tr><td>${E(v.nome)}${v.grav===false?' <span title="O dreno não escoa por gravidade">⚠️</span>':""}</td><td>${I(v.esp)}</td><td>${I(v.agua)}</td><td>${I(v.corte)}</td><td>${I(v.aterro)}</td>${S?`<td>${sec[v.nome]?sec[v.nome].linhas.length:"—"}</td>`:""}</tr>`).join("")}
+    </tbody></table>${viv.some(v=>v.grav===false)?'<p class="nt">⚠️ Em pelo menos um viveiro o dreno não escoa por gravidade: confira a cota do fundo ou preveja bombeamento.</p>':""}`:""}
+    <div class="ac">
+      <button type="button" class="btn solid" data-g="ver">📄 Ver relatório</button>
+      <button type="button" class="btn" data-g="pdf">🖨 Imprimir / salvar PDF</button>
+      <button type="button" class="btn" data-g="html">⬇ Baixar relatório</button>
+      ${r.n?`<button type="button" class="btn" data-g="xlsx">📊 Planilhas (Excel)</button><button type="button" class="btn" data-g="dxf">📐 Projeto (DXF/CAD)</button>`:""}
+      <button type="button" class="btn" data-g="json">🗂 Exportar dados (JSON)</button>
+      <button type="button" class="btn" data-g="x">Fechar</button>
+    </div>
+    <p class="nt">O PDF sai pelo “Imprimir”, escolhendo “Salvar como PDF”. O JSON leva os números do projeto para outro programa ou para a futura integração com CAD.</p></div>`}
+  document.body.appendChild(ov);
+  const fecha=()=>ov.remove(),rel=op=>{fecha();if(window.vvRelatorio)vvRelatorio(Object.assign({deTopo:true},op));else alert("Relatório indisponível nesta versão.")};
+  ov.addEventListener("click",ev=>{if(ev.target===ov)fecha()});
+  ov.querySelectorAll("[data-g]").forEach(b=>b.addEventListener("click",async()=>{const g=b.dataset.g;
+    try{
+      if(g==="x")fecha();
+      else if(g==="ver")rel({});
+      else if(g==="pdf")rel({print:true});
+      else if(g==="html")rel({baixar:true});
+      else if(g==="xlsx")await topoPlanilhas();
+      else if(g==="dxf")await topoDXFProjeto();
+      else if(g==="json"){const x=estado(false),nome="Projeto_"+String(x.r.nome||"GreenFish").replace(/[^\w\-]+/g,"_")+".json";
+        baixar(nome,JSON.stringify({app:"Green Fish",gerado:new Date().toISOString(),projeto:x.r.nome,local:x.r.local,completo:x.ok,etapas:x.it.map(i=>({etapa:i.t,ok:i.ok,detalhe:i.d})),
+          totais:{viveiros:x.r.n,espelho_m2:x.r.esp,agua_m3:x.r.agua,corte_m3:x.r.corte,aterro_m3:x.r.aterro,fator_compactacao:x.r.fat,custo_terraplenagem_brl:x.r.custo,preco_corte:x.r.pc,preco_aterro:x.r.pa},
+          viveiros:x.viv,secoes:x.S?x.S.vs:null},null,1),"application/json")}
+    }catch(err){alert(err&&err.message||String(err))}}))}
+
+function montar(){
+  if(btn)return;btn=document.createElement("button");btn.type="button";btn.id="gf-res-btn";btn.hidden=true;
+  btn.innerHTML='<span class="dot"></span><span class="tx">Resultado do projeto</span>';btn.addEventListener("click",abrir);
+  document.body.appendChild(btn);atualizarBotao()}
+window.gfResultado=abrir;window.gfResultadoEstado=leve=>estado(!!leve);
+/* atualiza quando o levantamento é salvo (evento do módulo) e, de reserva, a cada 5 s */
+window.addEventListener("topo-salvo",()=>setTimeout(atualizarBotao,50));
+window.addEventListener("storage",atualizarBotao);
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",montar);else montar();
+setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000);
+})();
+</script>
