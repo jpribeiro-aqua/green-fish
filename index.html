@@ -10273,7 +10273,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v169";
+  const APP_VERSAO="ras-v170";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11854,7 +11854,8 @@ function vvRelatorio(op){op=op||{};recarrega();if(op.deTopo){V.modo="viv";V.dim=
 window.vvRelatorio=vvRelatorio;
 /* v167: outros módulos e a importação de arquivos preenchem os parâmetros e escolhem o painel ao lado */
 window.vvLado=lado=>{vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}const b=el&&el.querySelector(`[data-vside="${lado}"]`);if(b)b.click();else build()};
-window.vvAplicar=(q,lado)=>{recarrega();V.modo="viv";for(const k in q)V[k]=q[k];grava();if(lado){vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}}build();try{const c=document.getElementById("vv-cad");if(c&&lado==="cad")c.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}};
+window.vvValores=ks=>{recarrega();const o={};ks.forEach(k=>o[k]=V[k]??"");return o};
+window.vvAplicar=(q,lado,destaca)=>{recarrega();V.modo="viv";for(const k in q)V[k]=q[k];grava();if(lado){vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}}build();if(destaca!==false)setTimeout(()=>{for(const k in q){const i=el&&el.querySelector(`[data-vv="${k}"]`);if(i){i.classList.remove("gf-flash");void i.offsetWidth;i.classList.add("gf-flash")}}},30);try{const c=document.getElementById("vv-cad");if(c&&lado==="cad")c.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}};
 window.vvUsarLevantamento=()=>{recarrega();V.modo="viv";V.dim="topo";grava();try{setView("calc")}catch(e){}setTimeout(()=>{try{build();const h=[...document.querySelectorAll("#vv-wrap .card-head h2")].find(x=>/Parâmetros do projeto/.test(x.textContent));if(h)h.closest(".card").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},250)};
 window.vvModelo=()=>{recarrega();const o=T(calc,null);if(!o)return null;const t=o.elev?"elev":o.tipo;return {esp:o.S.n,sp:o.sp,tipo:t,cob:o.cob?"1":"0",L:Math.round(o.Lw*10)/10,W:Math.round(o.Ww*10)/10,D:o.elev?Math.round(o.D*10)/10:10,h:Math.round(o.hm*100)/100,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,folga:2}};
 window.vvDeTopo=x=>{recarrega();V.modo="viv";V.dim="topo";if(x&&SPD[x.sp])V.sp=x.sp;V.tipo=x&&x.tipo?x.tipo:"auto";grava();T(()=>{if(!view().hidden)build()})};
@@ -13343,6 +13344,7 @@ const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">
 const nf=(x,d=1)=>(+x).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
 const ACEITA=".png,.jpg,.jpeg,.webp,.gif,.bmp,.pdf,.xlsx,.xlsm,.xls,.docx,.doc,.txt,.csv,.tsv,.htm,.html,.kml,.kmz,.geojson,.json,.dxf,.xml,.md";
 let R=null; // último resultado
+const KV=["aViv","rel","rasa","ti","te","crista","bl","decl","dim","areaDisp","aprov"];
 /* ---------- números e texto ---------- */
 const numBR=s=>{s=String(s).trim().replace(/\s/g,"");if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,"").replace(",",".");else if(/^-?\d+,\d+$/.test(s))s=s.replace(",",".");else if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s))s=s.replace(/,/g,"");return parseFloat(s)};
 const NUM="(\\d{1,3}(?:\\.\\d{3})+(?:,\\d+)?|\\d+(?:[.,]\\d+)?)";
@@ -13487,13 +13489,16 @@ function paraV(M){const v={};const s=x=>String(Math.round(x*100)/100).replace(".
   if(M.areaDisp){v.dim="area";v.areaDisp=s(M.areaDisp)}
   if(M.n){const av=M.L&&M.W?M.L*M.W:M.aViv;if(av){v.dim="area";v.areaDisp=String(Math.round(M.n*av/0.65/1e4*1e4+5)/1e4).replace(".",",");v.aprov="65"}}
   return v}
+function aplicaSel(box){if(!R||!window.vvAplicar)return;const M={};const cks=box?box.querySelectorAll("[data-gk]"):[];if(cks.length)cks.forEach(c=>{if(c.checked)M[c.dataset.gk]=R.med[c.dataset.gk]});else Object.assign(M,R.med);
+  if(!R.antes)R.antes=window.vvValores?vvValores(KV):{};const v=Object.assign({},R.antes,paraV(M));const mud={};for(const k of KV)if(String(v[k]??"")!==String(window.vvValores?vvValores([k])[k]:""))mud[k]=v[k]??"";
+  R.aplicado=Object.keys(M).length;if(Object.keys(mud).length){vvAplicar(mud,"cad");return true}return false}
 function mostraMapa(){window.__gfImport=R&&(R.ll.pts.length||R.ll.polys.length)?{nome:R.nome,pts:R.ll.pts,polys:R.ll.polys}:null;try{window.dispatchEvent(new Event("gf-import"))}catch(e){}}
 function cartao(){if(!R)return "";const M=R.med,ks=Object.keys(ROT).filter(k=>M[k]!=null),temC=R.ll.pts.length||R.ll.polys.length;
   const loc=R.centro?`${nf(R.centro[0],5)}, ${nf(R.centro[1],5)}`:"";
-  return `<div class="gfi-res"><div class="gfi-t"><b>📄 ${E(R.nome)}</b><small>${E(R.tipo)} · ${(R.tam/1024).toLocaleString("pt-BR",{maximumFractionDigits:0})} KB${R.motor==="pdf.js"?" · PDF lido por completo":""}</small><button type="button" class="btn" data-gi="x" aria-label="Limpar">✕</button></div>
+  return `<div class="gfi-res"><div class="gfi-t"><b>📄 ${E(R.nome)}</b><small>${E(R.tipo)} · ${(R.tam/1024).toLocaleString("pt-BR",{maximumFractionDigits:0})} KB${R.motor==="pdf.js"?" · PDF lido por completo":""}</small></div>
    ${R.avisos.map(a=>`<p class="gfi-av">⚠️ ${E(a)}</p>`).join("")}
-   ${ks.length?`<div class="gfi-sec"><b>📏 Medidas encontradas</b><div class="gfi-ks">${ks.map(k=>`<label><input type="checkbox" data-gk="${k}" checked> ${ROT[k]}: <b>${k==="ti"||k==="te"?nf(M[k],1)+" : 1":k==="n"?M[k]:nf(M[k],k==="aViv"?0:2)+" "+UNI[k]}</b></label>`).join("")}</div>
-     <div class="gfi-bt"><button type="button" class="btn solid" data-gi="aplicar">✅ Aplicar nos parâmetros e desenhar (2D/3D)</button></div>${R.contorno?`<small>Comprimento e largura medidos no ${E(R.contorno.fonte)}${R.contorno.rm?` (rotação ${nf(R.contorno.rm.rot,0)}°)`:""}.</small>`:""}</div>`
+   ${ks.length?`<div class="gfi-sec"><b>📏 Medidas encontradas</b><div class="gfi-ks">${ks.map(k=>`<label><input type="checkbox" data-gk="${k}"${R.desm&&R.desm[k]?"":" checked"}> ${ROT[k]}: <b>${k==="ti"||k==="te"?nf(M[k],1)+" : 1":k==="n"?M[k]:nf(M[k],k==="aViv"?0:2)+" "+UNI[k]}</b></label>`).join("")}</div>
+     <small>✅ Já preenchido nos campos dos parâmetros abaixo (os campos mudados piscam). Desmarque o que não quiser usar: o campo volta ao valor anterior.</small>${R.contorno?`<small>Comprimento e largura medidos no ${E(R.contorno.fonte)}${R.contorno.rm?` (rotação ${nf(R.contorno.rm.rot,0)}°)`:""}.</small>`:""}</div>`
      :`<div class="gfi-sec"><b>📏 Medidas</b><p class="muted" style="margin:4px 0">Não achei medidas escritas (comprimento, largura, profundidade, talude…).${R.img?" Use o croqui abaixo para medir na imagem.":""}</p></div>`}
    ${R.img?`<div class="gfi-sec"><b>✏️ Croqui sobre a ${R.ext==="pdf"?"1ª página do PDF":"imagem"}</b><div class="gfi-bt"><button type="button" class="btn${ks.length?"":" solid"}" data-gi="croqui">✏️ Medir o viveiro na ${R.ext==="pdf"?"planta":"imagem"} (escala + cantos)</button></div><small>Marque dois pontos de uma medida conhecida para dar a escala e depois os cantos do espelho d'água: o app calcula comprimento e largura e desenha em 2D e 3D.</small></div>`:""}
    ${temC?`<div class="gfi-sec"><b>📍 Localização</b><p style="margin:4px 0">${R.ll.polys.length?`${R.ll.polys.length} contorno(s)`:""}${R.ll.polys.length&&R.ll.pts.length?" · ":""}${R.ll.pts.length?`${R.ll.pts.length.toLocaleString("pt-BR")} ponto(s)${R.terreno?" com cota":""}`:""}${R.gps?" (GPS da foto)":""} · centro ${loc}${R.pts.some(q=>q.e!=null)?` · UTM ${R.zonaTxt}${R.zonaPadrao?" (fuso não informado no arquivo: usei 23S — confira)":""}`:""}</p>
@@ -13502,20 +13507,26 @@ function cartao(){if(!R)return "";const M=R.med,ks=Object.keys(ROT).filter(k=>M[
    ${!ks.length&&!temC&&!R.img?`<p class="gfi-av">Não encontrei medidas nem coordenadas neste arquivo.</p>`:""}
    <p class="gfi-msg" aria-live="polite"></p></div>`}
 function render(box){if(!box)return;box.innerHTML=`<div class="gfi"><div class="gfi-h"><b>📥 Trazer arquivo para o projeto</b><small>Imagem (PNG/JPG), PDF, Excel, Word, TXT, CSV, HTML, KML/KMZ, GeoJSON ou DXF: o app lê medidas e coordenadas, mostra no mapa e desenha em 2D e 3D.</small></div>
-  <div class="gfi-drop" tabindex="0" role="button">⬆ Escolher arquivo <span>ou arraste aqui</span></div>${cartao()}</div>`;
+  <div class="gfi-drop" tabindex="0" role="button">⬆ Escolher arquivo <span>ou arraste aqui</span></div>
+  <div class="gfi-bt gfi-limpa">${R?`<button type="button" class="btn" data-gi="x">🧹 Limpar arquivo e desfazer o que ele preencheu</button>`:""}<button type="button" class="btn" data-gi="campos">↺ Limpar campos do projeto (voltar às sugestões)</button></div>${cartao()}<p class="gfi-msg gfi-msg0" aria-live="polite">${E(msgFixa||"")}</p></div>`;msgFixa="";
   const dr=box.querySelector(".gfi-drop"),abrir=()=>{const i=document.createElement("input");i.type="file";i.accept=ACEITA;i.style.cssText="position:fixed;left:-9999px";document.body.appendChild(i);i.onchange=()=>{if(i.files[0])ler(i.files[0],box);i.remove()};i.click()};
   dr.onclick=abrir;dr.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();abrir()}};
   dr.addEventListener("dragover",e=>{e.preventDefault();dr.classList.add("on")});dr.addEventListener("dragleave",()=>dr.classList.remove("on"));dr.addEventListener("drop",e=>{e.preventDefault();dr.classList.remove("on");const f=e.dataTransfer.files[0];if(f)ler(f,box)});
-  const msg=t=>{const m=box.querySelector(".gfi-msg");if(m)m.textContent=t};
+  const msg=t=>{const m=box.querySelector(".gfi-res .gfi-msg")||box.querySelector(".gfi-msg0");if(m)m.textContent=t};
+  box.querySelectorAll("[data-gk]").forEach(c=>c.onchange=()=>{R.desm=R.desm||{};R.desm[c.dataset.gk]=!c.checked;aplicaSel(box);msg(c.checked?"Campo preenchido de novo com o valor do arquivo.":"Campo voltou ao valor anterior.")});
   box.querySelectorAll("[data-gi]").forEach(b=>b.onclick=async()=>{const a=b.dataset.gi;
-    if(a==="x"){if(R&&R.img&&R.img.startsWith("blob:"))URL.revokeObjectURL(R.img);R=null;mostraMapa();render(box)}
+    if(a==="x"){const antes=R&&R.antes;if(R&&R.img&&R.img.startsWith("blob:"))URL.revokeObjectURL(R.img);R=null;mostraMapa();msgFixa=antes?"Arquivo retirado: os campos voltaram aos valores de antes da leitura.":"Arquivo retirado.";if(antes&&window.vvAplicar)vvAplicar(antes,null,true);else render(box)}
+    else if(a==="campos"){const v={};["aViv","rel","rasa","ti","te","crista","bl","decl","areaDisp"].forEach(k=>v[k]="");v.aprov="65";if(R)R.antes=null;msgFixa="Campos de medidas limpos: voltaram aos valores automáticos (em cinza), vindos do levantamento e das referências técnicas.";if(window.vvAplicar)vvAplicar(v,null,true)}
     else if(a==="aplicar"){const M={};box.querySelectorAll("[data-gk]").forEach(c=>{if(c.checked)M[c.dataset.gk]=R.med[c.dataset.gk]});const v=paraV(M);if(window.vvAplicar){vvAplicar(v,"cad");msg("Parâmetros preenchidos com as medidas do arquivo: veja o desenho 2D/3D ao lado.")}}
     else if(a==="mapa"){mostraMapa();if(window.vvLado)vvLado("mapa");msg("Localização mostrada no mapa ao lado.")}
     else if(a==="croqui")croqui();
     else if(a==="terreno"){try{const L=["ponto,codigo,E,N,cota"],Z=R.zona||{n:23,sul:true};R.pts.forEach((q,i)=>{const [e,n]=q.e!=null?[q.e,q.n]:ll2utm(q.lat,q.lon);if(isFinite(q.z))L.push([i+1,"IMP",e.toFixed(3),n.toFixed(3),q.z.toFixed(3)].join(","))});
         const f=new File([L.join("\n")],R.nome.replace(/\.[^.]+$/,"")+"_pontos.csv",{type:"text/csv"});if(!window.topoImportarArquivos)throw new Error("abra a aba Levantamento uma vez e tente de novo");const r=await topoImportarArquivos([f]);msg(r);}catch(e){msg("Não foi possível: "+e.message)}}})}
 async function ler(file,box){box.querySelector(".gfi-drop").innerHTML="⏳ Lendo "+E(file.name)+"…";try{R=await processar(file)}catch(e){R=null;render(box);const m=box.querySelector(".gfi-drop");m.insertAdjacentHTML("afterend",`<p class="gfi-av">⚠️ ${E(file.name)}: ${E(e.message||e)}</p>`);return}
-  render(box);if(R.ll.pts.length||R.ll.polys.length){mostraMapa();if(window.vvLado&&!Object.keys(R.med).length)vvLado("mapa")}}
+  const temMed=Object.keys(R.med).length;if(R.ll.pts.length||R.ll.polys.length)mostraMapa();
+  if(temMed){msgFixa=`Arquivo lido: ${temMed} medida(s) preenchida(s) nos parâmetros.`;if(!aplicaSel(null))render(box)}
+  else{render(box);if((R.ll.pts.length||R.ll.polys.length)&&window.vvLado)vvLado("mapa")}}
+let msgFixa="";
 /* ---------- croqui: escala + cantos sobre a imagem ---------- */
 function croqui(){if(!R||!R.img)return;let ov=document.getElementById("gfi-cq");if(ov)ov.remove();ov=document.createElement("div");ov.id="gfi-cq";
   ov.innerHTML=`<div class="gfi-cq-b"><div class="gfi-cq-h"><b>✏️ Croqui: medir o viveiro na imagem</b><span class="gfi-cq-st"></span><button type="button" class="btn" data-q="desf">↶ Desfazer</button><button type="button" class="btn" data-q="x">Fechar</button></div><div class="gfi-cq-w"><canvas></canvas></div>
@@ -13531,7 +13542,7 @@ function croqui(){if(!R||!R.img)return;let ov=document.getElementById("gfi-cq");
   cv.addEventListener("click",e=>{const r=cv.getBoundingClientRect(),p=[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];if(esc.length<2)esc.push(p);else cant.push(p);desenha();if(esc.length===2&&!dist.value)dist.focus()});
   dist.addEventListener("input",calc);ov.querySelector('[data-q="desf"]').onclick=()=>{if(cant.length)cant.pop();else esc.pop();desenha()};ov.querySelector('[data-q="x"]').onclick=()=>ov.remove();
   ok.onclick=()=>{if(!res)return;const n=Math.max(1,parseInt(ov.querySelector('[data-q="n"]').value)||1),M={L:res.L,W:res.W};if(n>1)M.n=n;R.med=Object.assign({},R.med,{L:Math.round(res.L*10)/10,W:Math.round(res.W*10)/10},n>1?{n}:{});R.contorno={rm:res,fonte:"croqui medido na imagem"};
-    if(window.vvAplicar)vvAplicar(paraV(M),"cad");ov.remove();const b=document.getElementById("vv-imp");if(b)render(b)}}
+    if(!R.antes&&window.vvValores)R.antes=vvValores(KV);if(window.vvAplicar)vvAplicar(paraV(M),"cad");ov.remove();const b=document.getElementById("vv-imp");if(b)render(b)}}
 window.gfImportarInto=box=>render(box);
 window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,unzip,lerXLSX,lerDOCX,exifGPS,paraV};
 })();
@@ -13543,7 +13554,8 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
 .gfi-res{display:grid;gap:8px}.gfi-t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.gfi-t small{color:var(--muted,#667)}.gfi-t button{margin-left:auto}
 .gfi-sec{border-top:1px solid var(--line,#e3e6e8);padding-top:8px;display:grid;gap:6px}.gfi-sec small{color:var(--muted,#667);font-size:12px}
 .gfi-ks{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.gfi-bt{display:flex;flex-wrap:wrap;gap:8px}
-.gfi-av{margin:0;font-size:13px;color:#9a3412}.gfi-msg{margin:0;font-size:13px;color:#0f7a6c}.gfi-msg:empty{display:none}
+.gfi-av{margin:0;font-size:13px;color:#9a3412}.gfi-msg{margin:0;font-size:13px;color:#0f7a6c}.gfi-msg:empty{display:none}.gfi-limpa .btn{font-size:12px}
+@keyframes gfflash{0%{background:#fde68a;box-shadow:0 0 0 3px #f59e0b}100%{background:inherit;box-shadow:none}}.gf-flash{animation:gfflash 2.2s ease-out 1}
 .gfi-pre{white-space:pre-wrap;max-height:220px;overflow:auto;font:12px ui-monospace,monospace;background:rgba(0,0,0,.04);padding:8px;border-radius:8px}
 #gfi-cq{position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.7);display:flex;padding:10px}
 .gfi-cq-b{background:var(--surface,#fff);border-radius:12px;flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
