@@ -10273,7 +10273,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v172";
+  const APP_VERSAO="ras-v173";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11897,6 +11897,38 @@ window.vvRelatorio=vvRelatorio;
 /* v167: outros módulos e a importação de arquivos preenchem os parâmetros e escolhem o painel ao lado */
 window.vvLado=lado=>{vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}const b=el&&el.querySelector(`[data-vside="${lado}"]`);if(b)b.click();else build()};
 window.vvEquip=()=>{try{recarrega();const o=calc();return {aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6)}}catch(e){return {}}};
+/* v173: desenhos salvos — guardar o desenho e os parâmetros, fechar e começar outro */
+const DK="gf-desenhos-v1",KD=["tipo","dim","areaDisp","aprov","meta","aViv","rel","rasa","decl","ti","te","crista","cristaT","bl","nAerV","dren","nColeta","dColeta","larCmp","rap"];
+const lerDs=()=>{try{return JSON.parse(localStorage.getItem(DK))||[]}catch(e){return []}},gravaDs=a=>{try{localStorage.setItem(DK,JSON.stringify(a));return true}catch(e){return false}};
+const baixaTxt=(nome,txt,tipo)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)};
+const slugD=t=>String(t||"desenho").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w\-]+/g,"_").slice(0,60);
+function fecharDesenho(){recarrega();const z=JSON.parse(JSON.stringify(D0));KD.forEach(k=>{if(k==="rap")delete V.rap;else V[k]=z[k]??""});V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}build()}
+window.vvDesenhos={lista:lerDs,
+  salvar(nome,svg,baixar){recarrega();const o=T(calc,null),imp=T(()=>window.gfImportarEstado&&gfImportarEstado(),null);
+    const it={id:"d"+Date.now().toString(36),nome:nome||"Desenho",em:Date.now(),V:JSON.parse(JSON.stringify(V)),arquivo:imp&&imp.nome||"",resumo:o?`${nf(o.n,0)} ${o.uni}(s) · ${o.elev?"Ø "+nf(o.D,1)+" m":nf(o.Lw,1)+" × "+nf(o.Ww,1)+" m"} · ${nf(o.aViv,0)} m² cada · ${E(o.S.n)}`:"",svg:svg||""};
+    const L=lerDs();L.unshift(it);let ok=gravaDs(L);if(!ok){it.svg="";ok=gravaDs(L)}
+    if(baixar){if(svg)baixaTxt(slugD(it.nome)+"_desenho.svg",svg.replace(/class="(dw|dw2|fi)"/g,""),"image/svg+xml");baixaTxt(slugD(it.nome)+"_parametros.json",JSON.stringify({app:"Green Fish",tipo:"desenho",nome:it.nome,salvoEm:new Date(it.em).toISOString(),resumo:it.resumo,arquivo:it.arquivo,parametros:it.V},null,1),"application/json")}
+    return ok},
+  abrir(id){const it=lerDs().find(x=>x.id===id);if(!it)return false;V=Object.assign({},JSON.parse(JSON.stringify(D0)),JSON.parse(JSON.stringify(it.V)));V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}build();return true},
+  excluir(id){gravaDs(lerDs().filter(x=>x.id!==id))},fechar:fecharDesenho};
+window.vvDesenhoUI=(acao,svg,tit)=>{let ov=document.getElementById("vv-dsn");if(ov)ov.remove();ov=document.createElement("div");ov.id="vv-dsn";const fecha=()=>ov.remove();
+  if(acao==="salvar"){const imp=T(()=>window.gfImportarEstado&&gfImportarEstado(),null),pad=(imp&&imp.nome?imp.nome.replace(/\.[^.]+$/,""):"Desenho")+" · "+new Date().toLocaleDateString("pt-BR")+" "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+    ov.innerHTML=`<div class="vd-b" role="dialog" aria-label="Salvar desenho"><b>💾 Salvar este desenho</b><p class="muted" style="margin:0">Guarda o desenho técnico e todos os parâmetros. Depois o quadro fica livre para outro arquivo ou projeto; o salvo pode ser aberto de novo em 📂 Salvos.</p>
+      <label>Nome<input data-d="nome" value="${E(pad)}"></label><label class="vd-ck"><input type="checkbox" data-d="dl" checked> Baixar também o desenho (SVG) e os parâmetros (JSON) no aparelho</label>
+      <div class="vd-bt"><button type="button" class="btn solid" data-d="sf">💾 Salvar e fechar</button><button type="button" class="btn" data-d="s">Só salvar</button><button type="button" class="btn" data-d="f">Fechar sem salvar</button><button type="button" class="btn" data-d="x">Cancelar</button></div><p class="vd-m"></p></div>`;
+    document.body.appendChild(ov);const nm=ov.querySelector('[data-d="nome"]');nm.focus();nm.select();
+    const go=(salva,fechar)=>{if(salva){const ok=vvDesenhos.salvar(nm.value.trim()||pad,svg,ov.querySelector('[data-d="dl"]').checked);if(!ok){ov.querySelector(".vd-m").textContent="Sem espaço no aparelho para guardar: baixe o arquivo e apague desenhos antigos em 📂 Salvos.";return}}if(fechar)fecharDesenho();fecha();vvAvisoD(salva&&fechar?"Desenho salvo e quadro livre para o próximo.":salva?"Desenho salvo.":"Quadro limpo: pronto para outro desenho.")};
+    ov.querySelector('[data-d="sf"]').onclick=()=>go(true,true);ov.querySelector('[data-d="s"]').onclick=()=>go(true,false);ov.querySelector('[data-d="f"]').onclick=()=>{if(confirmaFechar(ov))go(false,true)};ov.querySelector('[data-d="x"]').onclick=fecha}
+  else{const L=lerDs();ov.innerHTML=`<div class="vd-b vd-l" role="dialog" aria-label="Desenhos salvos"><div style="display:flex;align-items:center;gap:8px"><b style="margin-right:auto">📂 Desenhos salvos (${L.length})</b><button type="button" class="btn" data-d="x">Fechar</button></div>
+      ${L.length?L.map(it=>`<div class="vd-it"><div class="vd-th">${it.svg?`<img alt="" src="data:image/svg+xml;charset=utf-8,${encodeURIComponent(it.svg.replace(/class="(dw|dw2|fi)"/g,""))}">`:"📐"}</div><div class="vd-tx"><b>${E(it.nome)}</b><small>${new Date(it.em).toLocaleString("pt-BR")}${it.arquivo?" · arquivo "+E(it.arquivo):""}</small><small>${it.resumo||""}</small></div>
+        <div class="vd-bt"><button type="button" class="btn solid" data-a="${it.id}">Abrir</button>${it.svg?`<button type="button" class="btn" data-sv="${it.id}">⬇ SVG</button>`:""}<button type="button" class="btn" data-ex="${it.id}">Excluir</button></div></div>`).join(""):`<p class="muted">Nenhum desenho salvo ainda. Use 💾 Salvar e fechar no quadro do desenho técnico.</p>`}
+      <p class="vd-m"></p></div>`;document.body.appendChild(ov);ov.querySelector('[data-d="x"]').onclick=fecha;
+    ov.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{vvDesenhos.abrir(b.dataset.a);fecha();vvAvisoD("Desenho aberto: os parâmetros voltaram como estavam quando foi salvo.")});
+    ov.querySelectorAll("[data-sv]").forEach(b=>b.onclick=()=>{const it=lerDs().find(x=>x.id===b.dataset.sv);if(it)baixaTxt(slugD(it.nome)+"_desenho.svg",it.svg.replace(/class="(dw|dw2|fi)"/g,""),"image/svg+xml")});
+    ov.querySelectorAll("[data-ex]").forEach(b=>b.onclick=()=>{const m=ov.querySelector(".vd-m");if(b.dataset.conf!=="1"){b.dataset.conf="1";b.textContent="Confirmar exclusão";m.textContent="Toque de novo para apagar este desenho salvo (não dá para desfazer).";return}vvDesenhos.excluir(b.dataset.ex);vvDesenhoUI("salvos")})}
+  ov.addEventListener("click",e=>{if(e.target===ov)fecha()})};
+function confirmaFechar(ov){const b=ov.querySelector('[data-d="f"]');if(b.dataset.conf==="1")return true;b.dataset.conf="1";b.textContent="Confirmar: fechar sem salvar";ov.querySelector(".vd-m").textContent="O desenho atual e os parâmetros digitados serão limpos. Toque de novo para confirmar.";return false}
+function vvAvisoD(t){let a=document.getElementById("vv-dsn-av");if(!a){a=document.createElement("div");a.id="vv-dsn-av";document.body.appendChild(a)}a.textContent=t;a.classList.remove("on");void a.offsetWidth;a.classList.add("on");clearTimeout(a.__t);a.__t=setTimeout(()=>a.classList.remove("on"),3500)}
 window.vvValores=ks=>{recarrega();const o={};ks.forEach(k=>o[k]=V[k]??"");return o};
 window.vvAplicar=(q,lado,destaca)=>{recarrega();V.modo="viv";for(const k in q)V[k]=q[k];grava();if(lado){vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}}build();if(destaca!==false)setTimeout(()=>{for(const k in q){const i=el&&el.querySelector(`[data-vv="${k}"]`);if(i){i.classList.remove("gf-flash");void i.offsetWidth;i.classList.add("gf-flash")}}},30);try{const c=document.getElementById("vv-cad");if(c&&lado==="cad")c.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}};
 window.vvUsarLevantamento=()=>{recarrega();V.modo="viv";V.dim="topo";grava();try{setView("calc")}catch(e){}setTimeout(()=>{try{build();const h=[...document.querySelectorAll("#vv-wrap .card-head h2")].find(x=>/Parâmetros do projeto/.test(x.textContent));if(h)h.closest(".card").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},250)};
@@ -12904,6 +12936,14 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #gfc-full .gfc-sc{flex:1;overflow:auto;border-radius:12px;background:#12161b}
 #gfc-full .gfc-sc svg{display:block;width:max(100%,1000px);height:auto}
 .vv-pcad{display:grid;gap:14px;min-width:0}
+#vv-dsn{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:12px}
+.vd-b{background:var(--surface,#fff);color:var(--ink,#123);border-radius:14px;padding:16px;width:min(560px,100%);max-height:90vh;overflow:auto;display:grid;gap:10px;box-shadow:0 12px 40px rgb(0 0 0 / .3)}.vd-l{width:min(760px,100%)}
+.vd-b label{display:grid;gap:4px;font:600 13px var(--f-body,system-ui)}.vd-b input[data-d="nome"]{font-size:15px;padding:8px 10px;border:1px solid var(--line,#cfd6dc);border-radius:8px}.vd-b .vd-ck{display:flex;gap:8px;align-items:center;font-weight:400}
+.vd-bt{display:flex;flex-wrap:wrap;gap:8px}.vd-m{margin:0;font-size:13px;color:#9a3412}.vd-m:empty{display:none}
+.vd-it{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:center;border-top:1px solid var(--line,#e3e6e8);padding-top:10px}.vd-it .vd-bt{grid-column:1/-1}
+.vd-th{width:110px;height:74px;border-radius:8px;overflow:hidden;background:#12161b;display:grid;place-items:center;font-size:28px}.vd-th img{width:100%;height:100%;object-fit:cover;object-position:top}
+.vd-tx{display:grid;gap:2px;min-width:0}.vd-tx small{color:var(--muted,#667)}
+#vv-dsn-av{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);opacity:0;z-index:9999;background:#0f7a6c;color:#fff;padding:10px 16px;border-radius:999px;font:600 14px var(--f-body,system-ui);box-shadow:0 6px 18px rgb(0 0 0 / .25);transition:.25s;pointer-events:none}#vv-dsn-av.on{opacity:1;transform:translate(-50%,0)}
 .vr{border:1px solid var(--line,#d5dbe0);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--surface,#fff)}.vr.on{border:2px solid #0f7a6c;background:linear-gradient(180deg,rgba(15,122,108,.06),transparent 60%)}
 .vr-h{display:grid;gap:2px}.vr-h small{color:var(--muted,#667);font-size:12.5px}
 .vr-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}.vr-g label,.vr-p label{display:grid;gap:4px;font:600 13px var(--f-body,system-ui)}
@@ -13275,7 +13315,7 @@ function gfCADInto(box,q,titulo,conjFn){
   if(!q){box.innerHTML="";box.hidden=true;return}box.hidden=false;box.classList.add("gf-cadbox");
   let hd=box.querySelector(":scope>.gfc-h"),body=box.querySelector(":scope>.gfc-b");
   if(!hd||!body){
-    box.innerHTML=`<div class="gfc-h"><b><span class="gfc-live"></span><span class="gfc-t"></span> <small>atualiza enquanto você digita</small></b><span class="gfc-seg" role="group" aria-label="Vista"><button type="button" data-c="2d">📐 2D</button><button type="button" data-c="3d">🧊 3D</button></span><span class="gfc-seg gfc-cj" role="group" aria-label="Quantos viveiros"><button type="button" data-c="um">1 viveiro</button><button type="button" data-c="conj">👥 Todos juntos</button></span><button type="button" data-c="full">⤢ Ampliar</button><button type="button" data-c="dl">⬇ SVG</button></div><div class="gfc-b"></div>`;
+    box.innerHTML=`<div class="gfc-h"><b><span class="gfc-live"></span><span class="gfc-t"></span> <small>atualiza enquanto você digita</small></b><span class="gfc-seg" role="group" aria-label="Vista"><button type="button" data-c="2d">📐 2D</button><button type="button" data-c="3d">🧊 3D</button></span><span class="gfc-seg gfc-cj" role="group" aria-label="Quantos viveiros"><button type="button" data-c="um">1 viveiro</button><button type="button" data-c="conj">👥 Todos juntos</button></span><button type="button" data-c="full">⤢ Ampliar</button><button type="button" data-c="dl">⬇ SVG</button>${box.id==="vv-cad"?`<button type="button" data-c="salvar" title="Guarda este desenho e os parâmetros e deixa o quadro livre para outro">💾 Salvar e fechar</button><button type="button" data-c="salvos">📂 Salvos</button>`:""}</div><div class="gfc-b"></div>`;
     hd=box.querySelector(".gfc-h");body=box.querySelector(".gfc-b");
     const troca=()=>{ult.delete(box);gfCADInto(box,box.__q,box.__tit)};
     hd.querySelector('[data-c="2d"]').onclick=()=>{box.__modo="2d";lsS3("gf-cad-modo","2d");troca()};hd.querySelector('[data-c="3d"]').onclick=()=>{box.__modo="3d";lsS3("gf-cad-modo","3d");troca()};
@@ -13285,6 +13325,7 @@ function gfCADInto(box,q,titulo,conjFn){
       document.body.appendChild(ov);const sc=ov.querySelector(".gfc-sc");let v3=null;
       if(box.__modo==="3d"){sc.style.overflow="hidden";sc.classList.add("gf-cadbox");v3=gf3DView(sc,{fino:true,alto:Math.max(320,window.innerHeight-90)});v3.set(QQ||qq)}else sc.innerHTML=QQ?gfCADConj(QQ,qq):gfCAD(qq);
       const fecha=()=>{if(v3)v3.destroy();ov.remove()};ov.querySelector("[data-x]").onclick=fecha;ov.addEventListener("click",e=>{if(e.target===ov)fecha()})};
+    {const bs=hd.querySelector('[data-c="salvar"]'),bl=hd.querySelector('[data-c="salvos"]');if(bs)bs.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("salvar",box.__Q?gfCADConj(box.__Q,box.__q):gfCAD(box.__q),box.__tit);if(bl)bl.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("salvos")}
     hd.querySelector('[data-c="dl"]').onclick=()=>{const qq=box.__q,QQ=box.__Q,nome=String(QQ?"conjunto":(qq.nome||"viveiro")).replace(/[^\w\-]+/g,"_");
       if(box.__modo==="3d"){const b=box.querySelector(".gfc-b");const png=b&&b.__v3&&b.__v3.png();if(png)baixa(nome+"_3d.png",png)}
       else baixa(nome+"_desenho.svg",new Blob([(QQ?gfCADConj(QQ,qq):gfCAD(qq)).replace(/class="(dw|dw2|fi)"/g,"")],{type:"image/svg+xml"}))}}
@@ -13668,6 +13709,8 @@ function croqui(){if(!R||!R.img)return;let ov=document.getElementById("gfi-cq");
   ok.onclick=()=>{if(!res)return;const n=Math.max(1,parseInt(ov.querySelector('[data-q="n"]').value)||1),M={L:res.L,W:res.W};if(n>1)M.n=n;R.med=Object.assign({},R.med,{L:Math.round(res.L*10)/10,W:Math.round(res.W*10)/10},n>1?{n}:{});R.contorno={rm:res,fonte:"croqui medido na imagem"};
     if(!R.antes&&window.vvValores)R.antes=vvValores(KV);if(window.vvAplicar)vvAplicar(paraV(M),"cad");ov.remove();const b=document.getElementById("vv-imp");if(b)render(b)}}
 window.gfImportarInto=box=>render(box);
+window.gfImportarEstado=()=>R?{nome:R.nome,tipo:R.tipo,med:R.med}:null;
+window.gfImportarLimpar=()=>{if(R&&R.img&&String(R.img).startsWith("blob:"))URL.revokeObjectURL(R.img);R=null;mostraMapa();const b=document.getElementById("vv-imp");if(b)render(b)};
 window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,unzip,lerXLSX,lerDOCX,exifGPS,paraV};
 })();
 </script>
