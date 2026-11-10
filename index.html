@@ -10273,7 +10273,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v171";
+  const APP_VERSAO="ras-v172";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11617,17 +11617,54 @@ function build(){const v=view();if(!v)return;
   el.hidden=!on;if(!on)return;
   const o=calc();
   el.innerHTML=`<section class="card"><div class="card-head"><h2>🏞 Projeto de viveiros escavados<span>${T(()=>projAtual()?"Projeto "+E(projAtual().nome)+" · ":"","")}${E(o.S.n)} · ${E(SIS[o.sis])}</span></h2></div><div class="vv-body"><div class="vv-btns"><button type="button" class="btn solid" data-vrel="1">📄 Relatório final do projeto</button><button type="button" class="btn" data-vrel="p">🖨 PDF direto</button>${o.TP?`<a href="#" class="btn" data-vgo2="topo">🗺 Inserir modelo no levantamento</a>`:""}</div><div id="vv-kpi"></div><div id="vv-warn"></div></div></section>
-   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
+   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-rapido">${rapidoHTML(o)}</div><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
   el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;grava();build()});
     else i.addEventListener("input",()=>{V[k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)})});
   el.querySelectorAll("[data-vrel]").forEach(b=>b.addEventListener("click",()=>vvRelatorio({print:b.dataset.vrel==="p"})));
   if(window.gfImportarInto)T(()=>gfImportarInto(document.getElementById("vv-imp")));
+  T(()=>rapidoBind(el));
   el.querySelectorAll("[data-vside]").forEach(b=>b.addEventListener("click",()=>{vvSide=b.dataset.vside;try{localStorage.setItem("gf-vv-side",vvSide)}catch(e){}el.querySelectorAll("[data-vside]").forEach(x=>x.setAttribute("aria-selected",String(x===b)));document.getElementById("vv-cad").hidden=vvSide==="mapa";document.getElementById("vv-mapa").hidden=vvSide!=="mapa";clearTimeout(tm);update();if(vvSide==="mapa"&&window.gfMapaResize)gfMapaResize()}));
   el.querySelectorAll("[data-vgo2]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();T(()=>setView(a.dataset.vgo2))}));
   el.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("input",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)}));
   update()}
+/* v172: projeto rápido — área, quantidade e formato quando não há levantamento nem arquivo */
+const FORMAS=[["r3","Retangular 3 : 1","SENAR: lado maior até 3 × o menor",3],["r4","Retangular 4 : 1","Embrapa: 4 : 1 quando possível",4],["r2","Retangular 2 : 1","Mais largo, menos dique",2],["q","Quadrado","Menos perímetro de dique",1],["c","Circular (tanque)","Tanque elevado de geomembrana",0],["p","Medidas próprias","Digite comprimento × largura",-1]];
+const icoF=k=>{const r={r3:[54,18],r4:[60,15],r2:[46,23],q:[30,30]}[k];if(k==="c")return '<svg viewBox="0 0 64 36" width="56" height="32"><circle cx="32" cy="18" r="15" fill="#cfe8f6" stroke="#0f7a6c" stroke-width="2"/></svg>';if(k==="p")return '<svg viewBox="0 0 64 36" width="56" height="32"><rect x="8" y="8" width="48" height="20" fill="#cfe8f6" stroke="#0f7a6c" stroke-width="2" stroke-dasharray="4 3"/><text x="32" y="22" font-size="11" text-anchor="middle" fill="#0f7a6c">L×W</text></svg>';return `<svg viewBox="0 0 64 36" width="56" height="32"><rect x="${32-r[0]/2}" y="${18-r[1]/2}" width="${r[0]}" height="${r[1]}" fill="#cfe8f6" stroke="#0f7a6c" stroke-width="2"/></svg>`};
+function rapidoHTML(o){const R=V.rap||{},semDados=!o.medido,f=R.forma||"r3";
+  return `<div class="vr ${semDados?"on":""}"><div class="vr-h"><b>🧩 Projeto rápido</b><small>${semDados?"Sem levantamento ou arquivo? Diga a área, a quantidade e o formato: o app monta o projeto completo com as referências de engenharia para a espécie.":"Já há viveiros do levantamento: use isto para comparar com um projeto feito só pela área."}</small></div>
+   <div class="vr-g"><label>Espécie<select data-vr="sp">${Object.entries(SPD).map(([k,v])=>`<option value="${k}"${(V.sp||"tilapia")===k?" selected":""}>${E(v.n)}</option>`).join("")}</select></label>
+    <label>Sistema<select data-vr="sis">${Object.entries(SIS).map(([k,v])=>`<option value="${k}"${(V.sis||"semi")===k?" selected":""}>${E(v.split(" (")[0])}</option>`).join("")}</select></label>
+    <label>Área de cada viveiro<span class="vr-u"><input inputmode="decimal" data-vr="area" value="${E(R.area||"")}" placeholder="ex.: 5000"><select data-vr="un"><option value="m2"${R.un!=="ha"?" selected":""}>m²</option><option value="ha"${R.un==="ha"?" selected":""}>ha</option></select></span></label>
+    <label>Quantidade de viveiros<span class="vr-st"><button type="button" data-vrs="-1" aria-label="Menos um">−</button><input inputmode="numeric" data-vr="n" value="${E(R.n||"")}" placeholder="ex.: 4"><button type="button" data-vrs="1" aria-label="Mais um">+</button></span></label></div>
+   <div class="vr-f" role="radiogroup" aria-label="Formato do viveiro">${FORMAS.map(([k,t,d])=>`<button type="button" role="radio" aria-checked="${f===k}" data-vrf="${k}">${icoF(k)}<b>${t}</b><small>${d}</small></button>`).join("")}</div>
+   <div class="vr-p"${f==="p"?"":" hidden"}><label>Comprimento (m)<input inputmode="decimal" data-vr="L" value="${E(R.L||"")}"></label><label>Largura (m)<input inputmode="decimal" data-vr="W" value="${E(R.W||"")}"></label></div>
+   <div class="vr-b"><button type="button" class="btn solid" data-vr-ok="1">⚙️ Montar projeto completo</button><span class="vr-m">${E(R.msg||"")}</span></div>
+   ${R.feito&&!o.medido?rapidoResumo(o):""}</div>`}
+function rapidoResumo(o){const f=(x,d)=>nf(x,d);
+  return `<div class="vr-r"><b>📐 Engenharia adotada para ${E(o.S.n.toLowerCase())} · ${E(SIS[o.sis].split(" (")[0].toLowerCase())}</b><ul>
+   <li>${f(o.n,0)} ${o.uni}(s) ${o.elev?`circular(es) de Ø ${f(o.D,1)} m`:`de ${f(o.Lw,1)} × ${f(o.Ww,1)} m`} (${f(o.aViv,0)} m² de lâmina cada) em ${f(o.rows,0)} fila(s)</li>
+   <li>Lâmina média ${f(o.hm,2)} m (rasa ${f(o.rasa,2)} m · funda ${f(o.funda,2)} m) · borda livre ${f(o.bl,2)} m</li>
+   ${o.elev?"":`<li>Talude interno ${f(o.ti,1)} : 1 · externo ${f(o.te,1)} : 1 · crista ${f(o.cr,1)} m · declividade do fundo ${f(o.decl,2)} %</li>`}
+   <li>${E(o.estr||"Dreno")} de ${f(o.dDr,0)} mm · abastecimento de ${f(o.dAb&&o.dAb.dc,0)} mm · vazão de projeto ${f(o.Qls,1)} L/s</li>
+   <li>${o.aerViv?`${f(o.aerViv,0)} aerador(es) de 2 HP por viveiro`:"Sem aeração mecânica"} · terraplenagem ${f(o.mov,0)} m³ · investimento ${brl(o.invTot)}</li></ul>
+   <small>Veja o desenho 2D/3D ao lado (👥 Todos juntos mostra o conjunto) e o detalhe nos quadros abaixo. Mude qualquer campo nos parâmetros para ajustar.</small></div>`}
+function rapidoBind(el){const box=el.querySelector("#vv-rapido");if(!box)return;const R=()=>(V.rap=V.rap||{});
+  box.querySelectorAll("[data-vr]").forEach(i=>i.addEventListener(i.tagName==="SELECT"?"change":"input",()=>{const k=i.dataset.vr;if(k==="sp"||k==="sis"){V[k]=i.value;grava();build();return}R()[k]=i.value;grava()}));
+  box.querySelectorAll("[data-vrs]").forEach(b=>b.onclick=()=>{const i=box.querySelector('[data-vr="n"]'),v=Math.max(1,(parseInt(i.value)||0)+ +b.dataset.vrs);i.value=v;R().n=String(v);grava()});
+  box.querySelectorAll("[data-vrf]").forEach(b=>b.onclick=()=>{R().forma=b.dataset.vrf;box.querySelectorAll("[data-vrf]").forEach(x=>x.setAttribute("aria-checked",String(x===b)));box.querySelector(".vr-p").hidden=b.dataset.vrf!=="p";grava()});
+  box.querySelector("[data-vr-ok]").onclick=()=>{const r=R(),num=x=>{x=String(x||"").trim();if(/,/.test(x))return parseFloat(x.replace(/\./g,"").replace(",","."));if(/^\d{1,3}(\.\d{3})+$/.test(x))return parseFloat(x.replace(/\./g,""));return parseFloat(x)},f=r.forma||"r3";let a=num(r.area)*(r.un==="ha"?1e4:1);const n=Math.max(1,Math.round(num(r.n)||0));
+    if(f==="p"){const L=num(r.L),W=num(r.W);if(L>0&&W>0)a=L*W}
+    if(!(a>0)||!(num(r.n)>0)){r.msg=f==="p"?"Digite comprimento, largura e a quantidade de viveiros.":"Digite a área de cada viveiro e a quantidade.";build();return}
+    if(a<20){r.msg="Área muito pequena: confira se escolheu m² ou ha.";build();return}
+    const s2=x=>String(Math.round(x*100)/100).replace(".",",");V.modo="viv";V.dim="area";V.aprov="65";V.aViv=s2(a);V.areaDisp=String(Math.round((n*a/0.65/1e4)*1e4+5)/1e4).replace(".",",");
+    const rel=f==="p"?Math.max(num(r.L),num(r.W))/Math.min(num(r.L),num(r.W)):({r3:3,r4:4,r2:2,q:1,c:1})[f];V.rel=s2(rel);
+    V.tipo=f==="c"?"elev_ab":(String(V.tipo||"").startsWith("elev")||V.tipo==="alv"?"esc":V.tipo||"auto");
+    ["rasa","ti","te","crista","bl","nAerV","nColeta","dColeta","larCmp"].forEach(k=>V[k]="");V.decl=D0.decl;V.dren="auto";
+    r.feito=true;r.msg=`Projeto montado: ${n} ${f==="c"?"tanque(s) circular(es)":"viveiro(s)"} de ${nf(a,0)} m². O resumo da engenharia está abaixo.`;
+    try{localStorage.setItem("gf-cad-conj",n>1?"1":"0")}catch(e){}vvSide="cad";try{localStorage.setItem("gf-vv-side","cad")}catch(e){}grava();build();
+    setTimeout(()=>{const k=document.getElementById("vv-kpi");if(k)k.scrollIntoView({behavior:"smooth",block:"start"})},150)}}
 const kp=(t,v,u,s,c)=>`<div class="${c||""}"><span>${t}</span><b>${v}${u?`<small>${u}</small>`:""}</b>${s?`<em>${s}</em>`:""}</div>`;
 function update(){if(!el||el.hidden)return;const o=calc();
   // placeholders e fontes
@@ -12867,6 +12904,15 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #gfc-full .gfc-sc{flex:1;overflow:auto;border-radius:12px;background:#12161b}
 #gfc-full .gfc-sc svg{display:block;width:max(100%,1000px);height:auto}
 .vv-pcad{display:grid;gap:14px;min-width:0}
+.vr{border:1px solid var(--line,#d5dbe0);border-radius:12px;padding:12px;display:grid;gap:10px;background:var(--surface,#fff)}.vr.on{border:2px solid #0f7a6c;background:linear-gradient(180deg,rgba(15,122,108,.06),transparent 60%)}
+.vr-h{display:grid;gap:2px}.vr-h small{color:var(--muted,#667);font-size:12.5px}
+.vr-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:10px}.vr-g label,.vr-p label{display:grid;gap:4px;font:600 13px var(--f-body,system-ui)}
+.vr-g input,.vr-g select,.vr-p input{font-size:15px;padding:8px 10px;border:1px solid var(--line,#cfd6dc);border-radius:8px;background:var(--surface,#fff);color:var(--ink,#123);min-width:0}
+.vr-u{display:flex;gap:6px;min-width:0}.vr-u input{flex:1;min-width:0;width:100%}.vr-st{display:flex;gap:4px;min-width:0}.vr-st input{flex:1;text-align:center;min-width:0;width:100%}.vr-st button{flex:none}.vr-st button{width:38px;border:1px solid var(--line,#cfd6dc);border-radius:8px;background:var(--surface,#fff);font-size:18px;cursor:pointer;color:var(--ink,#123)}
+.vr-f{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}.vr-f button{display:grid;justify-items:center;gap:2px;padding:8px 6px;border:1px solid var(--line,#cfd6dc);border-radius:10px;background:var(--surface,#fff);cursor:pointer;color:var(--ink,#123);text-align:center}
+.vr-f button b{font-size:12.5px}.vr-f button small{font-size:11px;color:var(--muted,#667)}.vr-f button[aria-checked="true"]{border:2px solid #0f7a6c;background:rgba(15,122,108,.08)}
+.vr-p{display:grid;grid-template-columns:1fr 1fr;gap:10px}.vr-p[hidden]{display:none}.vr-b{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.vr-m{font-size:13px;color:#0f7a6c}
+.vr-r{border-top:1px solid var(--line,#e3e6e8);padding-top:8px;font-size:13.5px}.vr-r ul{margin:6px 0;padding-left:18px;display:grid;gap:3px}.vr-r small{color:var(--muted,#667)}
 .vv-pcad .vv-side{order:-1;min-width:0;display:grid;gap:8px}
 .vv-tabs{display:flex;gap:6px}.vv-tabs button{flex:1;border:1px solid var(--line,#cfd6dc);background:var(--surface,#fff);color:var(--ink,#123);border-radius:10px;padding:7px 10px;font:600 13px var(--f-body,system-ui);cursor:pointer}.vv-tabs button[aria-selected="true"]{background:#0f7a6c;color:#fff;border-color:#0f7a6c}
 #vv-mapa{border:1px solid var(--line,#cfd6dc);border-radius:12px;overflow:hidden;background:var(--surface,#fff);display:flex;flex-direction:column}#vv-mapa[hidden]{display:none}#vv-mapa .gfm-map{height:min(60vh,460px)}
