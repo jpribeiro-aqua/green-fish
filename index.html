@@ -235,7 +235,7 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 .tp-map svg circle:hover{stroke:var(--ink);stroke-width:1px}
 .tp-zoom{position:absolute;right:8px;top:8px;display:flex;gap:4px}.tp-zoom .btn{padding:4px 10px;background:var(--surface)}
 .tp-leg{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:12px var(--f-mono);margin:8px 0}.tp-leg i{display:inline-block;width:160px;height:10px;border-radius:4px}
-.tp-chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}.tp-chk small{color:var(--muted);font:11px var(--f-mono)}
+.tp-err{display:block;color:#b45309}.tp-chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;white-space:nowrap}.tp-chk small{color:var(--muted);font:11px var(--f-mono)}
 .rp-grid .tp-chk{align-self:end;padding-bottom:10px}
 .tp-nw{white-space:nowrap}
 .tp-viv text{pointer-events:none}
@@ -7578,11 +7578,14 @@ function vivSVG(a,p,fy,s){
       <polygon points="${poly(g,cx,cy,g.A,g.B,fy)}" fill="rgba(42,120,214,.35)" stroke="rgb(42,120,214)" stroke-width="${(s*(sel?2.2:1.2)).toFixed(2)}" data-tt="${E(v.nome||"Viveiro "+(i+1))}" data-tv="${N(g.L,0)} × ${N(g.W,0)} m · fundo ${N(g.zF,2)} m · água ${N(g.zA,2)} m"/>
       <polygon points="${poly(g,cx,cy,g.Af,g.Bf,fy)}" fill="none" stroke="rgb(42,120,214)" stroke-dasharray="${(s*4).toFixed(1)} ${(s*3).toFixed(1)}" stroke-width="${(s*0.9).toFixed(2)}"/>
       <text x="${tx.toFixed(2)}" y="${fy(ty)}" font-size="${(s*12).toFixed(2)}" text-anchor="middle" dominant-baseline="middle" fill="var(--ink)" stroke="var(--surface)" stroke-width="${(s*3).toFixed(2)}" paint-order="stroke">${E(v.nome||"V"+(i+1))}</text></g>`}).join("")}
+function resumoViv(p,a,rs){const vs=p.viv||[],cu=p.cu=p.cu||{corte:"18",aterro:"12",fat:"1,25"},fat=+String(cu.fat).replace(",",".")||1.25,pc=+String(cu.corte).replace(",",".")||0,pa=+String(cu.aterro).replace(",",".")||0;
+  rs=rs||vs.map(v=>calcViv(a,v));const T={esp:0,agua:0,corte:0,aterro:0,ocup:0};rs.forEach(r=>{if(r)for(const k in T)T[k]+=r[k]});const custo=T.corte*pc+T.aterro*pa;
+  return {n:vs.length,esp:T.esp,agua:T.agua,corte:T.corte,aterro:T.aterro,ocup:T.ocup,custo,em:Date.now(),viv:vs.map((v,i)=>{const r=rs[i],g=r?r.g:geo(v);return {nome:v.nome||"Viveiro "+(i+1),agua:r?r.agua:0,esp:r?r.esp:0,tipo:g.tipo||"esc",cob:!!g.cob,sp:v.sp||"",L:g.L,W:g.W,D:g.D||NaN,h:g.h,bl:g.bl,zi:g.zi,ze:g.ze,c:g.c,dec:g.dec,zF:g.zF,zA:g.zA,zC:g.zC,corte:r?r.corte:0,aterro:r?r.aterro:0,grav:r&&isFinite(r.jus)?r.jus<r.zDreno-0.3:null,E:+v.E,N:+v.N}}),pc,pa,fat,modelo:p.modelo||""}}
 function vivHTML(p,a){
   const vs=p.viv=p.viv||[],cu=p.cu=p.cu||{corte:"18",aterro:"12",fat:"1,25"},fat=+String(cu.fat).replace(",",".")||1.25,pc=+String(cu.corte).replace(",",".")||0,pa=+String(cu.aterro).replace(",",".")||0;
   const rs=vs.map(v=>calcViv(a,v));const sel=vs.find(v=>v.id===S.viv),T={esp:0,agua:0,corte:0,aterro:0,ocup:0};
   rs.forEach(r=>{if(r)for(const k in T)T[k]+=r[k]});const custo=T.corte*pc+T.aterro*pa;
-  if(!naoGrava)p.res={n:vs.length,esp:T.esp,agua:T.agua,corte:T.corte,aterro:T.aterro,ocup:T.ocup,custo,em:Date.now(),viv:vs.map((v,i)=>{const r=rs[i],g=r?r.g:geo(v);return {nome:v.nome||"Viveiro "+(i+1),agua:r?r.agua:0,esp:r?r.esp:0,tipo:g.tipo||"esc",cob:!!g.cob,sp:v.sp||"",L:g.L,W:g.W,D:g.D||NaN,h:g.h,bl:g.bl,zi:g.zi,ze:g.ze,c:g.c,dec:g.dec,zF:g.zF,zA:g.zA,zC:g.zC,corte:r?r.corte:0,aterro:r?r.aterro:0,grav:r&&isFinite(r.jus)?r.jus<r.zDreno-0.3:null,E:+v.E,N:+v.N}}),pc,pa,fat,modelo:p.modelo||""};
+  if(!naoGrava)p.res=resumoViv(p,a,rs);
   if(!naoGrava){clearTimeout(window.__tpResT);window.__tpResT=setTimeout(()=>{try{salvar()}catch(e){}},30)}
   const linha=(v,i)=>{const r=rs[i];if(!r)return `<tr><td><b>${E(v.nome||"Viveiro "+(i+1))}</b></td><td colspan="7" class="muted">Defina a cota do fundo</td><td><button type="button" class="btn" data-a="viv-sel" data-id="${v.id}">Editar</button></td></tr>`;
     const dr=r.g.zF&&isFinite(r.jus)?(r.jus<r.zDreno-0.3?`<span class="pj-tag pj-ok tp-nw">por gravidade (${N(r.zDreno-r.jus,2)} m)</span>`:`<span class="pj-tag pj-wait tp-nw">precisa de bomba</span>`):"—";
@@ -7610,6 +7613,7 @@ function vivHTML(p,a){
    ${vs.length?`<div class="subhead">Total dos viveiros e custo da terraplenagem</div>
    <div class="rp-grid"><label>Preço do corte (R$/m³)<input inputmode="decimal" data-cu="corte" value="${E(cu.corte)}"></label><label>Preço do aterro compactado (R$/m³)<input inputmode="decimal" data-cu="aterro" value="${E(cu.aterro)}"></label><label>Fator de compactação (m³ de corte por m³ de aterro)<input inputmode="decimal" data-cu="fat" value="${E(cu.fat)}"></label></div>
    <div class="us-kpis rp-k"><div><b>${N(T.esp/10000,2)} ha</b>de espelho d'água (${vs.length} viveiro${vs.length===1?"":"s"})</div><div><b>${I(T.agua)} m³</b>de água</div><div><b>${I(T.corte)} m³</b>de corte</div><div><b>${I(T.aterro)} m³</b>de aterro</div><div><b>${I(Math.abs(T.corte-T.aterro*fat))} m³</b>${T.corte-T.aterro*fat>=0?"de terra sobrando (bota-fora)":"de terra faltando (empréstimo)"}</div><div><b>${custo.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0})}</b>de terraplenagem</div></div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="planilhas">📊 Planilhas de corte e aterro (Excel)</button><button type="button" class="btn" data-a="dxf-proj">📐 Projeto em DXF (CAD)</button><button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><span class="muted">Planilha com resumo, cada viveiro, seções transversais (estacas) e pontos do terreno; DXF com curvas, viveiros, eixos e estacas para AutoCAD, QGIS ou outro CAD.</span></div>
    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-calc">Enviar volumes para a Calculadora</button><span class="muted">Cria um grupo de tanques por viveiro (nome “… (lev.)”) com o volume de água; a Biomassa, o Arraçoamento e o Painel passam a usar esses volumes. O custo da terraplenagem e a área levantada entram na aba Local e viabilidade.</span></div>`:""}
   </div></section>`}
 function enviarCalc(p){
@@ -7622,6 +7626,161 @@ function enviarCalc(p){
   aviso(`${vs.length} viveiro${vs.length===1?"":"s"} enviado${vs.length===1?"":"s"} para a Calculadora (${I(vs.reduce((s,v)=>s+v.agua,0))} m³ de água). Confira a densidade de estocagem na Calculadora.`)}
 window.topoResumo=()=>{try{const s=rd(),p=(s.proj||[]).find(x=>x.id===s.cur)||(s.proj||[]).slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];if(!p)return null;
   const cu=p.cu||{},fat=+String(cu.fat||"1,25").replace(",",".")||1.25,r=p.res||{};return {nome:p.nome,ha:p.area?p.area/10000:NaN,corte:r.corte||0,aterro:r.aterro||0,mov:(r.corte||0)+(r.aterro||0),custo:r.custo||0,agua:r.agua||0,esp:r.esp||0,n:r.n||0,precoMov:((r.custo||0)/Math.max(1,(r.corte||0)+(r.aterro||0))),viv:r.viv||[],pc:r.pc,pa:r.pa,fat:r.fat||fat,modelo:r.modelo||"",local:p.local||"",data:p.data||"",pts:(p.arquivos||[]).reduce((s,f)=>s+(f.pts&&f.usar!==false?f.pts.length:0),0),arqs:(p.arquivos||[]).length}}catch(e){return null}};
+
+/* ---- v160: MDT do drone (GeoTIFF) e nuvem de pontos (LAS) lidos direto como terreno ---- */
+const MAXMDT=20000;
+const fatia=async(file,o,n)=>new DataView(await file.slice(o,o+n).arrayBuffer());
+function lzwTIFF(src,len){const out=new Uint8Array(len),pre=new Int32Array(4096),suf=new Uint8Array(4096),tam=new Uint16Array(4096);let op=0,nx=258,w=9,old=-1,bp=0;const nb=src.length*8;
+  for(let i=0;i<256;i++){pre[i]=-1;suf[i]=i;tam[i]=1}
+  const cod=()=>{const b=bp>>3,s=bp&7,v=((((src[b]|0)<<16)|((src[b+1]|0)<<8)|(src[b+2]|0))>>>(24-s-w))&((1<<w)-1);bp+=w;return v};
+  const emite=c=>{const l=tam[c];let p=op+l-1,k=c;while(k>=0&&p>=op){if(p<len)out[p]=suf[k];p--;k=pre[k]}op+=l};
+  const prim=c=>{while(pre[c]>=0)c=pre[c];return suf[c]};
+  while(bp+w<=nb&&op<len){const c=cod();if(c===257)break;if(c===256){nx=258;w=9;old=-1;continue}
+    if(old<0){emite(c);old=c;continue}
+    if(c<nx){emite(c);if(nx<4096){pre[nx]=old;suf[nx]=prim(c);tam[nx]=tam[old]+1;nx++}}
+    else{if(nx<4096){pre[nx]=old;suf[nx]=prim(old);tam[nx]=tam[old]+1;nx++}emite(c)}
+    old=c;if(nx+1>=(1<<w)&&w<12)w++}
+  return out}
+function packbits(src,len){const out=new Uint8Array(len);let i=0,o=0;while(i<src.length&&o<len){const n=(src[i++]<<24)>>24;if(n>=0){for(let k=0;k<=n&&o<len;k++)out[o++]=src[i++]}else if(n!==-128){const b=src[i++];for(let k=0;k<1-n&&o<len;k++)out[o++]=b}}return out}
+async function inflar(u8){return new Uint8Array(await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer())}
+function zonaEPSG(c){c=+c;if(c>=32718&&c<=32725)return [c-32700,"S"];if(c>=32618&&c<=32625)return [c-32600,"N"];if(c>=31977&&c<=31985)return [c-31960,"S"];if(c>=31971&&c<=31976)return [c-31954,"N"];
+  if(c>=29187&&c<=29195)return [c-29170,"S"];if(c>=22521&&c<=22525)return [c-22500,"S"];if(c>=5396&&c<=5399)return [c-5371,"S"];return null}
+const GEOG=new Set([4326,4674,4618,4225,4989,4019]);
+async function lerGeoTIFF(file){
+  const h=await fatia(file,0,16),bo=h.getUint16(0);if(bo!==0x4949&&bo!==0x4D4D)throw new Error("não é um GeoTIFF");const le=bo===0x4949;
+  const u16=(d,o)=>d.getUint16(o,le),u32=(d,o)=>d.getUint32(o,le),u64=(d,o)=>Number(d.getBigUint64(o,le));
+  const big=u16(h,2)===43,ifd=big?u64(h,8):u32(h,4),nT=big?u64(await fatia(file,ifd,8),0):u16(await fatia(file,ifd,2),0),es=big?20:12;
+  const d=await fatia(file,ifd+(big?8:2),nT*es),TS={1:1,2:1,3:2,4:4,5:8,6:1,7:1,8:2,9:4,10:8,11:4,12:8,16:8,17:8},t={};
+  for(let i=0;i<nT;i++){const o=i*es,tag=u16(d,o),typ=u16(d,o+2),cnt=big?u64(d,o+4):u32(d,o+4),sz=(TS[typ]||1)*cnt,vo=o+(big?12:8);
+    let dv=d,b=vo;if(sz>(big?8:4)){dv=await fatia(file,big?u64(d,vo):u32(d,vo),sz);b=0}
+    if(typ===2){let s="";for(let k=0;k<cnt;k++){const c=dv.getUint8(b+k);if(!c)break;s+=String.fromCharCode(c)}t[tag]=s;continue}
+    const a=new Array(cnt),w=TS[typ]||1;for(let k=0;k<cnt;k++){const p=b+k*w;a[k]=typ===3?dv.getUint16(p,le):typ===4?dv.getUint32(p,le):typ===8?dv.getInt16(p,le):typ===9?dv.getInt32(p,le):typ===11?dv.getFloat32(p,le):typ===12?dv.getFloat64(p,le):typ===16?Number(dv.getBigUint64(p,le)):typ===5?dv.getUint32(p,le)/(dv.getUint32(p+4,le)||1):dv.getUint8(p)}t[tag]=a}
+  const g=k=>t[k]&&t[k][0],W=g(256),H=g(257),bps=g(258)||1,cmp=g(259)||1,spp=g(277)||1,fmt=g(339)||1,pred=g(317)||1,plan=g(284)||1;
+  if(!W||!H)throw new Error("TIFF sem dimensões");
+  if(spp>=3||(t[262]&&g(262)===2))throw new Error("é uma imagem (ortomosaico), não um MDT: exporte o modelo de elevação (DEM/MDT) em GeoTIFF");
+  if(![1,5,8,32946,32773].includes(cmp))throw new Error(`compressão ${cmp} não suportada: exporte o MDT em GeoTIFF sem compressão, LZW ou Deflate`);
+  if(![8,16,32,64].includes(bps))throw new Error(`${bps} bits por pixel não suportado`);
+  // georreferência
+  let px2xy;if(t[34264]&&t[34264].length>=8){const M=t[34264];px2xy=(i,j)=>[M[0]*i+M[1]*j+M[3],M[4]*i+M[5]*j+M[7]]}
+  else if(t[33550]&&t[33922]){const [sx,sy]=t[33550],T=t[33922];px2xy=(i,j)=>[T[3]+(i-T[0])*sx,T[4]-(j-T[1])*sy]}
+  else throw new Error("o TIFF não tem georreferência (exporte como GeoTIFF)");
+  const K={};const gk=t[34735];if(gk)for(let i=4;i+3<gk.length&&i<4+gk[3]*4;i+=4){if(gk[i+1]===0)K[gk[i]]=gk[i+3]}
+  const area=(K[1025]||1)===1,mt=K[1024]||0,epsg=K[3072]||K[2048]||0;let zona=null,geogr=mt===2||GEOG.has(epsg);
+  const c0=px2xy(W/2,H/2);if(!mt&&!epsg&&Math.abs(c0[0])<=180&&Math.abs(c0[1])<=90)geogr=true;
+  if(!geogr){const z=zonaEPSG(K[3072]);if(z)zona=z[0]+z[1];else if(K[3072]&&K[3072]!==32767)throw new Error(`projeção EPSG:${K[3072]} não suportada: exporte o MDT em UTM (SIRGAS 2000)`);
+    else if(!(c0[0]>1e5&&c0[0]<9e5&&c0[1]>0&&c0[1]<1e7))throw new Error("coordenadas do MDT fora do padrão UTM: exporte em UTM (SIRGAS 2000)")}
+  const nodata=t[42113]!=null?parseFloat(t[42113]):NaN;
+  // leitura dos pixels amostrados (só os blocos necessários)
+  const B=bps/8,bpp=plan===1?B*spp:B,til=!!t[322],TW=til?g(322):W,TL=til?g(323):(g(278)||H),offs=til?t[324]:t[273],cnts=til?t[325]:t[279];if(!offs)throw new Error("TIFF sem blocos de dados");
+  const acr=Math.ceil(W/TW),st=Math.max(1,Math.ceil(Math.sqrt(W*H/MAXMDT))),meio=Math.floor(st/2),cache=new Map();
+  async function bloco(k){if(cache.has(k))return cache.get(k);if(cache.size>64)cache.clear();
+    const lin=til?TL:Math.min(TL,H-Math.floor(k/acr)*TL),larg=til?TW:W,len=lin*larg*bpp;let u=new Uint8Array(await file.slice(offs[k],offs[k]+cnts[k]).arrayBuffer());
+    u=cmp===5?lzwTIFF(u,len):cmp===8||cmp===32946?await inflar(u):cmp===32773?packbits(u,len):u;
+    const rb=larg*bpp;let dv;
+    if(pred===3){const o=new Uint8Array(len);for(let r=0;r<lin;r++){const row=u.subarray(r*rb,(r+1)*rb).slice();const sd=plan===1?spp:1;for(let i=sd;i<rb;i++)row[i]=(row[i]+row[i-sd])&255;const wc=rb/B;for(let i=0;i<wc;i++)for(let q=0;q<B;q++)o[r*rb+i*B+q]=row[(B-q-1)*wc+i]}dv={v:new DataView(o.buffer),le:true}}
+    else{dv={v:new DataView(u.buffer,u.byteOffset,u.byteLength),le};if(pred===2){const sp=plan===1?spp:1;for(let r=0;r<lin;r++)for(let i=sp;i<larg*sp;i++){const p=r*rb+i*B,q=p-sp*B;
+      if(B===1)u[p]=(u[p]+u[q])&255;else if(B===2)dv.v.setUint16(p,(dv.v.getUint16(p,le)+dv.v.getUint16(q,le))&65535,le);else if(B===4)dv.v.setUint32(p,(dv.v.getUint32(p,le)+dv.v.getUint32(q,le))>>>0,le)}}}
+    const r={dv,larg};cache.set(k,r);return r}
+  const val=(dv,p)=>{const v=dv.v,l=dv.le;return fmt===3?(B===4?v.getFloat32(p,l):v.getFloat64(p,l)):fmt===2?(B===1?v.getInt8(p):B===2?v.getInt16(p,l):B===4?v.getInt32(p,l):Number(v.getBigInt64(p,l))):(B===1?v.getUint8(p):B===2?v.getUint16(p,l):B===4?v.getUint32(p,l):Number(v.getBigUint64(p,l)))};
+  const pts=[];let fora=0;
+  for(let j=meio;j<H;j+=st){for(let i=meio;i<W;i+=st){const k=til?Math.floor(j/TL)*acr+Math.floor(i/TW):Math.floor(j/TL),{dv,larg}=await bloco(k),li=til?j%TL:j-Math.floor(j/TL)*TL,ci=til?i%TW:i;
+      const z=val(dv,(li*larg+ci)*bpp);if(!isFinite(z)||z===nodata||z<-1000||z>9000){fora++;continue}
+      let [x,y]=px2xy(i+(area?0.5:0),j+(area?0.5:0));if(geogr){const u=ll2utm(y,x);x=u[0];y=u[1];zona=zona||u[2]+u[3]}
+      pts.push(["","MDT",Math.round(x*1000)/1000,Math.round(y*1000)/1000,Math.round(z*1000)/1000])}}
+  const px=t[33550]?t[33550][0]:t[34264]?Math.hypot(t[34264][0],t[34264][4]):NaN;
+  return {pts,zona,info:`${I(W)} × ${I(H)} pixels${isFinite(px)?` de ${geogr?N(px*111320,2):N(px,2)} m`:""} · 1 ponto a cada ${st} pixel${st>1?"s":""}${epsg?` · EPSG:${epsg}`:""}${fora?` · ${I(fora)} sem dado`:""}`}}
+async function lerLAS(file){
+  const h=await fatia(file,0,375);if(String.fromCharCode(h.getUint8(0),h.getUint8(1),h.getUint8(2),h.getUint8(3))!=="LASF")throw new Error("não é um arquivo LAS");
+  const vmin=h.getUint8(25),off=h.getUint32(96,true),f0=h.getUint8(104),fmt=f0&63,rl=h.getUint16(105,true);if(f0&128||/\.laz$/i.test(file.name||""))throw new Error("LAZ compactado: exporte a nuvem em LAS (sem compactação)");
+  let n=h.getUint32(107,true);if(vmin>=4&&!n)n=Number(h.getBigUint64(247,true));
+  const sx=h.getFloat64(131,true),sy=h.getFloat64(139,true),sz=h.getFloat64(147,true),ox=h.getFloat64(155,true),oy=h.getFloat64(163,true),oz=h.getFloat64(171,true);
+  const xM=h.getFloat64(179,true),xm=h.getFloat64(187,true),yM=h.getFloat64(195,true),ym=h.getFloat64(203,true),co=fmt<6?15:16,geogr=Math.abs(xM)<=180&&Math.abs(yM)<=90;
+  const cel=Math.max(geogr?5e-6:0.25,Math.sqrt(Math.max(1e-12,(xM-xm)*(yM-ym))/MAXMDT)),nx=Math.max(1,Math.ceil((xM-xm)/cel)+1),ny=Math.max(1,Math.ceil((yM-ym)/cel)+1),nc=nx*ny;
+  if(nc>4e6)throw new Error("nuvem grande demais para ler no navegador");
+  const zt=new Float64Array(nc).fill(Infinity),xt=new Float64Array(nc),yt=new Float64Array(nc),zg=new Float64Array(nc).fill(Infinity),xg=new Float64Array(nc),yg=new Float64Array(nc);let nG=0;
+  const lote=65536;for(let a=0;a<n;a+=lote){const m=Math.min(lote,n-a),v=await fatia(file,off+a*rl,m*rl);
+    for(let k=0;k<m;k++){const p=k*rl,x=v.getInt32(p,true)*sx+ox,y=v.getInt32(p+4,true)*sy+oy,z=v.getInt32(p+8,true)*sz+oz,cl=fmt<6?v.getUint8(p+co)&31:v.getUint8(p+co);
+      if(cl===7||cl===18||!isFinite(z))continue;const c=Math.floor((y-ym)/cel)*nx+Math.floor((x-xm)/cel);if(c<0||c>=nc)continue;
+      if(z<zt[c]){zt[c]=z;xt[c]=x;yt[c]=y}if(cl===2){nG++;if(z<zg[c]){zg[c]=z;xg[c]=x;yg[c]=y}}}}
+  const usaG=nG>n*0.02,Z=usaG?zg:zt,X=usaG?xg:xt,Y=usaG?yg:yt,pts=[];let zona=null;
+  for(let c=0;c<nc;c++){if(Z[c]===Infinity)continue;let x=X[c],y=Y[c];if(geogr){const u=ll2utm(y,x);x=u[0];y=u[1];zona=zona||u[2]+u[3]}pts.push(["",usaG?"SOLO":"LAS",Math.round(x*1000)/1000,Math.round(y*1000)/1000,Math.round(Z[c]*1000)/1000])}
+  return {pts,zona,info:`${I(n)} pontos na nuvem · ${usaG?"classe solo (2)":"ponto mais baixo"} em células de ${geogr?N(cel*111320,2):N(cel,2)} m`}}
+async function lerTerreno(f,file){const tif=/\.tiff?$/i.test(f.n),r=tif?await lerGeoTIFF(file):await lerLAS(file);
+  if(r.pts.length<3)throw new Error("nenhuma cota válida no arquivo");
+  f.k="pontos";f.src=tif?"tif":"las";f.t=tif?"MDT do drone (GeoTIFF)":"Nuvem de pontos (LAS)";f.pts=r.pts.slice(0,30000);f.zona=r.zona;f.info=r.info;f.ruins=0;f.est=f.est||"isolado";if(f.usar==null)f.usar=false;delete f.erro;return r}
+
+/* ---- v160: seções transversais e planilhas de corte e aterro (Excel) ---- */
+function secoes(a,v){const r=calcViv(a,v);if(!r)return null;const g=r.g,cx=r.cx,cy=r.cy;
+  const relevo=Math.min(60,Math.max(Math.abs(g.zC-a.zmin),Math.abs(a.zmax-g.zC))),m=g.ze*relevo+2,U=g.Ao+m,Wd=g.Bo+m;
+  const du=Math.min(10,Math.max(2,Math.round(2*g.Ao/12))),dw=Math.max(0.25,Math.min(1,2*Wd/240)),L=[];let Vc=0,Va=0,ant=null;
+  for(let u=-U,k=0;u<=U+1e-9;u+=du,k++){let Ac=0,Aa=0,fo=0;
+    for(let w=-Wd+dw/2;w<Wd;w+=dw){const x=cx+u*g.cos-w*g.sin,y=cy+u*g.sin+w*g.cos,zt=zTerr(a,x,y),[zd,d]=cotaProj(g,u,w);if(!isFinite(zt)){fo+=dw;continue}
+      if(d===0){const dz=zt-zd;if(dz>0)Ac+=dz*dw;else Aa-=dz*dw}else{const up=zd+d/g.ze,dn=zd-d/g.ze;if(zt>up)Ac+=(zt-up)*dw;else if(zt<dn)Aa+=(dn-zt)*dw}}
+    const ze=zTerr(a,cx+u*g.cos,cy+u*g.sin),[zp]=cotaProj(g,u,0),vc=ant?(ant.Ac+Ac)/2*du:0,va=ant?(ant.Aa+Aa)/2*du:0;Vc+=vc;Va+=va;
+    ant={est:"E"+k,ul:u,u:Math.round((u+U)*100)/100,zt:ze,zp,Ac,Aa,vc,va,Vc,Va,fo};L.push(ant)}
+  return {r,g,du,linhas:L,Vc,Va}}
+function projAtualTopo(){try{const s=rd();if(s&&s.proj){S.proj=s.proj;if(s.cur!==undefined)S.cur=s.cur}}catch(e){}return P()||S.proj.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0]||null}
+function semIsolar(fn){const so=S.soArq;S.soArq=null;try{return fn()}finally{S.soArq=so}}
+function dadosPlanilha(p){return semIsolar(()=>{const a=analisar(p);if(!a.T.length)return null;const cu=p.cu||{},num=x=>+String(x??"").replace(",","."),fat=num(cu.fat)||1.25,pc=num(cu.corte)||0,pa=num(cu.aterro)||0;
+  const vs=(p.viv||[]).map((v,i)=>({v,i,s:secoes(a,v)})).filter(x=>x.s);return {a,p,fat,pc,pa,vs}})}
+const r2=(x,d=2)=>isFinite(x)?Math.round(x*10**d)/10**d:"";
+function folhas(D){const {a,p,fat,pc,pa,vs}=D,nome=x=>x.v.nome||"Viveiro "+(x.i+1);
+  const T=vs.reduce((s,x)=>{const r=x.s.r;s.esp+=r.esp;s.agua+=r.agua;s.c+=r.corte;s.a+=r.aterro;s.sc+=x.s.Vc;s.sa+=x.s.Va;return s},{esp:0,agua:0,c:0,a:0,sc:0,sa:0});
+  const resumo=[["Item","Valor","Unidade"],["Projeto",p.nome||"",""],["Cliente / local",p.local||"",""],["Data do campo",p.data||"",""],["Pontos usados no terreno",a.vis.length,"pontos"],["Área coberta pelo levantamento",r2(a.area/1e4,3),"ha"],
+    ["Cota mínima / máxima do terreno",`${N(a.zmin,2)} / ${N(a.zmax,2)}`,"m"],["Unidades projetadas",vs.length,"un."],["Espelho d'água total",r2(T.esp,0),"m²"],["Volume de água",r2(T.agua,0),"m³"],
+    ["Corte (malha sobre o MDT)",r2(T.c,0),"m³"],["Aterro compactado (malha sobre o MDT)",r2(T.a,0),"m³"],["Fator de compactação",fat,"m³ de corte / m³ de aterro"],["Saldo de terra (corte − aterro × fator)",r2(T.c-T.a*fat,0),"m³"],
+    ["Corte (seções transversais)",r2(T.sc,0),"m³"],["Aterro (seções transversais)",r2(T.sa,0),"m³"],["Preço do corte",pc,"R$/m³"],["Preço do aterro compactado",pa,"R$/m³"],["Custo da terraplenagem",r2(T.c*pc+T.a*pa,2),"R$"],
+    ["Método","Corte e aterro pela diferença entre o terreno (triângulos do levantamento/MDT) e o projeto de cada viveiro (fundo com declividade, taludes, crista e diques), em malha; conferência pelas seções transversais (média das áreas extremas).",""]];
+  const viv=[["Viveiro","Tipo","Comprimento (m)","Largura (m)","Diâmetro (m)","Lâmina (m)","Borda livre (m)","Talude interno (H:1V)","Talude externo (H:1V)","Crista (m)","Declividade do fundo (%)","Cota do fundo (m)","Cota da água (m)","Cota da crista (m)","Centro E (m)","Centro N (m)","Rotação (°)","Espelho (m²)","Água (m³)","Corte (m³)","Aterro (m³)","Saldo (m³)","Corte nas seções (m³)","Aterro nas seções (m³)","Drenagem","Fora do levantamento (%)","Custo (R$)"]];
+  for(const x of vs){const r=x.s.r,g=r.g;viv.push([nome(x),TIPV[g.tipo]||TIPV.esc,g.circ?"":r2(g.L),g.circ?"":r2(g.W),g.circ?r2(g.D):"",r2(g.h),r2(g.bl),r2(g.zi),r2(g.ze),r2(g.c),r2(g.dec),r2(g.zF),r2(g.zA),r2(g.zC),r2(+x.v.E),r2(+x.v.N),r2(+x.v.rot||0,1),r2(r.esp,0),r2(r.agua,0),r2(r.corte,1),r2(r.aterro,1),r2(r.corte-r.aterro*fat,1),r2(x.s.Vc,1),r2(x.s.Va,1),
+    isFinite(r.jus)?(r.jus<r.zDreno-0.3?"gravidade":"bomba"):"",r2(r.fora/Math.max(1,r.fora+r.dentro)*100,1),r2(r.corte*pc+r.aterro*pa,2)])}
+  const sec=[["Viveiro","Estaca","Distância (m)","Cota do terreno no eixo (m)","Cota do projeto no eixo (m)","Corte (+) / aterro (−) no eixo (m)","Área de corte (m²)","Área de aterro (m²)","Volume de corte (m³)","Volume de aterro (m³)","Corte acumulado (m³)","Aterro acumulado (m³)"]];
+  for(const x of vs){for(const l of x.s.linhas)sec.push([nome(x),l.est,l.u,r2(l.zt,3),r2(l.zp,3),isFinite(l.zt)?r2(l.zt-l.zp,3):"",r2(l.Ac,2),r2(l.Aa,2),r2(l.vc,1),r2(l.va,1),r2(l.Vc,1),r2(l.Va,1)]);sec.push([nome(x)+" · total","","","","","","","",r2(x.s.Vc,1),r2(x.s.Va,1),"",""])}
+  const ter=[["Nome","Código","Este (m)","Norte (m)","Cota (m)"]];for(const q of a.vis.slice(0,60000))ter.push([q[0],q[1],q[2],q[3],q[4]]);
+  return [["Resumo",resumo],["Viveiros",viv],["Seções",sec],["Terreno",ter]]}
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=t[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}})();
+function zipar(arqs){const te=new TextEncoder(),partes=[],cen=[];let off=0;
+  for(const [nome,txt] of arqs){const n=te.encode(nome),d=te.encode(txt),c=CRC(d),h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x800,true);h.setUint32(14,c,true);h.setUint32(18,d.length,true);h.setUint32(22,d.length,true);h.setUint16(26,n.length,true);
+    partes.push(new Uint8Array(h.buffer),n,d);const e=new DataView(new ArrayBuffer(46));e.setUint32(0,0x02014b50,true);e.setUint16(4,20,true);e.setUint16(6,20,true);e.setUint16(8,0x800,true);
+    e.setUint32(16,c,true);e.setUint32(20,d.length,true);e.setUint32(24,d.length,true);e.setUint16(28,n.length,true);e.setUint32(42,off,true);cen.push(new Uint8Array(e.buffer),n);off+=30+n.length+d.length}
+  const tc=cen.reduce((s,x)=>s+x.length,0),f=new DataView(new ArrayBuffer(22));f.setUint32(0,0x06054b50,true);f.setUint16(8,arqs.length,true);f.setUint16(10,arqs.length,true);f.setUint32(12,tc,true);f.setUint32(16,off,true);
+  return new Blob([...partes,...cen,new Uint8Array(f.buffer)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})}
+function xlsx(fs){const x=s=>String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c])).replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,""),col=i=>{let s="";i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+  const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',NS='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const folha=L=>{const nc=Math.max(...L.map(r=>r.length));return `${H}<worksheet ${NS}><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="34" customWidth="1"/>${nc>1?`<col min="2" max="${nc}" width="16" customWidth="1"/>`:""}</cols><sheetData>${L.map((r,i)=>`<row r="${i+1}">${r.map((v,j)=>{if(v==null||v==="")return "";const ref=col(j)+(i+1),s=i===0?' s="1"':"";return typeof v==="number"&&isFinite(v)?`<c r="${ref}"${s}><v>${v}</v></c>`:`<c r="${ref}" t="inlineStr"${s}><is><t xml:space="preserve">${x(v)}</t></is></c>`}).join("")}</row>`).join("")}</sheetData></worksheet>`};
+  const A=[["[Content_Types].xml",`${H}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${fs.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`],
+    ["_rels/.rels",`${H}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+    ["xl/workbook.xml",`${H}<workbook ${NS}><sheets>${fs.map(([n],i)=>`<sheet name="${x(n.slice(0,31))}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join("")}</sheets></workbook>`],
+    ["xl/_rels/workbook.xml.rels",`${H}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${fs.map((_,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join("")}<Relationship Id="rId${fs.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+    ["xl/styles.xml",`${H}<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFDCEFE7"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+    ...fs.map(([,L],i)=>[`xl/worksheets/sheet${i+1}.xml`,folha(L)])];
+  return zipar(A)}
+function dxfProjeto(D){const {a}=D,o=[],put=(...v)=>o.push(...v.map(String)),pl=(lay,pts,z,fech)=>{put("0","POLYLINE","8",lay,"66","1","10","0","20","0","30",r2(z,3),"70",fech?"1":"0");for(const [x,y] of pts)put("0","VERTEX","8",lay,"10",x.toFixed(3),"20",y.toFixed(3),"30",r2(z,3));put("0","SEQEND")};
+  const base=dxf(a).replace(/\r\n0\r\nENDSEC\r\n0\r\nEOF$/,"").split("\r\n");for(const l of base)o.push(l);
+  for(const x of D.vs){const g=x.s.r.g,cx=+x.v.E,cy=+x.v.N,map=(u,w)=>[cx+u*g.cos-w*g.sin,cy+u*g.sin+w*g.cos];
+    pl("VIVEIRO_EIXO",[map(-g.Ao,0),map(g.Ao,0)],g.zF,false);
+    put("0","TEXT","8","VIVEIRO_NOME","10",cx.toFixed(3),"20",cy.toFixed(3),"30",r2(g.zA,3),"40",String(Math.max(1,r2(g.Bf/3,1))),"1",(x.v.nome||"V"+(x.i+1)).replace(/[\r\n]/g," "),"72","1","11",cx.toFixed(3),"21",cy.toFixed(3),"31",r2(g.zA,3));
+    for(const l of x.s.linhas){const [px,py]=map(l.ul,g.Bo+2);put("0","TEXT","8","VIVEIRO_ESTACAS","10",px.toFixed(3),"20",py.toFixed(3),"30","0","40","0.8","1",`${l.est} ${r2(l.zt-l.zp,2)}`)}}
+  put("0","ENDSEC","0","EOF");return o.join("\r\n")}
+async function gerarPlanilhas(p,salvarPasta){const D=dadosPlanilha(p);if(!D||!D.vs.length)throw new Error("Desenhe pelo menos um viveiro com cota de fundo sobre o levantamento.");
+  const blob=xlsx(folhas(D)),nome=slug(p.nome)+"_corte_aterro.xlsx";
+  if(salvarPasta&&p.arm==="fs"&&raiz&&raizOk)await gravar(p,"Processados/"+nome,blob);await baixar(nome,blob,blob.type);return nome}
+window.topoPlanilhas=async()=>{const p=projAtualTopo();if(!p)throw new Error("Nenhum levantamento aberto.");return gerarPlanilhas(p,true)};
+window.topoDXFProjeto=async()=>{const p=projAtualTopo();if(!p)throw new Error("Nenhum levantamento aberto.");const D=dadosPlanilha(p);if(!D)throw new Error("O levantamento não tem superfície.");const nome=slug(p.nome)+"_projeto.dxf";await baixar(nome,dxfProjeto(D),"application/dxf");return nome};
+window.topoSecoes=()=>{try{const p=projAtualTopo();if(!p)return null;const D=dadosPlanilha(p);if(!D)return null;return {fat:D.fat,vs:D.vs.map(x=>({nome:x.v.nome||"Viveiro "+(x.i+1),du:x.s.du,Vc:x.s.Vc,Va:x.s.Va,corte:x.s.r.corte,aterro:x.s.r.aterro,linhas:x.s.linhas}))}}catch(e){console.warn(e);return null}};
+
+/* ---- v160: parâmetros digitados na Calculadora aplicados aos viveiros desenhados ---- */
+function dispor(an,base,qt,mx,my){const g=geo({...base,zF:0}),pu=g.circ?2*g.Ao+1:2*g.Ai+g.c,pw=g.circ?2*g.Ao+1:2*g.Bi+g.c;let rows=Math.max(1,Math.round(Math.sqrt(qt*pw/pu))),cols=Math.ceil(qt/rows);rows=Math.ceil(qt/cols);const L=[];let k=0;
+  for(let i=0;i<rows&&k<qt;i++)for(let j=0;j<cols&&k<qt;j++){k++;const du=(i-(rows-1)/2)*pu,dw=(j-(cols-1)/2)*pw;L.push([Math.round((mx+du*g.cos-dw*g.sin)*100)/100,Math.round((my+du*g.sin+dw*g.cos)*100)/100])}return {L,rows,cols}}
+window.topoAplicar=q=>{const p=projAtualTopo();if(!p||!(p.viv||[]).length)return {ok:false,msg:"Nenhum viveiro desenhado no levantamento."};
+  return semIsolar(()=>{const an=analisar(p);if(!an.T.length)return {ok:false,msg:"O levantamento não tem superfície."};const fat=+String((p.cu||{}).fat||"1,25").replace(",",".")||1.25;
+    const mudouTam=["L","W","D"].some(k=>isFinite(q[k])&&p.viv.some(v=>Math.abs(nv(v,k)-q[k])>0.05));
+    for(const v of p.viv)for(const k of ["L","W","D","h","bl","zi","ze","c","dec"])if(isFinite(q[k])&&!(v.tipo==="elev"&&["L","W","zi","dec"].includes(k))&&!(v.tipo!=="elev"&&k==="D"))v[k]=Math.round(q[k]*1000)/1000;
+    if(mudouTam){const mx=p.viv.reduce((s,v)=>s+ +v.E,0)/p.viv.length,my=p.viv.reduce((s,v)=>s+ +v.N,0)/p.viv.length,{L}=dispor(an,{...VIV0,...p.viv[0]},p.viv.length,mx,my);p.viv.forEach((v,i)=>{v.E=L[i][0];v.N=L[i][1]})}
+    let sem=0;for(const v of p.viv){const z=equilibrar(an,v,fat);if(isFinite(z))v.zF=z;else sem++}
+    p.res=resumoViv(p,an);p.em=Date.now();salvar();try{if(!el.hidden)draw()}catch(e){}
+    return {ok:true,n:p.viv.length,sem,mudouTam,msg:`${p.viv.length} unidade(s) do levantamento recalculada(s) com os parâmetros da Calculadora${mudouTam?" e redistribuída(s) sobre o terreno":""}: corte ${I(p.res.corte)} m³ e aterro ${I(p.res.aterro)} m³${sem?` · ${sem} sem cota de equilíbrio dentro do levantamento`:""}.`}})};
 
 /* ---- telas ---- */
 function listaHTML(){
@@ -7646,9 +7805,9 @@ function projetoHTML(p){
     <li><b>Coletora do RTK (ComNav, CHC, Emlid, etc.):</b> exporte o levantamento em TXT ou CSV (nome, código, N, E, cota) e, se for fazer PPP, o arquivo bruto/RINEX da base. Ligue a coletora no computador pelo cabo USB, escolha "Transferência de arquivos" no aviso da coletora e clique em <b>Descarregar do equipamento</b>: selecione a pasta da obra (normalmente em Armazenamento interno/SurveyMaster ou 7Star).</li>
     <li><b>Receptor (base/rover):</b> ligue o receptor pelo cabo USB; ele aparece como um disco. Selecione a pasta com os arquivos brutos do dia.</li>
     <li><b>Drone (DJI e outros):</b> tire o cartão de memória e coloque no leitor do computador, ou ligue o controle. Selecione a pasta DCIM do voo: fotos, arquivos .MRK/.OBS (PPK) e, se já processou, o ortomosaico, o MDT (GeoTIFF) ou a nuvem de pontos (LAS).</li>
-    <li>O app copia tudo para a pasta deste projeto, separado em <b>RTK</b>, <b>Drone</b> e <b>Outros</b>, e não copia de novo o que já estiver lá. Os arquivos TXT/CSV de pontos são lidos na hora e viram planta, curvas de nível e volumes.</li>
+    <li>O app copia tudo para a pasta deste projeto, separado em <b>RTK</b>, <b>Drone</b> e <b>Outros</b>, e não copia de novo o que já estiver lá. Os arquivos TXT/CSV de pontos, o MDT do drone em GeoTIFF e a nuvem de pontos em LAS são lidos na hora e viram planta, curvas de nível e volumes (o MDT e a nuvem são amostrados em até 20 mil pontos; na nuvem, o app usa a classe solo ou o ponto mais baixo de cada célula).</li>
     <li>No celular, use <b>Adicionar arquivos</b> e escolha os arquivos no app Arquivos/Drive.</li></ol></details>
-   ${p.arquivos.length?Object.entries(porSub).map(([sub,fs])=>`<div class="subhead">${E(sub)} · ${fs.length} arquivo${fs.length===1?"":"s"}</div><div class="scroll"><table class="pj-tab"><thead><tr><th>Arquivo</th><th>Tipo</th><th class="num">Tamanho</th><th>Origem</th><th></th></tr></thead><tbody>${fs.slice(0,300).map(f=>`<tr><td><b>${E(f.n)}</b>${f.pts?`<small>${I(f.pts.length)} pontos${f.zona?" · UTM "+E(f.zona):""}${f.ruins?` · ${I(f.ruins)} linhas ignoradas`:""}</small>`:""}</td><td>${E(f.t)}</td><td class="num">${tam(f.s||0)}</td><td>${E(f.o||"")}<small>${dataBR(f.m)}</small></td><td><div class="pj-btns">${f.k==="pontos"?`${f.est?`<span class="us-st ${f.est==="isolado"?"wait":"ok"}">${f.est==="isolado"?"📥 isolado":"📌 em evidência"}</span>`:""}<button type="button" class="btn${S.soArq===f.p?" solid":""}" data-a="lt-ver" data-id="${S.soArq===f.p?"":E(f.p)}">${S.soArq===f.p?"✕ Fechar":"👁 Ver sozinho"}</button>${f.est==="isolado"?`<button type="button" class="btn" data-a="lt-ev" data-id="${E(f.p)}">📌 Evidência</button>`:""}${f.est?`<button type="button" class="btn" data-a="lt-int" data-id="${E(f.p)}">✅ Integrar</button>`:`<button type="button" class="btn" data-a="lt-iso" data-id="${E(f.p)}">↩ Isolar</button>`}${f.est!=="isolado"?`<label class="tp-chk"><input type="checkbox" data-usar="${E(f.p)}"${f.usar!==false?" checked":""}> usar</label>`:""}<button type="button" class="btn" data-a="colunas" data-id="${E(f.p)}">Colunas</button>`:""}<button type="button" class="btn" data-a="baixar" data-id="${E(f.p)}">Baixar</button><button type="button" class="btn" data-a="remover" data-id="${E(f.p)}">Remover</button></div></td></tr>${S.col===f.p?`<tr><td colspan="5">${colunasHTML(f)}</td></tr>`:""}`).join("")}${fs.length>300?`<tr><td colspan="5" class="muted">… e mais ${fs.length-300} arquivos</td></tr>`:""}</tbody></table></div>`).join(""):`<p class="muted">A pasta do projeto está vazia. Ligue o equipamento no computador e clique em <b>Descarregar do equipamento</b>.</p>`}
+   ${p.arquivos.length?Object.entries(porSub).map(([sub,fs])=>`<div class="subhead">${E(sub)} · ${fs.length} arquivo${fs.length===1?"":"s"}</div><div class="scroll"><table class="pj-tab"><thead><tr><th>Arquivo</th><th>Tipo</th><th class="num">Tamanho</th><th>Origem</th><th></th></tr></thead><tbody>${fs.slice(0,300).map(f=>`<tr><td><b>${E(f.n)}</b>${f.pts?`<small>${I(f.pts.length)} pontos${f.zona?" · UTM "+E(f.zona):""}${f.ruins?` · ${I(f.ruins)} linhas ignoradas`:""}${f.info?` · ${E(f.info)}`:""}</small>`:""}${f.erro?`<small class="tp-err">⚠️ ${E(f.erro)}</small>`:""}</td><td>${E(f.t)}</td><td class="num">${tam(f.s||0)}</td><td>${E(f.o||"")}<small>${dataBR(f.m)}</small></td><td><div class="pj-btns">${f.k==="pontos"?`${f.est?`<span class="us-st ${f.est==="isolado"?"wait":"ok"}">${f.est==="isolado"?"📥 isolado":"📌 em evidência"}</span>`:""}<button type="button" class="btn${S.soArq===f.p?" solid":""}" data-a="lt-ver" data-id="${S.soArq===f.p?"":E(f.p)}">${S.soArq===f.p?"✕ Fechar":"👁 Ver sozinho"}</button>${f.est==="isolado"?`<button type="button" class="btn" data-a="lt-ev" data-id="${E(f.p)}">📌 Evidência</button>`:""}${f.est?`<button type="button" class="btn" data-a="lt-int" data-id="${E(f.p)}">✅ Integrar</button>`:`<button type="button" class="btn" data-a="lt-iso" data-id="${E(f.p)}">↩ Isolar</button>`}${f.est!=="isolado"?`<label class="tp-chk"><input type="checkbox" data-usar="${E(f.p)}"${f.usar!==false?" checked":""}> usar</label>`:""}${f.src?"":`<button type="button" class="btn" data-a="colunas" data-id="${E(f.p)}">Colunas</button>`}`:/\.(tiff?|las)$/i.test(f.n)&&!/ortomosaico/.test(f.erro||"")?`<button type="button" class="btn solid" data-a="ler-mdt" data-id="${E(f.p)}">📐 Ler como terreno</button>`:""}<button type="button" class="btn" data-a="baixar" data-id="${E(f.p)}">Baixar</button><button type="button" class="btn" data-a="remover" data-id="${E(f.p)}">Remover</button></div></td></tr>${S.col===f.p?`<tr><td colspan="5">${colunasHTML(f)}</td></tr>`:""}`).join("")}${fs.length>300?`<tr><td colspan="5" class="muted">… e mais ${fs.length-300} arquivos</td></tr>`:""}</tbody></table></div>`).join(""):`<p class="muted">A pasta do projeto está vazia. Ligue o equipamento no computador e clique em <b>Descarregar do equipamento</b>.</p>`}
   </div></section>`+analiseHTML(p)}
 function colunasHTML(f){
   const m=f.map||{},cols=f.prev&&f.prev[0]?f.prev[0].length:6,opt=k=>`<select class="lv-sel" data-cm="${k}"><option value="-1">—</option>${Array.from({length:cols},(_,j)=>`<option value="${j}"${m[k]===j?" selected":""}>Coluna ${j+1}</option>`).join("")}</select>`;
@@ -7658,7 +7817,7 @@ function colunasHTML(f){
 let naoGrava=false;
 function analiseHTML(p){
   const tem=p.arquivos.some(f=>f.k==="pontos"&&f.pts&&f.pts.length);
-  if(!tem)return `<section class="card wide"><div class="card-head"><h2>Planta, curvas de nível e volumes<span>aparece quando houver um arquivo de pontos (TXT/CSV)</span></h2></div><div class="pj-body"><p class="muted">Os arquivos de fotos, GeoTIFF, nuvem de pontos e RINEX ficam guardados na pasta do projeto. Para a planta e as curvas, descarregue o TXT/CSV de pontos exportado da coletora (ou a nuvem de pontos do drone exportada como XYZ/CSV).</p></div></section>`;
+  if(!tem)return `<section class="card wide"><div class="card-head"><h2>Planta, curvas de nível e volumes<span>aparece quando houver um arquivo de pontos (TXT/CSV)</span></h2></div><div class="pj-body"><p class="muted">Para a planta, as curvas e o projeto dos viveiros, descarregue o TXT/CSV de pontos exportado da coletora, o MDT do drone em GeoTIFF ou a nuvem de pontos em LAS: o app lê os três direto. Fotos, ortomosaico, RINEX e arquivos brutos ficam guardados na pasta do projeto.</p></div></section>`;
   const a=analisar(p),c=p.cfg,h=c.ref===""||c.ref==null?NaN:+c.ref,vol=isFinite(h)&&a.T.length?volPlano(a,h):null;
   naoGrava=!!S.soArq||p.arquivos.some(f=>f.est==="evidencia"&&f.usar!==false);if(!naoGrava)p.area=a.area;
   const cods=Object.entries(a.cods).sort((x,y)=>y[1]-x[1]),excl=new Set(c.excl||[]);
@@ -7702,6 +7861,7 @@ async function importar(p,itens,origem){
         if(tp.k==="pontos"&&file.size<40e6){const txt=await file.text(),L=linhas(txt);const d=detectar(L.rows);const r=extrair(L.rows,d.m,d.head);
           f.prev=L.rows.slice(0,4).map(x=>x.slice(0,9).map(c=>String(c).slice(0,18)));f.map=d.m;f.head=d.head;
           if(r.pts.length>=3){f.pts=r.pts.slice(0,30000);f.ruins=r.ruins;f.zona=r.zona;if(r.pts.length>30000)f.ruins+=r.pts.length-30000}else{f.k="outro";f.t="Texto (sem pontos reconhecidos)"}}
+        if(f.k!=="pontos"&&(/\.tiff?$/i.test(nome)||/\.la[sz]$/i.test(nome))){try{aviso(`Lendo ${nome} como terreno…`);await lerTerreno(f,file)}catch(e){f.erro=e.message}}
         if(f.k!=="pontos"){delete f.est;delete f.usar}
         const i=p.arquivos.findIndex(x=>x.p===cam);if(i>=0)p.arquivos[i]=f;else p.arquivos.push(f);novos++;if(f.k==="pontos"&&f.pts)S.soArq=cam}catch(e){erros++;console.warn(e)}}
     p.em=Date.now();p.v=(p.v||0)+1;cache=null;vb=null;salvar();
@@ -7757,6 +7917,9 @@ async function acao(a,id){
   if(a==="col-fechar"){S.col=null;draw();return}
   if(a==="col-ok"){const f=p.arquivos.find(x=>x.p===id);if(!f)return;const b=await ler(p,f.p),L=linhas(await b.text()),r=extrair(L.rows,f.map,f.head);
     if(r.pts.length<3){aviso("Com essas colunas não saíram pontos válidos. Confira Este, Norte e Cota.");return}f.k="pontos";f.t="Pontos (TXT/CSV)";f.pts=r.pts.slice(0,30000);f.ruins=r.ruins;f.zona=r.zona;p.v++;cache=null;S.col=null;vb=null;salvar();aviso(`${I(f.pts.length)} pontos relidos de ${f.n}.`);draw();return}
+  if(a==="planilhas"){aviso("Montando as planilhas…");const nome=await gerarPlanilhas(p,true);aviso(`${nome} pronto${p.arm==="fs"&&raiz&&raizOk?` e salvo em ${p.pasta}/Processados`:""}: resumo, viveiros, seções transversais e pontos do terreno.`);return}
+  if(a==="dxf-proj"){const D=dadosPlanilha(p);if(!D){aviso("O levantamento ainda não tem superfície.");return}const nome=slug(p.nome)+"_projeto.dxf",data=dxfProjeto(D);if(p.arm==="fs"&&raiz&&raizOk)await gravar(p,"Processados/"+nome,new Blob([data]));await baixar(nome,data,"application/dxf");aviso(`${nome} pronto: curvas de nível, pontos, viveiros (crista, água e fundo), eixos e estacas.`);return}
+  if(a==="ler-mdt"){const f=p.arquivos.find(x=>x.p===id);if(!f)return;aviso(`Lendo ${f.n} como terreno…`);try{const r=await lerTerreno(f,await ler(p,f.p));p.v++;cache=null;vb=null;S.soArq=f.p;salvar();aviso(`${f.n}: ${I(f.pts.length)} pontos de terreno (${r.info}).`)}catch(e){aviso(`${f.n}: ${e.message}`)}draw();return}
   if(a.startsWith("viv-")){const an=analisar(p);p.viv=p.viv||[];const v=p.viv.find(x=>x.id===id)||p.viv.find(x=>x.id===S.viv);
     if(a==="viv-novo"){const W=Math.max(...an.X),H=Math.max(...an.Y),n={id:"v"+Date.now().toString(36),nome:"Viveiro "+(p.viv.length+1),...VIV0,E:Math.round((an.ox+W/2)*100)/100,N:Math.round((an.oy+H/2)*100)/100,zF:""};
       const fat=+String((p.cu||{}).fat||"1,25").replace(",",".")||1.25,z=equilibrar(an,n,fat);n.zF=isFinite(z)?z:Math.round((an.zmed-1)*100)/100;p.viv.push(n);S.viv=n.id;salvar();aviso(`${n.nome} criado no centro da planta com fundo na cota ${N(n.zF,2)} m${isFinite(z)?" (corte e aterro equilibrados)":""}. Clique em “Posicionar clicando na planta” para mudar o lugar.`);draw();return}
@@ -7794,7 +7957,7 @@ async function acao(a,id){
 el.addEventListener("pointermove",e=>{const t=e.target.closest("[data-tt]");if(t&&window.showTip)showTip(e.clientX,e.clientY,t.dataset.tt,t.dataset.tv);else if(window.hideTip)hideTip()});
 el.addEventListener("pointerleave",()=>{window.hideTip&&hideTip()});
 window.drawTopo=async()=>{try{const s=rd();if(s&&s.proj){S.proj=s.proj;if(s.cur!==undefined)S.cur=s.cur}}catch(e){}await carregarRaiz();draw()};
-window.topoDebug={linhas,detectar,extrair,delaunay,analisar,volPlano,ll2utm,calcViv,equilibrar,zTerr};
+window.topoDebug={linhas,detectar,extrair,delaunay,analisar,volPlano,ll2utm,calcViv,equilibrar,zTerr,lerGeoTIFF,lerLAS,lzwTIFF,secoes,xlsx,zipar};
 })();
 
 </script>
@@ -10068,7 +10231,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v159";
+  const APP_VERSAO="ras-v160";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11207,7 +11370,7 @@ function calc(){
   o.aprov=val("aprov",65);o.rel=Math.max(1,val("rel",3));o.rasa=A("rasa",S.rasa);o.decl=val("decl",0.5);
   const tha=TP&&isFinite(TP.ha)&&TP.ha>0?TP.ha:NaN;o.areaDisp=A("areaDisp",isFinite(tha)?tha:(cam?10:2),isFinite(tha)?"Levantamentos":"");
   let aViv=A("aViv",o.elev?Math.round(Math.PI*25):o.tipo==="alv"?90:o.tipo==="rev"?300:S.aViv),n,Alam;const dim=V.dim==="topo"&&TP&&TP.n>0?"topo":V.dim==="meta"?"meta":"area";o.dim=dim;
-  if(dim==="topo"){n=TP.n;Alam=TP.esp>0?TP.esp:n*aViv;aViv=Alam/n}
+  if(dim==="topo"){n=TP.n;const aS=(TP.esp>0?TP.esp:n*aViv)/n;aViv=A("aViv",Math.round(aS),"Levantamentos");Alam=n*aViv}
   else if(dim==="meta"){o.meta=A("meta",cam?40000:50000);Alam=o.meta/(o.Bm2*o.ciclos);n=Math.max(1,Math.ceil(Alam/aViv-1e-9));aViv=Alam/n}
   else{const Ld=o.areaDisp*1e4*o.aprov/100;n=Math.max(1,Math.floor(Ld/aViv+1e-9));if(Ld<aViv){aViv=Ld}Alam=n*aViv}
   o.n=n;o.aViv=aViv;o.Alam=Alam;o.ha=Alam/1e4;
@@ -11244,9 +11407,17 @@ function calc(){
     o.Ltot=o.cols*(o.Wc+1)+2;o.Wtot=o.rows*(o.Lc+1)+2;o.Afoot=o.Ltot*o.Wtot;o.decap=n*pad*0.15;o.camadas=Math.max(1,Math.ceil((o.declT/100*Ls/2)/0.25-1e-9));o.taludeExt=0;o.bi=o.be=0}
   // projeto medido na aba Levantamentos: geometria e terraplenagem reais de cada unidade
   if(dim==="topo"&&TV.length){const av=k=>{const a=TV.map(x=>x[k]).filter(isFinite);return a.length?a.reduce((x,y)=>x+y,0)/a.length:NaN};o.medido=true;
-    o.Lw=av("L");o.Ww=av("W");o.hm=av("h");o.decl=av("dec")||0;o.rasa=o.hm-o.Lw*o.decl/200;o.funda=o.hm+o.Lw*o.decl/200;o.ti=av("zi")||0;o.te=av("ze");o.bl=av("bl");o.cr=av("c");o.Hd=o.hm+o.bl;
+    const r2v=x=>Math.round(x*100)/100,sL=av("L"),sW=av("W"),sh=av("h"),sd=av("dec")||0,sti=av("zi")||0,ste=av("ze"),sbl=av("bl"),scr=av("c");
+    o.decl=o.elev?0:(A("decl",r2v(sd),"Levantamentos"),String(V.decl??"").trim()!==""&&String(V.decl)!==String(D0.decl)?val("decl",sd):r2v(sd));o.ti=o.elev||o.tipo==="alv"?0:A("ti",r2v(sti),"Levantamentos");o.te=A("te",r2v(ste),"Levantamentos");o.bl=A("bl",r2v(sbl),"Levantamentos");o.cr=A("crista",r2v(scr),"Levantamentos");
+    const dig=k=>String(V[k]??"").trim()!==""&&String(V[k])!==String(D0[k]??"");A("rel",r2v(sL/sW),"Levantamentos");o.rel=dig("rel")?Math.max(1,val("rel",3)):r2v(sL/sW);const usrDim=dig("aViv")||dig("rel");
+    if(o.elev){o.Lw=o.Ww=usrDim?Math.sqrt(4*aViv/Math.PI):sL}else if(usrDim){o.Ww=Math.sqrt(aViv/o.rel);o.Lw=o.Ww*o.rel}else{o.Lw=sL;o.Ww=sW}
+    o.rasa=A("rasa",r2v(sh-sL*sd/200),"Levantamentos");o.hm=o.rasa+o.Lw*o.decl/200;o.funda=o.rasa+o.Lw*o.decl/100;o.Hd=o.hm+o.bl;
     if(o.elev){o.D=o.Lw;o.Lb=o.Wb=o.D}else{o.Lb=o.Lw-2*o.ti*o.hm;o.Wb=o.Ww-2*o.ti*o.hm}
-    o.V1=TP.agua/n;o.Vt=TP.agua;o.corte=o.corteT=TP.corte;o.aterro=o.aterroT=TP.aterro;o.extra=0;o.mov=TP.corte+TP.aterro;o.grav=TV.filter(x=>x.grav===true).length}
+    const dif=(a,b)=>isFinite(a)&&isFinite(b)&&Math.abs(a-b)>Math.max(0.02,Math.abs(b)*0.02);o.sugLev={L:sL,W:sW,h:sh,dec:sd,zi:sti,ze:ste,bl:sbl,c:scr};
+    o.difLev=[["comprimento",o.Lw,sL],["largura",o.Ww,sW],["lâmina",o.hm,sh],["declividade",o.decl,sd],["talude interno",o.ti,sti],["talude externo",o.te,ste],["borda livre",o.bl,sbl],["crista",o.cr,scr]].filter(([k,a,b])=>!(o.elev&&["largura","declividade","talude interno"].includes(k))&&!(o.tipo==="alv"&&k==="talude interno")&&dif(a,b)).map(x=>x[0]);
+    if(o.difLev.length){o.V1=o.elev?Math.PI*o.Lw*o.Lw/4*o.hm:o.TQ?o.Lw*o.Ww*o.hm:vol(o.Lb,o.Wb,o.ti,o.hm);o.Vt=o.V1*n;o.warn.unshift(["al",`Os parâmetros digitados (${o.difLev.join(", ")}) diferem dos viveiros desenhados no levantamento. O corte e o aterro abaixo ainda são os do desenho: clique em “🗺 Aplicar aos viveiros do levantamento” para recalcular sobre o terreno.`])}
+    else{o.V1=TP.agua/n;o.Vt=TP.agua}
+    o.corte=o.corteT=TP.corte;o.aterro=o.aterroT=TP.aterro;o.extra=0;o.mov=TP.corte+TP.aterro;o.grav=TV.filter(x=>x.grav===true).length}
   if(o.declT>4)o.warn.push(["al",`Terreno com ${nf(o.declT,1)} % de declividade: acima de 4 % dificulta viveiros grandes e aumenta corte e aterro (Embrapa).`]);
   if(o.arg<25&&!o.lin&&o.tipo!=="alv")o.warn.push(["cr",`Solo com ${nf(o.arg,0)} % de argila: abaixo de 25 % não segura água (SENAR). Preveja camada de argila compactada (≥ 20 cm), bentonita ou geomembrana.`]);
   // clima e balanço hídrico
@@ -11383,7 +11554,7 @@ const SRCN={Local:"📍 Local e viabilidade",Levantamentos:"🗺 Levantamentos",
 function campo(k,o){const f=FLD[k];if(f[1]==="sel"){const op=f[2]();return `<div class="vv-f" data-vf="${k}"><label for="vv-${k}">${f[0]}</label><div class="vv-i"><select id="vv-${k}" data-vv="${k}">${Object.entries(op).map(([v,t])=>`<option value="${v}"${V[k]===v?" selected":""}>${E(t)}</option>`).join("")}</select></div></div>`}
   return `<div class="vv-f" data-vf="${k}"><label for="vv-${k}">${f[0]}</label><div class="vv-i"><input id="vv-${k}" data-vv="${k}" inputmode="decimal" value="${E(V[k]||"")}" placeholder="auto"><u>${f[1]}</u></div><small class="src" data-vsrc="${k}"></small>${f[2]?`<small>${f[2]}</small>`:""}</div>`}
 const view=()=>document.getElementById("view-calc");
-let el=null,tm=null;
+let el=null,tm=null,vvLevMsg="";
 function stCls(v,fx){if(!isFinite(v)||!fx)return "nd";const [a,b]=fx;if((a!=null&&v<a)||(b!=null&&v>b)){const m=a!=null&&v<a*0.8||b!=null&&v>b*1.25;return m?"cr":"al"}return "ok"}
 const fxTxt=fx=>!fx?"—":fx[0]!=null&&fx[1]!=null?`${nf(fx[0],1)} a ${nf(fx[1],1)}`:fx[0]!=null?`> ${nf(fx[0],1)}`:`< ${nf(fx[1],3)}`;
 function limnHTML(o){return `<div class="scroll"><table class="vv-t rsp"><thead><tr><th>Parâmetro limnológico</th><th>Valor</th><th>Faixa para ${E(o.S.n)}</th><th>AquaNictemeral</th><th>Situação</th></tr></thead><tbody>${Object.entries(WQ).map(([k,w])=>{const q=o.wq[k];
@@ -11399,7 +11570,7 @@ function build(){const v=view();if(!v)return;
   el.hidden=!on;if(!on)return;
   const o=calc();
   el.innerHTML=`<section class="card"><div class="card-head"><h2>🏞 Projeto de viveiros escavados<span>${T(()=>projAtual()?"Projeto "+E(projAtual().nome)+" · ":"","")}${E(o.S.n)} · ${E(SIS[o.sis])}</span></h2></div><div class="vv-body"><div class="vv-btns"><button type="button" class="btn solid" data-vrel="1">📄 Relatório final do projeto</button><button type="button" class="btn" data-vrel="p">🖨 PDF direto</button>${o.TP?`<a href="#" class="btn" data-vgo2="topo">🗺 Inserir modelo no levantamento</a>`:""}</div><div id="vv-kpi"></div><div id="vv-warn"></div></div></section>
-   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div></div></section>
+   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-levbar"></div><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
   el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;grava();build()});
@@ -11412,7 +11583,8 @@ const kp=(t,v,u,s,c)=>`<div class="${c||""}"><span>${t}</span><b>${v}${u?`<small
 function update(){if(!el||el.hidden)return;const o=calc();
   // placeholders e fontes
   for(const k in o.auto){const i=el.querySelector(`[data-vv="${k}"]`);if(i&&i.tagName==="INPUT")i.placeholder=s2(o.auto[k])||"auto";const s=el.querySelector(`[data-vsrc="${k}"]`);if(s)s.textContent=o.src[k]&&String(V[k]||"").trim()===""?"🔗 "+(SRCN[o.src[k]]||o.src[k]):""}
-  const hid=(k,h)=>{const f=el.querySelector(`[data-vf="${k}"]`);if(f)f.hidden=h};hid("areaDisp",o.dim!=="area");hid("aprov",o.dim!=="area");hid("meta",o.dim!=="meta");hid("aViv",o.dim==="topo");
+  if(o.medido)for(const k of ["rel","decl"]){const i=el.querySelector(`[data-vv="${k}"]`),sr=el.querySelector(`[data-vsrc="${k}"]`);if(i&&String(V[k]??"")===String(D0[k]??"")&&document.activeElement!==i){i.value="";if(sr)sr.textContent="🔗 "+SRCN.Levantamentos}}
+  const hid=(k,h)=>{const f=el.querySelector(`[data-vf="${k}"]`);if(f)f.hidden=h};hid("areaDisp",o.dim!=="area");hid("aprov",o.dim!=="area");hid("meta",o.dim!=="meta");hid("aViv",false);
   if(V.dim==="topo"&&o.dim!=="topo")o.warn.unshift(["al","A aba Levantamentos ainda não tem viveiros projetados: dimensionei pela área disponível."]);
   for(const k in WQ){const c=el.querySelector(`[data-vwq="${k}"]`);if(c){const q=o.wq[k],st=stCls(q.v,q.fx),lim=k==="sal"&&WQ.sal.lim&&WQ.sal.lim[o.S.g];let t={ok:"✓ adequado",al:"⚠️ fora do ideal",cr:"⛔ crítico",nd:"sem dado"}[st];
     if(k==="sal"&&lim&&isFinite(q.v)&&st!=="ok")t=q.v>=lim[0]&&q.v<=lim[1]?"⚠️ tolerável (0,8–35 ‰)":"⛔ fora do tolerável";c.innerHTML=`<span class="vv-st ${st}">${t}</span>`}}
@@ -11422,6 +11594,10 @@ function update(){if(!el||el.hidden)return;const o=calc();
   if(o.cVel>0.9)o.warn.push(["al",`Velocidade no canal de ${nf(o.cVel,2)} m/s: acima de 0,9 m/s erode canal de terra. Reduza a declividade ou revista o canal.`]);
   if(o.tEsv>48)o.warn.push(["al",`Esvaziamento de cada viveiro em ≈ ${nf(o.tEsv,0)} h com dreno de ${o.dDr} mm: o recomendado é 24–48 h (SENAR). Use o diâmetro acima.`]);
   if(isFinite(o.juvDisp)&&o.juvDisp>0&&o.juvDisp<o.juvC)o.warn.push(["al",`A Reprodução tem ${nf(o.juvDisp,0)} formas jovens obtidas, e cada ciclo pede ${nf(o.juvC,0)}: complete com compra.`]);
+  const lb=document.getElementById("vv-levbar");if(lb){const KS=["aViv","rel","rasa","decl","ti","te","bl","crista"],dig=KS.filter(k=>String(V[k]??"").trim()!==""&&String(V[k])!==String(D0[k]??"")).length;
+    lb.innerHTML=o.medido?`<div class="vv-al ${o.difLev.length?"al":"ok"}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="flex:1 1 260px">🗺 ${o.difLev.length?`Medidas digitadas diferentes das do levantamento: <b>${E(o.difLev.join(", "))}</b>. Aplique para redesenhar os ${nf(o.n,0)} ${o.uni}(s) sobre o terreno e recalcular corte, aterro e água.`:`Medidas do viveiro <b>sugeridas pelo levantamento</b> (valores em cinza, marcados 🔗 Levantamentos). Para usar as suas, digite nos campos de “Estrutura” e “Engenharia do viveiro”${dig?" — os valores digitados já batem com o desenho":""}.`}</span><button type="button" class="btn${o.difLev.length?" solid":""}" data-vaplicar="1">🗺 Aplicar aos viveiros do levantamento</button>${dig?`<button type="button" class="btn" data-vlimpar="1">↩ Voltar às sugestões do levantamento</button>`:""}${vvLevMsg?`<small style="flex-basis:100%">${E(vvLevMsg)}</small>`:""}</div>`:"";
+    const ap=lb.querySelector("[data-vaplicar]");if(ap)ap.onclick=()=>{const q={L:o.Lw,W:o.Ww,D:o.elev?o.Lw:NaN,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.cr,dec:o.decl};const r=T(()=>window.topoAplicar?topoAplicar(q):null,null);vvLevMsg=r?r.msg:"Abra a aba Levantamentos e projetos uma vez e tente de novo.";build()};
+    const li=lb.querySelector("[data-vlimpar]");if(li)li.onclick=()=>{KS.forEach(k=>{V[k]=D0[k]??""});grava();vvLevMsg="Valores digitados apagados: o projeto voltou às medidas sugeridas pelo levantamento.";build()}}
   document.getElementById("vv-kpi").innerHTML=`<div class="vv-k">${[
     kp(o.TQ?(o.elev?"Tanques":"Raceways"):"Viveiros",nf(o.n,0),"",`${nf(o.aViv,0)} m² cada${o.medido?" · do levantamento":` · ${o.rows} fila(s)`}`),kp("Lâmina d'água",nf(o.ha,2),"ha",`${nf(o.Vt,0)} m³ de água`),
     kp("Produção",nf(o.prod/1000,1),"t/ano",`${nf(o.ciclos,1)} ciclos de ${nf(o.cicloD,0)} dias`),kp("Biomassa final",nf(o.Bha,0),"kg/ha",o.aerOn?`aeração: ${nf(o.HPinst,0)} HP`:"sem aeração",o.precisaAer&&!o.aerOn?"warn":""),
@@ -11595,7 +11771,7 @@ function relHTML(o){const TP=o.TP,lo=o.lo,LR=LVr(),LV=LR&&LR.LV?LR.LV:{},pj=T(()
   ${TP?`${H("Levantamento topográfico e planta")}${dlr([["Levantamento",E(TP.nome||"")],["Área levantada",nf(TP.ha,3)+" ha"],["Pontos usados",nf(TP.pts,0)],["Unidades desenhadas",nf(TP.n,0)]])}${mapa?`<div class="mapa">${mapa}</div><p class="foot">Planta do levantamento com curvas de nível e unidades projetadas (aba Levantamentos e projetos).</p>`:""}`:""}
   <div class="pb"></div>${H(`Projeto das unidades (${E(o.tipoN.toLowerCase())})`)}${dlr(o.TQ?[["Área da lâmina por unidade",nf(o.aViv,0)+" m²"],o.elev?["Diâmetro",nf(o.D,2)+" m"]:["Comprimento × largura",`${nf(o.Lw,1)} × ${nf(o.Ww,1)} m`],["Altura da água",nf(o.hm,2)+" m"],["Altura da parede",nf(o.Hd,2)+" m"],["Volume por unidade",nf(o.V1,0)+" m³"],["Drenagem",`${o.estr} · ${o.dDr} mm`]]
     :[["Área da lâmina por viveiro",nf(o.aViv,0)+" m²"],["Lâmina (comprimento × largura)",`${nf(o.Lw,1)} × ${nf(o.Ww,1)} m`],["Fundo (comprimento × largura)",`${nf(o.Lb,1)} × ${nf(o.Wb,1)} m`],["Profundidade rasa → funda",`${nf(o.rasa,2)} → ${nf(o.funda,2)} m`],["Declividade do fundo",nf(o.decl,2)+" %"],["Volume por viveiro",nf(o.V1,0)+" m³"],["Taludes interno / externo",`${nf(o.ti,1)}:1 / ${nf(o.te,1)}:1`],["Borda livre",nf(o.bl,2)+" m"],["Crista interna / externa",`${nf(o.cr,1)} / ${nf(o.crT,1)} m`],o.tipo==="rev"?["Revestimento",`geomembrana PEAD, ${nf(o.linA,0)} m² no total`]:null,["Drenagem",`${o.estr} · ${o.dDr} mm`]])}
-  ${corteSVG(o)}${o.medido?tb(["Unidade","Medidas","Fundo / água / crista (m)","Corte (m³)","Aterro (m³)","Drenagem"],o.TV.map(x=>[E(x.nome),x.tipo==="elev"?"Ø "+nf(x.D||x.L,1)+" m":nf(x.L,0)+" × "+nf(x.W,0)+" m",`${nf(x.zF,2)} / ${nf(x.zA,2)} / ${nf(x.zC,2)}`,nf(x.corte,0),nf(x.aterro,0),x.grav===true?"gravidade":x.grav===false?"bomba":"—"])):plantaSVG(o)}
+  ${corteSVG(o)}${o.medido?tb(["Unidade","Medidas","Fundo / água / crista (m)","Corte (m³)","Aterro (m³)","Drenagem"],o.TV.map(x=>[E(x.nome),x.tipo==="elev"?"Ø "+nf(x.D||x.L,1)+" m":nf(x.L,0)+" × "+nf(x.W,0)+" m",`${nf(x.zF,2)} / ${nf(x.zA,2)} / ${nf(x.zC,2)}`,nf(x.corte,0),nf(x.aterro,0),x.grav===true?"gravidade":x.grav===false?"bomba":"—"])):plantaSVG(o)}${o.medido?secRelHTML(o,H,tb):""}
   ${H("Terraplenagem")}${dlr([["Origem dos volumes",o.medido?"medidos sobre o modelo digital do terreno (aba Levantamentos)":"estimados pela geometria e pela declividade"],["Corte",nf(o.corteT,0)+" m³"],["Aterro compactado",nf(o.aterroT,0)+" m³"],["Decapagem (15 cm)",nf(o.decap,0)+" m³"],["Movimento total",nf(o.mov,0)+" m³"],["Compactação","camadas de até 20–30 cm, umedecidas (Embrapa/SENAR)"],["Custo",brl((o.corteT+o.decap)*o.p.esc+o.aterroT*o.p.comp)]])}
   ${H("Hidráulica e balanço hídrico")}${dlr([["Enchimento de cada unidade",`${nf(o.V1,0)} m³ em ${nf(o.encD,0)} dias`],["Renovação",nf(o.ren,1)+" % ao dia"],["Pico de reposição",`${nf(o.pico,0)} m³/dia (${o.picoM})`],["Vazão de projeto",`${nf(o.Qls,1)} L/s (${nf(o.Qlsha,1)} L/s/ha)`],["Volume captado por ano (outorga)",nf(o.volAno,0)+" m³"],
     ["Tubo de entrada",o.dAb.dc+" mm"],["Drenagem",`${o.estr}, tubo ${o.dDr} mm, esvaziamento ≈ ${nf(o.tEsv,0)} h`],o.TQ?["Adutora principal",o.adut.dc+" mm"]:["Canal de abastecimento",`base ${n2(o.cb)} m × lâmina ${n2(o.cy)} m, talude 1,5:1, ${n2(o.cVel)} m/s`],
@@ -11610,14 +11786,18 @@ function relHTML(o){const TP=o.TP,lo=o.lo,LR=LVr(),LV=LR&&LR.LV?LR.LV:{},pj=T(()
   ${o.warn.length?`${H("Alertas e recomendações")}${o.warn.map(([c,t])=>`<div class="al ${c}">${t}</div>`).join("")}`:""}
   ${H("Referências")}<p class="foot">Aulas do SIGAA/UFMA: Carcinicultura (Prof. Yuri V. A. Lopes), Aquicultura Geral, Limnologia, Topografia e Hidráulica; Engenharia para Aquicultura (Prof. Joel Dias, aula 07 – viabilidade econômica). SENAR, Coleção 209 – Viveiros escavados. Embrapa, Implantação de piscicultura em viveiros escavados, cap. 4. Boyd (1989), calagem de viveiros. Global Seafood Alliance: evaporação de viveiros e aeração. INMET, normais climatológicas 1991–2020. Valores de referência devem ser confirmados com sondagem do solo, análise da água e cotações.</p>
   <div class="ass"><div>Responsável técnico · CREA</div><div>Contratante</div></div><p class="foot">Gerado pelo Green Fish em ${hoje}.</p></body></html>`}
+function secRelHTML(o,H,tb){const S=T(()=>window.topoSecoes&&topoSecoes(),null);if(!S||!S.vs.length)return "";
+  return `${H("Planilhas de terraplenagem · seções transversais")}<p class="foot">Seções perpendiculares ao eixo de cada unidade, a cada ${nf(S.vs[0].du,0)} m (estacas), com a cota do terreno (MDT do levantamento) e a cota de projeto no eixo, as áreas de corte e aterro de cada seção e os volumes pelo método da média das áreas extremas. Os totais da malha (usados no orçamento) e os das seções aparecem lado a lado para conferência. A mesma planilha sai em Excel (.xlsx) pelo botão “📊 Planilhas (Excel)”.</p>`+
+  tb(["Unidade","Corte · malha (m³)","Aterro · malha (m³)","Corte · seções (m³)","Aterro · seções (m³)","Diferença do corte"],S.vs.map(v=>[E(v.nome),nf(v.corte,0),nf(v.aterro,0),nf(v.Vc,0),nf(v.Va,0),v.corte>0?nf((v.Vc-v.corte)/v.corte*100,1)+" %":"—"]))+
+  S.vs.map(v=>`<h3>${E(v.nome)} · estacas a cada ${nf(v.du,0)} m</h3>`+tb(["Estaca","Dist. (m)","Terreno (m)","Projeto (m)","Corte(+)/aterro(−) no eixo (m)","Área corte (m²)","Área aterro (m²)","Vol. corte (m³)","Vol. aterro (m³)"],v.linhas.map(l=>[l.est,nf(l.u,1),isFinite(l.zt)?nf(l.zt,2):"fora",nf(l.zp,2),isFinite(l.zt)?nf(l.zt-l.zp,2):"—",nf(l.Ac,1),nf(l.Aa,1),nf(l.vc,0),nf(l.va,0)]).concat([["<b>Total</b>","","","","","","",`<b>${nf(v.Vc,0)}</b>`,`<b>${nf(v.Va,0)}</b>`]]))).join("")}
 function vvRelatorio(op){op=op||{};recarrega();if(op.deTopo){V.modo="viv";V.dim="topo";grava()}
   const o=T(calc,null);if(!o){alert("Não consegui montar o relatório.");return}const html=relHTML(o),nome="Projeto_"+String(T(()=>projAtual().nome,"GreenFish")).replace(/[^\w\-]+/g,"_")+".html";
   let ov=document.getElementById("vv-rel");if(ov)ov.remove();ov=document.createElement("div");ov.id="vv-rel";
   ov.style.cssText="position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;flex-direction:column;padding:10px;gap:8px";
-  ov.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border-radius:10px;padding:8px 10px"><b style="margin-right:auto">📄 Relatório final do projeto</b><button type="button" class="btn solid" data-r="print">🖨 Imprimir / salvar PDF</button><button type="button" class="btn" data-r="baixar">⬇ Baixar relatório</button><button type="button" class="btn" data-r="fechar">Fechar</button></div><iframe title="Relatório final do projeto" style="flex:1;width:100%;border:0;border-radius:10px;background:#fff"></iframe>`;
+  ov.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--surface);border-radius:10px;padding:8px 10px"><b style="margin-right:auto">📄 Relatório final do projeto</b><button type="button" class="btn solid" data-r="print">🖨 Imprimir / salvar PDF</button><button type="button" class="btn" data-r="baixar">⬇ Baixar relatório</button>${o.medido?`<button type="button" class="btn" data-r="xlsx">📊 Planilhas (Excel)</button><button type="button" class="btn" data-r="dxf">📐 Projeto (DXF/CAD)</button>`:""}<button type="button" class="btn" data-r="fechar">Fechar</button></div><iframe title="Relatório final do projeto" style="flex:1;width:100%;border:0;border-radius:10px;background:#fff"></iframe>`;
   document.body.appendChild(ov);const fr=ov.querySelector("iframe");fr.srcdoc=html;
   const imprimir=()=>{try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){alert("Use Baixar relatório e imprima pelo navegador.")}};
-  ov.querySelector('[data-r="print"]').onclick=imprimir;ov.querySelector('[data-r="fechar"]').onclick=()=>ov.remove();
+  ov.querySelector('[data-r="print"]').onclick=imprimir;const bx=ov.querySelector('[data-r="xlsx"]'),bd=ov.querySelector('[data-r="dxf"]');if(bx)bx.onclick=()=>window.topoPlanilhas&&topoPlanilhas().catch(e=>alert(e.message));if(bd)bd.onclick=()=>window.topoDXFProjeto&&topoDXFProjeto().catch(e=>alert(e.message));ov.querySelector('[data-r="fechar"]').onclick=()=>ov.remove();
   ov.querySelector('[data-r="baixar"]').onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
   if(op.print)fr.onload=()=>setTimeout(imprimir,300)}
 window.vvRelatorio=vvRelatorio;
