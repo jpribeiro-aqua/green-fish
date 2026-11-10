@@ -2,6 +2,12 @@
 <html lang="pt-BR">
 <meta charset="utf-8">
 <title>Green Fish</title>
+<script>
+/* v164: formatação de números mais rápida — reaproveita o formatador (Intl) em vez de criar um novo a cada número */
+/* v164: contador de gravações por chave do localStorage, para os módulos saberem sem reler se algo mudou */
+(()=>{try{const P=Storage.prototype,si=P.setItem,ri=P.removeItem,cl=P.clear,V=window.__gfLSk={};P.setItem=function(k,v){V[k]=(V[k]||0)+1;return si.call(this,k,v)};P.removeItem=function(k){V[k]=(V[k]||0)+1;return ri.call(this,k)};P.clear=function(){for(const k in V)V[k]++;window.__gfLSc=(window.__gfLSc||0)+1;return cl.call(this)};window.addEventListener("storage",e=>{if(e.key==null)window.__gfLSc=(window.__gfLSc||0)+1;else V[e.key]=(V[e.key]||0)+1})}catch(e){}})();
+(()=>{const o=Number.prototype.toLocaleString,c=new Map();Number.prototype.toLocaleString=function(l,p){if(l===undefined&&p===undefined)return o.call(this);const k=(Array.isArray(l)?l.join(","):l||"")+"|"+(p?JSON.stringify(p):"");let f=c.get(k);if(!f){try{f=new Intl.NumberFormat(l,p)}catch(e){return o.call(this,l,p)}if(c.size<300)c.set(k,f)}return f.format(this)}})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0f7a6c">
 <link rel="manifest" href="manifest.webmanifest">
@@ -4069,6 +4075,13 @@ function n(v,d){return fmt(v,d)}
 
 /* ---------- AquaNictemeral (quadro isolado: CSS e IDs próprios) ---------- */
 const aquaFrame=document.getElementById("aqua-frame");
+/* v164: o relatório do AquaNictemeral é pesado e era recalculado várias vezes seguidas (uma por unidade, a cada tecla):
+   guarda o resultado por 3 s enquanto os dados da água não mudam */
+const memoAqua=()=>{try{const w=aquaFrame&&aquaFrame.contentWindow;if(!w||typeof w.aquaRelatorio!=="function"||w.aquaRelatorio.__gfMemo)return;const f=w.aquaRelatorio;let k=null,t=0,v=null;
+  const m=function(){let raw="";try{raw=(localStorage.getItem("aquanictemeral.ras.v1")||"")+"|"+(localStorage.getItem("greenfish-biometria-v1")||"")}catch(e){}const now=Date.now();
+    if(v&&raw===k&&now-t<3000)return v.slice();const r=f.apply(this,arguments);if(Array.isArray(r)){v=r;k=raw;t=now;return r.slice()}return r};
+  m.__gfMemo=true;w.aquaRelatorio=m}catch(e){}};
+if(aquaFrame){aquaFrame.addEventListener("load",()=>{memoAqua();setTimeout(memoAqua,1500);setTimeout(memoAqua,5000)})}setInterval(memoAqua,4000);
 function aquaTheme(){try{const de=aquaFrame.contentDocument&&aquaFrame.contentDocument.documentElement;if(!de)return;
   const t=document.documentElement.getAttribute("data-theme");if(t)de.setAttribute("data-theme",t);else de.removeAttribute("data-theme")}catch(e){}}
 function loadAqua(){
@@ -7345,7 +7358,8 @@ window.drawRepro=()=>{try{const s=rd();if(s&&s.f){Object.assign(S,{...s,f:s.f,lo
 (function(){
 const el=document.getElementById("view-topo");if(!el)return;
 const TK="ras-multitanques-v1-topo";          // metadados e pontos entram na fotografia dos Projetos
-const rd=()=>{try{return JSON.parse(localStorage.getItem(TK))||{}}catch(e){return {}}};
+let RDC=null;const lsVer=()=>((window.__gfLSk||{})[TK]||0)+"/"+(window.__gfLSc||0);const rd=()=>{try{const ver=lsVer();if(RDC&&RDC.ver===ver&&window.__gfLSk)return RDC.o;const raw=localStorage.getItem(TK);if(RDC&&RDC.raw===raw){RDC.ver=ver;return RDC.o}const o=JSON.parse(raw)||{};RDC={raw,o,ver};return o}catch(e){return {}}};
+window.gfTopoLS=()=>rd();
 const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const N=(v,d=1)=>isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
 const I=v=>isFinite(v)?Math.round(v).toLocaleString("pt-BR"):"—";
@@ -7356,7 +7370,7 @@ const dataBR=t=>t?new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-dig
 const slug=s=>String(s||"projeto").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w-]+/g,"_").replace(/^_+|_+$/g,"").slice(0,40)||"projeto";
 const S=rd();S.proj=S.proj||[];
 let msg="",busy=false,raiz=null,raizOk=false,conf=null,cache=null,vb=null;
-const salvar=()=>{try{localStorage.setItem(TK,JSON.stringify(S));try{window.dispatchEvent(new Event("topo-salvo"))}catch(e){}return true}catch(e){aviso("O navegador ficou sem espaço para guardar tantos pontos. Desmarque arquivos de pontos que não vai usar.");return false}};
+const salvar=()=>{try{const raw=JSON.stringify(S);if(RDC&&RDC.raw===raw)return true;localStorage.setItem(TK,raw);RDC={raw,o:S,ver:lsVer()};try{window.dispatchEvent(new Event("topo-salvo"))}catch(e){}return true}catch(e){aviso("O navegador ficou sem espaço para guardar tantos pontos. Desmarque arquivos de pontos que não vai usar.");return false}};
 const P=()=>S.proj.find(p=>p.id===S.cur)||null;
 
 /* ---- armazenamento dos arquivos: pasta no computador (Chrome/Edge) ou banco do navegador ---- */
@@ -7585,8 +7599,8 @@ function vivHTML(p,a){
   const vs=p.viv=p.viv||[],cu=p.cu=p.cu||{corte:"18",aterro:"12",fat:"1,25"},fat=+String(cu.fat).replace(",",".")||1.25,pc=+String(cu.corte).replace(",",".")||0,pa=+String(cu.aterro).replace(",",".")||0;
   const rs=vs.map(v=>calcViv(a,v));const sel=vs.find(v=>v.id===S.viv),T={esp:0,agua:0,corte:0,aterro:0,ocup:0};
   rs.forEach(r=>{if(r)for(const k in T)T[k]+=r[k]});const custo=T.corte*pc+T.aterro*pa;
-  if(!naoGrava)p.res=resumoViv(p,a,rs);
-  if(!naoGrava){clearTimeout(window.__tpResT);window.__tpResT=setTimeout(()=>{try{salvar()}catch(e){}},30)}
+  let resMudou=false;if(!naoGrava){const nr=resumoViv(p,a,rs),k1=JSON.stringify(Object.assign({},nr,{em:0})),k0=p.res?JSON.stringify(Object.assign({},p.res,{em:0})):"";if(k1!==k0){p.res=nr;resMudou=true}}
+  if(resMudou){clearTimeout(window.__tpResT);window.__tpResT=setTimeout(()=>{try{salvar()}catch(e){}},30)}
   const linha=(v,i)=>{const r=rs[i];if(!r)return `<tr><td><b>${E(v.nome||"Viveiro "+(i+1))}</b></td><td colspan="7" class="muted">Defina a cota do fundo</td><td><button type="button" class="btn" data-a="viv-sel" data-id="${v.id}">Editar</button></td></tr>`;
     const dr=r.g.zF&&isFinite(r.jus)?(r.jus<r.zDreno-0.3?`<span class="pj-tag pj-ok tp-nw">por gravidade (${N(r.zDreno-r.jus,2)} m)</span>`:`<span class="pj-tag pj-wait tp-nw">precisa de bomba</span>`):"—";
     return `<tr${v.id===S.viv?' class="on"':""}><td><b>${E(v.nome||"Viveiro "+(i+1))}</b><small>${r.g.circ?"Ø "+N(r.g.D,1)+" m":N(r.g.L,0)+" × "+N(r.g.W,0)+" m"} · lâmina ${N(r.g.h,2)} m · ${TIPV[r.g.tipo]||TIPV.esc}${r.g.cob?" coberto":""}</small></td><td class="num">${N(r.esp/10000,3)} ha</td><td class="num">${I(r.agua)} m³</td><td class="num">${N(r.g.zF,2)} / ${N(r.g.zA,2)} / ${N(r.g.zC,2)}</td><td class="num">${I(r.corte)} m³</td><td class="num">${I(r.aterro)} m³</td><td class="num">${I(r.corte-r.aterro*fat)} m³</td><td>${dr}${r.fora>r.dentro*0.05?`<small>${N(r.fora/(r.fora+r.dentro)*100,0)}% fora do levantamento</small>`:""}</td><td><div class="pj-btns"><button type="button" class="btn${v.id===S.viv?" solid":""}" data-a="viv-sel" data-id="${v.id}">Editar</button><button type="button" class="btn" data-a="viv-dup" data-id="${v.id}">Duplicar ao lado</button><button type="button" class="btn" data-a="viv-del" data-id="${v.id}">Excluir</button></div></td></tr>`};
@@ -7768,7 +7782,7 @@ async function gerarPlanilhas(p,salvarPasta){const D=dadosPlanilha(p);if(!D||!D.
   if(salvarPasta&&p.arm==="fs"&&raiz&&raizOk)await gravar(p,"Processados/"+nome,blob);await baixar(nome,blob,blob.type);return nome}
 window.topoPlanilhas=async()=>{const p=projAtualTopo();if(!p)throw new Error("Nenhum levantamento aberto.");return gerarPlanilhas(p,true)};
 window.topoDXFProjeto=async()=>{const p=projAtualTopo();if(!p)throw new Error("Nenhum levantamento aberto.");const D=dadosPlanilha(p);if(!D)throw new Error("O levantamento não tem superfície.");const nome=slug(p.nome)+"_projeto.dxf";await baixar(nome,dxfProjeto(D),"application/dxf");return nome};
-window.topoGeo=()=>{try{const p=projAtualTopo();if(!p)return null;const nPts=(p.arquivos||[]).reduce((s,f)=>s+(f.pts&&f.usar!==false&&f.est!=="isolado"?f.pts.length:0),0);
+window.topoGeo=leve=>{try{const p=projAtualTopo();if(!p)return null;const nPts=(p.arquivos||[]).reduce((s,f)=>s+(f.pts&&f.usar!==false&&f.est!=="isolado"?f.pts.length:0),0);if(leve)return {id:p.id,nome:p.nome,v:p.v,nPts};
   const zona=(p.arquivos||[]).map(f=>f.zona).find(Boolean)||null;let a=null;try{a=analisar(p)}catch(e){}
   const base={id:p.id,nome:p.nome,v:p.v,zona,nPts:a&&a.vis?a.vis.length:nPts,pts:[],curvas:[],viv:[],zmin:NaN,zmax:NaN};if(!a||!a.pts||!a.pts.length)return base;
   const st=Math.max(1,Math.ceil(a.pts.length/2500));for(let i=0;i<a.pts.length;i+=st){const q=a.pts[i];base.pts.push([q[2],q[3],q[4]])}
@@ -7776,7 +7790,7 @@ window.topoGeo=()=>{try{const p=projAtualTopo();if(!p)return null;const nPts=(p.
   base.curvas=(a.curvas||[]).filter(c=>c.p.length>1).slice(0,600).map(c=>({z:c.z,mestra:Math.abs(Math.round(c.z/ps)%ms)===0,p:(c.p.length>150?c.p.filter((_,i)=>i%Math.ceil(c.p.length/150)===0||i===c.p.length-1):c.p).map(([x,y])=>[x+a.ox,y+a.oy])}));
   const rv=(p.res&&p.res.viv)||[];
   base.viv=(p.viv||[]).map((v,i)=>{if(!isFinite(+v.E)||!isFinite(+v.N))return null;const g=geo(v),cx=+v.E,cy=+v.N,pl=(A,B)=>cantos(g,A,B).map(([u,w])=>[cx+u*g.cos-w*g.sin,cy+u*g.sin+w*g.cos]),r=rv[i]||{};
-    return {id:v.id,nome:v.nome||"Viveiro "+(i+1),sel:S.viv===v.id,ext:pl(g.Ao,g.Bo),crista:pl(g.Ai,g.Bi),agua:pl(g.A,g.B),fundo:pl(g.Af,g.Bf),g:{L:g.L,W:g.W,D:g.D,h:g.h,zF:g.zF,zA:g.zA,zC:g.zC,circ:!!g.circ},corte:r.corte,aterro:r.aterro,agua_m3:r.agua}}).filter(Boolean);
+    return {id:v.id,nome:v.nome||"Viveiro "+(i+1),sel:S.viv===v.id,cx,cy,r:g.r,ext:pl(g.Ao,g.Bo),crista:pl(g.Ai,g.Bi),agua:pl(g.A,g.B),fundo:pl(g.Af,g.Bf),g:{L:g.L,W:g.W,D:g.D,h:g.h,zF:g.zF,zA:g.zA,zC:g.zC,circ:!!g.circ},corte:r.corte,aterro:r.aterro,agua_m3:r.agua}}).filter(Boolean);
   return base}catch(e){return null}};
 window.topoCADParams=over=>{try{const p=projAtualTopo();if(!p)return null;const v0=(p.viv||[]).find(x=>x.id===S.viv);if(!v0)return null;const v=Object.assign({},v0,over||{}),g=geo(v);
   let perfilW=null;try{const a=analisar(p);if(a&&a.T&&a.T.length&&isFinite(+v.E)&&isFinite(+v.N)){const ext=g.Bo+Math.max(6,(g.ze||2)*(g.h+g.bl)*1.6+4);perfilW=[];for(let i=0;i<=160;i++){const s=-ext+2*ext*i/160,x=+v.E-a.ox-s*g.sin,y=+v.N-a.oy+s*g.cos;perfilW.push([s,zTerr(a,x,y)])}}}catch(e){}
@@ -8273,12 +8287,14 @@ window.projCriar=async nome=>{nome=String(nome||"").trim().slice(0,80);if(!nome)
   auto.ult=JSON.stringify(snap);auto.em=agora;auto.erro="";auto.parado=false;
   await recarregar();evtProj();return {id,nome}};
 async function autoSalvar(forcar){if(window.__projTroca)return;const c=atual();if(!c||!c.id||c.modo!==st.mode||c.uid||!logado()||bloq()||auto.parado||auto.salvando||st.busy)return;
-  const p=st.list.find(x=>x.id===c.id);if(!p)return;const snap=snapshot(),js=JSON.stringify(snap);if(!forcar&&js===auto.ult)return;
+  const p=st.list.find(x=>x.id===c.id);if(!p)return;const snap=snapshot();
+  if(!forcar&&auto.prevSnap){const ks=Object.keys(snap),pk=Object.keys(auto.prevSnap);if(ks.length===pk.length&&ks.every(k=>snap[k]===auto.prevSnap[k]))return}
+  const js=JSON.stringify(snap);if(!forcar&&js===auto.ult){auto.prevSnap=snap;return}
   auto.salvando=true;
   try{if(st.mode==="nuvem"){const m=await nuvem.meta(c.id);if(m&&(m.atualizadoEm||0)>(c.base||0)+2000){auto.parado=true;
       auto.erro=m.editadoPeloDono?"O dono do app atualizou este projeto: abra a versão nova na aba Projetos (salvamento automático pausado).":"Este projeto foi salvo em outro aparelho: abra a versão mais nova na aba Projetos (salvamento automático pausado).";evtProj();return}}
     const agora=Date.now(),meta={nome:p.nome,notas:p.notas||"",resp:p.resp||"",criadoEm:p.criadoEm||agora,atualizadoEm:agora,resumo:resumo(),app:"ras-multitanques",versao:1};
-    await back().put(c.id,meta,snap);wr(CUR,{...c,base:agora});Object.assign(p,meta);auto.ult=js;auto.em=agora;auto.erro="";evtProj()}
+    await back().put(c.id,meta,snap);wr(CUR,{...c,base:agora});Object.assign(p,meta);auto.ult=js;auto.prevSnap=snap;auto.em=agora;auto.erro="";evtProj()}
   catch(e){auto.erro="Não foi possível salvar automaticamente agora: "+erroTxt(e);evtProj()}
   finally{auto.salvando=false}}
 setInterval(()=>{if(!document.hidden)autoSalvar(false)},8000);
@@ -10154,7 +10170,7 @@ function bind(){const q=s=>host.querySelector(s);
 const autoFeito={};
 const volCalc=()=>{try{return tanks.reduce((a,t)=>a+(parse(t.q)||0)*(parse(t.v)||0),0)}catch(e){return 0}};
 function fontesProjeto(){const G=[];let de="";
-  try{const T=JSON.parse(localStorage.getItem("ras-multitanques-v1-topo"))||{},ps=T.proj||[],p=ps.find(x=>x.id===T.cur)||ps.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];
+  try{const T=(window.gfTopoLS?gfTopoLS():JSON.parse(localStorage.getItem("ras-multitanques-v1-topo")))||{},ps=T.proj||[],p=ps.find(x=>x.id===T.cur)||ps.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];
     for(const v of ((p&&p.res&&p.res.viv)||[]))if(+v.agua>0)G.push({name:String(v.nome||"Viveiro").slice(0,24)+" (lev.)",q:"1",v:String(Math.round(+v.agua))});
     if(G.length)de=`os viveiros do levantamento “${p.nome||"atual"}”`}catch(e){}
   if(!G.length)try{const S=JSON.parse(localStorage.getItem("aquanictemeral.ras.v1"))||{};
@@ -10245,7 +10261,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v163";
+  const APP_VERSAO="ras-v164";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -10931,7 +10947,7 @@ const CATE={racao:"Ração",cal:"Cal/calcário",adubo:"Adubo/fertilizante",juv:"
 const EQT={aerador:"Aerador",soprador:"Soprador",bomba:"Bomba",gerador:"Gerador",sonda:"Sonda/oxímetro",filtro:"Filtro",veiculo:"Veículo/trator",outro:"Outro"};
 
 /* ---------- viveiros/tanques do projeto ---------- */
-function lerTopo(){try{const S=JSON.parse(localStorage.getItem("ras-multitanques-v1-topo"))||{},ps=S.proj||[],p=ps.find(x=>x.id===S.cur)||ps.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];return ((p&&p.res&&p.res.viv)||[]).map((v,i)=>({id:"t-"+norm(v.nome||("viveiro "+(i+1))),nome:v.nome||("Viveiro "+(i+1)),tipo:"viveiro",area:+v.esp||NaN,vol:+v.agua||NaN,fonte:"topo"}))}catch(e){return []}}
+function lerTopo(){try{const S=(window.gfTopoLS?gfTopoLS():JSON.parse(localStorage.getItem("ras-multitanques-v1-topo")))||{},ps=S.proj||[],p=ps.find(x=>x.id===S.cur)||ps.slice().sort((a,b)=>(b.em||0)-(a.em||0))[0];return ((p&&p.res&&p.res.viv)||[]).map((v,i)=>({id:"t-"+norm(v.nome||("viveiro "+(i+1))),nome:v.nome||("Viveiro "+(i+1)),tipo:"viveiro",area:+v.esp||NaN,vol:+v.agua||NaN,fonte:"topo"}))}catch(e){return []}}
 function unidades(){const L=[],ja=new Set(),add=u=>{const k=norm(u.nome);if(ja.has(u.id)||ja.has("n:"+k))return;ja.add(u.id);ja.add("n:"+k);L.push(u)};
   if(P.fontes.calc)T(()=>(typeof tanks!=="undefined"?tanks:[]).forEach((t,i)=>{const q=parseFloat(String(t.q).replace(",","."))||0,v=parseFloat(String(t.v).replace(",","."))||0;if(q*v>0)add({id:"ras-"+t.id,nome:(typeof label==="function"?label(t):"")||t.name||("Grupo "+(i+1)),tipo:"tanque",q,vol:q*v,vUn:v,fonte:"calc",sp:t.lot&&t.lot.sp})}),0);
   if(P.fontes.calc)T(()=>(window.vvUnidades?vvUnidades():[]).forEach(add),0);
@@ -11331,7 +11347,7 @@ const D0={modo:"ras",tipo:"auto",sp:"tilapia",sis:"semi",dim:"area",areaDisp:"",
   dens:"",w0:"",wf:"",sob:"",fca:"",interv:"20",argila:"",phSolo:"",infil:"",ti:"",te:"",crista:"",cristaT:"4,5",bl:"",fc:"1,15",
   zA:"",zB:"",dist:"",cEv:"1",ren:"",encD:"4",zFonte:"",zCheg:"",bacia:"10",limn:{},pr:{},vu:{},nF:"",aerOn:"auto",fin:""};
 const rd=()=>{try{return JSON.parse(localStorage.getItem(VK))||{}}catch(e){return {}}};
-let V=Object.assign({},D0,rd()),pidV=null;
+let V=Object.assign({},D0,rd()),pidV=null;let vvSide="cad";try{vvSide=localStorage.getItem("gf-vv-side")||"cad"}catch(e){}
 const recarrega=()=>{let pid="";try{pid=(window.projAtual&&projAtual()||{}).id||""}catch(e){}if(pid!==pidV){pidV=pid;V=Object.assign({},JSON.parse(JSON.stringify(D0)),rd());["limn","pr","vu"].forEach(k=>{if(!V[k]||typeof V[k]!=="object")V[k]={}})}};
 const grava=()=>{try{localStorage.setItem(VK,JSON.stringify(V))}catch(e){}};
 
@@ -11584,12 +11600,13 @@ function build(){const v=view();if(!v)return;
   el.hidden=!on;if(!on)return;
   const o=calc();
   el.innerHTML=`<section class="card"><div class="card-head"><h2>🏞 Projeto de viveiros escavados<span>${T(()=>projAtual()?"Projeto "+E(projAtual().nome)+" · ":"","")}${E(o.S.n)} · ${E(SIS[o.sis])}</span></h2></div><div class="vv-body"><div class="vv-btns"><button type="button" class="btn solid" data-vrel="1">📄 Relatório final do projeto</button><button type="button" class="btn" data-vrel="p">🖨 PDF direto</button>${o.TP?`<a href="#" class="btn" data-vgo2="topo">🗺 Inserir modelo no levantamento</a>`:""}</div><div id="vv-kpi"></div><div id="vv-warn"></div></div></section>
-   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div id="vv-cad"></div></div></div></section>
+   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
   el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;grava();build()});
     else i.addEventListener("input",()=>{V[k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)})});
   el.querySelectorAll("[data-vrel]").forEach(b=>b.addEventListener("click",()=>vvRelatorio({print:b.dataset.vrel==="p"})));
+  el.querySelectorAll("[data-vside]").forEach(b=>b.addEventListener("click",()=>{vvSide=b.dataset.vside;try{localStorage.setItem("gf-vv-side",vvSide)}catch(e){}el.querySelectorAll("[data-vside]").forEach(x=>x.setAttribute("aria-selected",String(x===b)));document.getElementById("vv-cad").hidden=vvSide==="mapa";document.getElementById("vv-mapa").hidden=vvSide!=="mapa";clearTimeout(tm);update();if(vvSide==="mapa"&&window.gfMapaResize)gfMapaResize()}));
   el.querySelectorAll("[data-vgo2]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();T(()=>setView(a.dataset.vgo2))}));
   el.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("input",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)}));
   update()}
@@ -11612,7 +11629,9 @@ function update(){if(!el||el.hidden)return;const o=calc();
     lb.innerHTML=o.medido?`<div class="vv-al ${o.difLev.length?"al":"ok"}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="flex:1 1 260px">🗺 ${o.difLev.length?`Medidas digitadas diferentes das do levantamento: <b>${E(o.difLev.join(", "))}</b>. Aplique para redesenhar os ${nf(o.n,0)} ${o.uni}(s) sobre o terreno e recalcular corte, aterro e água.`:`Medidas do viveiro <b>sugeridas pelo levantamento</b> (valores em cinza, marcados 🔗 Levantamentos). Para usar as suas, digite nos campos de “Estrutura” e “Engenharia do viveiro”${dig?" — os valores digitados já batem com o desenho":""}.`}</span><button type="button" class="btn${o.difLev.length?" solid":""}" data-vaplicar="1">🗺 Aplicar aos viveiros do levantamento</button>${dig?`<button type="button" class="btn" data-vlimpar="1">↩ Voltar às sugestões do levantamento</button>`:""}${vvLevMsg?`<small style="flex-basis:100%">${E(vvLevMsg)}</small>`:""}</div>`:"";
     const ap=lb.querySelector("[data-vaplicar]");if(ap)ap.onclick=()=>{const q={L:o.Lw,W:o.Ww,D:o.elev?o.Lw:NaN,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.cr,dec:o.decl};const r=T(()=>window.topoAplicar?topoAplicar(q):null,null);vvLevMsg=r?r.msg:"Abra a aba Levantamentos e projetos uma vez e tente de novo.";build()};
     const li=lb.querySelector("[data-vlimpar]");if(li)li.onclick=()=>{KS.forEach(k=>{V[k]=D0[k]??""});grava();vvLevMsg="Valores digitados apagados: o projeto voltou às medidas sugeridas pelo levantamento.";build()}}
-  {const cb=document.getElementById("vv-cad");if(cb&&window.gfCADInto)T(()=>gfCADInto(cb,{nome:(o.TQ?(o.elev?"Tanque":"Raceway"):"Viveiro")+" tipo",tipo:o.elev?"elev":o.tipo,circ:!!o.elev,L:o.Lw,W:o.Ww,D:o.elev?o.D:o.Lw,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,n:o.n},"Desenho técnico do "+(o.TQ?"tanque":"viveiro")+" · "+nf(o.n,0)+" unidade(s)"))}
+  {const q={nome:(o.TQ?(o.elev?"Tanque":"Raceway"):"Viveiro")+" tipo",tipo:o.elev?"elev":o.tipo,circ:!!o.elev,L:o.Lw,W:o.Ww,D:o.elev?o.D:o.Lw,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,n:o.n},tit="Desenho técnico do "+(o.TQ?"tanque":"viveiro")+" · "+nf(o.n,0)+" unidade(s)";
+   if(vvSide!=="mapa"){const cb=document.getElementById("vv-cad");if(cb&&window.gfCADInto)T(()=>gfCADInto(cb,q,tit))}
+   else{const mb=document.getElementById("vv-mapa");if(mb&&window.gfMapaInto)T(()=>gfMapaInto(mb,o.medido&&o.difLev&&o.difLev.length&&!o.elev?q:null))}}
   document.getElementById("vv-kpi").innerHTML=`<div class="vv-k">${[
     kp(o.TQ?(o.elev?"Tanques":"Raceways"):"Viveiros",nf(o.n,0),"",`${nf(o.aViv,0)} m² cada${o.medido?" · do levantamento":` · ${o.rows} fila(s)`}`),kp("Lâmina d'água",nf(o.ha,2),"ha",`${nf(o.Vt,0)} m³ de água`),
     kp("Produção",nf(o.prod/1000,1),"t/ano",`${nf(o.ciclos,1)} ciclos de ${nf(o.cicloD,0)} dias`),kp("Biomassa final",nf(o.Bha,0),"kg/ha",o.aerOn?`aeração: ${nf(o.HPinst,0)} HP`:"sem aeração",o.precisaAer&&!o.aerOn?"warn":""),
@@ -12810,23 +12829,25 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #gfc-full .gfc-sc{flex:1;overflow:auto;border-radius:12px;background:#12161b}
 #gfc-full .gfc-sc svg{display:block;width:max(100%,1000px);height:auto}
 .vv-pcad{display:grid;gap:14px;min-width:0}
-.vv-pcad #vv-cad{order:-1}
-@media (min-width:1100px){.vv-pcad{grid-template-columns:minmax(0,1.1fr) minmax(380px,1fr);align-items:start}.vv-pcad #vv-cad{order:0;position:sticky;top:12px}}
+.vv-pcad .vv-side{order:-1;min-width:0;display:grid;gap:8px}
+.vv-tabs{display:flex;gap:6px}.vv-tabs button{flex:1;border:1px solid var(--line,#cfd6dc);background:var(--surface,#fff);color:var(--ink,#123);border-radius:10px;padding:7px 10px;font:600 13px var(--f-body,system-ui);cursor:pointer}.vv-tabs button[aria-selected="true"]{background:#0f7a6c;color:#fff;border-color:#0f7a6c}
+#vv-mapa{border:1px solid var(--line,#cfd6dc);border-radius:12px;overflow:hidden;background:var(--surface,#fff);display:flex;flex-direction:column}#vv-mapa[hidden]{display:none}#vv-mapa .gfm-map{height:min(60vh,460px)}
+@media (min-width:1100px){.vv-pcad{grid-template-columns:minmax(0,1.1fr) minmax(380px,1fr);align-items:start}.vv-pcad .vv-side{order:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
 /* mapa ao vivo */
 #gf-mapa{position:fixed;z-index:86;display:flex;flex-direction:column;background:var(--surface,#fff);border:1px solid var(--line,#cfd6dc);border-radius:14px;box-shadow:0 12px 40px rgb(0 0 0 / .28);overflow:hidden;
   right:16px;top:72px;width:min(46vw,760px);height:calc(100vh - 150px)}
 @media (max-width:900px){#gf-mapa{left:8px;right:8px;top:8px;width:auto;height:calc(100vh - 150px)}}
 #gf-mapa.min{height:auto}#gf-mapa.min .gfm-map,#gf-mapa.min .gfm-leg{display:none}
-#gf-mapa .gfm-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line,#e1e6ea);font:600 14px var(--f-body,system-ui);color:var(--ink,#123)}
-#gf-mapa .gfm-h b{margin-right:auto;display:flex;align-items:center;gap:6px}
-#gf-mapa .gfm-h button,#gf-mapa .gfm-h select{background:var(--surface,#fff);color:var(--ink,#123);border:1px solid var(--line,#cfd6dc);border-radius:8px;padding:4px 8px;font:600 12px var(--f-body,system-ui);cursor:pointer}
-#gf-mapa .gfm-st{flex-basis:100%;font:400 12px var(--f-body,system-ui);color:var(--muted,#667)}
-#gf-mapa .gfm-dot{width:9px;height:9px;border-radius:50%;background:#1baf7a;display:inline-block}
-#gf-mapa .gfm-dot.pisca{animation:gflive .9s ease-out 1}
+#gf-mapa .gfm-h,.gfm-emb .gfm-h{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line,#e1e6ea);font:600 14px var(--f-body,system-ui);color:var(--ink,#123)}
+#gf-mapa .gfm-h b,.gfm-emb .gfm-h b{margin-right:auto;display:flex;align-items:center;gap:6px}
+#gf-mapa .gfm-h button,#gf-mapa .gfm-h select,.gfm-emb .gfm-h button{background:var(--surface,#fff);color:var(--ink,#123);border:1px solid var(--line,#cfd6dc);border-radius:8px;padding:4px 8px;font:600 12px var(--f-body,system-ui);cursor:pointer}
+#gf-mapa .gfm-st,.gfm-emb .gfm-st{flex-basis:100%;font:400 12px var(--f-body,system-ui);color:var(--muted,#667)}
+#gf-mapa .gfm-dot,.gfm-emb .gfm-dot{width:9px;height:9px;border-radius:50%;background:#1baf7a;display:inline-block}
+#gf-mapa .gfm-dot.pisca,.gfm-emb .gfm-dot.pisca{animation:gflive .9s ease-out 1}
 #gf-mapa .gfm-map{flex:1;min-height:200px}
-#gf-mapa .gfm-leg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:6px 10px;border-top:1px solid var(--line,#e1e6ea);font:12px var(--f-body,system-ui);color:var(--muted,#556)}
-#gf-mapa .gfm-ramp{width:110px;height:9px;border-radius:4px;background:linear-gradient(90deg,#2b83ba,#abdda4,#ffffbf,#fdae61,#d7191c)}
-#gf-mapa .gfm-sw{display:inline-block;width:14px;height:10px;border-radius:2px;vertical-align:middle;margin-right:4px}
+#gf-mapa .gfm-leg,.gfm-emb .gfm-leg{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:6px 10px;border-top:1px solid var(--line,#e1e6ea);font:12px var(--f-body,system-ui);color:var(--muted,#556)}
+#gf-mapa .gfm-ramp,.gfm-emb .gfm-ramp{width:110px;height:9px;border-radius:4px;background:linear-gradient(90deg,#2b83ba,#abdda4,#ffffbf,#fdae61,#d7191c)}
+#gf-mapa .gfm-sw,.gfm-emb .gfm-sw{display:inline-block;width:14px;height:10px;border-radius:2px;vertical-align:middle;margin-right:4px}
 .gfm-lbl{background:rgba(10,30,40,.75);color:#fff;border:0;border-radius:6px;padding:1px 6px;font:600 11px var(--f-body,system-ui);box-shadow:none}
 .gfm-lbl:before{display:none}
 #gf-mapa-fab{position:fixed;right:16px;bottom:136px;z-index:85;width:46px;height:46px;border-radius:50%;border:1px solid var(--line,#cdd);background:var(--surface,#fff);box-shadow:0 6px 18px rgb(0 0 0 / .22);font-size:22px;cursor:pointer}
@@ -12968,7 +12989,7 @@ function gfCADInto(box,q,titulo){
   box.querySelector('[data-c="svg"]').onclick=()=>{const s=gfCAD(q).replace(/class="(dw|dw2|fi)"/g,""),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([s],{type:"image/svg+xml"}));a.download=String(q.nome||"viveiro").replace(/[^\w\-]+/g,"_")+"_desenho.svg";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)}}
 window.gfCAD=gfCAD;window.gfCADInto=gfCADInto;
 
-/* ===================== mapa do projeto em tempo real ===================== */
+/* ===================== mapa do projeto em tempo real (v164: painel flutuante + mapa embutido na Calculadora) ===================== */
 function utm2ll(E0,N0,zona,sul){const a=6378137,f=1/298.257222101,k0=0.9996,e2=f*(2-f),ep2=e2/(1-e2),e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
   const x=E0-5e5,y=sul?N0-1e7:N0,M=y/k0,mu=M/(a*(1-e2/4-3*e2*e2/64-5*e2**3/256));
   const p1=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1*e1/16-55*e1**4/32)*Math.sin(4*mu)+(151*e1**3/96)*Math.sin(6*mu)+(1097*e1**4/512)*Math.sin(8*mu);
@@ -12978,64 +12999,102 @@ function utm2ll(E0,N0,zona,sul){const a=6378137,f=1/298.257222101,k0=0.9996,e2=f
   return [lat*180/Math.PI,lon*180/Math.PI]}
 window.gfUTM2LL=utm2ll;
 const ramp=t=>{const cs=[[43,131,186],[171,221,164],[255,255,191],[253,174,97],[215,25,28]];t=Math.max(0,Math.min(1,t))*(cs.length-1);const i=Math.min(cs.length-2,Math.floor(t)),f=t-i,a=cs[i],b=cs[i+1];return `rgb(${a.map((v,j)=>Math.round(v+(b[j]-v)*f)).join(",")})`};
-let MP=null,LF=null,LY=null,ov=null,fab=null,ultKey="",ajustou=new Set(),tmr=null,ultPts=null,aberto=false;
 const lsG=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsS=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 function zonaDe(G){const z=G.zona||lsG("gf-mapa-zona:"+G.id)||"23S",m=String(z).match(/(\d{1,2})\s*([NSns])?/);return m?{n:+m[1],sul:(m[2]||"S").toUpperCase()==="S",txt:m[1]+(m[2]||"S").toUpperCase(),deArquivo:!!G.zona}:{n:23,sul:true,txt:"23S"}}
-function carregaLeaflet(){if(window.L&&window.L.map)return Promise.resolve(window.L);return new Promise((ok,err)=>{if(!document.querySelector('link[href*="leaflet"]')){const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c)}
-  const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>ok(window.L);s.onerror=()=>err(new Error("sem internet para carregar o mapa"));document.head.appendChild(s)})}
+let LF=null,lfP=null;
+function carregaLeaflet(){if(window.L&&window.L.map)return Promise.resolve(LF=window.L);if(lfP)return lfP;lfP=new Promise((ok,err)=>{if(!document.querySelector('link[href*="leaflet"]')){const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c)}
+  const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>ok(LF=window.L);s.onerror=()=>{lfP=null;err(new Error("sem internet para carregar o mapa"))};document.head.appendChild(s)});return lfP}
+const LEG=`<span>Cota</span><span class="gfm-zmin">—</span><span class="gfm-ramp"></span><span class="gfm-zmax">—</span><span><i class="gfm-sw" style="background:rgba(57,198,255,.5);border:1px solid #1d8fd1"></i>espelho d'água</span><span><i class="gfm-sw" style="background:rgba(170,120,60,.35);border:1px solid #8a5a2b"></i>dique / crista</span><span><i class="gfm-sw" style="background:linear-gradient(#3b4752 40%,#fff 40%,#fff 60%,#3b4752 60%)"></i>curvas de nível</span>`;
+/* uma "vista" = um mapa Leaflet num elemento; o painel flutuante e o mapa da Calculadora são duas vistas */
+function novaVista(el,op){const v={el,op:op||{},MP:null,LY:null,key:"",ajustou:false,previa:null};return v}
+async function montaVista(v){
+  const LFx=await carregaLeaflet();if(v.MP){try{v.MP.remove()}catch(e){}}
+  const box=v.el.querySelector(".gfm-map");v.MP=LFx.map(box,{zoomControl:true,preferCanvas:true,attributionControl:true}).setView([-2.53,-44.3],7);
+  const sat=LFx.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:21,maxNativeZoom:19,attribution:"Imagens © Esri"}).addTo(v.MP);
+  const osm=LFx.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"});
+  v.LY={pts:LFx.layerGroup().addTo(v.MP),cv:LFx.layerGroup().addTo(v.MP),viv:LFx.layerGroup().addTo(v.MP),pre:LFx.layerGroup().addTo(v.MP)};
+  LFx.control.layers({"Satélite":sat,"Mapa":osm},{"Pontos do levantamento":v.LY.pts,"Curvas de nível":v.LY.cv,"Viveiros e tanques":v.LY.viv,"Prévia das medidas digitadas":v.LY.pre},{position:"topright",collapsed:true}).addTo(v.MP);
+  LFx.control.scale({imperial:false}).addTo(v.MP);v.key="";v.ajustou=false}
+function desenhaVista(v,forca){
+  if(!v.MP||!v.LY||!LF)return;
+  const G=window.topoGeo&&topoGeo(),st=v.el.querySelector(".gfm-st");
+  if(!G||!G.pts.length){if(st)st.textContent=G?"Projeto aberto, ainda sem pontos com cota. Descarregue os dados brutos em Levantamento › Dados brutos.":"Nenhum levantamento aberto. Descarregue os dados brutos em Levantamento › Dados brutos: os pontos aparecem aqui na posição real.";for(const k in v.LY)v.LY[k].clearLayers();v.key="";return}
+  const Z=zonaDe(G),sel=v.el.querySelector('[data-m="zona"]');if(sel){sel.value=Z.txt;sel.disabled=Z.deArquivo;sel.title=Z.deArquivo?"Fuso lido do arquivo (GeoTIFF/LAS)":"Fuso UTM das coordenadas (confira: o Maranhão fica no 23S)"}
+  const ll=([e,n])=>utm2ll(e,n,Z.n,Z.sul);
+  const key=JSON.stringify([G.id,G.v,G.nPts,G.viv.map(x=>[x.id,x.ext[0],x.agua[0],x.sel,Math.round(x.corte||0)]),Z.txt,G.curvas.length]);
+  const bb=[];
+  if(key!==v.key||forca){v.key=key;
+    v.LY.pts.clearLayers();v.LY.cv.clearLayers();v.LY.viv.clearLayers();const rng=(G.zmax-G.zmin)||1;
+    const pts=v.op.leve?G.pts.filter((_,i)=>i%2===0):G.pts;
+    for(const [e,n,z] of pts){const p=ll([e,n]);bb.push(p);LF.circleMarker(p,{radius:2.4,stroke:false,fillColor:ramp((z-G.zmin)/rng),fillOpacity:.9,interactive:!v.op.leve}).bindTooltip(`cota ${nf(z,2)} m`).addTo(v.LY.pts)}
+    for(const c of G.curvas){const m=c.mestra;LF.polyline(c.p.map(ll),{color:"#ffffff",weight:m?1.8:.8,opacity:m?.95:.55,interactive:false}).addTo(v.LY.cv);if(m&&c.p.length>4&&!v.op.leve)LF.polyline(c.p.map(ll),{opacity:0,weight:8}).bindTooltip(`${nf(c.z,2)} m`,{sticky:true}).addTo(v.LY.cv)}
+    for(const x of G.viv){
+      const ext=x.ext.map(ll),agua=x.agua.map(ll);ext.forEach(p=>bb.push(p));
+      LF.polygon(ext,{color:"#8a5a2b",weight:x.sel?3:1.5,fillColor:"#aa783c",fillOpacity:.35,interactive:false}).addTo(v.LY.viv);
+      if(!x.g.circ)LF.polygon(x.crista.map(ll),{color:"#ffd84d",weight:1.2,fill:false,interactive:false}).addTo(v.LY.viv);
+      const pg=LF.polygon(agua,{color:x.sel?"#ffffff":"#1d8fd1",weight:x.sel?3:1.5,fillColor:"#39c6ff",fillOpacity:.5}).addTo(v.LY.viv);
+      if(!x.g.circ)LF.polygon(x.fundo.map(ll),{color:"#1e40af",weight:1,dashArray:"4 4",fill:false,interactive:false}).addTo(v.LY.viv);
+      pg.bindTooltip(E(x.nome),{permanent:true,direction:"center",className:"gfm-lbl"});
+      pg.bindPopup(`<b>${E(x.nome)}</b><br>${x.g.circ?"Ø "+nf(x.g.D,1)+" m":nf(x.g.L,1)+" × "+nf(x.g.W,1)+" m"} · lâmina ${nf(x.g.h,2)} m<br>Fundo ${nf(x.g.zF,2)} · água ${nf(x.g.zA,2)} · crista ${nf(x.g.zC,2)} m<br>Corte ${nf(x.corte||0,0)} m³ · aterro ${nf(x.aterro||0,0)} m³ · água ${nf(x.agua_m3||0,0)} m³`)}
+    const zmin=v.el.querySelector(".gfm-zmin"),zmax=v.el.querySelector(".gfm-zmax");if(zmin)zmin.textContent=nf(G.zmin,1)+" m";if(zmax)zmax.textContent=nf(G.zmax,1)+" m";
+    if(st)st.innerHTML=`${nf(G.nPts,0)} pontos${pts.length<G.nPts?` (${nf(pts.length,0)} no mapa)`:""} · ${G.curvas.length} curvas · ${G.viv.length} viveiro${G.viv.length===1?"":"s"} · UTM ${Z.txt}${Z.deArquivo?"":" (confira o fuso)"} · atualizado às ${new Date().toLocaleTimeString("pt-BR")}`;
+    const d=v.el.querySelector(".gfm-dot");if(d){d.classList.remove("pisca");void d.offsetWidth;d.classList.add("pisca")}
+    if(bb.length&&(forca||!v.ajustou)){v.ajustou=true;try{v.MP.fitBounds(LF.latLngBounds(bb).pad(.12),{maxZoom:19})}catch(e){}}}
+  desenhaPrevia(v,G,ll);
+  setTimeout(()=>v.MP&&v.MP.invalidateSize(),60)}
+/* prévia: retângulos tracejados com as medidas digitadas na Calculadora, no lugar de cada viveiro do levantamento */
+function desenhaPrevia(v,G,ll){if(!v.LY)return;v.LY.pre.clearLayers();const q=v.previa;if(!q||!G||!G.viv.length)return;
+  const h=+q.h||1,bl=+q.bl||0,zi=+q.zi||0,c=+q.c||0,A=(+q.L||0)/2,B=(+q.W||0)/2;if(!(A>0&&B>0))return;
+  for(const x of G.viv){if(x.g.circ||!isFinite(x.cx))continue;const cs=Math.cos(x.r||0),sn=Math.sin(x.r||0),ret=(a,b)=>[[-a,-b],[a,-b],[a,b],[-a,b]].map(([u,w])=>ll([x.cx+u*cs-w*sn,x.cy+u*sn+w*cs]));
+    LF.polygon(ret(A+zi*bl+c,B+zi*bl+c),{color:"#ffffff",weight:2,dashArray:"7 5",fill:false,interactive:false}).addTo(v.LY.pre);
+    LF.polygon(ret(A,B),{color:"#a5f3fc",weight:2,dashArray:"7 5",fillColor:"#a5f3fc",fillOpacity:.12,interactive:false}).addTo(v.LY.pre)}}
+
+/* ---- painel flutuante ---- */
+let ov=null,fab=null,VP=null,aberto=false,tmr=null,ultPts=null;
 async function abrirMapa(){
   aberto=true;if(!ov){ov=document.createElement("div");ov.id="gf-mapa";document.body.appendChild(ov)}
   ov.hidden=false;ov.classList.remove("min");
-  ov.innerHTML=`<div class="gfm-h"><b><span class="gfm-dot"></span>🗺 Mapa do projeto · ao vivo</b><label style="font:12px var(--f-body,system-ui);display:flex;gap:4px;align-items:center" title="Fuso UTM das coordenadas do levantamento">Fuso<select data-m="zona">${[18,19,20,21,22,23,24,25].map(z=>`<option>${z}S</option>`).join("")}${[18,19,20,21,22].map(z=>`<option>${z}N</option>`).join("")}</select></label><button type="button" data-m="fit">⤢ Ajustar</button><button type="button" data-m="min">—</button><button type="button" data-m="x" aria-label="Fechar mapa">✕</button><div class="gfm-st">Carregando o mapa…</div></div><div class="gfm-map"></div><div class="gfm-leg"><span>Cota</span><span class="gfm-zmin">—</span><span class="gfm-ramp"></span><span class="gfm-zmax">—</span><span><i class="gfm-sw" style="background:rgba(57,198,255,.5);border:1px solid #1d8fd1"></i>espelho d'água</span><span><i class="gfm-sw" style="background:rgba(170,120,60,.35);border:1px solid #8a5a2b"></i>dique / crista</span><span><i class="gfm-sw" style="background:linear-gradient(#3b4752 40%,#fff 40%,#fff 60%,#3b4752 60%)"></i>curvas de nível</span></div>`;
-  ov.querySelector('[data-m="x"]').onclick=()=>{aberto=false;ov.hidden=true;if(fab)fab.hidden=!(window.topoGeo&&topoGeo())};
-  ov.querySelector('[data-m="min"]').onclick=()=>{ov.classList.toggle("min");if(MP)setTimeout(()=>MP.invalidateSize(),50)};
-  ov.querySelector('[data-m="fit"]').onclick=()=>{ultKey="";redesenha(true)};
-  ov.querySelector('[data-m="zona"]').onchange=e=>{const G=window.topoGeo&&topoGeo();if(G){lsS("gf-mapa-zona:"+G.id,e.target.value);ultKey="";redesenha(true)}};
+  ov.innerHTML=`<div class="gfm-h"><b><span class="gfm-dot"></span>🗺 Mapa do projeto · ao vivo</b><label style="font:12px var(--f-body,system-ui);display:flex;gap:4px;align-items:center" title="Fuso UTM das coordenadas do levantamento">Fuso<select data-m="zona">${[18,19,20,21,22,23,24,25].map(z=>`<option>${z}S</option>`).join("")}${[18,19,20,21,22].map(z=>`<option>${z}N</option>`).join("")}</select></label><button type="button" data-m="fit">⤢ Ajustar</button><button type="button" data-m="min">—</button><button type="button" data-m="x" aria-label="Fechar mapa">✕</button><div class="gfm-st">Carregando o mapa…</div></div><div class="gfm-map"></div><div class="gfm-leg">${LEG}</div>`;
+  ov.querySelector('[data-m="x"]').onclick=()=>{aberto=false;ov.hidden=true;if(VP&&VP.MP){try{VP.MP.remove()}catch(e){}VP.MP=null}agenda()};
+  ov.querySelector('[data-m="min"]').onclick=()=>{ov.classList.toggle("min");if(VP&&VP.MP)setTimeout(()=>VP.MP.invalidateSize(),50)};
+  ov.querySelector('[data-m="fit"]').onclick=()=>VP&&desenhaVista(VP,true);
+  ov.querySelector('[data-m="zona"]').onchange=e=>{const G=window.topoGeo&&topoGeo(true);if(G){lsS("gf-mapa-zona:"+G.id,e.target.value);todas(true)}};
   if(fab)fab.hidden=true;
-  try{LF=await carregaLeaflet()}catch(e){ov.querySelector(".gfm-st").textContent="Mapa indisponível: "+e.message+". O desenho e as planilhas continuam funcionando sem internet.";return}
-  if(MP){try{MP.remove()}catch(e){}}
-  MP=LF.map(ov.querySelector(".gfm-map"),{zoomControl:true,preferCanvas:true}).setView([-2.53,-44.3],7);
-  const sat=LF.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:21,maxNativeZoom:19,attribution:"Imagens © Esri"}).addTo(MP);
-  const osm=LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"});
-  LY={pts:LF.layerGroup().addTo(MP),cv:LF.layerGroup().addTo(MP),viv:LF.layerGroup().addTo(MP)};
-  LF.control.layers({"Satélite":sat,"Mapa":osm},{"Pontos do levantamento":LY.pts,"Curvas de nível":LY.cv,"Viveiros e tanques":LY.viv},{position:"topright",collapsed:true}).addTo(MP);
-  LF.control.scale({imperial:false}).addTo(MP);
-  ultKey="";redesenha(true)}
-function redesenha(forcaAjuste){
-  if(!aberto||!MP||!LF||!ov)return;
-  const G=window.topoGeo&&topoGeo(),st=ov.querySelector(".gfm-st");
-  if(!G){st.textContent="Nenhum levantamento aberto. Descarregue os dados brutos em Levantamento › Dados brutos: os pontos aparecem aqui na posição real.";LY.pts.clearLayers();LY.cv.clearLayers();LY.viv.clearLayers();return}
-  const Z=zonaDe(G),sel=ov.querySelector('[data-m="zona"]');if(sel){sel.value=Z.txt;sel.disabled=Z.deArquivo;sel.title=Z.deArquivo?"Fuso lido do arquivo (GeoTIFF/LAS)":"Fuso UTM das coordenadas (confira: o Maranhão fica no 23S)"}
-  const key=JSON.stringify([G.id,G.v,G.nPts,G.viv.map(v=>[v.id,v.ext[0],v.agua[0],v.sel,Math.round(v.corte||0)]),Z.txt,G.curvas.length]);
-  if(key===ultKey&&!forcaAjuste)return;ultKey=key;
-  const ll=([e,n])=>utm2ll(e,n,Z.n,Z.sul);
-  LY.pts.clearLayers();LY.cv.clearLayers();LY.viv.clearLayers();
-  const rng=(G.zmax-G.zmin)||1,bb=[];
-  for(const [e,n,z] of G.pts){const p=ll([e,n]);bb.push(p);LF.circleMarker(p,{radius:2.6,stroke:false,fillColor:ramp((z-G.zmin)/rng),fillOpacity:.9}).bindTooltip(`cota ${nf(z,2)} m`).addTo(LY.pts)}
-  for(const c of G.curvas){const m=c.mestra;LF.polyline(c.p.map(ll),{color:m?"#ffffff":"#f1f5f9",weight:m?1.8:.8,opacity:m?.95:.6,interactive:m}).addTo(LY.cv);if(m&&c.p.length>4)LF.polyline(c.p.map(ll),{opacity:0,weight:8}).bindTooltip(`${nf(c.z,2)} m`,{sticky:true}).addTo(LY.cv)}
-  for(const v of G.viv){
-    const ext=v.ext.map(ll),agua=v.agua.map(ll);ext.forEach(p=>bb.push(p));
-    LF.polygon(ext,{color:"#8a5a2b",weight:v.sel?3:1.5,fillColor:"#aa783c",fillOpacity:.35}).addTo(LY.viv);
-    if(!v.g.circ)LF.polygon(v.crista.map(ll),{color:"#ffd84d",weight:1.2,fill:false}).addTo(LY.viv);
-    const pg=LF.polygon(agua,{color:v.sel?"#ffffff":"#1d8fd1",weight:v.sel?3:1.5,fillColor:"#39c6ff",fillOpacity:.5}).addTo(LY.viv);
-    if(!v.g.circ)LF.polygon(v.fundo.map(ll),{color:"#1e40af",weight:1,dashArray:"4 4",fill:false}).addTo(LY.viv);
-    pg.bindTooltip(E(v.nome),{permanent:true,direction:"center",className:"gfm-lbl"});
-    pg.bindPopup(`<b>${E(v.nome)}</b><br>${v.g.circ?"Ø "+nf(v.g.D,1)+" m":nf(v.g.L,1)+" × "+nf(v.g.W,1)+" m"} · lâmina ${nf(v.g.h,2)} m<br>Fundo ${nf(v.g.zF,2)} · água ${nf(v.g.zA,2)} · crista ${nf(v.g.zC,2)} m<br>Corte ${nf(v.corte||0,0)} m³ · aterro ${nf(v.aterro||0,0)} m³ · água ${nf(v.agua_m3||0,0)} m³`)}
-  ov.querySelector(".gfm-zmin").textContent=G.pts.length?nf(G.zmin,1)+" m":"—";ov.querySelector(".gfm-zmax").textContent=G.pts.length?nf(G.zmax,1)+" m":"—";
-  const hora=new Date().toLocaleTimeString("pt-BR");
-  st.innerHTML=`${G.nPts?`${nf(G.nPts,0)} pontos`:"sem pontos ainda"}${G.pts.length<G.nPts?` (${nf(G.pts.length,0)} no mapa)`:""} · ${G.curvas.length} curvas · ${G.viv.length} viveiro${G.viv.length===1?"":"s"} · UTM ${Z.txt}${Z.deArquivo?"":" (confira o fuso)"} · atualizado às ${hora}`;
-  const d=ov.querySelector(".gfm-dot");d.classList.remove("pisca");void d.offsetWidth;d.classList.add("pisca");
-  if(bb.length&&(forcaAjuste||!ajustou.has(G.id))){ajustou.add(G.id);try{MP.fitBounds(LF.latLngBounds(bb).pad(.15),{maxZoom:19})}catch(e){}}
-  setTimeout(()=>MP&&MP.invalidateSize(),60)}
+  VP=novaVista(ov,{});VP.previa=VE?VE.previa:null;
+  try{await montaVista(VP)}catch(e){ov.querySelector(".gfm-st").textContent="Mapa indisponível: "+e.message+". O desenho e as planilhas continuam funcionando sem internet.";return}
+  desenhaVista(VP,true)}
+
+/* ---- mapa embutido (Calculadora › Parâmetros) ---- */
+let VE=null;
+async function gfMapaInto(el,previa){
+  if(!el)return;
+  if(!VE||VE.el!==el||!el.isConnected||!el.querySelector(".gfm-map")){
+    if(VE&&VE.MP){try{VE.MP.remove()}catch(e){}}
+    el.classList.add("gfm-emb");
+    el.innerHTML=`<div class="gfm-h"><b><span class="gfm-dot"></span>🗺 Mapa do projeto · ao vivo</b><button type="button" data-m="fit">⤢ Ajustar</button><button type="button" data-m="big">⤢ Tela cheia</button><div class="gfm-st">Carregando o mapa…</div></div><div class="gfm-map"></div><div class="gfm-leg">${LEG}<span class="gfm-pl" hidden><i class="gfm-sw" style="border:2px dashed #a5f3fc;background:none"></i>prévia das medidas digitadas</span></div>`;
+    VE=novaVista(el,{leve:true});VE.previa=previa||null;
+    el.querySelector('[data-m="fit"]').onclick=()=>desenhaVista(VE,true);
+    el.querySelector('[data-m="big"]').onclick=()=>abrirMapa();
+    const G=window.topoGeo&&topoGeo(true);
+    if(!G||!G.nPts){el.querySelector(".gfm-map").innerHTML=`<div style="padding:18px;font:13px var(--f-body,system-ui);color:var(--muted,#667)">Sem levantamento com pontos ainda. Descarregue os dados brutos (RTK, estação total, MDT do drone ou nuvem LAS) em <b>Levantamento</b>: o terreno e os viveiros aparecem aqui, na posição real, e a prévia acompanha as medidas que você digitar.</div>`;el.querySelector(".gfm-st").textContent="";VE.semDados=true;return}
+    try{await montaVista(VE)}catch(e){el.querySelector(".gfm-st").textContent="Mapa indisponível: "+e.message+".";return}
+    desenhaVista(VE,true)}
+  else{VE.previa=previa||null;if(VE.semDados){const G=window.topoGeo&&topoGeo(true);if(G&&G.nPts){VE.el=null;return gfMapaInto(el,previa)}return}
+    if(VE.MP){const G=window.topoGeo&&topoGeo();if(G&&G.pts.length){const Z=zonaDe(G);desenhaPrevia(VE,G,([e,n])=>utm2ll(e,n,Z.n,Z.sul))}}}
+  const pl=el.querySelector(".gfm-pl");if(pl)pl.hidden=!previa;
+  if(VP)VP.previa=previa||null}
+window.gfMapaInto=gfMapaInto;
+window.gfMapaResize=()=>{if(VE&&VE.MP)setTimeout(()=>{VE.MP.invalidateSize();if(!VE.ajustou)desenhaVista(VE,true)},60)};
+
+function todas(forca){if(aberto&&VP&&VP.MP)desenhaVista(VP,forca);if(VE&&VE.MP&&VE.el&&VE.el.isConnected&&VE.el.offsetParent!==null)desenhaVista(VE,forca)}
 function agenda(){clearTimeout(tmr);tmr=setTimeout(()=>{
-  let G=null;try{G=window.topoGeo&&topoGeo()}catch(e){}
+  let G=null;try{G=window.topoGeo&&topoGeo(true)}catch(e){}
   if(fab)fab.hidden=aberto||!G;
-  // abre sozinho quando chegam os primeiros dados brutos do projeto
   if(G&&G.nPts>0&&ultPts!==null&&(ultPts[G.id]||0)===0&&!aberto&&lsG("gf-mapa-auto:"+G.id)!=="1"){lsS("gf-mapa-auto:"+G.id,"1");abrirMapa()}
-  if(G){ultPts=ultPts||{};ultPts[G.id]=G.nPts}else ultPts=ultPts||{};
-  redesenha(false)},350)}
+  ultPts=ultPts||{};if(G)ultPts[G.id]=G.nPts;
+  todas(false)},400)}
 function montar(){if(fab)return;fab=document.createElement("button");fab.type="button";fab.id="gf-mapa-fab";fab.title="Mapa do projeto ao vivo (localização real)";fab.textContent="🗺";fab.hidden=true;fab.onclick=abrirMapa;document.body.appendChild(fab);
-  try{const G=window.topoGeo&&topoGeo();ultPts={};if(G)ultPts[G.id]=G.nPts;fab.hidden=!G}catch(e){ultPts={}}}
+  try{const G=window.topoGeo&&topoGeo(true);ultPts={};if(G)ultPts[G.id]=G.nPts;fab.hidden=!G}catch(e){ultPts={}}}
 window.gfMapa=abrirMapa;
 window.addEventListener("topo-salvo",agenda);window.addEventListener("storage",agenda);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(montar,800));else setTimeout(montar,800);
