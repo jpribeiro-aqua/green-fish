@@ -10273,7 +10273,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v168";
+  const APP_VERSAO="ras-v169";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -12632,7 +12632,8 @@ function aplicaReg(){const area=areaAtual(),ant={};for(const x of R.itens||[])if
     const a=ant[id];if(a){for(const k of ["atv","atvSt","prob","funil","osmNome"])if(a[k]!=null)x[k]=a[k]}
     if(p.r)RINGS[id]=p.r;R.itens.push(x);novos++}}
 const munNome=id=>{if(!id||!MUN)return "";const m=MUN.find(x=>+x.id===+id);return m?m.n:""};
-const BASE_REG=(/^https?:$/.test(location.protocol)&&!/claude|anthropic|usercontent/.test(location.hostname)?"":"https://jpribeiro-aqua.github.io/green-fish/")+"data/reg/";
+/* v169: a base do INCRA fica no repositório green-fish-dados, lida direto do GitHub (o app publica leve e rápido); em teste local usa a cópia da pasta data/reg */
+const BASE_REG=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?"data/reg/":"https://raw.githubusercontent.com/jpribeiro-aqua/green-fish-dados/main/data/reg/";
 const getReg=(n,ms)=>getJ(BASE_REG+n,null,ms).catch(()=>getJ(BASE_REG.replace(/data\/reg\/$/,"")+n,null,ms));
 /* blocos da base INCRA publicados compactados (.json.gz) para o site ficar leve; cai para .json se não houver */
 const getRegGz=async(n,ms)=>{try{const r=await fetchT(BASE_REG+n+".gz",null,ms);if(typeof DecompressionStream=="undefined")throw 0;const t=await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).text();return JSON.parse(t)}catch(e){return getReg(n,ms)}};
