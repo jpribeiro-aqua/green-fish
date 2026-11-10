@@ -7611,7 +7611,7 @@ function vivHTML(p,a){
      <label>Quantidade<input inputmode="numeric" data-vm="qtd" value="${E(S.vqtd||"4")}"></label>
      <label>Rotação (°)<input inputmode="decimal" data-vm="rot" value="${E(S.vrot||"")}" placeholder="auto: ao longo das curvas de nível"></label>
      <label>Viveiros existentes<select data-vm="subst"><option value="1"${S.vsub!=="0"?" selected":""}>Substituir pelos do modelo</option><option value="0"${S.vsub==="0"?" selected":""}>Manter e acrescentar</option></select></label></div>
-    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-mod">⚙️ Inserir e calcular o projeto</button>${sel?`<button type="button" class="btn" data-a="viv-modsalvar">⭐ Salvar o viveiro selecionado como modelo</button>`:""}${modsUser().length?`<button type="button" class="btn" data-a="viv-moddel">Apagar meus modelos</button>`:""}${vs.length?`<button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><button type="button" class="btn" onclick="window.gfResultado&&gfResultado()">📋 Resultado do projeto</button><button type="button" class="btn" onclick="window.gfMapa&&gfMapa()">🗺 Mapa ao vivo</button>`:""}</div>
+    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-mod">⚙️ Inserir e calcular o projeto</button>${sel?`<button type="button" class="btn" data-a="viv-modsalvar">⭐ Salvar o viveiro selecionado como modelo</button>`:""}${modsUser().length?`<button type="button" class="btn" data-a="viv-moddel">Apagar meus modelos</button>`:""}${vs.length?`<button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><button type="button" class="btn" onclick="window.gfResultado&&gfResultado()">📋 Resultado do projeto</button><button type="button" class="btn" onclick="window.gfMapa&&gfMapa()">🗺 Mapa ao vivo</button><button type="button" class="btn solid" onclick="window.vvUsarLevantamento&&vvUsarLevantamento()">🧮 Levar para a Calculadora</button>`:""}</div>
     <p class="muted">O app distribui as unidades no centro do levantamento, alinhadas às curvas de nível e dividindo os diques, acha a cota do fundo (ou da plataforma) que equilibra corte e aterro em cada uma e leva o projeto para a Calculadora (Viveiros escavados): limnologia, clima, hidráulica, produção, orçamento e viabilidade. O relatório final junta tudo, da terraplenagem à viabilidade.</p></div>
    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-novo">+ Novo viveiro</button>${S.place?`<span class="pj-tag pj-wait">Clique na planta para posicionar o viveiro</span><button type="button" class="btn" data-a="viv-place-off">Cancelar</button>`:""}</div>
    ${vs.length?`<div class="scroll"><table class="pj-tab"><thead><tr><th>Viveiro</th><th class="num">Espelho</th><th class="num">Água</th><th class="num">Fundo / água / crista (m)</th><th class="num">Corte</th><th class="num">Aterro</th><th class="num">Saldo de terra</th><th>Drenagem</th><th></th></tr></thead><tbody>${vs.map(linha).join("")}</tbody></table></div>`:`<p class="muted">Clique em <b>Novo viveiro</b>: ele aparece no centro da planta e você pode arrastar o centro clicando no mapa, girar e mudar as medidas. A cota do fundo começa no valor que equilibra corte e aterro.</p>`}
@@ -7627,7 +7627,7 @@ function vivHTML(p,a){
    ${vs.length?`<div class="subhead">Total dos viveiros e custo da terraplenagem</div>
    <div class="rp-grid"><label>Preço do corte (R$/m³)<input inputmode="decimal" data-cu="corte" value="${E(cu.corte)}"></label><label>Preço do aterro compactado (R$/m³)<input inputmode="decimal" data-cu="aterro" value="${E(cu.aterro)}"></label><label>Fator de compactação (m³ de corte por m³ de aterro)<input inputmode="decimal" data-cu="fat" value="${E(cu.fat)}"></label></div>
    <div class="us-kpis rp-k"><div><b>${N(T.esp/10000,2)} ha</b>de espelho d'água (${vs.length} viveiro${vs.length===1?"":"s"})</div><div><b>${I(T.agua)} m³</b>de água</div><div><b>${I(T.corte)} m³</b>de corte</div><div><b>${I(T.aterro)} m³</b>de aterro</div><div><b>${I(Math.abs(T.corte-T.aterro*fat))} m³</b>${T.corte-T.aterro*fat>=0?"de terra sobrando (bota-fora)":"de terra faltando (empréstimo)"}</div><div><b>${custo.toLocaleString("pt-BR",{style:"currency",currency:"BRL",maximumFractionDigits:0})}</b>de terraplenagem</div></div>
-   <div class="pj-btns"><button type="button" class="btn solid" data-a="planilhas">📊 Planilhas de corte e aterro (Excel)</button><button type="button" class="btn" data-a="dxf-proj">📐 Projeto em DXF (CAD)</button><button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><button type="button" class="btn" onclick="window.gfResultado&&gfResultado()">📋 Resultado do projeto</button><button type="button" class="btn" onclick="window.gfMapa&&gfMapa()">🗺 Mapa ao vivo</button><span class="muted">Planilha com resumo, cada viveiro, seções transversais (estacas) e pontos do terreno; DXF com curvas, viveiros, eixos e estacas para AutoCAD, QGIS ou outro CAD.</span></div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="planilhas">📊 Planilhas de corte e aterro (Excel)</button><button type="button" class="btn" data-a="dxf-proj">📐 Projeto em DXF (CAD)</button><button type="button" class="btn" data-a="viv-rel">📄 Relatório final do projeto</button><button type="button" class="btn" onclick="window.gfResultado&&gfResultado()">📋 Resultado do projeto</button><button type="button" class="btn" onclick="window.gfMapa&&gfMapa()">🗺 Mapa ao vivo</button><button type="button" class="btn solid" onclick="window.vvUsarLevantamento&&vvUsarLevantamento()">🧮 Levar para a Calculadora</button><span class="muted">Planilha com resumo, cada viveiro, seções transversais (estacas) e pontos do terreno; DXF com curvas, viveiros, eixos e estacas para AutoCAD, QGIS ou outro CAD.</span></div>
    <div class="pj-btns"><button type="button" class="btn solid" data-a="viv-calc">Enviar volumes para a Calculadora</button><span class="muted">Cria um grupo de tanques por viveiro (nome “… (lev.)”) com o volume de água; a Biomassa, o Arraçoamento e o Painel passam a usar esses volumes. O custo da terraplenagem e a área levantada entram na aba Local e viabilidade.</span></div>`:""}
   </div></section>`}
 function enviarCalc(p){
@@ -7782,6 +7782,7 @@ async function gerarPlanilhas(p,salvarPasta){const D=dadosPlanilha(p);if(!D||!D.
   if(salvarPasta&&p.arm==="fs"&&raiz&&raizOk)await gravar(p,"Processados/"+nome,blob);await baixar(nome,blob,blob.type);return nome}
 window.topoPlanilhas=async()=>{const p=projAtualTopo();if(!p)throw new Error("Nenhum levantamento aberto.");return gerarPlanilhas(p,true)};
 window.topoDXFProjeto=async()=>{const p=projAtualTopo();if(!p)throw new Error("Nenhum levantamento aberto.");const D=dadosPlanilha(p);if(!D)throw new Error("O levantamento não tem superfície.");const nome=slug(p.nome)+"_projeto.dxf";await baixar(nome,dxfProjeto(D),"application/dxf");return nome};
+window.topoImportarArquivos=async files=>{const p=projAtualTopo();if(!p)throw new Error("abra ou crie um projeto na aba Levantamento primeiro");await importar(p,files.map(f=>[f.name,f]),"calculadora");try{draw()}catch(e){}return `${files.length} arquivo(s) de pontos enviados para o levantamento “${p.nome}”: confira na aba Levantamento (curvas, MDT e 3D com o terreno real).`};
 window.topoGeo=leve=>{try{const p=projAtualTopo();if(!p)return null;const nPts=(p.arquivos||[]).reduce((s,f)=>s+(f.pts&&f.usar!==false&&f.est!=="isolado"?f.pts.length:0),0);if(leve)return {id:p.id,nome:p.nome,v:p.v,nPts};
   const zona=(p.arquivos||[]).map(f=>f.zona).find(Boolean)||null;let a=null;try{a=analisar(p)}catch(e){}
   const base={id:p.id,nome:p.nome,v:p.v,zona,nPts:a&&a.vis?a.vis.length:nPts,pts:[],curvas:[],viv:[],zmin:NaN,zmax:NaN};if(!a||!a.pts||!a.pts.length)return base;
@@ -7830,7 +7831,7 @@ function projetoHTML(p){
   const ban=fso?`<div class="lt-ban"><span>📥 <b>Arquivo ${fso.est==="isolado"?"isolado":fso.est==="evidencia"?"em evidência":"integrado"}:</b> ${E(fso.n)} · ${I((fso.pts||[]).length)} pontos — a planta, as curvas e os volumes abaixo usam só este arquivo${fso.est==="isolado"?", fora do projeto e das outras abas":""}.</span><span class="pj-btns">${fso.est==="isolado"?`<button type="button" class="btn" data-a="lt-ev" data-id="${E(fso.p)}">📌 Pôr em evidência</button>`:""}${fso.est?`<button type="button" class="btn solid" data-a="lt-int" data-id="${E(fso.p)}">✅ Integrar ao levantamento</button>`:""}<button type="button" class="btn" data-a="lt-ver" data-id="">✕ Ver o levantamento</button></span></div>`
     :nIso||nEv?`<div class="lt-ban lt-info"><span>📥 ${nIso?`${nIso} arquivo${nIso===1?"":"s"} de pontos isolado${nIso===1?"":"s"} (fora do levantamento e das outras abas)`:""}${nIso&&nEv?" · ":""}${nEv?`${nEv} em evidência (entra na planta daqui, mas não vai para a Calculadora, a Viabilidade e o Painel)`:""}. Use 👁 Ver sozinho, 📌 Em evidência ou ✅ Integrar em cada arquivo.</span></div>`:"";
   return ban+`<section class="card wide"><div class="card-head"><h2>${E(p.nome)}<span>${p.arm==="fs"?`Pasta: ${E((raiz?raiz.name:"…")+"/"+p.pasta)}`:"Arquivos guardados neste navegador"} · ${I(p.arquivos.length)} arquivo${p.arquivos.length===1?"":"s"} · ${tam(tot)}</span></h2></div><div class="pj-body">
-   <div class="pj-btns"><button type="button" class="btn solid" data-a="descarregar"${busy?" disabled":""}>⇩ Descarregar do equipamento</button><button type="button" class="btn" data-a="arquivos"${busy?" disabled":""}>Adicionar arquivos</button><button type="button" class="btn" onclick="window.gfMapa&&gfMapa()">🗺 Mapa ao vivo</button><button type="button" class="btn" data-a="fechar">Fechar projeto</button></div>
+   <div class="pj-btns"><button type="button" class="btn solid" data-a="descarregar"${busy?" disabled":""}>⇩ Descarregar do equipamento</button><button type="button" class="btn" data-a="arquivos"${busy?" disabled":""}>Adicionar arquivos</button><button type="button" class="btn" onclick="window.gfMapa&&gfMapa()">🗺 Mapa ao vivo</button><button type="button" class="btn solid" onclick="window.vvUsarLevantamento&&vvUsarLevantamento()">🧮 Levar para a Calculadora (Parâmetros do projeto)</button><button type="button" class="btn" data-a="fechar">Fechar projeto</button></div>
    <details class="us-det"><summary>Como descarregar os dados de cada equipamento</summary><ol class="rp-steps">
     <li><b>Coletora do RTK (ComNav, CHC, Emlid, etc.):</b> exporte o levantamento em TXT ou CSV (nome, código, N, E, cota) e, se for fazer PPP, o arquivo bruto/RINEX da base. Ligue a coletora no computador pelo cabo USB, escolha "Transferência de arquivos" no aviso da coletora e clique em <b>Descarregar do equipamento</b>: selecione a pasta da obra (normalmente em Armazenamento interno/SurveyMaster ou 7Star).</li>
     <li><b>Receptor (base/rover):</b> ligue o receptor pelo cabo USB; ele aparece como um disco. Selecione a pasta com os arquivos brutos do dia.</li>
@@ -10264,7 +10265,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v166";
+  const APP_VERSAO="ras-v167";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11603,12 +11604,13 @@ function build(){const v=view();if(!v)return;
   el.hidden=!on;if(!on)return;
   const o=calc();
   el.innerHTML=`<section class="card"><div class="card-head"><h2>🏞 Projeto de viveiros escavados<span>${T(()=>projAtual()?"Projeto "+E(projAtual().nome)+" · ":"","")}${E(o.S.n)} · ${E(SIS[o.sis])}</span></h2></div><div class="vv-body"><div class="vv-btns"><button type="button" class="btn solid" data-vrel="1">📄 Relatório final do projeto</button><button type="button" class="btn" data-vrel="p">🖨 PDF direto</button>${o.TP?`<a href="#" class="btn" data-vgo2="topo">🗺 Inserir modelo no levantamento</a>`:""}</div><div id="vv-kpi"></div><div id="vv-warn"></div></div></section>
-   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
+   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
   el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;grava();build()});
     else i.addEventListener("input",()=>{V[k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)})});
   el.querySelectorAll("[data-vrel]").forEach(b=>b.addEventListener("click",()=>vvRelatorio({print:b.dataset.vrel==="p"})));
+  if(window.gfImportarInto)T(()=>gfImportarInto(document.getElementById("vv-imp")));
   el.querySelectorAll("[data-vside]").forEach(b=>b.addEventListener("click",()=>{vvSide=b.dataset.vside;try{localStorage.setItem("gf-vv-side",vvSide)}catch(e){}el.querySelectorAll("[data-vside]").forEach(x=>x.setAttribute("aria-selected",String(x===b)));document.getElementById("vv-cad").hidden=vvSide==="mapa";document.getElementById("vv-mapa").hidden=vvSide!=="mapa";clearTimeout(tm);update();if(vvSide==="mapa"&&window.gfMapaResize)gfMapaResize()}));
   el.querySelectorAll("[data-vgo2]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();T(()=>setView(a.dataset.vgo2))}));
   el.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("input",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)}));
@@ -11842,6 +11844,10 @@ function vvRelatorio(op){op=op||{};recarrega();if(op.deTopo){V.modo="viv";V.dim=
   ov.querySelector('[data-r="baixar"]').onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([html],{type:"text/html"}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
   if(op.print)fr.onload=()=>setTimeout(imprimir,300);if(op.baixar)ov.querySelector('[data-r="baixar"]').click()}
 window.vvRelatorio=vvRelatorio;
+/* v167: outros módulos e a importação de arquivos preenchem os parâmetros e escolhem o painel ao lado */
+window.vvLado=lado=>{vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}const b=el&&el.querySelector(`[data-vside="${lado}"]`);if(b)b.click();else build()};
+window.vvAplicar=(q,lado)=>{recarrega();V.modo="viv";for(const k in q)V[k]=q[k];grava();if(lado){vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}}build();try{const c=document.getElementById("vv-cad");if(c&&lado==="cad")c.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}};
+window.vvUsarLevantamento=()=>{recarrega();V.modo="viv";V.dim="topo";grava();try{setView("calc")}catch(e){}setTimeout(()=>{try{build();const h=[...document.querySelectorAll("#vv-wrap .card-head h2")].find(x=>/Parâmetros do projeto/.test(x.textContent));if(h)h.closest(".card").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},250)};
 window.vvModelo=()=>{recarrega();const o=T(calc,null);if(!o)return null;const t=o.elev?"elev":o.tipo;return {esp:o.S.n,sp:o.sp,tipo:t,cob:o.cob?"1":"0",L:Math.round(o.Lw*10)/10,W:Math.round(o.Ww*10)/10,D:o.elev?Math.round(o.D*10)/10:10,h:Math.round(o.hm*100)/100,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,folga:2}};
 window.vvDeTopo=x=>{recarrega();V.modo="viv";V.dim="topo";if(x&&SPD[x.sp])V.sp=x.sp;V.tipo=x&&x.tipo?x.tipo:"auto";grava();T(()=>{if(!view().hidden)build()})};
 
@@ -13145,12 +13151,18 @@ async function montaVista(v){
   const box=v.el.querySelector(".gfm-map");v.MP=LFx.map(box,{zoomControl:true,preferCanvas:true,attributionControl:true}).setView([-2.53,-44.3],7);
   const sat=LFx.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:21,maxNativeZoom:19,attribution:"Imagens © Esri"}).addTo(v.MP);
   const osm=LFx.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:21,maxNativeZoom:19,attribution:"© OpenStreetMap"});
-  v.LY={pts:LFx.layerGroup().addTo(v.MP),cv:LFx.layerGroup().addTo(v.MP),viv:LFx.layerGroup().addTo(v.MP),pre:LFx.layerGroup().addTo(v.MP)};
-  LFx.control.layers({"Satélite":sat,"Mapa":osm},{"Pontos do levantamento":v.LY.pts,"Curvas de nível":v.LY.cv,"Viveiros e tanques":v.LY.viv,"Prévia das medidas digitadas":v.LY.pre},{position:"topright",collapsed:true}).addTo(v.MP);
+  v.LY={pts:LFx.layerGroup().addTo(v.MP),cv:LFx.layerGroup().addTo(v.MP),viv:LFx.layerGroup().addTo(v.MP),pre:LFx.layerGroup().addTo(v.MP),imp:LFx.layerGroup().addTo(v.MP)};
+  LFx.control.layers({"Satélite":sat,"Mapa":osm},{"Pontos do levantamento":v.LY.pts,"Curvas de nível":v.LY.cv,"Viveiros e tanques":v.LY.viv,"Prévia das medidas digitadas":v.LY.pre,"Arquivo importado":v.LY.imp},{position:"topright",collapsed:true}).addTo(v.MP);
   LFx.control.scale({imperial:false}).addTo(v.MP);v.key="";v.ajustou=false}
+function desenhaImp(v,forca){const I=window.__gfImport;if(!v.LY.imp)return null;const k=I?I.nome+"|"+I.pts.length+"|"+I.polys.length:"";if(k===v.impK&&!forca)return null;v.impK=k;v.LY.imp.clearLayers();if(!I)return null;const bb=[];
+  for(const pg of I.polys){if(pg.length<2)continue;pg.forEach(x=>bb.push(x));LF.polygon(pg,{color:"#f97316",weight:2.5,fillColor:"#fb923c",fillOpacity:.18}).bindTooltip(E(I.nome)).addTo(v.LY.imp)}
+  const muitos=I.pts.length>60;for(const x of I.pts){bb.push(x);LF.circleMarker(x,muitos?{radius:3,color:"#f97316",weight:1,fillColor:"#fdba74",fillOpacity:.95}:{radius:8,color:"#ffffff",weight:2.5,fillColor:"#f97316",fillOpacity:1}).bindTooltip(`${E(I.nome)}<br>${nf(x[0],6)}, ${nf(x[1],6)}`).addTo(v.LY.imp)}
+  return bb.length?bb:null}
 function desenhaVista(v,forca){
   if(!v.MP||!v.LY||!LF)return;
-  const G=window.topoGeo&&topoGeo(),st=v.el.querySelector(".gfm-st");
+  const G=window.topoGeo&&topoGeo(),st=v.el.querySelector(".gfm-st");const bi=desenhaImp(v,forca);
+  if(bi){try{v.MP.fitBounds(LF.latLngBounds(bi).pad(.25),{maxZoom:18});v.ajustou=true}catch(e){}}
+  if((!G||!G.pts.length)&&window.__gfImport){const I=window.__gfImport;if(st)st.innerHTML=`📄 ${E(I.nome)}: ${I.polys.length?I.polys.length+" contorno(s) · ":""}${nf(I.pts.length,0)} ponto(s) · sem levantamento aberto`;for(const k of ["pts","cv","viv","pre"])v.LY[k].clearLayers();v.key="";setTimeout(()=>v.MP&&v.MP.invalidateSize(),60);return}
   if(!G||!G.pts.length){if(st)st.textContent=G?"Projeto aberto, ainda sem pontos com cota. Descarregue os dados brutos em Levantamento › Dados brutos.":"Nenhum levantamento aberto. Descarregue os dados brutos em Levantamento › Dados brutos: os pontos aparecem aqui na posição real.";for(const k in v.LY)v.LY[k].clearLayers();v.key="";return}
   const Z=zonaDe(G),sel=v.el.querySelector('[data-m="zona"]');if(sel){sel.value=Z.txt;sel.disabled=Z.deArquivo;sel.title=Z.deArquivo?"Fuso lido do arquivo (GeoTIFF/LAS)":"Fuso UTM das coordenadas (confira: o Maranhão fica no 23S)"}
   const ll=([e,n])=>utm2ll(e,n,Z.n,Z.sul);
@@ -13209,10 +13221,10 @@ async function gfMapaInto(el,previa){
     el.querySelector('[data-m="fit"]').onclick=()=>desenhaVista(VE,true);
     el.querySelector('[data-m="big"]').onclick=()=>abrirMapa();
     const G=window.topoGeo&&topoGeo(true);
-    if(!G||!G.nPts){el.querySelector(".gfm-map").innerHTML=`<div style="padding:18px;font:13px var(--f-body,system-ui);color:var(--muted,#667)">Sem levantamento com pontos ainda. Descarregue os dados brutos (RTK, estação total, MDT do drone ou nuvem LAS) em <b>Levantamento</b>: o terreno e os viveiros aparecem aqui, na posição real, e a prévia acompanha as medidas que você digitar.</div>`;el.querySelector(".gfm-st").textContent="";VE.semDados=true;return}
+    if((!G||!G.nPts)&&!window.__gfImport){el.querySelector(".gfm-map").innerHTML=`<div style="padding:18px;font:13px var(--f-body,system-ui);color:var(--muted,#667)">Sem levantamento com pontos ainda. Descarregue os dados brutos (RTK, estação total, MDT do drone ou nuvem LAS) em <b>Levantamento</b>: o terreno e os viveiros aparecem aqui, na posição real, e a prévia acompanha as medidas que você digitar.</div>`;el.querySelector(".gfm-st").textContent="";VE.semDados=true;return}
     try{await montaVista(VE)}catch(e){el.querySelector(".gfm-st").textContent="Mapa indisponível: "+e.message+".";return}
     desenhaVista(VE,true)}
-  else{VE.previa=previa||null;if(VE.semDados){const G=window.topoGeo&&topoGeo(true);if(G&&G.nPts){VE.el=null;return gfMapaInto(el,previa)}return}
+  else{VE.previa=previa||null;if(VE.semDados){const G=window.topoGeo&&topoGeo(true);if((G&&G.nPts)||window.__gfImport){VE.el=null;return gfMapaInto(el,previa)}return}
     if(VE.MP){const G=window.topoGeo&&topoGeo();if(G&&G.pts.length){const Z=zonaDe(G);desenhaPrevia(VE,G,([e,n])=>utm2ll(e,n,Z.n,Z.sul))}}}
   const pl=el.querySelector(".gfm-pl");if(pl)pl.hidden=!previa;
   if(VP)VP.previa=previa||null}
@@ -13230,6 +13242,223 @@ function montar(){if(fab)return;fab=document.createElement("button");fab.type="b
   try{const G=window.topoGeo&&topoGeo(true);ultPts={};if(G)ultPts[G.id]=G.nPts;fab.hidden=!G}catch(e){ultPts={}}}
 window.gfMapa=abrirMapa;
 window.addEventListener("topo-salvo",agenda);window.addEventListener("storage",agenda);
+window.addEventListener("gf-import",()=>{if(VE&&VE.el&&VE.el.isConnected){if(VE.semDados||!VE.MP){const el=VE.el;VE.el=null;gfMapaInto(el,VE.previa)}else desenhaVista(VE,false)}if(aberto&&VP&&VP.MP)desenhaVista(VP,false)});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(montar,800));else setTimeout(montar,800);
 })();
 </script>
+<script>
+/* v167: trazer arquivos para os Parâmetros do projeto (imagem, PDF, Excel, Word, TXT, CSV, HTML, KML/KMZ, GeoJSON, DXF)
+   — lê medidas e coordenadas, mostra a localização no mapa, preenche os parâmetros e gera o desenho 2D/3D */
+(()=>{
+const E=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const nf=(x,d=1)=>(+x).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d});
+const ACEITA=".png,.jpg,.jpeg,.webp,.gif,.bmp,.pdf,.xlsx,.xlsm,.xls,.docx,.doc,.txt,.csv,.tsv,.htm,.html,.kml,.kmz,.geojson,.json,.dxf,.xml,.md";
+let R=null; // último resultado
+/* ---------- números e texto ---------- */
+const numBR=s=>{s=String(s).trim().replace(/\s/g,"");if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,"").replace(",",".");else if(/^-?\d+,\d+$/.test(s))s=s.replace(",",".");else if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s))s=s.replace(/,/g,"");return parseFloat(s)};
+const NUM="(\\d{1,3}(?:\\.\\d{3})+(?:,\\d+)?|\\d+(?:[.,]\\d+)?)";
+/* ---------- zip (xlsx, docx, kmz) ---------- */
+async function unzip(buf){const dv=new DataView(buf),u8=new Uint8Array(buf);let e=-1;for(let i=u8.length-22;i>=Math.max(0,u8.length-65557);i--){if(dv.getUint32(i,true)===0x06054b50){e=i;break}}if(e<0)throw new Error("o arquivo não é um ZIP/Office válido");
+  const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const F={};
+  for(let k=0;k<n;k++){const met=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lho=dv.getUint32(p+42,true);F[new TextDecoder().decode(u8.subarray(p+46,p+46+nl))]={met,cs,lho};p+=46+nl+xl+cl}
+  const get=async nm=>{const f=F[nm];if(!f)return null;const l=f.lho,a=l+30+dv.getUint16(l+26,true)+dv.getUint16(l+28,true),d=u8.subarray(a,a+f.cs);if(f.met===0)return d;if(f.met!==8)throw new Error("compressão não suportada");
+    return new Uint8Array(await new Response(new Blob([d]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer())};
+  return {nomes:Object.keys(F),get,txt:async nm=>{const b=await get(nm);return b?new TextDecoder().decode(b):null}}}
+const xml=s=>new DOMParser().parseFromString(s,"application/xml");
+async function lerXLSX(buf){const z=await unzip(buf),ss=[],out=[];const sst=await z.txt("xl/sharedStrings.xml");
+  if(sst){const d=xml(sst);for(const si of d.getElementsByTagName("si")){let t="";for(const x of si.getElementsByTagName("t"))t+=x.textContent;ss.push(t)}}
+  const fol=z.nomes.filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort((a,b)=>+a.match(/(\d+)\.xml/)[1]-+b.match(/(\d+)\.xml/)[1]).slice(0,6);
+  for(const f of fol){const d=xml(await z.txt(f)),rows=[];for(const r of d.getElementsByTagName("row")){const row=[];for(const c of r.getElementsByTagName("c")){const ref=c.getAttribute("r")||"",col=ref.replace(/\d+/g,"").split("").reduce((s,ch)=>s*26+ch.charCodeAt(0)-64,0)-1,t=c.getAttribute("t"),v=c.getElementsByTagName("v")[0];
+      let val=t==="s"?ss[+(v&&v.textContent)]:t==="inlineStr"?[...c.getElementsByTagName("t")].map(x=>x.textContent).join(""):v?v.textContent:"";row[col>=0?col:row.length]=val}rows.push(row.map(x=>x==null?"":x))}out.push(rows)}
+  return out}
+async function lerDOCX(buf){const z=await unzip(buf),d=xml(await z.txt("word/document.xml")||"<x/>"),L=[];for(const p of d.getElementsByTagName("w:p")){let t="";for(const x of p.getElementsByTagName("w:t"))t+=x.textContent;L.push(t)}
+  const T=[];for(const tb of d.getElementsByTagName("w:tbl")){for(const tr of tb.getElementsByTagName("w:tr")){T.push([...tr.getElementsByTagName("w:tc")].map(tc=>[...tc.getElementsByTagName("w:t")].map(x=>x.textContent).join("")))}}
+  return {texto:L.join("\n"),tabela:T}}
+/* ---------- PDF: pdf.js quando há internet; sem internet, extração simples do texto ---------- */
+let pdfP=null;
+function pdfjs(){if(window.pdfjsLib)return Promise.resolve(window.pdfjsLib);if(pdfP)return pdfP;pdfP=new Promise((ok,err)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>{try{window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";ok(window.pdfjsLib)}catch(e){err(e)}};s.onerror=()=>{pdfP=null;err(new Error("sem internet"))};document.head.appendChild(s)});return pdfP}
+function a85(u){const s=new TextDecoder("latin1").decode(u).replace(/^\s*<~/,"").replace(/~>[\s\S]*$/,"").replace(/\s/g,""),o=[];let g=[];
+  const fl=(b,n)=>{let v=0;for(let i=0;i<5;i++)v=v*85+(b[i]??84);for(let i=0;i<n;i++)o.push((v>>>(24-8*i))&255)};
+  for(const ch of s){if(ch==="z"&&!g.length){o.push(0,0,0,0);continue}g.push(ch.charCodeAt(0)-33);if(g.length===5){fl(g,4);g=[]}}if(g.length)fl(g,g.length-1);return new Uint8Array(o)}
+async function lerPDF(buf){
+  try{const lib=await pdfjs(),doc=await lib.getDocument({data:new Uint8Array(buf.slice(0))}).promise;let t="";const n=Math.min(doc.numPages,30);
+    for(let i=1;i<=n;i++){const pg=await doc.getPage(i),tc=await pg.getTextContent();let y=null;for(const it of tc.items){const yy=it.transform?Math.round(it.transform[5]):null;if(y!==null&&yy!==y)t+="\n";else if(t&&!t.endsWith(" "))t+=" ";t+=it.str;y=yy}t+="\n"}
+    const pg=await doc.getPage(1),vp0=pg.getViewport({scale:1}),sc=Math.min(3,1800/Math.max(vp0.width,vp0.height)),vp=pg.getViewport({scale:sc}),cv=document.createElement("canvas");cv.width=vp.width;cv.height=vp.height;
+    await pg.render({canvasContext:cv.getContext("2d"),viewport:vp}).promise;return {texto:t,img:cv.toDataURL("image/png"),paginas:doc.numPages,motor:"pdf.js"}}
+  catch(e){const u8=new Uint8Array(buf),bin=new TextDecoder("latin1").decode(u8);let t="";const re=/stream\r?\n/g;let m;
+    while((m=re.exec(bin))){const ini=m.index+m[0].length,fim=bin.indexOf("endstream",ini);if(fim<0)break;const hdr=bin.slice(Math.max(0,m.index-300),m.index);let dat=u8.subarray(ini,fim);
+      try{if(/ASCII85Decode/.test(hdr))dat=a85(dat);if(/FlateDecode/.test(hdr))dat=new Uint8Array(await new Response(new Blob([dat]).stream().pipeThrough(new DecompressionStream("deflate"))).arrayBuffer())}catch(er){continue}
+      const s=new TextDecoder("latin1").decode(dat);if(!/T[Jj]/.test(s))continue;for(const mm of s.matchAll(/\[((?:\\.|[^\]])*)\]\s*TJ|\(((?:\\.|[^)])*)\)\s*Tj|(T\*|Td|TD|ET)/g)){if(mm[3]){t+=mm[3]==="ET"||mm[3]==="T*"?"\n":" ";continue}const raw=mm[1]!=null?[...mm[1].matchAll(/\(((?:\\.|[^)])*)\)/g)].map(x=>x[1]).join(""):mm[2];t+=raw.replace(/\\([nrtbf()\\])/g,(a,c)=>({n:"\n",r:"",t:" ",b:"",f:"",["("]:"(",[")"]:")","\\":"\\"}[c]))}t+="\n"}
+    return {texto:t,img:null,motor:"simples",aviso:"Sem internet: li o texto do PDF de forma simples (pode faltar parte). Com internet, o PDF é lido por completo e a 1ª página vira imagem para o croqui."}}}
+/* ---------- imagem: GPS do EXIF (fotos de celular e drone) ---------- */
+function exifGPS(buf){try{const dv=new DataView(buf);if(dv.getUint16(0)!==0xFFD8)return null;let o=2;while(o<dv.byteLength-4){const mk=dv.getUint16(o),ln=dv.getUint16(o+2);if(mk===0xFFE1&&dv.getUint32(o+4)===0x45786966){const t=o+10,le=dv.getUint16(t)===0x4949,g16=p=>dv.getUint16(p,le),g32=p=>dv.getUint32(p,le);
+      const ifd=(p,f)=>{const n=g16(p);for(let i=0;i<n;i++){const e=p+2+i*12;f(g16(e),g16(e+2),g32(e+4),e+8)}};let gps=0;ifd(t+g32(t+4),(tag,ty,c,vo)=>{if(tag===0x8825)gps=g32(vo)});if(!gps)return null;const G={};
+      ifd(t+gps,(tag,ty,c,vo)=>{if(tag===1||tag===3)G[tag]=String.fromCharCode(dv.getUint8(vo));if((tag===2||tag===4)&&ty===5){const a=t+g32(vo),r=k=>g32(a+k*8)/g32(a+k*8+4);G[tag]=r(0)+r(1)/60+r(2)/3600}if(tag===6&&ty===5){const a=t+g32(vo);G[6]=g32(a)/g32(a+4)}});
+      if(G[2]==null||G[4]==null)return null;return {lat:G[2]*(G[1]==="S"?-1:1),lon:G[4]*(G[3]==="W"?-1:1),alt:G[6]}}o+=2+ln}}catch(e){}return null}
+/* ---------- coordenadas ---------- */
+function ll2utm(lat,lon){const a=6378137,f=1/298.257222101,k0=0.9996,e2=f*(2-f),ep2=e2/(1-e2),z=Math.floor((lon+180)/6)+1,l0=((z-1)*6-177)*Math.PI/180,p=lat*Math.PI/180,l=lon*Math.PI/180;
+  const s=Math.sin(p),c=Math.cos(p),t=Math.tan(p),Nn=a/Math.sqrt(1-e2*s*s),T=t*t,C=ep2*c*c,A=c*(l-l0);
+  const M=a*((1-e2/4-3*e2*e2/64-5*e2**3/256)*p-(3*e2/8+3*e2*e2/32+45*e2**3/1024)*Math.sin(2*p)+(15*e2*e2/256+45*e2**3/1024)*Math.sin(4*p)-(35*e2**3/3072)*Math.sin(6*p));
+  const x=k0*Nn*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*ep2)*A**5/120)+5e5;let y=k0*(M+Nn*t*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*ep2)*A**6/720));if(lat<0)y+=1e7;return [x,y,z,lat<0?"S":"N"]}
+const utm2ll=(e,n,z,sul)=>window.gfUTM2LL?gfUTM2LL(e,n,z,sul):[NaN,NaN];
+const ehLat=v=>isFinite(v)&&v>=-34&&v<=6,ehLon=v=>isFinite(v)&&v>=-75&&v<=-28,ehE=v=>isFinite(v)&&v>=1.5e5&&v<=8.5e5,ehN=v=>isFinite(v)&&v>=6.2e6&&v<=1.0e7||isFinite(v)&&v>=0&&v<=6e5&&false;
+function zonaTexto(t){const m=String(t).match(/(?:fuso|zona|zone|utm)\s*[:=]?\s*(1[89]|2[0-5])\s*([NSMLK])?/i)||String(t).match(/\b(1[89]|2[0-5])\s*([SM])\b/);if(!m)return null;return {n:+m[1],sul:!m[2]||/[SMLK]/i.test(m[2])}}
+/* tabelas → pontos: procura colunas de E/N/Z ou lat/lon pelo cabeçalho ou pelos valores */
+function pontosTabela(rows){if(!rows||rows.length<2)return null;const lim=rows.slice(0,8000);let hi=-1,cols=null;
+  const nomes={e:/^(e|este|leste|x|east|easting|coord\.?\s*e|e\s*\(m\))$/i,n:/^(n|norte|y|north|northing|coord\.?\s*n|n\s*\(m\))$/i,z:/^(z|cota|altitude|alt|h|elev|elevação|elevacao|altura)$/i,lat:/^(lat|latitude)$/i,lon:/^(lon|long|longitude|lng)$/i};
+  for(let i=0;i<Math.min(15,lim.length);i++){const r=lim[i].map(x=>String(x).trim()),c={};r.forEach((h,j)=>{for(const k in nomes)if(c[k]==null&&nomes[k].test(h))c[k]=j});if((c.e!=null&&c.n!=null)||(c.lat!=null&&c.lon!=null)){hi=i;cols=c;break}}
+  if(!cols){const nc=Math.max(...lim.slice(0,50).map(r=>r.length));const st=[];for(let j=0;j<nc;j++){const v=lim.slice(0,200).map(r=>numBR(r[j])).filter(isFinite);st.push({j,n:v.length,E:v.filter(ehE).length,N:v.filter(x=>x>=6.2e6&&x<=1e7).length,la:v.filter(ehLat).length,lo:v.filter(ehLon).length,z:v.filter(x=>x>-50&&x<3000).length})}
+    const tot=lim.slice(0,200).length*.6,cE=st.find(s=>s.E>=tot),cN=st.find(s=>s.N>=tot&&s!==cE);
+    if(cE&&cN){cols={e:cE.j,n:cN.j};const cz=st.find(s=>s.j>Math.max(cE.j,cN.j)&&s.z>=tot);if(cz)cols.z=cz.j}
+    else{const cla=st.find(s=>s.la>=tot),clo=st.find(s=>s.lo>=tot&&s!==cla);if(cla&&clo){cols={lat:cla.j,lon:clo.j};const cz=st.find(s=>s.j>Math.max(cla.j,clo.j)&&s.z>=tot&&s.la<tot&&s.lo<tot);if(cz)cols.z=cz.j}}}
+  if(!cols)return null;const P=[];for(let i=hi+1;i<lim.length;i++){const r=lim[i];if(cols.e!=null){const e=numBR(r[cols.e]),n=numBR(r[cols.n]),z=cols.z!=null?numBR(r[cols.z]):NaN;if(ehE(e)&&n>=6.2e6&&n<=1e7)P.push({e,n,z})}else{const la=numBR(r[cols.lat]),lo=numBR(r[cols.lon]),z=cols.z!=null?numBR(r[cols.z]):NaN;if(ehLat(la)&&ehLon(lo))P.push({lat:la,lon:lo,z})}}
+  return P.length?P:null}
+/* texto → coordenadas */
+function coordsTexto(t){const P=[];t=String(t);
+  for(const m of t.matchAll(/\bE\s*[:=]?\s*(\d{3}[.\s]?\d{3}(?:[.,]\d+)?)\s*m?\s*[,;/e\s]+\s*N\s*[:=]?\s*(\d{1,2}[.\s]?\d{3}[.\s]?\d{3}(?:[.,]\d+)?)/gi)){const e=numBR(m[1].replace(/\s/g,"")),n=numBR(m[2].replace(/\s/g,""));if(ehE(e)&&n>=6.2e6&&n<=1e7)P.push({e,n,z:NaN})}
+  for(const m of t.matchAll(/\bN\s*[:=]?\s*(\d{1,2}[.\s]?\d{3}[.\s]?\d{3}(?:[.,]\d+)?)\s*m?\s*[,;/e\s]+\s*E\s*[:=]?\s*(\d{3}[.\s]?\d{3}(?:[.,]\d+)?)/gi)){const n=numBR(m[1].replace(/\s/g,"")),e=numBR(m[2].replace(/\s/g,""));if(ehE(e)&&n>=6.2e6&&n<=1e7)P.push({e,n,z:NaN})}
+  for(const m of t.matchAll(/(\d{1,2})\s*[°º]\s*(\d{1,2})\s*['′’]\s*(\d{1,2}(?:[.,]\d+)?)?\s*(?:["″”]|'')?\s*([NS])[\s,;/e]+(\d{1,3})\s*[°º]\s*(\d{1,2})\s*['′’]\s*(\d{1,2}(?:[.,]\d+)?)?\s*(?:["″”]|'')?\s*([WOEL])/gi)){
+    const la=(+m[1]+m[2]/60+(m[3]?numBR(m[3]):0)/3600)*(/S/i.test(m[4])?-1:1),lo=(+m[5]+m[6]/60+(m[7]?numBR(m[7]):0)/3600)*(/[WO]/i.test(m[8])?-1:1);if(ehLat(la)&&ehLon(lo))P.push({lat:la,lon:lo,z:NaN})}
+  for(const m of t.matchAll(/(-\d{1,2}[.,]\d{4,})\s*[,;/\s]\s*(-\d{2}[.,]\d{4,})/g)){const la=numBR(m[1]),lo=numBR(m[2]);if(ehLat(la)&&ehLon(lo))P.push({lat:la,lon:lo,z:NaN})}
+  return P}
+/* texto → medidas do viveiro */
+function medidasTexto(t){t=String(t).replace(/\u00a0/g," ");const M={},q=(re,f)=>{const m=t.match(re);if(m){const v=f(m);if(v!=null&&isFinite(v)&&v>0)return v}return null};
+  const L=q(new RegExp("comprimento[^0-9\\n]{0,40}"+NUM+"\\s*m\\b","i"),m=>numBR(m[1])),W=q(new RegExp("largura[^0-9\\n]{0,40}"+NUM+"\\s*m\\b","i"),m=>numBR(m[1]));
+  const xm=t.match(new RegExp(NUM+"\\s*m?\\s*[x×X]\\s*"+NUM+"\\s*m\\b"));
+  if(L)M.L=L;if(W)M.W=W;if((!M.L||!M.W)&&xm){const a=numBR(xm[1]),b=numBR(xm[2]);if(a>2&&b>2&&a<2000&&b<2000){M.L=M.L||Math.max(a,b);M.W=M.W||Math.min(a,b)}}
+  const pr=q(new RegExp("(?:profundidade|l[aâ]mina(?:\\s+d['’]?\\s*[aá]gua)?)[^0-9\\n]{0,40}"+NUM+"\\s*(m|cm)\\b","i"),m=>numBR(m[1])/(m[2].toLowerCase()==="cm"?100:1));if(pr&&pr<6)M.h=pr;
+  const tal=(nome)=>q(new RegExp("talude\\s*"+nome+"[^0-9\\n]{0,30}(?:1\\s*[:/]\\s*"+NUM+"|"+NUM+"\\s*(?:[:/]\\s*1|h\\s*[:/]\\s*1\\s*v|\\s*por\\s*1))","i"),m=>numBR(m[1]||m[2]));
+  const ti=tal("interno"),te=tal("externo"),tg=tal("");if(ti)M.ti=ti;if(te)M.te=te;if(!ti&&tg)M.ti=tg;if(!te&&tg)M.te=tg;
+  const cr=q(new RegExp("crista[^0-9\\n]{0,40}"+NUM+"\\s*m\\b","i"),m=>numBR(m[1]));if(cr&&cr<20)M.crista=cr;
+  const bl=q(new RegExp("borda\\s+livre[^0-9\\n]{0,30}"+NUM+"\\s*(m|cm)\\b","i"),m=>numBR(m[1])/(m[2].toLowerCase()==="cm"?100:1));if(bl&&bl<3)M.bl=bl;
+  const de=q(new RegExp("declividade[^0-9\\n]{0,40}"+NUM+"\\s*%","i"),m=>numBR(m[1]));if(de&&de<20)M.decl=de;
+  const av=q(new RegExp("(?:[áa]rea\\s+(?:de\\s+cada|do|por)\\s+(?:viveiro|tanque)|espelho\\s+d['’]?\\s*[aá]gua)[^0-9\\n]{0,40}"+NUM+"\\s*(m²|m2|ha)\\b","i"),m=>numBR(m[1])*(m[2].toLowerCase()==="ha"?1e4:1));if(av)M.aViv=av;
+  const nv=q(/\b(\d{1,4})\s+(?:viveiros|tanques|unidades)\b/i,m=>+m[1]);if(nv&&nv<5000)M.n=nv;
+  const at=q(new RegExp("[áa]rea\\s+(?:total|dispon[ií]vel|do\\s+terreno|da\\s+propriedade|do\\s+projeto)[^0-9\\n]{0,40}"+NUM+"\\s*(ha|hectares?|m²|m2)\\b","i"),m=>numBR(m[1])/(/m/i.test(m[2])?1e4:1));if(at)M.areaDisp=at;
+  return M}
+/* geometria: retângulo mínimo do contorno (medidas e rotação do viveiro) */
+function hull(P){const p=P.map(x=>[x[0],x[1]]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);if(p.length<3)return p;const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]),lo=[],up=[];
+  for(const x of p){while(lo.length>=2&&cr(lo[lo.length-2],lo[lo.length-1],x)<=0)lo.pop();lo.push(x)}for(const x of p.slice().reverse()){while(up.length>=2&&cr(up[up.length-2],up[up.length-1],x)<=0)up.pop();up.push(x)}return lo.slice(0,-1).concat(up.slice(0,-1))}
+function retMin(P){const H=hull(P);if(H.length<3)return null;let best=null;for(let i=0;i<H.length;i++){const a=H[i],b=H[(i+1)%H.length],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),c=Math.cos(ang),s=Math.sin(ang);let u0=1e18,u1=-1e18,w0=1e18,w1=-1e18;
+    for(const p of H){const u=p[0]*c+p[1]*s,w=-p[0]*s+p[1]*c;u0=Math.min(u0,u);u1=Math.max(u1,u);w0=Math.min(w0,w);w1=Math.max(w1,w)}const A=(u1-u0)*(w1-w0);if(!best||A<best.A)best={A,L:u1-u0,W:w1-w0,ang,cu:(u0+u1)/2,cw:(w0+w1)/2,c,s}}
+  if(best.W>best.L){[best.L,best.W]=[best.W,best.L];best.ang+=Math.PI/2}const cx=best.cu*best.c-best.cw*best.s,cy=best.cu*best.s+best.cw*best.c;
+  let area=0;for(let i=0;i<H.length;i++){const a=H[i],b=H[(i+1)%H.length];area+=a[0]*b[1]-b[0]*a[1]}
+  return {L:best.L,W:best.W,rot:((best.ang*180/Math.PI)%180+180)%180,cx,cy,areaPoli:Math.abs(area)/2}}
+/* KML / GeoJSON / DXF */
+function lerKML(s){const d=xml(s),polys=[],pts=[];for(const c of d.getElementsByTagName("coordinates")){const P=c.textContent.trim().split(/\s+/).map(x=>x.split(",").map(Number)).filter(x=>ehLon(x[0])&&ehLat(x[1])).map(x=>({lat:x[1],lon:x[0],z:x[2]}));if(P.length>2)polys.push(P);else pts.push(...P)}return {polys,pts}}
+function lerGeoJSON(o){const polys=[],pts=[];const v=g=>{if(!g)return;if(g.type==="FeatureCollection")g.features.forEach(f=>v(f.geometry));else if(g.type==="Feature")v(g.geometry);else if(g.type==="Point")pts.push({lat:g.coordinates[1],lon:g.coordinates[0],z:g.coordinates[2]});else if(g.type==="Polygon")polys.push(g.coordinates[0].map(c=>({lat:c[1],lon:c[0]})));else if(g.type==="MultiPolygon")g.coordinates.forEach(p=>polys.push(p[0].map(c=>({lat:c[1],lon:c[0]}))));else if(g.type==="LineString")polys.push(g.coordinates.map(c=>({lat:c[1],lon:c[0]})));else if(g.type==="MultiPoint")g.coordinates.forEach(c=>pts.push({lat:c[1],lon:c[0]}))};v(o);return {polys,pts}}
+function lerDXF(s){const L=s.split(/\r?\n/),polys=[],pts=[],tx=[];let i=0,ent=null,cur=null;const fim=()=>{if(cur&&cur.length>2)polys.push(cur);cur=null};
+  while(i<L.length-1){const c=L[i].trim(),v=L[i+1].trim();i+=2;if(c==="0"){if(ent==="LWPOLYLINE"||(ent==="SEQEND"))fim();ent=v;if(v==="LWPOLYLINE"||v==="POLYLINE")cur=[];continue}
+    if((ent==="LWPOLYLINE"||ent==="VERTEX")&&c==="10"){(cur=cur||[]).push({x:+v,y:NaN})}if((ent==="LWPOLYLINE"||ent==="VERTEX")&&c==="20"&&cur&&cur.length)cur[cur.length-1].y=+v;
+    if(ent==="POINT"&&c==="10")pts.push({x:+v,y:NaN});if(ent==="POINT"&&c==="20"&&pts.length)pts[pts.length-1].y=+v;if(ent==="POINT"&&c==="30"&&pts.length)pts[pts.length-1].z=+v;if((ent==="TEXT"||ent==="MTEXT")&&(c==="1"||c==="3"))tx.push(v)}
+  fim();return {polys:polys.map(p=>p.filter(q=>isFinite(q.x)&&isFinite(q.y))).filter(p=>p.length>2),pts:pts.filter(q=>isFinite(q.x)&&isFinite(q.y)),texto:tx.join("\n").replace(/\\P/g,"\n").replace(/\{\\[^;]*;|\}/g,"")}}
+/* ---------- processar arquivo ---------- */
+async function processar(file){const nome=file.name,ext=(nome.split(".").pop()||"").toLowerCase(),buf=await file.arrayBuffer(),r={nome,ext,tam:file.size,texto:"",tabelas:[],pts:[],polys:[],img:null,avisos:[],tipo:""};
+  const dec=b=>{let t=new TextDecoder("utf-8").decode(b);if(t.includes("\ufffd"))t=new TextDecoder("latin1").decode(b);return t};
+  if(/^(png|jpe?g|webp|gif|bmp)$/.test(ext)){r.tipo="Imagem";r.img=URL.createObjectURL(file);const g=exifGPS(buf);if(g){r.pts.push({lat:g.lat,lon:g.lon,z:g.alt??NaN});r.gps=g}}
+  else if(ext==="pdf"){r.tipo="PDF";const p=await lerPDF(buf);r.texto=p.texto;r.img=p.img;if(p.aviso)r.avisos.push(p.aviso);r.motor=p.motor}
+  else if(ext==="xlsx"||ext==="xlsm"){r.tipo="Excel";r.tabelas=await lerXLSX(buf);r.texto=r.tabelas.map(t=>t.map(x=>x.join(" : ")).join("\n")).join("\n")}
+  else if(ext==="xls"){throw new Error("Excel antigo (.xls): abra no Excel e salve como .xlsx ou .csv")}
+  else if(ext==="docx"){r.tipo="Word";const d=await lerDOCX(buf);r.texto=d.texto+"\n"+d.tabela.map(x=>x.join(" : ")).join("\n");if(d.tabela.length)r.tabelas=[d.tabela]}
+  else if(ext==="doc"){throw new Error("Word antigo (.doc): abra no Word e salve como .docx ou PDF")}
+  else if(ext==="kmz"){r.tipo="KMZ (Google Earth)";const z=await unzip(buf),k=z.nomes.find(n=>/\.kml$/i.test(n));const g=lerKML(await z.txt(k));r.polys=g.polys;r.pts=g.pts}
+  else if(ext==="kml"){r.tipo="KML (Google Earth)";const g=lerKML(dec(buf));r.polys=g.polys;r.pts=g.pts}
+  else if(ext==="geojson"||(ext==="json"&&/"type"\s*:\s*"(Feature|FeatureCollection|Polygon|Point)/.test(dec(buf).slice(0,2000)))){r.tipo="GeoJSON";const g=lerGeoJSON(JSON.parse(dec(buf)));r.polys=g.polys;r.pts=g.pts}
+  else if(ext==="dxf"){r.tipo="DXF (CAD)";const d=lerDXF(dec(buf));r.texto=d.texto;r.dxf=d}
+  else if(ext==="htm"||ext==="html"){r.tipo="HTML";const d=new DOMParser().parseFromString(dec(buf),"text/html");r.texto=d.body?d.body.innerText||d.body.textContent:"";const T=[...d.querySelectorAll("table")].map(tb=>[...tb.rows].map(tr=>[...tr.cells].map(c=>c.textContent.trim())));r.tabelas=T}
+  else{r.tipo=ext==="csv"||ext==="tsv"?"Planilha CSV":"Texto";r.texto=dec(buf);const sep=r.texto.split("\n").slice(0,20).join("\n"),d=(sep.match(/;/g)||[]).length>(sep.match(/,/g)||[]).length/2?";":(sep.match(/\t/g)||[]).length?"\t":/,\s*\d/.test(sep)&&!/\d,\d{1,2}\b/.test(sep)?",":/;/.test(sep)?";":/\t/.test(sep)?"\t":null;
+    const linhas=r.texto.split(/\r?\n/).filter(x=>x.trim());r.tabelas=[linhas.map(l=>d?l.split(d):l.trim().split(/\s+/))]}
+  // coordenadas
+  for(const t of r.tabelas){const P=pontosTabela(t);if(P&&P.length>r.pts.length)r.pts=P}
+  if(!r.pts.length&&r.texto)r.pts=coordsTexto(r.texto);
+  {const vis=new Set();r.pts=r.pts.filter(q=>{const k=q.e!=null?Math.round(q.e)+"_"+Math.round(q.n):q.lat.toFixed(6)+"_"+q.lon.toFixed(6);if(vis.has(k))return false;vis.add(k);return true})}
+  r.zona=zonaTexto(r.texto)||(()=>{try{const s=window.topoGeo&&topoGeo(true);return null}catch(e){return null}})();
+  // DXF: polilinhas em UTM viram contorno; em coordenadas locais dão só as medidas
+  if(r.dxf){const big=r.dxf.polys.map(p=>({p,rm:retMin(p.map(q=>[q.x,q.y]))})).filter(x=>x.rm).sort((a,b)=>b.rm.areaPoli-a.rm.areaPoli);r.dxfN=r.dxf.polys.length;
+    if(big.length){const ehUTM=ehE(big[0].p[0].x)&&big[0].p[0].y>6.2e6;const alvo=big.find(x=>x.rm.L>3&&x.rm.L<1500)||big[0];r.contorno={rm:alvo.rm,fonte:"maior polilinha do desenho"};if(ehUTM){r.polys=big.slice(0,50).map(x=>x.p.map(q=>({e:q.x,n:q.y})))}}
+    if(r.dxf.pts.length&&ehE(r.dxf.pts[0].x))r.pts=r.dxf.pts.map(q=>({e:q.x,n:q.y,z:q.z}))}
+  // zona padrão e conversão para lat/lon
+  const Z=r.zona||{n:23,sul:true};r.zonaTxt=Z.n+(Z.sul?"S":"N");r.zonaPadrao=!r.zona;
+  const toLL=q=>q.lat!=null?[q.lat,q.lon]:utm2ll(q.e,q.n,Z.n,Z.sul),toUTM=q=>q.e!=null?[q.e,q.n]:ll2utm(q.lat,q.lon).slice(0,2);
+  r.ll={pts:r.pts.slice(0,3000).map(toLL).filter(x=>isFinite(x[0])),polys:r.polys.slice(0,200).map(p=>p.map(toLL).filter(x=>isFinite(x[0])))};
+  // contorno → medidas do viveiro
+  if(!r.contorno){const cand=r.polys.length?r.polys.map(p=>p.map(toUTM)):(r.pts.length>=3&&r.pts.length<=60&&!r.pts.some(q=>isFinite(q.z))?[r.pts.map(toUTM)]:[]);
+    const rms=cand.map(p=>retMin(p)).filter(x=>x&&x.L>3&&x.L<3000);if(rms.length){rms.sort((a,b)=>b.areaPoli-a.areaPoli);r.contorno={rm:rms[0],fonte:r.polys.length>1?`maior de ${r.polys.length} contornos`:"contorno do arquivo",n:r.polys.length>1?r.polys.length:0}}}
+  r.med=medidasTexto((r.texto||"")+(r.dxf?"\n"+r.dxf.texto:""));
+  if(r.contorno){const rm=r.contorno.rm;r.med.L=r.med.L||Math.round(rm.L*10)/10;r.med.W=r.med.W||Math.round(rm.W*10)/10;if(r.contorno.n&&!r.med.n)r.med.n=r.contorno.n}
+  r.terreno=r.pts.filter(q=>isFinite(q.z)).length>=20;
+  if(r.ll.pts.length||r.ll.polys.length){const all=r.ll.pts.concat(...r.ll.polys);r.centro=[all.reduce((s,x)=>s+x[0],0)/all.length,all.reduce((s,x)=>s+x[1],0)/all.length]}
+  return r}
+/* ---------- aplicar e mostrar ---------- */
+const ROT={L:"Comprimento",W:"Largura",aViv:"Área de cada viveiro",h:"Profundidade (lâmina)",ti:"Talude interno",te:"Talude externo",crista:"Crista",bl:"Borda livre",decl:"Declividade do fundo",n:"Número de viveiros",areaDisp:"Área disponível"};
+const UNI={L:"m",W:"m",aViv:"m²",h:"m",ti:": 1",te:": 1",crista:"m",bl:"m",decl:"%",n:"",areaDisp:"ha"};
+function paraV(M){const v={};const s=x=>String(Math.round(x*100)/100).replace(".",",");
+  if(M.L&&M.W){v.aViv=s(M.L*M.W);v.rel=s(Math.max(M.L,M.W)/Math.min(M.L,M.W))}else if(M.aViv)v.aViv=s(M.aViv);
+  if(M.h)v.rasa=s(M.h);if(M.ti)v.ti=s(M.ti);if(M.te)v.te=s(M.te);if(M.crista)v.crista=s(M.crista);if(M.bl)v.bl=s(M.bl);if(M.decl)v.decl=s(M.decl);
+  if(M.areaDisp){v.dim="area";v.areaDisp=s(M.areaDisp)}
+  if(M.n){const av=M.L&&M.W?M.L*M.W:M.aViv;if(av){v.dim="area";v.areaDisp=String(Math.round(M.n*av/0.65/1e4*1e4+5)/1e4).replace(".",",");v.aprov="65"}}
+  return v}
+function mostraMapa(){window.__gfImport=R&&(R.ll.pts.length||R.ll.polys.length)?{nome:R.nome,pts:R.ll.pts,polys:R.ll.polys}:null;try{window.dispatchEvent(new Event("gf-import"))}catch(e){}}
+function cartao(){if(!R)return "";const M=R.med,ks=Object.keys(ROT).filter(k=>M[k]!=null),temC=R.ll.pts.length||R.ll.polys.length;
+  const loc=R.centro?`${nf(R.centro[0],5)}, ${nf(R.centro[1],5)}`:"";
+  return `<div class="gfi-res"><div class="gfi-t"><b>📄 ${E(R.nome)}</b><small>${E(R.tipo)} · ${(R.tam/1024).toLocaleString("pt-BR",{maximumFractionDigits:0})} KB${R.motor==="pdf.js"?" · PDF lido por completo":""}</small><button type="button" class="btn" data-gi="x" aria-label="Limpar">✕</button></div>
+   ${R.avisos.map(a=>`<p class="gfi-av">⚠️ ${E(a)}</p>`).join("")}
+   ${ks.length?`<div class="gfi-sec"><b>📏 Medidas encontradas</b><div class="gfi-ks">${ks.map(k=>`<label><input type="checkbox" data-gk="${k}" checked> ${ROT[k]}: <b>${k==="ti"||k==="te"?nf(M[k],1)+" : 1":k==="n"?M[k]:nf(M[k],k==="aViv"?0:2)+" "+UNI[k]}</b></label>`).join("")}</div>
+     <div class="gfi-bt"><button type="button" class="btn solid" data-gi="aplicar">✅ Aplicar nos parâmetros e desenhar (2D/3D)</button></div>${R.contorno?`<small>Comprimento e largura medidos no ${E(R.contorno.fonte)}${R.contorno.rm?` (rotação ${nf(R.contorno.rm.rot,0)}°)`:""}.</small>`:""}</div>`
+     :`<div class="gfi-sec"><b>📏 Medidas</b><p class="muted" style="margin:4px 0">Não achei medidas escritas (comprimento, largura, profundidade, talude…).${R.img?" Use o croqui abaixo para medir na imagem.":""}</p></div>`}
+   ${R.img?`<div class="gfi-sec"><b>✏️ Croqui sobre a ${R.ext==="pdf"?"1ª página do PDF":"imagem"}</b><div class="gfi-bt"><button type="button" class="btn${ks.length?"":" solid"}" data-gi="croqui">✏️ Medir o viveiro na ${R.ext==="pdf"?"planta":"imagem"} (escala + cantos)</button></div><small>Marque dois pontos de uma medida conhecida para dar a escala e depois os cantos do espelho d'água: o app calcula comprimento e largura e desenha em 2D e 3D.</small></div>`:""}
+   ${temC?`<div class="gfi-sec"><b>📍 Localização</b><p style="margin:4px 0">${R.ll.polys.length?`${R.ll.polys.length} contorno(s)`:""}${R.ll.polys.length&&R.ll.pts.length?" · ":""}${R.ll.pts.length?`${R.ll.pts.length.toLocaleString("pt-BR")} ponto(s)${R.terreno?" com cota":""}`:""}${R.gps?" (GPS da foto)":""} · centro ${loc}${R.pts.some(q=>q.e!=null)?` · UTM ${R.zonaTxt}${R.zonaPadrao?" (fuso não informado no arquivo: usei 23S — confira)":""}`:""}</p>
+     <div class="gfi-bt"><button type="button" class="btn solid" data-gi="mapa">🗺 Ver no mapa</button><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${R.centro[0]},${R.centro[1]}">Abrir no Google Maps</a>${R.terreno?`<button type="button" class="btn" data-gi="terreno">⛰ Usar como levantamento do terreno</button>`:""}</div>${R.terreno?`<small>Os pontos têm cota: na aba Levantamento eles viram MDT, curvas de nível, corte e aterro e o 3D com o terreno real.</small>`:""}</div>`:""}
+   ${R.texto&&R.texto.trim()?`<details class="gfi-sec"><summary>Texto lido (${R.texto.trim().length.toLocaleString("pt-BR")} caracteres)</summary><pre class="gfi-pre">${E(R.texto.trim().slice(0,2500))}${R.texto.trim().length>2500?"\n…":""}</pre></details>`:""}
+   ${!ks.length&&!temC&&!R.img?`<p class="gfi-av">Não encontrei medidas nem coordenadas neste arquivo.</p>`:""}
+   <p class="gfi-msg" aria-live="polite"></p></div>`}
+function render(box){if(!box)return;box.innerHTML=`<div class="gfi"><div class="gfi-h"><b>📥 Trazer arquivo para o projeto</b><small>Imagem (PNG/JPG), PDF, Excel, Word, TXT, CSV, HTML, KML/KMZ, GeoJSON ou DXF: o app lê medidas e coordenadas, mostra no mapa e desenha em 2D e 3D.</small></div>
+  <div class="gfi-drop" tabindex="0" role="button">⬆ Escolher arquivo <span>ou arraste aqui</span></div>${cartao()}</div>`;
+  const dr=box.querySelector(".gfi-drop"),abrir=()=>{const i=document.createElement("input");i.type="file";i.accept=ACEITA;i.style.cssText="position:fixed;left:-9999px";document.body.appendChild(i);i.onchange=()=>{if(i.files[0])ler(i.files[0],box);i.remove()};i.click()};
+  dr.onclick=abrir;dr.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();abrir()}};
+  dr.addEventListener("dragover",e=>{e.preventDefault();dr.classList.add("on")});dr.addEventListener("dragleave",()=>dr.classList.remove("on"));dr.addEventListener("drop",e=>{e.preventDefault();dr.classList.remove("on");const f=e.dataTransfer.files[0];if(f)ler(f,box)});
+  const msg=t=>{const m=box.querySelector(".gfi-msg");if(m)m.textContent=t};
+  box.querySelectorAll("[data-gi]").forEach(b=>b.onclick=async()=>{const a=b.dataset.gi;
+    if(a==="x"){if(R&&R.img&&R.img.startsWith("blob:"))URL.revokeObjectURL(R.img);R=null;mostraMapa();render(box)}
+    else if(a==="aplicar"){const M={};box.querySelectorAll("[data-gk]").forEach(c=>{if(c.checked)M[c.dataset.gk]=R.med[c.dataset.gk]});const v=paraV(M);if(window.vvAplicar){vvAplicar(v,"cad");msg("Parâmetros preenchidos com as medidas do arquivo: veja o desenho 2D/3D ao lado.")}}
+    else if(a==="mapa"){mostraMapa();if(window.vvLado)vvLado("mapa");msg("Localização mostrada no mapa ao lado.")}
+    else if(a==="croqui")croqui();
+    else if(a==="terreno"){try{const L=["ponto,codigo,E,N,cota"],Z=R.zona||{n:23,sul:true};R.pts.forEach((q,i)=>{const [e,n]=q.e!=null?[q.e,q.n]:ll2utm(q.lat,q.lon);if(isFinite(q.z))L.push([i+1,"IMP",e.toFixed(3),n.toFixed(3),q.z.toFixed(3)].join(","))});
+        const f=new File([L.join("\n")],R.nome.replace(/\.[^.]+$/,"")+"_pontos.csv",{type:"text/csv"});if(!window.topoImportarArquivos)throw new Error("abra a aba Levantamento uma vez e tente de novo");const r=await topoImportarArquivos([f]);msg(r);}catch(e){msg("Não foi possível: "+e.message)}}})}
+async function ler(file,box){box.querySelector(".gfi-drop").innerHTML="⏳ Lendo "+E(file.name)+"…";try{R=await processar(file)}catch(e){R=null;render(box);const m=box.querySelector(".gfi-drop");m.insertAdjacentHTML("afterend",`<p class="gfi-av">⚠️ ${E(file.name)}: ${E(e.message||e)}</p>`);return}
+  render(box);if(R.ll.pts.length||R.ll.polys.length){mostraMapa();if(window.vvLado&&!Object.keys(R.med).length)vvLado("mapa")}}
+/* ---------- croqui: escala + cantos sobre a imagem ---------- */
+function croqui(){if(!R||!R.img)return;let ov=document.getElementById("gfi-cq");if(ov)ov.remove();ov=document.createElement("div");ov.id="gfi-cq";
+  ov.innerHTML=`<div class="gfi-cq-b"><div class="gfi-cq-h"><b>✏️ Croqui: medir o viveiro na imagem</b><span class="gfi-cq-st"></span><button type="button" class="btn" data-q="desf">↶ Desfazer</button><button type="button" class="btn" data-q="x">Fechar</button></div><div class="gfi-cq-w"><canvas></canvas></div>
+   <div class="gfi-cq-f"><label>Distância real entre os 2 pontos da escala (m) <input inputmode="decimal" data-q="dist" placeholder="ex.: 50"></label><label>Viveiros iguais a este <input inputmode="numeric" data-q="n" value="1"></label><button type="button" class="btn solid" data-q="ok" disabled>✅ Aplicar nos parâmetros</button><span class="gfi-cq-r"></span></div></div>`;
+  document.body.appendChild(ov);const cv=ov.querySelector("canvas"),ctx=cv.getContext("2d"),img=new Image(),st=ov.querySelector(".gfi-cq-st"),out=ov.querySelector(".gfi-cq-r"),ok=ov.querySelector('[data-q="ok"]'),dist=ov.querySelector('[data-q="dist"]');let esc=[],cant=[],k=1,res=null;
+  const passo=()=>esc.length<2?`1) Toque nas duas pontas de uma medida conhecida (${esc.length}/2)`:cant.length<4?`2) Toque nos cantos do espelho d'água (${cant.length}/4; pode marcar mais e fechar)`:"Pronto: confira a distância da escala e aplique";
+  const calc=()=>{res=null;const dm=numBR(dist.value);if(esc.length===2&&cant.length>=3&&dm>0){const px=Math.hypot(esc[1][0]-esc[0][0],esc[1][1]-esc[0][1]),m=dm/px,rm=retMin(cant.map(p=>[p[0]*m,-p[1]*m]));if(rm){res=rm;out.innerHTML=`Viveiro de <b>${nf(rm.L,1)} × ${nf(rm.W,1)} m</b> · ${nf(rm.areaPoli,0)} m² de espelho`}}else out.textContent="";ok.disabled=!res};
+  const desenha=()=>{ctx.clearRect(0,0,cv.width,cv.height);ctx.drawImage(img,0,0,cv.width,cv.height);const lw=Math.max(2,cv.width/500);ctx.lineWidth=lw;
+    if(esc.length){ctx.strokeStyle="#f97316";ctx.fillStyle="#f97316";ctx.beginPath();esc.forEach((p,i)=>{i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])});ctx.stroke();esc.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],lw*3,0,7);ctx.fill()})}
+    if(cant.length){ctx.strokeStyle="#0ea5e9";ctx.fillStyle="rgba(14,165,233,.25)";ctx.beginPath();cant.forEach((p,i)=>{i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])});if(cant.length>2){ctx.closePath();ctx.fill()}ctx.stroke();ctx.fillStyle="#0ea5e9";cant.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],lw*3,0,7);ctx.fill()})}
+    st.textContent=passo();calc()};
+  img.onload=()=>{const W=Math.min(img.naturalWidth,2400);k=W/img.naturalWidth;cv.width=W;cv.height=Math.round(img.naturalHeight*k);desenha()};img.src=R.img;
+  cv.addEventListener("click",e=>{const r=cv.getBoundingClientRect(),p=[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];if(esc.length<2)esc.push(p);else cant.push(p);desenha();if(esc.length===2&&!dist.value)dist.focus()});
+  dist.addEventListener("input",calc);ov.querySelector('[data-q="desf"]').onclick=()=>{if(cant.length)cant.pop();else esc.pop();desenha()};ov.querySelector('[data-q="x"]').onclick=()=>ov.remove();
+  ok.onclick=()=>{if(!res)return;const n=Math.max(1,parseInt(ov.querySelector('[data-q="n"]').value)||1),M={L:res.L,W:res.W};if(n>1)M.n=n;R.med=Object.assign({},R.med,{L:Math.round(res.L*10)/10,W:Math.round(res.W*10)/10},n>1?{n}:{});R.contorno={rm:res,fonte:"croqui medido na imagem"};
+    if(window.vvAplicar)vvAplicar(paraV(M),"cad");ov.remove();const b=document.getElementById("vv-imp");if(b)render(b)}}
+window.gfImportarInto=box=>render(box);
+window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,unzip,lerXLSX,lerDOCX,exifGPS,paraV};
+})();
+</script>
+<style>
+.gfi{border:1px dashed var(--line,#c5ced6);border-radius:12px;padding:10px 12px;display:grid;gap:8px;background:var(--surface,#fff)}
+.gfi-h{display:grid;gap:2px}.gfi-h small{color:var(--muted,#667);font-size:12px}
+.gfi-drop{border:2px dashed #94a3b8;border-radius:10px;padding:12px;text-align:center;font:600 14px var(--f-body,system-ui);cursor:pointer;color:var(--ink,#123)}.gfi-drop span{font-weight:400;color:var(--muted,#667)}.gfi-drop.on,.gfi-drop:hover{border-color:#0f7a6c;background:rgba(15,122,108,.06)}
+.gfi-res{display:grid;gap:8px}.gfi-t{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.gfi-t small{color:var(--muted,#667)}.gfi-t button{margin-left:auto}
+.gfi-sec{border-top:1px solid var(--line,#e3e6e8);padding-top:8px;display:grid;gap:6px}.gfi-sec small{color:var(--muted,#667);font-size:12px}
+.gfi-ks{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px}.gfi-bt{display:flex;flex-wrap:wrap;gap:8px}
+.gfi-av{margin:0;font-size:13px;color:#9a3412}.gfi-msg{margin:0;font-size:13px;color:#0f7a6c}.gfi-msg:empty{display:none}
+.gfi-pre{white-space:pre-wrap;max-height:220px;overflow:auto;font:12px ui-monospace,monospace;background:rgba(0,0,0,.04);padding:8px;border-radius:8px}
+#gfi-cq{position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.7);display:flex;padding:10px}
+.gfi-cq-b{background:var(--surface,#fff);border-radius:12px;flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.gfi-cq-h,.gfi-cq-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px}.gfi-cq-h b{margin-right:auto}.gfi-cq-st{font-size:13px;color:#0f7a6c;font-weight:600;flex-basis:100%}
+.gfi-cq-w{flex:1;overflow:auto;background:#1b2128;display:flex;align-items:flex-start;justify-content:center}.gfi-cq-w canvas{max-width:100%;height:auto;cursor:crosshair;display:block}
+.gfi-cq-f label{display:flex;gap:6px;align-items:center;font-size:13px}.gfi-cq-f input{width:90px}
+</style>
