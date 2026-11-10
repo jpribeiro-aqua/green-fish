@@ -10264,7 +10264,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v165";
+  const APP_VERSAO="ras-v166";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11641,7 +11641,11 @@ function update(){if(!el||el.hidden)return;const o=calc();
     kp("Terraplenagem",nf(o.mov,0),"m³",`corte ${nf(o.corteT,0)} · aterro ${nf(o.aterroT,0)}`),kp("Vazão de projeto",nf(o.Qls,1),"L/s",`${nf(o.Qlsha,1)} L/s/ha · ${o.grav?"por gravidade":"bomba de "+nf(o.motor,1)+" cv"}`),
     kp("Investimento",brl(o.invTot),"",`${brl(o.invTot/o.ha)}/ha de lâmina`),kp("Custo de produção",brl(o.cKg,2),"/kg",`venda a ${brl(o.p.venda,2)}/kg`,o.cKg>o.p.venda?"warn":"ok"),
     kp("TIR",isFinite(o.TIR)?nf(o.TIR,1)+" %":"—","",`VPL ${brl(o.VPL)} (TMA ${nf(o.tma*100,0)} %)`,isFinite(o.TIR)&&o.TIR>=o.tma*100?"ok":"warn"),kp("Retorno do capital",isFinite(o.PRC)?nf(o.PRC,1):"—",isFinite(o.PRC)?"anos":"",`RBC ${n2(o.RBC)}`)].join("")}</div>`;
+  if(o.dim==="area"&&o.n>100){const ah=nf(o.areaDisp,1)+" ha",fonte=String(V.areaDisp??"").trim()!==""?`o valor digitado no campo “Área disponível do terreno” (${ah})`:o.src&&o.src.areaDisp==="Levantamentos"?`a área coberta pelo levantamento (${ah}), porque o campo “Área disponível do terreno” está em branco`:`o valor padrão (${ah})`;
+    const temViv=T(()=>{const r=window.topoResumo&&topoResumo();return r&&r.n>0?r.n:0},0);
+    o.warn.unshift(["cr",`<b>${nf(o.n,0)} ${o.uni}s é um número fora do normal para um projeto.</b> A conta usou como área disponível ${fonte}: ${ah} × ${nf(o.aprov,0)} % de aproveitamento ÷ ${nf(o.aViv,0)} m² por unidade. Confira se é mesmo essa a área que vai virar piscicultura. <span style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">${temViv?`<button type="button" class="btn solid" data-vfix="lev">Usar os ${temViv} ${o.uni}(s) desenhados no levantamento</button>`:""}<button type="button" class="btn${temViv?"":" solid"}" data-vfix="area">Digitar a área do projeto</button></span>`])}
   document.getElementById("vv-warn").innerHTML=o.warn.length?o.warn.map(([c,t])=>`<div class="vv-al ${c}">${c==="cr"?"⛔":"⚠️"} ${t}</div>`).join(""):`<div class="vv-al ok">✓ Parâmetros dentro das referências técnicas para ${E(o.S.n.toLowerCase())} · ${E(o.tipoN.toLowerCase())}.</div>`;
+  document.querySelectorAll("#vv-warn [data-vfix]").forEach(b=>b.onclick=()=>{if(b.dataset.vfix==="lev"){V.dim="topo";grava();build()}else{const i=el.querySelector('[data-vv="areaDisp"]');if(i){i.scrollIntoView({block:"center",behavior:"smooth"});setTimeout(()=>{i.focus();i.select&&i.select()},350)}}});
   document.getElementById("vv-out").innerHTML=outHTML(o);
   const out=document.getElementById("vv-out");
   out.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("change",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;grava();update()}));
