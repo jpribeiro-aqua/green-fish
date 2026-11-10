@@ -10231,7 +10231,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v160";
+  const APP_VERSAO="ras-v161";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -12579,10 +12579,12 @@ function aplicaReg(){const area=areaAtual(),ant={};for(const x of R.itens||[])if
 const munNome=id=>{if(!id||!MUN)return "";const m=MUN.find(x=>+x.id===+id);return m?m.n:""};
 const BASE_REG=(/^https?:$/.test(location.protocol)&&!/claude|anthropic|usercontent/.test(location.hostname)?"":"https://jpribeiro-aqua.github.io/green-fish/")+"data/reg/";
 const getReg=(n,ms)=>getJ(BASE_REG+n,null,ms).catch(()=>getJ(BASE_REG.replace(/data\/reg\/$/,"")+n,null,ms));
+/* blocos da base INCRA publicados compactados (.json.gz) para o site ficar leve; cai para .json se não houver */
+const getRegGz=async(n,ms)=>{try{const r=await fetchT(BASE_REG+n+".gz",null,ms);if(typeof DecompressionStream=="undefined")throw 0;const t=await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).text();return JSON.parse(t)}catch(e){return getReg(n,ms)}};
 async function baseReg(area){const b=bboxOf(area.ring),ufs=(area.uf?[area.uf]:ufsDaArea(b)),out=[],ok=[];try{await municipios()}catch(e){}
   for(const uf of ufs){let idx;try{idx=await getReg(uf.toLowerCase()+"_index.json",15000)}catch(e){continue}
     const ks=Object.keys(idx.tiles||{}).filter(k=>{const [la,lo]=k.split("_").map(Number);return !(la>b[2]+.5||la+1<b[0]-.5||lo>b[3]+.5||lo+1<b[1]-.5)});
-    let i=0;for(const k of ks){i++;prog(`INCRA SIGEF/SNCI (${uf}): carregando bloco ${i} de ${ks.length}…`);try{out.push(...decTile(await getReg(uf.toLowerCase()+"_"+k+".json",30000),uf))}catch(e){}}
+    let i=0;for(const k of ks){i++;prog(`INCRA SIGEF/SNCI (${uf}): carregando bloco ${i} de ${ks.length}…`);try{out.push(...decTile(await getRegGz(uf.toLowerCase()+"_"+k+".json",30000),uf))}catch(e){}}
     ok.push({uf,fonte:idx.fonte,data:idx.data})}
   return {ps:out,ok}}
 async function carregaBase(area){CAMADAS=CAMADAS.filter(L=>L.id!=="incra-base");const bs=await baseReg(area);if(bs.ps.length){const T={};for(const p of bs.ps)T[p.t]=(T[p.t]||0)+1;CAMADAS.push({id:"incra-base",nome:"INCRA — SIGEF e SNCI (base do app"+(bs.ok[0]?", "+bs.ok.map(o=>o.uf).join(", ")+" · "+new Date(bs.ok[0].data+"T12:00").toLocaleDateString("pt-BR"):"")+")",quando:new Date().toISOString(),tipos:Object.entries(T).map(([k,v])=>`${REG_T[k][1]} ${F(v)}`).join(" · "),n:bs.ps.length,ha:bs.ps.reduce((a,p)=>a+(isFinite(p.h)?p.h:0),0),org:"INCRA",ps:bs.ps,area:area.nome,base:true})}return bs}
