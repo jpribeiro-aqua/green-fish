@@ -10276,7 +10276,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v175";
+  const APP_VERSAO="ras-v176";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11623,15 +11623,15 @@ function build(){const v=view();if(!v)return;
    <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-rapido">${rapidoHTML(o)}</div><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-dbar"><button type="button" class="btn" data-vdb="limpar">🗑 Limpar o quadro</button><button type="button" class="btn" data-vdb="salvar">💾 Salvar e fechar</button><button type="button" class="btn" data-vdb="salvos">📂 Desenhos salvos</button></div><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
-  el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;grava();build()});
-    else i.addEventListener("input",()=>{V[k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)})});
+  el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;delete V.vazio;grava();build()});
+    else i.addEventListener("input",()=>{V[k]=i.value;delete V.vazio;grava();clearTimeout(tm);tm=setTimeout(update,250)})});
   el.querySelectorAll("[data-vrel]").forEach(b=>b.addEventListener("click",()=>vvRelatorio({print:b.dataset.vrel==="p"})));
   if(window.gfImportarInto)T(()=>gfImportarInto(document.getElementById("vv-imp")));
   T(()=>rapidoBind(el));
   el.querySelectorAll("[data-vdb]").forEach(b=>b.onclick=()=>{const a=b.dataset.vdb,cb=document.getElementById("vv-cad"),svg=T(()=>cb&&cb.__q?(cb.__Q?gfCADConj(cb.__Q,cb.__q):gfCAD(cb.__q)):"","");vvDesenhoUI(a,svg)});
   el.querySelectorAll("[data-vside]").forEach(b=>b.addEventListener("click",()=>{vvSide=b.dataset.vside;try{localStorage.setItem("gf-vv-side",vvSide)}catch(e){}el.querySelectorAll("[data-vside]").forEach(x=>x.setAttribute("aria-selected",String(x===b)));document.getElementById("vv-cad").hidden=vvSide==="mapa";document.getElementById("vv-mapa").hidden=vvSide!=="mapa";clearTimeout(tm);update();if(vvSide==="mapa"&&window.gfMapaResize)gfMapaResize()}));
   el.querySelectorAll("[data-vgo2]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();T(()=>setView(a.dataset.vgo2))}));
-  el.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("input",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;grava();clearTimeout(tm);tm=setTimeout(update,250)}));
+  el.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("input",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;delete V.vazio;grava();clearTimeout(tm);tm=setTimeout(update,250)}));
   update()}
 /* v172: projeto rápido — área, quantidade e formato quando não há levantamento nem arquivo */
 const FORMAS=[["r3","Retangular 3 : 1","SENAR: lado maior até 3 × o menor",3],["r4","Retangular 4 : 1","Embrapa: 4 : 1 quando possível",4],["r2","Retangular 2 : 1","Mais largo, menos dique",2],["q","Quadrado","Menos perímetro de dique",1],["c","Circular (tanque)","Tanque elevado de geomembrana",0],["p","Medidas próprias","Digite comprimento × largura",-1]];
@@ -11662,7 +11662,7 @@ function rapidoBind(el){const box=el.querySelector("#vv-rapido");if(!box)return;
     if(f==="p"){const L=num(r.L),W=num(r.W);if(L>0&&W>0)a=L*W}
     if(!(a>0)||!(num(r.n)>0)){r.msg=f==="p"?"Digite comprimento, largura e a quantidade de viveiros.":"Digite a área de cada viveiro e a quantidade.";build();return}
     if(a<20){r.msg="Área muito pequena: confira se escolheu m² ou ha.";build();return}
-    const s2=x=>String(Math.round(x*100)/100).replace(".",",");V.modo="viv";V.dim="area";V.aprov="65";V.aViv=s2(a);V.areaDisp=String(Math.round((n*a/0.65/1e4)*1e4+5)/1e4).replace(".",",");
+    const s2=x=>String(Math.round(x*100)/100).replace(".",",");delete V.vazio;V.modo="viv";V.dim="area";V.aprov="65";V.aViv=s2(a);V.areaDisp=String(Math.round((n*a/0.65/1e4)*1e4+5)/1e4).replace(".",",");
     const rel=f==="p"?Math.max(num(r.L),num(r.W))/Math.min(num(r.L),num(r.W)):({r3:3,r4:4,r2:2,q:1,c:1})[f];V.rel=s2(rel);
     V.tipo=f==="c"?"elev_ab":(String(V.tipo||"").startsWith("elev")||V.tipo==="alv"?"esc":V.tipo||"auto");
     ["rasa","ti","te","crista","bl","nAerV","nColeta","dColeta","larCmp"].forEach(k=>V[k]="");V.decl=D0.decl;V.dren="auto";
@@ -11690,7 +11690,8 @@ function update(){if(!el||el.hidden)return;const o=calc();vvUltO=o;vvUltT=Date.n
     const ap=lb.querySelector("[data-vaplicar]");if(ap)ap.onclick=()=>{const q={L:o.Lw,W:o.Ww,D:o.elev?o.Lw:NaN,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.cr,dec:o.decl};const r=T(()=>window.topoAplicar?topoAplicar(q):null,null);vvLevMsg=r?r.msg:"Abra a aba Levantamentos e projetos uma vez e tente de novo.";build()};
     const li=lb.querySelector("[data-vlimpar]");if(li)li.onclick=()=>{KS.forEach(k=>{V[k]=D0[k]??""});grava();vvLevMsg="Valores digitados apagados: o projeto voltou às medidas sugeridas pelo levantamento.";build()}}
   {const q={nome:(o.TQ?(o.elev?"Tanque":"Raceway"):"Viveiro")+" tipo",tipo:o.elev?"elev":o.tipo,circ:!!o.elev,L:o.Lw,W:o.Ww,D:o.elev?o.D:o.Lw,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,n:o.n,rows:o.rows,aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6),dren:V.dren||"auto",rot:{N:90,S:270,L:0,O:180}[V.dren]??0},tit="Desenho técnico do "+(o.TQ?"tanque":"viveiro")+" · "+nf(o.n,0)+" unidade(s)";
-   if(vvSide!=="mapa"){const cb=document.getElementById("vv-cad");if(cb&&window.gfCADInto)T(()=>gfCADInto(cb,q,tit,o.medido?(()=>window.topoCADConjunto&&topoCADConjunto()):(qq=>gfLayoutUnidades(qq))))}
+   if(V.vazio){const cb=document.getElementById("vv-cad"),mb=document.getElementById("vv-mapa");if(cb){T(()=>window.gfCADInto&&gfCADInto(cb,null));cb.hidden=vvSide==="mapa";cb.classList.remove("gf-cadbox");cb.innerHTML=`<div class="vv-vazio"><b>🧹 Quadro limpo</b><span>Nada aberto no desenho técnico. Para começar outro: preencha o <b>🧩 Projeto rápido</b>, digite as medidas nos campos, importe um arquivo ou abra um em <b>📂 Desenhos salvos</b>.</span></div>`}if(mb&&window.gfMapaInto)T(()=>gfMapaInto(mb,null))}
+   else if(vvSide!=="mapa"){const cb=document.getElementById("vv-cad");if(cb&&window.gfCADInto)T(()=>gfCADInto(cb,q,tit,o.medido?(()=>window.topoCADConjunto&&topoCADConjunto()):(qq=>gfLayoutUnidades(qq))))}
    else{const mb=document.getElementById("vv-mapa");if(mb&&window.gfMapaInto)T(()=>gfMapaInto(mb,o.medido&&o.difLev&&o.difLev.length&&!o.elev?q:null))}}
   document.getElementById("vv-kpi").innerHTML=`<div class="vv-k">${[
     kp(o.TQ?(o.elev?"Tanques":"Raceways"):"Viveiros",nf(o.n,0),"",`${nf(o.aViv,0)} m² cada${o.medido?" · do levantamento":` · ${o.rows} fila(s)`}`),kp("Lâmina d'água",nf(o.ha,2),"ha",`${nf(o.Vt,0)} m³ de água`),
@@ -11705,7 +11706,7 @@ function update(){if(!el||el.hidden)return;const o=calc();vvUltO=o;vvUltT=Date.n
   document.querySelectorAll("#vv-warn [data-vfix]").forEach(b=>b.onclick=()=>{if(b.dataset.vfix==="lev"){V.dim="topo";grava();build()}else{const i=el.querySelector('[data-vv="areaDisp"]');if(i){i.scrollIntoView({block:"center",behavior:"smooth"});setTimeout(()=>{i.focus();i.select&&i.select()},350)}}});
   document.getElementById("vv-out").innerHTML=outHTML(o);
   const out=document.getElementById("vv-out");
-  out.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("change",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;grava();update()}));
+  out.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("change",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;delete V.vazio;grava();update()}));
   out.querySelectorAll("[data-vvk]").forEach(i=>i.addEventListener("change",()=>{V[i.dataset.vvk]=i.value;grava();update()}));
   out.querySelectorAll("[data-vgo]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();T(()=>setView(a.dataset.vgo))}));
   out.querySelectorAll("[data-vfin]").forEach(b=>b.addEventListener("click",()=>finEnviar(o,b.dataset.vfin)));
@@ -11907,14 +11908,14 @@ const DK="gf-desenhos-v1",KD=["tipo","dim","areaDisp","aprov","meta","aViv","rel
 const lerDs=()=>{try{return JSON.parse(localStorage.getItem(DK))||[]}catch(e){return []}},gravaDs=a=>{try{localStorage.setItem(DK,JSON.stringify(a));return true}catch(e){return false}};
 const baixaTxt=(nome,txt,tipo)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)};
 const slugD=t=>String(t||"desenho").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w\-]+/g,"_").slice(0,60);
-function fecharDesenho(){recarrega();const z=JSON.parse(JSON.stringify(D0));KD.forEach(k=>{if(k==="rap")delete V.rap;else V[k]=z[k]??""});V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}build()}
+function fecharDesenho(){recarrega();const z=JSON.parse(JSON.stringify(D0));KD.forEach(k=>{if(k==="rap")delete V.rap;else V[k]=z[k]??""});V.modo="viv";V.vazio=1;vvSide="cad";try{localStorage.setItem("gf-vv-side","cad")}catch(e){}grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}build()}
 window.vvDesenhos={lista:lerDs,
   salvar(nome,svg,baixar){recarrega();const o=T(calc,null),imp=T(()=>window.gfImportarEstado&&gfImportarEstado(),null);
     const it={id:"d"+Date.now().toString(36),nome:nome||"Desenho",em:Date.now(),V:JSON.parse(JSON.stringify(V)),arquivo:imp&&imp.nome||"",resumo:o?`${nf(o.n,0)} ${o.uni}(s) · ${o.elev?"Ø "+nf(o.D,1)+" m":nf(o.Lw,1)+" × "+nf(o.Ww,1)+" m"} · ${nf(o.aViv,0)} m² cada · ${E(o.S.n)}`:"",svg:svg||""};
     const L=lerDs();L.unshift(it);let ok=gravaDs(L);if(!ok){it.svg="";ok=gravaDs(L)}
     if(baixar){if(svg)baixaTxt(slugD(it.nome)+"_desenho.svg",svg.replace(/class="(dw|dw2|fi)"/g,""),"image/svg+xml");baixaTxt(slugD(it.nome)+"_parametros.json",JSON.stringify({app:"Green Fish",tipo:"desenho",nome:it.nome,salvoEm:new Date(it.em).toISOString(),resumo:it.resumo,arquivo:it.arquivo,parametros:it.V},null,1),"application/json")}
     return ok},
-  abrir(id){const it=lerDs().find(x=>x.id===id);if(!it)return false;V=Object.assign({},JSON.parse(JSON.stringify(D0)),JSON.parse(JSON.stringify(it.V)));V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}build();return true},
+  abrir(id){const it=lerDs().find(x=>x.id===id);if(!it)return false;V=Object.assign({},JSON.parse(JSON.stringify(D0)),JSON.parse(JSON.stringify(it.V)));delete V.vazio;V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}build();return true},
   excluir(id){gravaDs(lerDs().filter(x=>x.id!==id))},fechar:fecharDesenho};
 window.vvDesenhoUI=(acao,svg,tit)=>{let ov=document.getElementById("vv-dsn");if(ov)ov.remove();ov=document.createElement("div");ov.id="vv-dsn";const fecha=()=>ov.remove();
   if(acao==="salvar"||acao==="limpar"){const lim=acao==="limpar",imp=T(()=>window.gfImportarEstado&&gfImportarEstado(),null),pad=(imp&&imp.nome?imp.nome.replace(/\.[^.]+$/,""):"Desenho")+" · "+new Date().toLocaleDateString("pt-BR")+" "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
@@ -11935,7 +11936,7 @@ window.vvDesenhoUI=(acao,svg,tit)=>{let ov=document.getElementById("vv-dsn");if(
 function confirmaFechar(ov){const b=ov.querySelector('[data-d="f"]');if(b.dataset.conf==="1")return true;b.dataset.conf="1";b.textContent="Confirmar: fechar sem salvar";ov.querySelector(".vd-m").textContent="O desenho atual e os parâmetros digitados serão limpos. Toque de novo para confirmar.";return false}
 function vvAvisoD(t){let a=document.getElementById("vv-dsn-av");if(!a){a=document.createElement("div");a.id="vv-dsn-av";document.body.appendChild(a)}a.textContent=t;a.classList.remove("on");void a.offsetWidth;a.classList.add("on");clearTimeout(a.__t);a.__t=setTimeout(()=>a.classList.remove("on"),3500)}
 window.vvValores=ks=>{recarrega();const o={};ks.forEach(k=>o[k]=V[k]??"");return o};
-window.vvAplicar=(q,lado,destaca)=>{recarrega();V.modo="viv";for(const k in q)V[k]=q[k];grava();if(lado){vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}}build();if(destaca!==false)setTimeout(()=>{for(const k in q){const i=el&&el.querySelector(`[data-vv="${k}"]`);if(i){i.classList.remove("gf-flash");void i.offsetWidth;i.classList.add("gf-flash")}}},30);try{const c=document.getElementById("vv-cad");if(c&&lado==="cad")c.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}};
+window.vvAplicar=(q,lado,destaca)=>{recarrega();V.modo="viv";delete V.vazio;for(const k in q)V[k]=q[k];grava();if(lado){vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}}build();if(destaca!==false)setTimeout(()=>{for(const k in q){const i=el&&el.querySelector(`[data-vv="${k}"]`);if(i){i.classList.remove("gf-flash");void i.offsetWidth;i.classList.add("gf-flash")}}},30);try{const c=document.getElementById("vv-cad");if(c&&lado==="cad")c.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(e){}};
 window.vvUsarLevantamento=()=>{recarrega();V.modo="viv";V.dim="topo";grava();try{setView("calc")}catch(e){}setTimeout(()=>{try{build();const h=[...document.querySelectorAll("#vv-wrap .card-head h2")].find(x=>/Parâmetros do projeto/.test(x.textContent));if(h)h.closest(".card").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},250)};
 window.vvModelo=()=>{recarrega();const o=T(calc,null);if(!o)return null;const t=o.elev?"elev":o.tipo;return {esp:o.S.n,sp:o.sp,tipo:t,cob:o.cob?"1":"0",L:Math.round(o.Lw*10)/10,W:Math.round(o.Ww*10)/10,D:o.elev?Math.round(o.D*10)/10:10,h:Math.round(o.hm*100)/100,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,folga:2}};
 window.vvDeTopo=x=>{recarrega();V.modo="viv";V.dim="topo";if(x&&SPD[x.sp])V.sp=x.sp;V.tipo=x&&x.tipo?x.tipo:"auto";grava();T(()=>{if(!view().hidden)build()})};
@@ -12959,7 +12960,7 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 .vr-p{display:grid;grid-template-columns:1fr 1fr;gap:10px}.vr-p[hidden]{display:none}.vr-b{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.vr-m{font-size:13px;color:#0f7a6c}
 .vr-r{border-top:1px solid var(--line,#e3e6e8);padding-top:8px;font-size:13.5px}.vr-r ul{margin:6px 0;padding-left:18px;display:grid;gap:3px}.vr-r small{color:var(--muted,#667)}
 .vv-pcad .vv-side{order:-1;min-width:0;display:grid;gap:8px}
-.vv-dbar{display:flex;flex-wrap:wrap;gap:6px}.vv-dbar .btn{flex:1 1 auto;font-size:13px}.vv-dbar [data-vdb="limpar"]{border-color:#dc2626;color:#b91c1c}
+.vv-vazio{display:grid;gap:6px;place-content:center;text-align:center;min-height:220px;border:2px dashed #94a3b8;border-radius:12px;padding:18px;color:#475569;background:#f8fafc}.vv-vazio b{font-size:16px;color:#0f172a}.vv-dbar{display:flex;flex-wrap:wrap;gap:6px}.vv-dbar .btn{flex:1 1 auto;font-size:13px}.vv-dbar [data-vdb="limpar"]{border-color:#dc2626;color:#b91c1c}
 .vv-tabs{display:flex;gap:6px}.vv-tabs button{flex:1;border:1px solid var(--line,#cfd6dc);background:var(--surface,#fff);color:var(--ink,#123);border-radius:10px;padding:7px 10px;font:600 13px var(--f-body,system-ui);cursor:pointer}.vv-tabs button[aria-selected="true"]{background:#0f7a6c;color:#fff;border-color:#0f7a6c}
 #vv-mapa{border:1px solid var(--line,#cfd6dc);border-radius:12px;overflow:hidden;background:var(--surface,#fff);display:flex;flex-direction:column}#vv-mapa[hidden]{display:none}#vv-mapa .gfm-map{height:min(60vh,460px)}
 @media (min-width:1100px){.vv-pcad{grid-template-columns:minmax(0,1.1fr) minmax(380px,1fr);align-items:start}.vv-pcad .vv-side{order:0;position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto}}
