@@ -9912,7 +9912,7 @@ function build(){const v=view();if(!v)return;
   el.hidden=!on;if(!on)return;
   const o=calc();
   el.innerHTML=`<section class="card"><div class="card-head"><h2>🏞 Projeto de viveiros escavados<span>${T(()=>projAtual()?"Projeto "+E(projAtual().nome)+" · ":"","")}${E(o.S.n)} · ${E(SIS[o.sis])}</span></h2></div><div class="vv-body"><div class="vv-btns"><button type="button" class="btn solid" data-vrel="1">📄 Relatório final do projeto</button><button type="button" class="btn" data-vrel="p">🖨 PDF direto</button>${o.TP?`<a href="#" class="btn" data-vgo2="topo">🗺 Inserir modelo no levantamento</a>`:""}</div><div id="vv-kpi"></div><div id="vv-warn"></div></div></section>
-   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-rapido">${rapidoHTML(o)}</div><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-dbar"><button type="button" class="btn" data-vdb="limpar">🗑 Limpar o quadro</button><button type="button" class="btn" data-vdb="salvar">💾 Salvar e fechar</button><button type="button" class="btn" data-vdb="editar">✏️ Editar o desenho</button><button type="button" class="btn" data-vdb="salvos">📁 Arquivo de projetos</button></div><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
+   <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-rapido">${rapidoHTML(o)}</div><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-dbar"><button type="button" class="btn" data-vdb="limpar">🗑 Limpar o quadro</button><button type="button" class="btn" data-vdb="salvar">💾 Salvar e fechar</button><button type="button" class="btn" data-vdb="editar">✏️ Editar o desenho</button><button type="button" class="btn" data-vdb="salvos">📁 Arquivo de projetos</button><button type="button" class="btn" data-vdb="topo" title="Poligonal da estação total, memorial descritivo e planta do imóvel (padrão INCRA)">📐 Topografia</button></div><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
   el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;delete V.vazio;grava();build()});
@@ -9920,7 +9920,7 @@ function build(){const v=view();if(!v)return;
   el.querySelectorAll("[data-vrel]").forEach(b=>b.addEventListener("click",()=>vvRelatorio({print:b.dataset.vrel==="p"})));
   if(window.gfImportarInto)T(()=>gfImportarInto(document.getElementById("vv-imp")));
   T(()=>rapidoBind(el));
-  el.querySelectorAll("[data-vdb]").forEach(b=>b.onclick=()=>{const a=b.dataset.vdb,cb=document.getElementById("vv-cad");if(a==="editar"){if(V.vazio){vvAvisoD("Quadro limpo: monte um projeto (Projeto rápido, medidas ou arquivo) para editar o desenho.");return}if(vvSide==="mapa"){const t=el.querySelector('[data-vside="cad"]');if(t)t.click()}if(cb&&window.gfEdOnOff){gfEdOnOff(cb,true);cb.scrollIntoView({block:"start",behavior:"smooth"})}return}const svg=T(()=>cb&&cb.__q?(cb.__Q?gfCADConj(cb.__Q,cb.__q):gfCAD(cb.__q)):"","");vvDesenhoUI(a,svg)});
+  el.querySelectorAll("[data-vdb]").forEach(b=>b.onclick=()=>{const a=b.dataset.vdb,cb=document.getElementById("vv-cad");if(a==="topo"){if(window.gfTopoAbrir)gfTopoAbrir();return}if(a==="editar"){if(V.vazio){vvAvisoD("Quadro limpo: monte um projeto (Projeto rápido, medidas ou arquivo) para editar o desenho.");return}if(vvSide==="mapa"){const t=el.querySelector('[data-vside="cad"]');if(t)t.click()}if(cb&&window.gfEdOnOff){gfEdOnOff(cb,true);cb.scrollIntoView({block:"start",behavior:"smooth"})}return}const svg=T(()=>cb&&cb.__q?(cb.__Q?gfCADConj(cb.__Q,cb.__q):gfCAD(cb.__q)):"","");vvDesenhoUI(a,svg)});
   el.querySelectorAll("[data-vside]").forEach(b=>b.addEventListener("click",()=>{vvSide=b.dataset.vside;try{localStorage.setItem("gf-vv-side",vvSide)}catch(e){}el.querySelectorAll("[data-vside]").forEach(x=>x.setAttribute("aria-selected",String(x===b)));document.getElementById("vv-cad").hidden=vvSide==="mapa";document.getElementById("vv-mapa").hidden=vvSide!=="mapa";clearTimeout(tm);update();if(vvSide==="mapa"&&window.gfMapaResize)gfMapaResize()}));
   el.querySelectorAll("[data-vgo2]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();T(()=>setView(a.dataset.vgo2))}));
   el.querySelectorAll("[data-vvo]").forEach(i=>i.addEventListener("input",()=>{const [g,k]=i.dataset.vvo.split("|");V[g]=V[g]||{};V[g][k]=i.value;delete V.vazio;grava();clearTimeout(tm);tm=setTimeout(update,250)}));
@@ -11331,6 +11331,32 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #gf-mapa-fab{position:fixed;right:16px;bottom:136px;z-index:85;width:46px;height:46px;border-radius:50%;border:1px solid var(--line,#cdd);background:var(--surface,#fff);box-shadow:0 6px 18px rgb(0 0 0 / .22);font-size:22px;cursor:pointer}
 #gf-mapa-fab[hidden]{display:none}
 @media (min-width:901px){#gf-mapa-fab{bottom:76px}}
+/* v188: Topografia */
+#gt-ov{position:fixed;inset:0;z-index:9995;background:rgba(15,23,42,.55);overflow:auto;-webkit-overflow-scrolling:touch}
+#gt-ov .gt-w{background:#f8fafc;color:#0f172a;min-height:100%;max-width:1400px;margin:0 auto;box-shadow:0 0 30px rgba(0,0,0,.35)}
+#gt-ov .gt-h{position:sticky;top:0;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;background:#14532d;color:#fff}
+#gt-ov .gt-h b{flex:1 1 auto;font-size:16px}#gt-ov .gt-z{font-size:12px;display:flex;gap:4px;align-items:center}
+#gt-ov .gt-z select{font-size:12px;padding:2px 4px;border-radius:6px}#gt-ov .gt-h .btn{background:#fff;color:#14532d}
+#gt-ov .gt-tabs{display:flex;gap:4px;padding:8px 12px 0;border-bottom:1px solid #cbd5e1;overflow-x:auto}
+#gt-ov .gt-tabs button{border:1px solid #cbd5e1;border-bottom:0;background:#e2e8f0;border-radius:8px 8px 0 0;padding:8px 12px;font-size:14px;white-space:nowrap;cursor:pointer;color:#0f172a}
+#gt-ov .gt-tabs button[aria-selected="true"]{background:#fff;font-weight:700;color:#14532d}
+#gt-ov .gt-b{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:12px;padding:12px;background:#fff}
+#gt-ov .gt-l{min-width:0;display:grid;gap:10px;align-content:start}#gt-ov .gt-r{min-width:0;position:sticky;top:60px;align-self:start}
+#gt-ov .gt-v{width:100%;height:auto;border-radius:10px;display:block}#gt-ov .gt-vz{display:grid;place-content:center;min-height:240px;background:#12161b;color:#94a3b8;font-size:14px}
+#gt-ov .gt-p{margin:0;font-size:13px;color:#475569}#gt-ov code{background:#f1f5f9;padding:1px 4px;border-radius:4px;font-size:12px}
+#gt-ov .gt-bt{display:flex;flex-wrap:wrap;gap:6px}#gt-ov .gt-bt .btn{font-size:13px}
+#gt-ov .gt-lb{display:grid;gap:4px;font-size:13px;color:#334155}#gt-ov textarea{width:100%;box-sizing:border-box;font:13px ui-monospace,Menlo,monospace;padding:6px;border:1px solid #cbd5e1;border-radius:8px}
+#gt-ov .gt-g2,#gt-ov .gt-g3{display:grid;gap:8px}#gt-ov .gt-g2{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}#gt-ov .gt-g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+#gt-ov .gt-g2 label,#gt-ov .gt-g3 label{display:grid;gap:3px;font-size:12px;color:#334155}
+#gt-ov input,#gt-ov select{font-size:14px;padding:6px;border:1px solid #cbd5e1;border-radius:6px;min-width:0;box-sizing:border-box;width:100%;background:#fff;color:#0f172a}
+#gt-ov .gt-tb{overflow:auto;max-height:46vh;border:1px solid #e2e8f0;border-radius:8px}
+#gt-ov table{border-collapse:collapse;width:100%;font-size:12.5px}#gt-ov th{position:sticky;top:0;background:#f1f5f9;text-align:left;padding:5px 6px;white-space:nowrap}
+#gt-ov td{padding:3px 6px;border-top:1px solid #e2e8f0;white-space:nowrap;font-variant-numeric:tabular-nums}#gt-ov td input{padding:3px 5px;font-size:13px;min-width:80px}
+#gt-ov .gt-x{border:0;background:none;color:#b91c1c;cursor:pointer;font-size:14px}
+#gt-ov .gt-res{display:grid;gap:4px;font-size:13px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:8px 10px}
+#gt-ov .gt-ok{color:#15803d}#gt-ov .gt-bad{color:#b91c1c}#gt-ov .gt-m{margin:0;font-size:13px;color:#166534;min-height:1em}#gt-ov .gt-m.gt-av{color:#b45309}
+@media (max-width:820px){#gt-ov .gt-b{grid-template-columns:1fr}#gt-ov .gt-r{position:static;order:-1}#gt-ov .gt-g3{grid-template-columns:1fr 1fr}}
+#gt-ov .gt-z{white-space:nowrap}#gt-ov code{display:inline;white-space:normal}
 </style>
 <script>
 (()=>{
@@ -11808,6 +11834,164 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     geoBox.querySelector('[data-g="ok"]').onclick=()=>gera(false);const bl=geoBox.querySelector('[data-g="local"]');if(bl)bl.onclick=()=>gera(true);
     geoBox.scrollIntoView({block:"nearest"})};
   ["dxf","geojson","kml"].forEach(f=>ov.querySelector(`[data-f="${f}"]`).onclick=()=>{ov.querySelectorAll("[data-f]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.f===f)));pedeGeo(f)})};
+
+/* ---------- v188: Topografia no desenho técnico — poligonal da estação total, imóvel, memorial descritivo e planta (padrão INCRA) ---------- */
+(()=>{const K="gf-gt-v1";
+  const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}},gr=s=>{try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}};
+  let S=Object.assign({aba:"pts",pts:[],zona:{z:23,sul:true},poli:{est:[],e0:"",n0:"",az0:"",fechada:true},im:{nome:"",mun:"",uf:"MA",mat:"",cns:"",prop:"",rt:"",crea:"",cod:"",ord:[],conf:{},tipo:{}}},rd());
+  const sv=()=>gr(S),$q=(r,s)=>r.querySelector(s),$a=(r,s)=>[...r.querySelectorAll(s)];
+  const n2=(v,d)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+  const num=v=>{if(v==null)return NaN;let s=String(v).trim();if(!s)return NaN;if(/,/.test(s))s=s.replace(/\./g,"").replace(",",".");return parseFloat(s)};
+  /* ângulos: aceita 123.4567 · 123 45 06,7 · 123°45'06,7" · 123-45-06 */
+  const lerAng=v=>{const s=String(v||"").trim();if(!s)return NaN;const m=s.replace(/[°º'"″′]/g," ").replace(/-/g," ").trim().split(/\s+/);if(m.length===1)return num(m[0]);const g=num(m[0]),mi=num(m[1]||0),se=num(m[2]||0),sg=String(m[0]).trim().startsWith("-")?-1:1;return sg*(Math.abs(g)+(mi||0)/60+(se||0)/3600)};
+  const dms=(a,dec,raw)=>{if(!isFinite(a))return "—";if(!raw)a=((a%360)+360)%360;let g=Math.floor(a),m=Math.floor((a-g)*60),s=((a-g)*60-m)*60;const d=dec==null?2:dec,p=Math.pow(10,d);s=Math.round(s*p)/p;if(s>=60){s=0;m++}if(m>=60){m=0;g++}return `${g}°${String(m).padStart(2,"0")}'${s.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}).padStart(d?3+d:2,"0")}"`};
+  const azDe=(dE,dN)=>((Math.atan2(dE,dN)*180/Math.PI)+360)%360;
+  const area=P=>{let a=0;for(let i=0;i<P.length;i++){const p=P[i],q=P[(i+1)%P.length];a+=p.E*q.N-q.E*p.N}return a/2};
+  const perim=P=>P.reduce((s,p,i)=>{const q=P[(i+1)%P.length];return s+Math.hypot(q.E-p.E,q.N-p.N)},0);
+  const kUTM=(E)=>{const x=(E-5e5)/6378137/0.9996;return 0.9996*(1+x*x/2)};   // fator de escala aproximado (ponto central)
+  /* ---------- ① pontos: levantamento, arquivo importado, poligonal ou colados ---------- */
+  function lerTexto(t){const out=[];String(t||"").split(/\r?\n/).forEach((l,i)=>{const c=l.trim();if(!c||/^#/.test(c))return;const sep=/[;\t]/.test(c)?/[;\t]/:(/\./.test(c)&&/,/.test(c))?/,/:/\s+/,p=c.split(sep).map(x=>x.trim()).filter(x=>x!=="");if(p.length<3)return;
+      let nome=p[0],a=num(p[1]),b=num(p[2]),z=num(p[3]);if(isFinite(num(p[0]))&&(p.length===3||!isFinite(num(p[3]))||p.length>=3&&isFinite(num(p[2]))&&Math.abs(num(p[0]))>180)){nome="P"+(out.length+1);a=num(p[0]);b=num(p[1]);z=num(p[2])}
+      if(!isFinite(a)||!isFinite(b))return;
+      if(Math.abs(a)<=90&&Math.abs(b)<=180){const u=ll2utmX(a,b);out.push({n:nome,E:u.E,N:u.N,z:isFinite(z)?z:NaN,lat:a,lon:b});S.zona={z:u.z,sul:u.sul}}
+      else{const E=a>b?b:a,N=a>b?a:b;out.push({n:nome,E,N,z:isFinite(z)?z:NaN})}});return out}
+  function dosLevant(){const G=window.topoGeo&&topoGeo();if(!G||!G.pts||!G.pts.length)return {erro:"Abra um levantamento com pontos na aba Levantamentos."};const zz=zonaX(G.zona)||S.zona;S.zona=zz;return {pts:G.pts.slice(0,400).map((p,i)=>({n:"L"+(i+1),E:p[0],N:p[1],z:p[2]})),aviso:G.pts.length>400?`O levantamento tem ${G.pts.length} pontos: trouxe os 400 primeiros (para o perímetro, use os vértices).`:""}}
+  function doImport(){const I=window.__gfImport;if(!I)return {erro:"Nenhum arquivo com coordenadas importado (Parâmetros › Importar arquivo)."};const L=I.polys&&I.polys[0]&&I.polys[0].length>2?I.polys[0]:I.pts;if(!L||!L.length)return {erro:"O arquivo importado não tem coordenadas."};
+    const out=L.map((p,i)=>{const u=ll2utmX(p[0],p[1]);S.zona={z:u.z,sul:u.sul};return {n:"V"+(i+1),E:u.E,N:u.N,z:NaN,lat:p[0],lon:p[1]}});const f=out[0],l=out[out.length-1];if(out.length>3&&Math.hypot(f.E-l.E,f.N-l.N)<0.01)out.pop();return {pts:out}}
+  /* ---------- ② poligonal (caderneta da estação total) ---------- */
+  function calcPoli(){const P=S.poli,est=(P.est||[]).filter(r=>isFinite(lerAng(r.ang))&&isFinite(num(r.dist))&&num(r.dist)>0);const n=est.length;if(n<3)return {erro:"Digite pelo menos 3 estações com ângulo e distância."};
+    const E0=num(P.e0),N0=num(P.n0),az0=lerAng(P.az0);if(!isFinite(E0)||!isFinite(N0))return {erro:"Informe as coordenadas E e N da estação inicial (E0, N0)."};if(!isFinite(az0))return {erro:"Informe o azimute de partida (da 1ª estação para a 2ª)."};
+    const ang=est.map(r=>lerAng(r.ang)),dist=est.map(r=>num(r.dist)),soma=ang.reduce((a,b)=>a+b,0),interno=P.lado!=="ext";
+    const teor=interno?(n-2)*180:(n+2)*180,ea=soma-teor,eaS=ea*3600,tolS=P.tol?num(P.tol)*Math.sqrt(n):30*Math.sqrt(n);
+    const corr=P.fechada?ang.map(a=>a-ea/n):ang.slice();
+    /* azimutes: az(i→i+1) = az(i-1→i) + 180 + ang(i) (ângulos horários lidos a vante; internos para poligonal no sentido anti-horário de caminhamento) */
+    const az=[az0];for(let i=1;i<n;i++){let a=az[i-1]+180+(P.sentido==="ah"?-corr[i]:corr[i]);a=((a%360)+360)%360;az.push(a)}
+    const dE=az.map((a,i)=>dist[i]*Math.sin(a*Math.PI/180)),dN=az.map((a,i)=>dist[i]*Math.cos(a*Math.PI/180));
+    const fE=dE.reduce((a,b)=>a+b,0),fN=dN.reduce((a,b)=>a+b,0),fl=Math.hypot(fE,fN),per=dist.reduce((a,b)=>a+b,0),prec=fl>1e-9?per/fl:Infinity;
+    const cE=dE.map((d,i)=>P.fechada?d-fE*dist[i]/per:d),cN=dN.map((d,i)=>P.fechada?d-fN*dist[i]/per:d);
+    const pts=[{n:est[0].nome||"E1",E:E0,N:N0,z:NaN}];for(let i=0;i<n-1;i++){const p=pts[i];pts.push({n:est[i+1].nome||("E"+(i+2)),E:p.E+cE[i],N:p.N+cN[i],z:NaN})}
+    return {n,ang,corr,az,dist,dE,dN,cE,cN,pts,soma,teor,ea,eaS,tolS,fE,fN,fl,per,prec,okAng:Math.abs(eaS)<=tolS,area:Math.abs(area(pts))}}
+  /* ---------- ③ imóvel: vértices, azimutes, distâncias, área, memorial ---------- */
+  const vertsIm=()=>{const ord=(S.im.ord||[]).filter(i=>S.pts[i]);return (ord.length>=3?ord:S.pts.map((_,i)=>i)).map(i=>S.pts[i])};
+  function calcIm(){let V=vertsIm();if(V.length<3)return {erro:"O imóvel precisa de pelo menos 3 vértices."};
+    let P=V.slice();if(area(P)>0){P=[P[0]].concat(P.slice(1).reverse())}  // sentido horário (padrão INCRA)
+    const lados=P.map((p,i)=>{const q=P[(i+1)%P.length],dE=q.E-p.E,dN=q.N-p.N;return {de:p,ate:q,az:azDe(dE,dN),d:Math.hypot(dE,dN),conf:(S.im.conf||{})[p.n+"→"+q.n]||""}});
+    const A=Math.abs(area(P)),cE=P.reduce((s,p)=>s+p.E,0)/P.length,k=kUTM(cE);return {P,lados,A,per:perim(P),Asgl:A/(k*k),k,cE,cN:P.reduce((s,p)=>s+p.N,0)/P.length}}
+  const mcTxt=z=>`${Math.abs(-183+6*z)}°`; // meridiano central (WGr)
+  const fmtC=v=>n2(v,3)+" m";
+  function memorialTxt(R){const I=S.im,Z=S.zona,L=R.lados;let t="";const cod=v=>v.n;
+    t+=`MEMORIAL DESCRITIVO\n\nImóvel: ${I.nome||"—"}\nProprietário(a): ${I.prop||"—"}\nMunicípio/UF: ${I.mun||"—"}/${I.uf||"—"}\nMatrícula: ${I.mat||"—"}${I.cns?"   CNS: "+I.cns:""}\nCódigo INCRA (CCIR): ${I.cod||"—"}\nÁrea: ${n2(R.A/1e4,4)} ha   Perímetro: ${n2(R.per,2)} m\nSistema de coordenadas: SIRGAS 2000 · UTM zona ${Z.z}${Z.sul?"S":"N"} · Meridiano Central ${mcTxt(Z.z)} WGr\n\n`;
+    t+=`Inicia-se a descrição deste perímetro no vértice ${cod(L[0].de)}, de coordenadas N ${fmtC(L[0].de.N)} e E ${fmtC(L[0].de.E)}`;let confAnt=null;
+    L.forEach((l,i)=>{const c=l.conf||"(confrontante não informado)";if(c!==confAnt){t+=`; deste, segue confrontando com ${c}, com os seguintes azimutes e distâncias: `;confAnt=c}else t+="; ";
+      t+=`${dms(l.az)} e ${n2(l.d,2)} m até o vértice ${cod(l.ate)}${i===L.length-1?"":`, de coordenadas N ${fmtC(l.ate.N)} e E ${fmtC(l.ate.E)}`}`});
+    t+=`, ponto inicial da descrição deste perímetro.\n\nTodas as coordenadas aqui descritas estão georreferenciadas ao Sistema Geodésico Brasileiro e encontram-se representadas no Sistema UTM, referenciadas ao Meridiano Central ${mcTxt(Z.z)} WGr, tendo como datum o SIRGAS 2000. Todos os azimutes e distâncias, área e perímetro foram calculados no plano de projeção UTM.\n`;
+    t+=`\nÁrea no plano UTM: ${n2(R.A,2)} m² (${n2(R.A/1e4,4)} ha). Área aproximada no plano topográfico local (corrigida do fator de escala k = ${n2(R.k,6)}): ${n2(R.Asgl/1e4,4)} ha.\n`;
+    t+=`\n${I.mun||"__________"}, ${new Date().toLocaleDateString("pt-BR",{day:"2-digit",month:"long",year:"numeric"})}.\n\n\n________________________________________\n${I.rt||"Responsável técnico"}${I.crea?"\nCREA/CFT: "+I.crea:""}\n`;
+    t+=`\nObservação: rascunho gerado pelo Green Fish. Para certificação, o memorial oficial é o emitido pelo SIGEF/INCRA (área no Sistema Geodésico Local) a partir da planilha ODS do INCRA.\n`;return t}
+  /* planta em SVG (A3 paisagem, mm) */
+  function plantaSVG(R,opt){opt=opt||{};const I=S.im,Z=S.zona,W=420,H=297,mg=10,qW=118,dw=W-2*mg-qW-6,dh=H-2*mg-46;
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;R.P.forEach(p=>{x0=Math.min(x0,p.E);x1=Math.max(x1,p.E);y0=Math.min(y0,p.N);y1=Math.max(y1,p.N)});
+    const ext=Math.max(x1-x0,y1-y0)||1,escs=[100,200,250,500,750,1000,1500,2000,2500,3000,4000,5000,7500,10000,15000,20000,25000,50000,100000],esc=escs.find(e=>Math.max((x1-x0)/e*1000,(y1-y0)/e*1000)<=Math.min(dw,dh)*0.82)||200000;
+    const cx=(x0+x1)/2,cy=(y0+y1)/2,ox=mg+dw/2,oy=mg+dh/2,X=E=>ox+(E-cx)/esc*1000,Y=N=>oy-(N-cy)/esc*1000,f=v=>v.toFixed(2);
+    let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}mm" height="${H}mm" font-family="Arial,Helvetica,sans-serif" style="background:#fff"><rect x="${mg/2}" y="${mg/2}" width="${W-mg}" height="${H-mg}" fill="none" stroke="#000" stroke-width=".5"/>`;
+    s+=`<clipPath id="gtc"><rect x="${mg}" y="${mg}" width="${dw}" height="${dh}"/></clipPath><rect x="${mg}" y="${mg}" width="${dw}" height="${dh}" fill="none" stroke="#000" stroke-width=".3"/><g clip-path="url(#gtc)">`;
+    const gs=[10,20,25,50,100,200,250,500,1000,2000,5000,10000].find(g=>g/esc*1000>=28)||20000,gE0=Math.floor((cx-dw/2*esc/1000)/gs)*gs,gN0=Math.floor((cy-dh/2*esc/1000)/gs)*gs;
+    for(let E=gE0;X(E)<mg+dw;E+=gs)if(X(E)>mg)s+=`<line x1="${f(X(E))}" y1="${mg}" x2="${f(X(E))}" y2="${mg+dh}" stroke="#bbb" stroke-width=".15"/><text x="${f(X(E)+.8)}" y="${mg+3}" font-size="2" fill="#555">E ${n2(E,0)}</text>`;
+    for(let N=gN0;Y(N)>mg;N+=gs)if(Y(N)<mg+dh)s+=`<line x1="${mg}" y1="${f(Y(N))}" x2="${mg+dw}" y2="${f(Y(N))}" stroke="#bbb" stroke-width=".15"/><text x="${mg+1}" y="${f(Y(N)-.8)}" font-size="2" fill="#555">N ${n2(N,0)}</text>`;
+    s+=`<path d="M${R.P.map(p=>f(X(p.E))+" "+f(Y(p.N))).join("L")}Z" fill="rgba(46,125,50,.08)" stroke="#c62828" stroke-width=".55"/>`;
+    const gx=R.P.reduce((a,p)=>a+X(p.E),0)/R.P.length,gy=R.P.reduce((a,p)=>a+Y(p.N),0)/R.P.length;
+    R.lados.forEach(l=>{const a=[X(l.de.E),Y(l.de.N)],b=[X(l.ate.E),Y(l.ate.N)],mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;let ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;if(ang>90)ang-=180;if(ang<-90)ang+=180;
+      const nx=-(b[1]-a[1]),ny=b[0]-a[0],nl=Math.hypot(nx,ny)||1,sg=((mx-gx)*nx+(my-gy)*ny)>0?1:-1;
+      s+=`<text transform="translate(${f(mx+sg*nx/nl*2.2)} ${f(my+sg*ny/nl*2.2)}) rotate(${f(ang)})" font-size="1.9" text-anchor="middle" fill="#000">${dms(l.az,0)} · ${n2(l.d,2)} m</text>`;
+      if(l.conf)s+=`<text transform="translate(${f(mx+sg*nx/nl*6)} ${f(my+sg*ny/nl*6)}) rotate(${f(ang)})" font-size="2" text-anchor="middle" fill="#1b5e20" font-style="italic">${E(l.conf)}</text>`});
+    R.P.forEach(p=>{s+=`<circle cx="${f(X(p.E))}" cy="${f(Y(p.N))}" r=".7" fill="#fff" stroke="#000" stroke-width=".3"/><text x="${f(X(p.E)+1.2)}" y="${f(Y(p.N)-1.2)}" font-size="2.1" font-weight="700">${E(p.n)}</text>`});
+    s+=`<text x="${f(gx)}" y="${f(gy)}" font-size="3.2" text-anchor="middle" font-weight="700">${E(I.nome||"IMÓVEL")}</text><text x="${f(gx)}" y="${f(gy+4)}" font-size="2.6" text-anchor="middle">${n2(R.A/1e4,4)} ha</text></g>`;
+    /* norte e escala */
+    const nx0=mg+dw-14,ny0=mg+14;s+=`<g><path d="M${nx0} ${ny0-8}L${nx0+3} ${ny0+4}L${nx0} ${ny0+2}L${nx0-3} ${ny0+4}Z" fill="#000"/><text x="${nx0}" y="${ny0-9.5}" font-size="3.4" text-anchor="middle" font-weight="700">N</text></g>`;
+    const sb=[1,2,5,10,20,25,50,100,200,250,500,1000,2000,5000].find(v=>v/esc*1000>=18)||10000,sbl=sb/esc*1000;s+=`<g><rect x="${mg+4}" y="${mg+dh-8}" width="${f(sbl/2)}" height="1.4" fill="#000"/><rect x="${f(mg+4+sbl/2)}" y="${mg+dh-8}" width="${f(sbl/2)}" height="1.4" fill="none" stroke="#000" stroke-width=".25"/><text x="${mg+4}" y="${mg+dh-9.4}" font-size="2">0</text><text x="${f(mg+4+sbl)}" y="${mg+dh-9.4}" font-size="2" text-anchor="middle">${sb} m</text><text x="${mg+4}" y="${mg+dh-3}" font-size="2.4" font-weight="700">ESCALA 1:${n2(esc,0)}</text></g>`;
+    /* quadro de coordenadas */
+    const qx=W-mg-qW,lh=3.1,mx=Math.min(R.lados.length,Math.floor((dh-14)/lh));s+=`<g font-size="2"><rect x="${qx}" y="${mg}" width="${qW}" height="${dh}" fill="none" stroke="#000" stroke-width=".3"/><text x="${qx+qW/2}" y="${mg+4}" text-anchor="middle" font-weight="700" font-size="2.6">QUADRO DE COORDENADAS · SIRGAS 2000 · UTM ${Z.z}${Z.sul?"S":"N"}</text>`;
+    const cols=[["Vértice",2],["E (m)",20],["N (m)",44],["Azimute",70],["Dist. (m)",92],["Confr.",108]];cols.forEach(([t,x])=>s+=`<text x="${qx+x}" y="${mg+9}" font-weight="700">${t}</text>`);
+    R.lados.slice(0,mx).forEach((l,i)=>{const y=mg+9+lh*(i+1);s+=`<text x="${qx+2}" y="${y}">${E(l.de.n)}</text><text x="${qx+20}" y="${y}">${n2(l.de.E,3)}</text><text x="${qx+44}" y="${y}">${n2(l.de.N,3)}</text><text x="${qx+70}" y="${y}">${dms(l.az,0)}</text><text x="${qx+92}" y="${y}">${n2(l.d,2)}</text><text x="${qx+108}" y="${y}">${E(String(l.conf||"").slice(0,6))}</text>`});
+    if(R.lados.length>mx)s+=`<text x="${qx+2}" y="${mg+dh-2}" font-style="italic">+ ${R.lados.length-mx} vértice(s): ver memorial</text>`;s+=`</g>`;
+    /* carimbo */
+    const cy0=H-mg-44+6;s+=`<g font-size="2.3"><rect x="${mg}" y="${cy0}" width="${W-2*mg}" height="${38}" fill="none" stroke="#000" stroke-width=".4"/>
+      <text x="${mg+3}" y="${cy0+6}" font-size="3.4" font-weight="700">PLANTA DO IMÓVEL ${E((I.nome||"").toUpperCase())}</text>
+      <text x="${mg+3}" y="${cy0+12}">Proprietário(a): ${E(I.prop||"—")}</text><text x="${mg+3}" y="${cy0+17}">Município/UF: ${E(I.mun||"—")}/${E(I.uf||"—")}   Matrícula: ${E(I.mat||"—")}   CCIR: ${E(I.cod||"—")}</text>
+      <text x="${mg+3}" y="${cy0+22}">Área: ${n2(R.A/1e4,4)} ha (${n2(R.A,2)} m²)   Perímetro: ${n2(R.per,2)} m   Vértices: ${R.P.length}</text>
+      <text x="${mg+3}" y="${cy0+27}">SIRGAS 2000 · Projeção UTM · Zona ${Z.z}${Z.sul?"S":"N"} · MC ${mcTxt(Z.z)} WGr · Escala 1:${n2(esc,0)} · Folha A3</text>
+      <text x="${mg+3}" y="${cy0+32}">Responsável técnico: ${E(I.rt||"—")}${I.crea?"   CREA/CFT: "+E(I.crea):""}   Data: ${new Date().toLocaleDateString("pt-BR")}</text>
+      <line x1="${W-mg-95}" y1="${cy0+26}" x2="${W-mg-10}" y2="${cy0+26}" stroke="#000" stroke-width=".3"/><text x="${W-mg-52}" y="${cy0+30}" text-anchor="middle">Responsável técnico</text>
+      <text x="${W-mg-52}" y="${cy0+8}" text-anchor="middle" fill="#666" font-size="2">Rascunho gerado no Green Fish</text></g></svg>`;
+    return {svg:s,esc}}
+  /* ---------- tela ---------- */
+  const ABAS=[["pts","① Pontos"],["poli","② Poligonal"],["im","③ Imóvel e memorial"]];
+  function vista(R,poli){/* desenho rápido da tela */const P=poli?R.pts:(R.P||[]);if(!P.length)return `<div class="gt-v gt-vz">Sem pontos para desenhar ainda.</div>`;
+    let x0=Infinity,x1=-Infinity,y0=Infinity,y1=-Infinity;P.forEach(p=>{x0=Math.min(x0,p.E);x1=Math.max(x1,p.E);y0=Math.min(y0,p.N);y1=Math.max(y1,p.N)});const W=600,H=420,m=40,k=Math.min((W-2*m)/((x1-x0)||1),(H-2*m)/((y1-y0)||1)),X=E=>m+(E-x0)*k+((W-2*m)-(x1-x0)*k)/2,Y=N=>H-m-(N-y0)*k-((H-2*m)-(y1-y0)*k)/2,f=v=>v.toFixed(1);
+    let s=`<svg class="gt-v" viewBox="0 0 ${W} ${H}"><rect width="100%" height="100%" fill="#12161b"/>`;
+    if(P.length>1)s+=`<path d="M${P.map(p=>f(X(p.E))+" "+f(Y(p.N))).join("L")}${poli||R.P?"Z":""}" fill="rgba(57,198,255,.12)" stroke="${poli?"#39c6ff":"#ef5350"}" stroke-width="2"/>`;
+    P.forEach(p=>s+=`<circle cx="${f(X(p.E))}" cy="${f(Y(p.N))}" r="4" fill="#ffd84d"/><text x="${f(X(p.E)+6)}" y="${f(Y(p.N)-6)}" fill="#e8edf2" font-size="12" font-family="system-ui">${E(p.n)}</text>`);
+    if(!poli&&R.lados)R.lados.forEach(l=>{const mx=(X(l.de.E)+X(l.ate.E))/2,my=(Y(l.de.N)+Y(l.ate.N))/2;s+=`<text x="${f(mx)}" y="${f(my)}" fill="#a5d6a7" font-size="10.5" text-anchor="middle" font-family="system-ui">${n2(l.d,2)} m</text>`});
+    s+=`<g transform="translate(${W-30} 34)"><path d="M0 -16L6 8L0 4L-6 8Z" fill="#e8edf2"/><text y="-20" fill="#e8edf2" font-size="12" text-anchor="middle" font-family="system-ui">N</text></g></svg>`;return s}
+  let gtBusy=false;function render(){const ov=document.getElementById("gt-ov");if(!ov||gtBusy)return;gtBusy=true;try{const ae=document.activeElement;if(ae&&ov.contains(ae)&&ae.blur)ae.blur()}catch(e){}try{render0(ov)}finally{gtBusy=false}}
+  function render0(ov){const ab=S.aba;let h=`<div class="gt-h"><b>📐 Topografia · ${E(S.im.nome||"novo imóvel")}</b><span class="gt-z">SIRGAS 2000 · UTM <select data-gz="z">${Array.from({length:8},(_,i)=>18+i).map(z=>`<option${z===S.zona.z?" selected":""}>${z}</option>`).join("")}</select><select data-gz="s"><option value="S"${S.zona.sul?" selected":""}>S</option><option value="N"${S.zona.sul?"":" selected"}>N</option></select></span><button type="button" class="btn" data-gx="1">✕ Fechar</button></div>
+      <div class="gt-tabs" role="tablist">${ABAS.map(([k,t])=>`<button type="button" role="tab" data-ga="${k}" aria-selected="${ab===k}">${t}</button>`).join("")}</div><div class="gt-b">`;
+    if(ab==="pts"){h+=`<div class="gt-l"><p class="gt-p">Os pontos são os vértices do imóvel e as estações. Traga de onde estiverem:</p>
+        <div class="gt-bt"><button type="button" class="btn" data-gf="lev">🗺 Do levantamento</button><button type="button" class="btn" data-gf="imp">📄 Do arquivo importado</button><button type="button" class="btn" data-gf="poli">② Da poligonal</button><button type="button" class="btn" data-gf="limpa">🧹 Limpar pontos</button></div>
+        <label class="gt-lb">Colar ou digitar (um por linha: <code>nome; E; N; cota</code> ou <code>nome; latitude; longitude</code>)<textarea data-gt="cola" rows="5" placeholder="M-01; 512345,678; 9712345,678; 12,4&#10;M-02; 512400,120; 9712390,500"></textarea></label><div class="gt-bt"><button type="button" class="btn solid" data-gf="cola">➕ Adicionar</button></div>
+        <div class="gt-tb"><table><thead><tr><th>#</th><th>Nome</th><th>E (m)</th><th>N (m)</th><th>Cota</th><th></th></tr></thead><tbody>${S.pts.map((p,i)=>`<tr><td>${i+1}</td><td><input data-pn="${i}" value="${E(p.n)}"></td><td>${n2(p.E,3)}</td><td>${n2(p.N,3)}</td><td>${n2(p.z,2)}</td><td><button type="button" class="gt-x" data-pd="${i}" title="Tirar">✕</button></td></tr>`).join("")||`<tr><td colspan="6" class="gt-p">Nenhum ponto ainda.</td></tr>`}</tbody></table></div><p class="gt-m"></p></div>
+        <div class="gt-r">${vista({P:S.pts,lados:null},false)}</div>`}
+    else if(ab==="poli"){const P=S.poli,R=calcPoli();if(!P.est.length)P.est=[{nome:"E1",ang:"",dist:""},{nome:"E2",ang:"",dist:""},{nome:"E3",ang:"",dist:""},{nome:"E4",ang:"",dist:""}];
+      h+=`<div class="gt-l"><p class="gt-p">Caderneta da estação total. Em cada estação: o <b>ângulo horizontal</b> lido (ré → vante, graus minutos segundos, ex.: <code>89 59 45</code>) e a <b>distância horizontal</b> até a próxima estação.</p>
+        <div class="gt-g3"><label>E0 (m)<input data-gp="e0" value="${E(P.e0)}" placeholder="500000,000"></label><label>N0 (m)<input data-gp="n0" value="${E(P.n0)}" placeholder="9700000,000"></label><label>Azimute E1→E2<input data-gp="az0" value="${E(P.az0)}" placeholder="45 30 00"></label></div>
+        <div class="gt-g3"><label>Ângulos<select data-gp="lado"><option value="int"${P.lado!=="ext"?" selected":""}>internos</option><option value="ext"${P.lado==="ext"?" selected":""}>externos</option></select></label><label>Caminhamento<select data-gp="sentido"><option value="h"${P.sentido!=="ah"?" selected":""}>ângulos horários</option><option value="ah"${P.sentido==="ah"?" selected":""}>anti-horários</option></select></label><label>Tolerância angular (″·√n)<input data-gp="tol" value="${E(P.tol||"30")}"></label></div>
+        <div class="gt-tb"><table><thead><tr><th>Estação</th><th>Ângulo (° ′ ″)</th><th>Distância (m)</th>${R.erro?"":"<th>Az. corrigido</th><th>E (m)</th><th>N (m)</th>"}<th></th></tr></thead><tbody>
+        ${P.est.map((r,i)=>`<tr><td><input data-pe="${i}|nome" value="${E(r.nome||"")}"></td><td><input data-pe="${i}|ang" value="${E(r.ang||"")}" inputmode="decimal"></td><td><input data-pe="${i}|dist" value="${E(r.dist||"")}" inputmode="decimal"></td>${R.erro?"":`<td>${dms(R.az[i]??NaN,1)}</td><td>${n2(R.pts[i]?.E,3)}</td><td>${n2(R.pts[i]?.N,3)}</td>`}<td><button type="button" class="gt-x" data-ped="${i}">✕</button></td></tr>`).join("")}</tbody></table></div>
+        <div class="gt-bt"><button type="button" class="btn" data-gf="estmais">＋ Estação</button>${R.erro?"":`<button type="button" class="btn solid" data-gf="poli2pts">➜ Usar como vértices do imóvel</button>`}</div>
+        ${R.erro?`<p class="gt-m gt-av">${E(R.erro)}</p>`:`<div class="gt-res"><b>Fechamento</b>
+          <div>Soma dos ângulos: ${dms(R.soma,1,1)} · teórica ${dms(R.teor,0,1)} · <b class="${R.okAng?"gt-ok":"gt-bad"}">erro angular ${n2(R.eaS,1)}″ (tolerância ${n2(R.tolS,1)}″) ${R.okAng?"✓":"✗ refaça as leituras"}</b></div>
+          <div>Erro linear: ΔE ${n2(R.fE,3)} m · ΔN ${n2(R.fN,3)} m · <b>${n2(R.fl,3)} m</b> · perímetro ${n2(R.per,2)} m · <b class="${R.prec>=10000?"gt-ok":R.prec>=5000?"":"gt-bad"}">precisão 1:${isFinite(R.prec)?n2(R.prec,0):"∞"}</b></div>
+          <div>Compensação: angular dividida igualmente (${n2(-R.eaS/R.n,2)}″ por estação) · linear proporcional às distâncias (Bowditch). Área: ${n2(R.area,2)} m² (${n2(R.area/1e4,4)} ha).</div></div>`}<p class="gt-m"></p></div>
+        <div class="gt-r">${R.erro?vista({P:[]},false):vista(R,true)}</div>`}
+    else{const I=S.im,R=calcIm();
+      h+=`<div class="gt-l"><div class="gt-g2">${[["nome","Nome do imóvel"],["prop","Proprietário(a)"],["mun","Município"],["uf","UF"],["mat","Matrícula"],["cns","CNS do cartório"],["cod","Código INCRA (CCIR)"],["rt","Responsável técnico"],["crea","CREA/CFT"]].map(([k,t])=>`<label>${t}<input data-gi="${k}" value="${E(I[k]||"")}"></label>`).join("")}</div>
+        ${R.erro?`<p class="gt-m gt-av">${E(R.erro)} Traga os vértices em ① Pontos ou ② Poligonal.</p>`:`<div class="gt-res"><b>${n2(R.A/1e4,4)} ha</b> (${n2(R.A,2)} m² no plano UTM) · perímetro ${n2(R.per,2)} m · ${R.P.length} vértices · sentido horário<br><small>Área aproximada no plano local (SGL, k = ${n2(R.k,6)}): ${n2(R.Asgl/1e4,4)} ha. A área oficial é a calculada pelo SIGEF.</small></div>
+        <div class="gt-tb"><table><thead><tr><th>De</th><th>Para</th><th>Azimute</th><th>Distância (m)</th><th>Confrontante</th></tr></thead><tbody>${R.lados.map(l=>`<tr><td>${E(l.de.n)}</td><td>${E(l.ate.n)}</td><td>${dms(l.az,2)}</td><td>${n2(l.d,2)}</td><td><input data-gc="${E(l.de.n+"→"+l.ate.n)}" value="${E(l.conf)}" placeholder="ex.: Fazenda Boa Vista; estrada; rio"></td></tr>`).join("")}</tbody></table></div>
+        <div class="gt-bt"><button type="button" class="btn solid" data-gf="memo">📄 Memorial (Word)</button><button type="button" class="btn solid" data-gf="planta">🗺 Planta A3 (imprimir / PDF)</button><button type="button" class="btn" data-gf="svg">⬇ Planta SVG</button><button type="button" class="btn" data-gf="dxf">📐 DXF (AutoCAD/QGIS)</button><button type="button" class="btn" data-gf="csv">📊 Planilha de vértices (SIGEF)</button><button type="button" class="btn" data-gf="inv">⇄ Inverter sentido</button></div>`}
+        <p class="gt-m"></p></div><div class="gt-r">${R.erro?vista({P:[]},false):vista(R,false)}</div>`}
+    h+=`</div>`;ov.innerHTML=`<div class="gt-w">${h}</div>`;bind(ov)}
+  function msg(ov,t,av){const m=$q(ov,".gt-m");if(m){m.textContent=t;m.classList.toggle("gt-av",!!av)}}
+  function bind(ov){$q(ov,"[data-gx]").onclick=()=>{ov.remove();document.documentElement.classList.remove("gfc-lock")};
+    $a(ov,"[data-ga]").forEach(b=>b.onclick=()=>{S.aba=b.dataset.ga;sv();render()});
+    $a(ov,"[data-gz]").forEach(e=>e.onchange=()=>{if(e.dataset.gz==="z")S.zona.z=+e.value;else S.zona.sul=e.value==="S";sv();render()});
+    $a(ov,"[data-pn]").forEach(e=>e.onchange=()=>{const i=+e.dataset.pn,old=S.pts[i].n,nv=e.value.trim()||old;S.pts[i].n=nv;sv();render()});
+    $a(ov,"[data-pd]").forEach(b=>b.onclick=()=>{S.pts.splice(+b.dataset.pd,1);S.im.ord=[];sv();render()});
+    $a(ov,"[data-gp]").forEach(e=>e.onchange=()=>{S.poli[e.dataset.gp]=e.value;sv();render()});
+    $a(ov,"[data-pe]").forEach(e=>e.onchange=()=>{const [i,k]=e.dataset.pe.split("|");S.poli.est[+i][k]=e.value;sv();render()});
+    $a(ov,"[data-ped]").forEach(b=>b.onclick=()=>{S.poli.est.splice(+b.dataset.ped,1);sv();render()});
+    $a(ov,"[data-gi]").forEach(e=>e.onchange=()=>{S.im[e.dataset.gi]=e.value;sv();if(e.dataset.gi==="nome")render()});
+    $a(ov,"[data-gc]").forEach(e=>e.onchange=()=>{S.im.conf=S.im.conf||{};S.im.conf[e.dataset.gc]=e.value.trim();sv()});
+    const nome=()=>String(S.im.nome||"imovel").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w\-]+/g,"_").slice(0,40)||"imovel";
+    $a(ov,"[data-gf]").forEach(b=>b.onclick=()=>{const a=b.dataset.gf;
+      if(a==="lev"||a==="imp"){const r=a==="lev"?dosLevant():doImport();if(r.erro){msg(ov,r.erro,true);return}S.pts=S.pts.concat(r.pts);S.im.ord=[];sv();render();msg(document.getElementById("gt-ov"),`${r.pts.length} ponto(s) trazidos. ${r.aviso||""}`)}
+      else if(a==="cola"){const t=$q(ov,'[data-gt="cola"]').value,r=lerTexto(t);if(!r.length){msg(ov,"Não reconheci nenhuma linha. Use: nome; E; N; cota (ou nome; latitude; longitude).",true);return}S.pts=S.pts.concat(r);S.im.ord=[];sv();render();msg(document.getElementById("gt-ov"),`${r.length} ponto(s) adicionados.`)}
+      else if(a==="limpa"){if(b.dataset.conf!=="1"){b.dataset.conf="1";b.textContent="Confirmar: limpar";return}S.pts=[];S.im.ord=[];sv();render()}
+      else if(a==="poli"||a==="poli2pts"){const R=calcPoli();if(R.erro){msg(ov,R.erro,true);return}S.pts=R.pts.map(p=>Object.assign({},p));S.im.ord=[];S.aba=a==="poli2pts"?"im":S.aba;sv();render()}
+      else if(a==="estmais"){S.poli.est.push({nome:"E"+(S.poli.est.length+1),ang:"",dist:""});sv();render()}
+      else if(a==="inv"){S.pts=S.pts.slice().reverse();S.im.ord=[];sv();render()}
+      else{const R=calcIm();if(R.erro){msg(ov,R.erro,true);return}
+        if(a==="memo"){const t=memorialTxt(R),html=`<html><head><meta charset="utf-8"><title>Memorial ${E(S.im.nome||"")}</title></head><body style="font-family:Arial;font-size:12pt;line-height:1.5;text-align:justify">${t.split("\n\n").map(p=>`<p>${E(p).replace(/\n/g,"<br>")}</p>`).join("")}</body></html>`;baixaX("memorial_"+nome()+".doc",html,"application/msword");msg(ov,"Memorial baixado (abre no Word). Confira os confrontantes antes de assinar.")}
+        else if(a==="planta"||a==="svg"){const {svg,esc}=plantaSVG(R);if(a==="svg"){baixaX("planta_"+nome()+".svg",svg,"image/svg+xml");msg(ov,`Planta SVG baixada (escala 1:${esc}).`);return}
+          const w=window.open("","_blank");if(!w){msg(ov,"O navegador bloqueou a janela: permita pop-ups para imprimir.",true);return}
+          w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Planta ${E(S.im.nome||"")}</title><style>@page{size:A3 landscape;margin:0}html,body{margin:0}svg{display:block;width:420mm;height:297mm}.mem{page-break-before:always;padding:20mm;font:12pt/1.5 Arial;text-align:justify;white-space:pre-wrap}</style></head><body>${svg}<div class="mem">${E(memorialTxt(R))}</div><script>setTimeout(()=>print(),400)<\/script></body></html>`);w.document.close();msg(ov,`Planta A3 (1:${esc}) e memorial abertos para imprimir. Na impressão, escolha “Salvar como PDF” e papel A3.`)}
+        else if(a==="dxf"){const F=[{lay:"PERIMETRO",tipo:"pol",pts:R.P.map(p=>[p.E,p.N]).concat([[R.P[0].E,R.P[0].N]])}];R.P.forEach(p=>F.push({lay:"VERTICES",tipo:"pt",pts:[[p.E,p.N]],txt:p.n}));R.lados.forEach(l=>{F.push({lay:"COTAS",tipo:"txt",pts:[[(l.de.E+l.ate.E)/2,(l.de.N+l.ate.N)/2]],txt:dms(l.az,0)+" "+n2(l.d,2)+" m"});if(l.conf)F.push({lay:"CONFRONTANTES",tipo:"txt",pts:[[(l.de.E+l.ate.E)/2,(l.de.N+l.ate.N)/2-3]],txt:l.conf})});
+          F.push({lay:"TEXTO",tipo:"txt",pts:[[R.cE,R.cN]],txt:(S.im.nome||"IMOVEL")+" "+n2(R.A/1e4,4)+" ha"});baixaX("imovel_"+nome()+`_UTM${S.zona.z}${S.zona.sul?"S":"N"}.dxf`,gfDXF(F,{EN:p=>p,zona:S.zona.z,sul:S.zona.sul,epsg:S.zona.sul?31960+S.zona.z:31954+S.zona.z},{topografia:S.im.nome||""}),"application/dxf");msg(ov,`DXF baixado em UTM SIRGAS 2000 zona ${S.zona.z}${S.zona.sul?"S":"N"} (EPSG:${S.zona.sul?31960+S.zona.z:31954+S.zona.z}).`)}
+        else if(a==="csv"){const ll=p=>{const r=window.gfUTM2LL?gfUTM2LL(p.E,p.N,S.zona.z,S.zona.sul):[NaN,NaN];return r};const L=["codigo;longitude;sigma_long;latitude;sigma_lat;altitude;sigma_alt;metodo;tipo_limite;lado_para;confrontante;E_UTM;N_UTM"];
+          R.lados.forEach(l=>{const q=ll(l.de);L.push([l.de.n,q[1].toFixed(8).replace(".",","),"",q[0].toFixed(8).replace(".",","),"",isFinite(l.de.z)?String(l.de.z).replace(".",","):"","","","",l.ate.n,l.conf||"",l.de.E.toFixed(3).replace(".",","),l.de.N.toFixed(3).replace(".",",")].join(";"))});
+          baixaX("vertices_"+nome()+".csv","﻿"+L.join("\r\n"),"text/csv");msg(ov,"Planilha baixada. Copie as colunas para a planilha ODS oficial do INCRA (aba de vértices) e preencha sigmas, método e tipo de limite.")}}})}
+  window.gfTopoAbrir=()=>{let ov=document.getElementById("gt-ov");if(ov)ov.remove();ov=document.createElement("div");ov.id="gt-ov";document.body.appendChild(ov);document.documentElement.classList.add("gfc-lock");S=Object.assign(S,rd());render()};
+  window.gfTopoEstado=()=>JSON.parse(JSON.stringify(S));
+})();
 
 /* ---------- v178: editar o desenho à mão — 2D e 3D, com tela cheia ---------- */
 const EDT={mover:["↖ Mover","Arraste os pontos rosa: o canto do espelho muda o tamanho do viveiro; os aeradores e as coletas mudam de lugar; os pontos lilás movem as anotações."],
