@@ -25,7 +25,9 @@ Isso cria os botões em Terminal › Executar Tarefa…. Sem eles, tudo funciona
 
 1. **Abra a pasta** `green-fish` no VS Code (Arquivo › Abrir Pasta…). Se ele perguntar se confia nos autores, escolha **Sim, confio**.
 2. **Edite** `fonte/app.html` ou `fonte/aquanictemeral.html` e salve (⌘S).
-3. **Monte o app**: Terminal › Executar Tarefa… › **Montar app (nova versão)**.
+3. **Monte o app**, de um destes jeitos:
+   - **Dois cliques em `Montar app.command`** (na pasta green-fish, pelo Finder) → escolha 1 (nova versão).
+   - VS Code › Terminal › Executar Tarefa… › **Montar app (nova versão)** (depois de copiar `fonte/vscode` para `.vscode`).
    - Também dá pelo Terminal do VS Code, na pasta green-fish: `python3 fonte/montar.py --nova`
    - Na primeira vez, o Mac pode pedir para instalar as "Ferramentas de linha de comando" (traz o python3). Aceite.
 4. **Teste no navegador**: clique com o botão direito no `index.html` › **Open with Live Server** (extensão recomendada). Cada vez que você montar de novo, a página recarrega.
