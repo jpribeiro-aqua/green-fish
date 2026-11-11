@@ -4172,6 +4172,9 @@ function feedModels(){
   return tanks.map((t,i)=>groups[i]?lotModel(t,{...groups[i]},p,bp.rit,bp.mort):null).filter(Boolean)
     .map(m=>({...m,color:m.t.c<MAXC?`var(--c${m.t.c+1})`:"var(--c-other)",name:label(m.t)}));
 }
+/* v175: os modelos de ração/biomassa eram recalculados várias vezes seguidas (uma por unidade, a cada tecla): guarda por 1,5 s enquanto nada muda */
+{const fm0=feedModels;let mk=null,mv=null,mt=0;feedModels=function(){let tk="";try{tk=JSON.stringify(tanks)+"|"+((window.__gfLSk||{})["greenfish-biometria-v1"]||0)}catch(e){}const now=Date.now();
+  if(mv!==null&&mk&&mk.d===dashState&&mk.tk===tk&&now-mt<1500)return mv;const r=fm0();mk={d:dashState,tk};mv=r;mt=now;return r}}
 // ração entre dois instantes, por tipo (PB + granulometria), integrando dia a dia
 function feedBetween(m,t0,t1,by,tag){
   const cyc=(m.harvest-m.start)/DAY,e0=Math.max(0,(t0-m.start)/DAY),e1=Math.min(cyc,(t1-m.start)/DAY);let tot=0;
@@ -10273,7 +10276,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v174";
+  const APP_VERSAO="ras-v175";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",async()=>{b.querySelector("#ver-ok").textContent="Atualizando…";
@@ -11667,7 +11670,8 @@ function rapidoBind(el){const box=el.querySelector("#vv-rapido");if(!box)return;
     try{localStorage.setItem("gf-cad-conj",n>1?"1":"0")}catch(e){}vvSide="cad";try{localStorage.setItem("gf-vv-side","cad")}catch(e){}grava();build();
     setTimeout(()=>{const k=document.getElementById("vv-kpi");if(k)k.scrollIntoView({behavior:"smooth",block:"start"})},150)}}
 const kp=(t,v,u,s,c)=>`<div class="${c||""}"><span>${t}</span><b>${v}${u?`<small>${u}</small>`:""}</b>${s?`<em>${s}</em>`:""}</div>`;
-function update(){if(!el||el.hidden)return;const o=calc();
+let vvUltO=null,vvUltT=0;
+function update(){if(!el||el.hidden)return;const o=calc();vvUltO=o;vvUltT=Date.now();
   // placeholders e fontes
   for(const k in o.auto){const i=el.querySelector(`[data-vv="${k}"]`);if(i&&i.tagName==="INPUT")i.placeholder=s2(o.auto[k])||"auto";const s=el.querySelector(`[data-vsrc="${k}"]`);if(s)s.textContent=o.src[k]&&String(V[k]||"").trim()===""?"🔗 "+(SRCN[o.src[k]]||o.src[k]):""}
   if(o.medido)for(const k of ["rel","decl"]){const i=el.querySelector(`[data-vv="${k}"]`),sr=el.querySelector(`[data-vsrc="${k}"]`);if(i&&String(V[k]??"")===String(D0[k]??"")&&document.activeElement!==i){i.value="";if(sr)sr.textContent="🔗 "+SRCN.Levantamentos}}
@@ -11897,7 +11901,7 @@ function vvRelatorio(op){op=op||{};recarrega();if(op.deTopo){V.modo="viv";V.dim=
 window.vvRelatorio=vvRelatorio;
 /* v167: outros módulos e a importação de arquivos preenchem os parâmetros e escolhem o painel ao lado */
 window.vvLado=lado=>{vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}const b=el&&el.querySelector(`[data-vside="${lado}"]`);if(b)b.click();else build()};
-window.vvEquip=()=>{try{recarrega();const o=calc();return {aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6)}}catch(e){return {}}};
+window.vvEquip=()=>{try{const o=vvUltO&&Date.now()-vvUltT<3000?vvUltO:(recarrega(),calc());return {aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6)}}catch(e){return {}}};
 /* v173: desenhos salvos — guardar o desenho e os parâmetros, fechar e começar outro */
 const DK="gf-desenhos-v1",KD=["tipo","dim","areaDisp","aprov","meta","aViv","rel","rasa","decl","ti","te","crista","cristaT","bl","nAerV","dren","nColeta","dColeta","larCmp","rap"];
 const lerDs=()=>{try{return JSON.parse(localStorage.getItem(DK))||[]}catch(e){return []}},gravaDs=a=>{try{localStorage.setItem(DK,JSON.stringify(a));return true}catch(e){return false}};
@@ -13140,9 +13144,9 @@ function gf3DCena(q,fino){
   const zona=(u,w,z)=>{const t=zt(u,w);if(circ){if(Math.hypot(u,w)<=Ao)return "plat";return Math.abs(z-t)<.03?"tn":z>t?"text":"cutext"}
     const s=Math.max(Math.abs(u)-Af,Math.abs(w)-Bf);if(s<=0)return "fundo";if(s<=ti+1e-6)return "tint";if(s<=ti+c+1e-6)return "crista";return Math.abs(z-t)<.03?"tn":z>t?"text":"cutext"};
   // grade com linhas de quebra nas bordas (crista e fundo nítidos)
-  const NU=fino?56:40,NW=fino?38:26;
+  const NU=fino==="baixo"?22:fino?56:40,NW=fino==="baixo"?16:fino?38:26;
   const eixo=(E,n,br)=>{const a=[];for(let i=0;i<=n;i++)a.push(-E+2*E*i/n);br.forEach(x=>{if(Math.abs(x)<E){a.push(x);a.push(-x)}});a.sort((x,y)=>x-y);return a.filter((x,i)=>i===0||x-a[i-1]>1e-3)};
-  const us=eixo(EU,NU,circ?[]:[Af,Ai,Ao,A]),ws=eixo(EW,NW,circ?[]:[Bf,Bi,Bo,B]);
+  const sb=circ||fino==="baixo",us=eixo(EU,NU,sb?[]:[Af,Ai,Ao,A]),ws=eixo(EW,NW,sb?[]:[Bf,Bi,Bo,B]);
   const P=us.map(u=>ws.map(w=>[u,w,des(u,w)]));
   let zmin=Infinity,zmax=-Infinity;P.forEach(r=>r.forEach(p=>{if(p[2]<zmin)zmin=p[2];if(p[2]>zmax)zmax=p[2]}));zmax=Math.max(zmax,zC);const zb=zmin-Math.max(1,(zmax-zmin)*.35);
   const T=[];const tri=(a,b,c2,k,al)=>T.push({p:[a,b,c2],k,al:al||1});
@@ -13163,7 +13167,7 @@ function gf3DView(host,op){
   op=op||{};const fino=op.fino!=null?op.fino:(host.clientWidth||600)>560;
   host.innerHTML=`<div class="g3-w"><canvas class="g3-c"></canvas><div class="g3-hud"><button type="button" data-g3="rot" title="Girar sozinho">↻ Girar</button><button type="button" data-g3="ve" title="Exagero vertical">Altura ×2</button><button type="button" data-g3="cor" title="Cores">Cores: materiais</button><button type="button" data-g3="ag" aria-pressed="true">💧 Água</button><button type="button" data-g3="reset">⟲ Vista</button></div><div class="g3-leg"></div><div class="g3-tip">arraste para girar · role ou pince para aproximar · toque duplo volta à vista inicial</div></div>`;
   const cv=host.querySelector(".g3-c"),ctx=cv.getContext("2d"),leg=host.querySelector(".g3-leg");
-  const st={yaw:-0.9,pitch:0.62,dist:1,ve:+(lsG3("gf3d-ve")||2),cor:lsG3("gf3d-cor")||"mat",agua:true,auto:!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches),cena:null,q:null,sujo:true,raf:0,vivo:true,t0:performance.now()};
+  const st={yaw:-0.9,pitch:0.62,dist:1,ve:+(lsG3("gf3d-ve")||2),cor:lsG3("gf3d-cor")||"mat",agua:true,auto:false,cena:null,cenaLow:null,qObj:null,minDt:16,q:null,sujo:true,raf:0,vivo:true,t0:performance.now()};
   const btn=k=>host.querySelector(`[data-g3="${k}"]`);
   const pinta=()=>{btn("ve").textContent="Altura ×"+st.ve;btn("cor").textContent=st.cor==="mat"?"Cores: materiais":"Cores: corte e aterro";btn("ag").setAttribute("aria-pressed",String(st.agua));btn("rot").setAttribute("aria-pressed",String(st.auto));
     leg.innerHTML=st.cor==="mat"?[["fundo","fundo"],["tint","talude interno"],["crista","crista"],["text","talude externo / aterro"],["cutext","talude em corte"],["tn","terreno natural"],["comp","comporta"],["col","coleta"]].concat(st.agua?[["agua","água"]]:[]).map(([k,t])=>`<span><i style="background:rgb(${COR3[k]})"></i>${t}</span>`).join("")
@@ -13171,7 +13175,7 @@ function gf3DView(host,op){
   const tam=()=>{const w=Math.max(260,host.clientWidth||600),hh=Math.round(Math.min(op.alto||560,Math.max(w<520?340:260,w*(op.alto?.6:.66)))),dpr=Math.min(2,window.devicePixelRatio||1);cv.style.width=w+"px";cv.style.height=hh+"px";cv.width=Math.round(w*dpr);cv.height=Math.round(hh*dpr);st.W=w;st.H=hh;st.dpr=dpr;st.sujo=true};
   const L=(()=>{const v=[-0.45,-0.55,0.7],n=Math.hypot(...v);return v.map(x=>x/n)})();
   function desenha(){
-    const C=st.cena;if(!C)return;ctx.setTransform(st.dpr,0,0,st.dpr,0,0);
+    let C=st.cena;if(!C)return;if((st.auto||st.arrasto)&&st.qObj){if(!st.cenaLow){try{st.cenaLow=gf3DCena(st.qObj,"baixo")}catch(e){st.cenaLow=st.cena}}C=st.cenaLow}ctx.setTransform(st.dpr,0,0,st.dpr,0,0);
     const g=ctx.createLinearGradient(0,0,0,st.H);g.addColorStop(0,"#1c2733");g.addColorStop(1,"#0f141a");ctx.fillStyle=g;ctx.fillRect(0,0,st.W,st.H);
     const zc=(C.zmax+C.zmin)/2,ext=Math.max(C.EU,C.EW),D=ext*2.6*st.dist,cp=Math.cos(st.pitch),eye=[D*cp*Math.cos(st.yaw),D*cp*Math.sin(st.yaw),D*Math.sin(st.pitch)];
     const f=[-eye[0],-eye[1],-eye[2]],fn=Math.hypot(...f);f[0]/=fn;f[1]/=fn;f[2]/=fn;let r=[f[1],-f[0],0];const rn=Math.hypot(r[0],r[1])||1;r=[r[0]/rn,r[1]/rn,0];const up=[r[1]*f[2]-r[2]*f[1],r[2]*f[0]-r[0]*f[2],r[0]*f[1]-r[1]*f[0]];
@@ -13199,7 +13203,10 @@ function gf3DView(host,op){
     const rr=C.rot*Math.PI/180,nU=Math.sin(rr),nW=Math.cos(rr),o=pr([0,0,C.zmax]),n2=pr([nU*ext*.3,nW*ext*.3,C.zmax]);let dx=n2[0]-o[0],dy=n2[1]-o[1];const dl=Math.hypot(dx,dy)||1;dx/=dl;dy/=dl;
     const nx0=st.W-34,ny0=34;ctx.strokeStyle="#cbd5e1";ctx.lineWidth=1;ctx.beginPath();ctx.arc(nx0,ny0,16,0,2*Math.PI);ctx.stroke();ctx.beginPath();ctx.moveTo(nx0-dx*12,ny0-dy*12);ctx.lineTo(nx0+dx*12,ny0+dy*12);ctx.lineWidth=2;ctx.stroke();ctx.fillStyle="#e5e7eb";ctx.font="700 12px system-ui";ctx.textAlign="center";ctx.fillText("N",nx0+dx*24,ny0+dy*24+4);
     ctx.textAlign="left";ctx.font="11px system-ui";ctx.fillStyle="#94a3b8";ctx.fillText(`${C.nome} · ${C.real?"terreno do levantamento (MDT)":"terreno natural estimado"}${st.ve>1?" · altura exagerada "+st.ve+"×":""}`,10,st.H-10)}
-  function laco(t){if(!st.vivo)return;if(!cv.isConnected){st.vivo=false;if(ro)ro.disconnect();return}if(st.auto){st.yaw+=.0045;st.sujo=true}if(st.sujo){st.sujo=false;try{desenha()}catch(e){}}st.raf=requestAnimationFrame(laco)}
+  function laco(t){if(!st.vivo)return;if(!cv.isConnected){st.vivo=false;if(ro)ro.disconnect();return}const vis=cv.offsetParent!==null&&!document.hidden;
+    if(st.auto&&vis){st.yaw+=.0045*Math.min(4,((t-(st.tPrev||t))/16.7)||1);st.sujo=true}st.tPrev=t;
+    if(st.sujo&&vis&&t-(st.tLast||0)>=st.minDt){st.sujo=false;const a=performance.now();try{desenha()}catch(e){}const d=performance.now()-a;st.minDt=(st.auto||st.arrasto)?Math.min(200,Math.max(16,d*1.5)):16;st.tLast=t}
+    st.raf=requestAnimationFrame(laco)}
   // interação
   const pts=new Map();let pinch=0;
   cv.addEventListener("pointerdown",e=>{st.arrasto=true;cv.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);st.auto=false;pinta();if(pts.size===2){const [a,b]=[...pts.values()];pinch=Math.hypot(a[0]-b[0],a[1]-b[1])}});
@@ -13214,8 +13221,8 @@ function gf3DView(host,op){
   btn("cor").onclick=()=>{st.cor=st.cor==="mat"?"ca":"mat";lsS3("gf3d-cor",st.cor);pinta();st.sujo=true};
   btn("ag").onclick=()=>{st.agua=!st.agua;pinta();st.sujo=true};
   const ro=window.ResizeObserver?new ResizeObserver(()=>{if(Math.abs((host.clientWidth||0)-st.W)>2)tam()}):null;if(ro)ro.observe(host);
-  tam();pinta();setTimeout(()=>{if(st.auto){st.auto=false;pinta();st.sujo=true}},4000);st.raf=requestAnimationFrame(laco);
-  return {set(q){const k=JSON.stringify(q);if(k===st.q)return;st.q=k;try{st.cena=gf3DCena(q,fino)}catch(e){st.cena=null}st.sujo=true},
+  tam();pinta();st.raf=requestAnimationFrame(laco);
+  return {set(q){const k=JSON.stringify(q);if(k===st.q)return;st.q=k;st.qObj=q;st.cenaLow=null;try{st.cena=gf3DCena(q,fino)}catch(e){st.cena=null}st.sujo=true},
     png(){try{desenha();return cv.toDataURL("image/png")}catch(e){return null}},
     destroy(){st.vivo=false;cancelAnimationFrame(st.raf);if(ro)ro.disconnect()},estado:st}}
 window.gf3DCena=gf3DCena;window.gf3DView=gf3DView;
@@ -13289,8 +13296,8 @@ function gf3DCenaMulti(Q,fino){const G=Q.unidades.map(gfGeoU),abs=G.some(g=>g.ab
       const s=Math.max(Math.abs(u)-g.Af,Math.abs(w)-g.Bf),zf=g.zF-g.dec/100*u;if(s<=0)return [zf,"fundo"];if(s<=g.ti)return [Math.min(g.zC,zf+s/(g.zi||1e-9)),"tint"];if(s<=g.ti+g.c)return [g.zC,"crista"];
       const so=s-g.ti-g.c,v=t<g.zC?Math.max(t,g.zC-so/g.ze):Math.min(t,g.zC+so/g.ze);if(v>z+1e-6){z=v;zo="text"}else if(v<t-1e-6&&v<z){z=v;zo="cutext"}}
     return [z,zo]};
-  const N0=fino?64:46,ratio=(x1-x0)/Math.max(1,y1-y0),NU=Math.max(16,Math.round(N0*Math.sqrt(ratio))),NW=Math.max(12,Math.round(N0/Math.sqrt(ratio)));
-  const al=G.every(g=>Math.abs(g.si)<1e-6),bx=[],by=[];if(al&&G.length<=24)G.forEach(g=>{if(g.circ)return;[g.Af,g.Ai,g.Ao,g.A].forEach(d=>{bx.push(g.cx-d,g.cx+d)});[g.Bf,g.Bi,g.Bo,g.B].forEach(d=>{by.push(g.cy-d,g.cy+d)})});
+  const N0=fino==="baixo"?22:fino?64:46,ratio=(x1-x0)/Math.max(1,y1-y0),NU=Math.max(16,Math.round(N0*Math.sqrt(ratio))),NW=Math.max(12,Math.round(N0/Math.sqrt(ratio)));
+  const al=G.every(g=>Math.abs(g.si)<1e-6),bx=[],by=[];if(al&&G.length<=24&&fino!=="baixo")G.forEach(g=>{if(g.circ)return;[g.Af,g.Ai,g.Ao,g.A].forEach(d=>{bx.push(g.cx-d,g.cx+d)});[g.Bf,g.Bi,g.Bo,g.B].forEach(d=>{by.push(g.cy-d,g.cy+d)})});
   const eixo=(a,b,n,br)=>{const v=[];for(let i=0;i<=n;i++)v.push(a+(b-a)*i/n);br.forEach(x=>{if(x>a&&x<b)v.push(x)});v.sort((p,q)=>p-q);return v.filter((x,i)=>i===0||x-v[i-1]>1e-3)};
   const us=eixo(x0,x1,NU,bx),ws=eixo(y0,y1,NW,by),P=us.map(u=>ws.map(w=>{const [z,zo]=ponto(u,w);return [u,w,z,zo]}));
   let zmin=Infinity,zmax=-Infinity;P.forEach(r=>r.forEach(p=>{if(p[2]<zmin)zmin=p[2];if(p[2]>zmax)zmax=p[2]}));G.forEach(g=>{zmax=Math.max(zmax,g.zC)});const zb=zmin-Math.max(1,(zmax-zmin)*.35);
