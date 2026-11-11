@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Montar app (nova versão)",
+      "type": "shell",
+      "command": "python3 fonte/montar.py --nova",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Montar app (mesma versão, só para testar)",
+      "type": "shell",
+      "command": "python3 fonte/montar.py",
+      "problemMatcher": []
+    },
+    {
+      "label": "Montar app + cópia do computador",
+      "type": "shell",
+      "command": "python3 fonte/montar.py --nova --desktop",
+      "problemMatcher": []
+    }
+  ]
+}
