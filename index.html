@@ -10501,7 +10501,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v186";
+  const APP_VERSAO="ras-v187";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -10517,7 +10517,9 @@ if(hospedado){
     if(m&&m[1]!==APP_VERSAO){const nv=parseInt(m[1].replace(/\D/g,""),10),av=parseInt(APP_VERSAO.replace(/\D/g,""),10);if(!(nv>av))return;
       if(auto&&!document.querySelector("input:focus,textarea:focus,select:focus,#vv-dsn,#gfc-exp,.gfe-on")){let n=0;try{n=+sessionStorage.getItem("gf-auto-upd")||0}catch(e){}if(n<2){try{sessionStorage.setItem("gf-auto-upd",n+1)}catch(e){}forcaAtualizar();return}}
       avisoVersao(m[1])}}catch(e){}}
-  window.addEventListener("load",()=>{setTimeout(()=>confereVersao(true),2500);const pb=document.querySelector(".proj-bar");if(pb&&!/^__/.test(APP_VERSAO)){const v=document.createElement("span");v.className="app-ver";v.textContent="versão "+APP_VERSAO.replace("ras-","");v.title="Versão do app instalada neste aparelho";pb.appendChild(v)}});
+  window.addEventListener("load",()=>{setTimeout(()=>confereVersao(true),2500);const pb=document.querySelector(".proj-bar");if(pb&&!/^__/.test(APP_VERSAO)){const v=document.createElement("span");v.className="app-ver";v.textContent="versão "+APP_VERSAO.replace("ras-","");v.title="Versão do app instalada neste aparelho · toque para buscar uma versão nova";v.style.cursor="pointer";v.setAttribute("role","button");v.tabIndex=0;
+    /* v187: tocar na versão confere se há versão nova (e atualiza) */
+    const busca=()=>{const t=v.textContent;window.gfBuscarVersao&&gfBuscarVersao(v).then(()=>setTimeout(()=>{v.textContent=t},3500))};v.addEventListener("click",busca);v.addEventListener("keydown",e=>{if(e.key==="Enter")busca()});pb.appendChild(v)}});
 }
 /* botão "Instalar app" (Android/Chrome); no iPhone a instalação é pelo menu Compartilhar do Safari */
 let pedido=null;const inst=document.createElement("button");inst.type="button";inst.className="btn solid inst-btn";inst.hidden=true;inst.textContent="Instalar app";
