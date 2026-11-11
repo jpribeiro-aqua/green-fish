@@ -2431,7 +2431,13 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     { const u = UA(), d0 = S.dia || hoje(), av = $(&quot;c-aviso&quot;); if (av) { const dU = ultDiaU(u.id), n = L_U().length;
       av.innerHTML = n ? (n &lt; 4 ? `&lt;p class=&quot;c-av&quot;&gt;${n} leitura${n === 1 ? &quot;&quot; : &quot;s&quot;} em ${dataBR(d0)}: a curva fica mais fiel com pelo menos 4 horários (06, 15, 20 e 22 h).&lt;/p&gt;` : &quot;&quot;)
         : dU ? `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;Sem leituras de ${escO(u.nome)} em ${dataBR(d0)}.&lt;/b&gt; O último dia com leituras deste tanque/viveiro é ${diaSemana(dU)} ${dataBR(dU)}. &lt;button type=&quot;button&quot; class=&quot;btn ghost&quot; id=&quot;c-ir&quot;&gt;Ver ${dataBR(dU)}&lt;/button&gt;&lt;/p&gt;`
-        : `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;${escO(u.nome)} ainda não tem leituras.&lt;/b&gt; Lance uma leitura ao lado ou importe uma planilha no botão 📈 Nictemeral.&lt;/p&gt;`;
+        : (() =&gt; { const tot = S.leituras.filter((l) =&gt; l.unidade === u.id), base = tot.filter(passaBase), sl = selIds(u.id), semId = base.filter((l) =&gt; !l.ident).length;
+          if (sl.length &amp;&amp; base.length) return `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;${escO(nomeProc(u))} ainda não tem leituras ligadas.&lt;/b&gt; O ${escO(u.nome)} tem ${base.length} leitura${base.length === 1 ? &quot;&quot; : &quot;s&quot;}${semId ? `, ${semId} delas sem identificação (não dizem de qual tanque são)` : &quot;&quot;}. ${sl.length === 1 &amp;&amp; sl[0] !== &quot;__sem&quot; &amp;&amp; semId ? `&lt;button type=&quot;button&quot; class=&quot;btn ghost&quot; id=&quot;c-lig&quot;&gt;🔗 Ligar leituras ao ${escO(nomeId(sl[0]))}&lt;/button&gt;` : &quot;&quot;}&lt;button type=&quot;button&quot; class=&quot;btn ghost&quot; id=&quot;c-todos&quot;&gt;Mostrar todos os dados do ${escO(u.nome)}&lt;/button&gt;&lt;/p&gt;`;
+          if (tot.length &amp;&amp; !base.length) return `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;As ${tot.length} leituras do ${escO(u.nome)} estão escondidas por um filtro&lt;/b&gt; (origem, projeto ou lote importado em separado). &lt;button type=&quot;button&quot; class=&quot;btn ghost&quot; id=&quot;c-filt&quot;&gt;Mostrar todas&lt;/button&gt;&lt;/p&gt;`;
+          return `&lt;p class=&quot;c-av&quot;&gt;&lt;b&gt;${escO(u.nome)} ainda não tem leituras.&lt;/b&gt; Lance uma leitura ao lado ou importe uma planilha no botão 📈 Nictemeral.&lt;/p&gt;`; })();
+      { const bl = $(&quot;c-lig&quot;); if (bl) bl.addEventListener(&quot;click&quot;, () =&gt; { S.ligAlvo = selIds(u.id)[0]; S.ligDe = &quot;&quot;; S.ligAte = &quot;&quot;; S.idsAberto = true; salvar(); renderIds(); const x = $(&quot;lig-ok&quot;); if (x) x.scrollIntoView({ block: &quot;center&quot;, behavior: &quot;smooth&quot; }); });
+        const bt = $(&quot;c-todos&quot;); if (bt) bt.addEventListener(&quot;click&quot;, () =&gt; { setSel(u.id, []); sel = null; salvar(); renderUnidade(false); });
+        const bf = $(&quot;c-filt&quot;); if (bf) bf.addEventListener(&quot;click&quot;, () =&gt; { S.fOrig = &quot;&quot;; S.fProj = &quot;&quot;; S.fLote = &quot;&quot;; sel = null; salvar(); try { renderAll(); } catch (e) { renderUnidade(); } }); }
       const b = $(&quot;c-ir&quot;); if (b) b.addEventListener(&quot;click&quot;, () =&gt; { S.dia = dU; sel = null; salvar(); renderUnidade(); }); } }
     const u = UA(), L = L_U(), W = svgW($(&quot;charts&quot;), 320), H = 128, m = { l: 40, r: 12, t: 20, b: 16 };
     const x = (min) =&gt; m.l + (W - m.l - m.r) * min / 1440; geo = { W, x }; let out = &quot;&quot;;
@@ -10416,7 +10422,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v182";
+  const APP_VERSAO="ras-v183";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
