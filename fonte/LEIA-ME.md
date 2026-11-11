@@ -11,15 +11,11 @@ Programe o app por aqui, no VS Code. O `index.html` da pasta de cima é o result
 | `fonte/montar.py` | Junta os dois e gera o `index.html` (e, se pedir, a cópia `Sistema_RAS_Multitanques.html`). |
 | `sw.js` | Guarda o app no aparelho. A linha `const VERSAO = "ras-v185";` é a versão: cada publicação precisa de um número novo. |
 | `config.js` | Endereço e chave pública (anon) do Supabase. |
-| `fonte/vscode/` | Configuração do VS Code: tarefas de montar, extensões recomendadas e ajustes. |
+| `.vscode/` | Configuração do VS Code: tarefas de montar, extensões recomendadas e ajustes. |
 
-## Preparar o VS Code (uma vez só)
+## VS Code (já configurado)
 
-1. No Finder, abra a pasta `green-fish` e aperte ⇧⌘. (Shift + Command + ponto) para ver as pastas ocultas.
-2. Copie a pasta `fonte/vscode` para dentro da `green-fish` e renomeie a cópia para `.vscode` (com ponto na frente). Se já houver uma pasta `.vscode` vazia, coloque os 3 arquivos dentro dela.
-3. Abra a pasta `green-fish` no VS Code. Ele vai oferecer instalar as extensões recomendadas (Live Server, Python): aceite.
-
-Isso cria os botões em Terminal › Executar Tarefa…. Sem eles, tudo funciona do mesmo jeito pelo comando `python3 fonte/montar.py --nova`.
+A pasta `.vscode` tem as tarefas de montar (Terminal › Executar Tarefa…), as extensões recomendadas (Live Server, Python) e os ajustes do editor.
 
 ## Passo a passo de uma mudança
 
@@ -27,7 +23,7 @@ Isso cria os botões em Terminal › Executar Tarefa…. Sem eles, tudo funciona
 2. **Edite** `fonte/app.html` ou `fonte/aquanictemeral.html` e salve (⌘S).
 3. **Monte o app**, de um destes jeitos:
    - **Dois cliques em `Montar app.command`** (na pasta green-fish, pelo Finder) → escolha 1 (nova versão).
-   - VS Code › Terminal › Executar Tarefa… › **Montar app (nova versão)** (depois de copiar `fonte/vscode` para `.vscode`).
+   - VS Code › Terminal › Executar Tarefa… › **Montar app (nova versão)**.
    - Também dá pelo Terminal do VS Code, na pasta green-fish: `python3 fonte/montar.py --nova`
    - Na primeira vez, o Mac pode pedir para instalar as "Ferramentas de linha de comando" (traz o python3). Aceite.
 4. **Teste no navegador**: clique com o botão direito no `index.html` › **Open with Live Server** (extensão recomendada). Cada vez que você montar de novo, a página recarrega.
