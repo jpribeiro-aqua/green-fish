@@ -10501,7 +10501,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v198";
+  const APP_VERSAO="ras-v199";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -13372,6 +13372,14 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 @media (max-width:820px){#gest-hub .gh-pc{padding-left:10px;margin-left:8px}#gest-hub .gh-pb small{display:none}#gest-hub .gh-pc .gh-ml{grid-template-columns:1fr}}
 
 @media (max-width:820px){#gest-hub .gh-b{grid-template-columns:1fr}#gest-hub .gh-nav{flex-direction:row;flex-wrap:wrap;border-radius:0;gap:4px}#gest-hub .gh-nav button{padding:6px 9px;font-size:13px;border-left:0}#gest-hub .gh-nt{width:100%;margin:4px 6px}#gest-hub .gh-ml{grid-template-columns:1fr}#gest-hub .gh-obr>div{grid-template-columns:1fr;gap:2px}}
+#rp-cons{margin:10px 0}#rp-cons .cs-det{border:1px solid var(--accent,#0f7a6c);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}
+#rp-cons summary{cursor:pointer;font-weight:700;color:var(--accent,#0f7a6c)}
+#rp-cons .cs-row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-top:8px}#rp-cons .cs-row label:first-child{flex:1 1 260px}#rp-cons .cs-row input{width:100%;box-sizing:border-box}
+#rp-cons .cs-out{margin-top:8px;font-size:14px}#rp-cons .cs-out p{margin:6px 0}
+#rp-cons .cs-list{display:grid;gap:8px}#rp-cons .cs-card{border:1px solid var(--line,#dde3ea);border-radius:10px;padding:8px 10px;background:var(--bg,#f6f8fa);font-size:13.5px;line-height:1.5}
+#rp-cons .cs-st{display:inline-block;font-size:12px;border-radius:999px;padding:1px 8px;background:#e0f2fe;color:#075985}#rp-cons .cs-st.ok{background:#dcfce7;color:#166534}
+#rp-cons .cs-bt{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}#rp-cons .cs-bt .btn{font-size:12.5px;padding:4px 10px;text-decoration:none}
+#rp-cons .cs-av{color:#b45309}#rp-cons .cs-mu{color:var(--muted,#64748b);font-size:13px}#rp-cons .cs-lk{margin:4px 0;padding-left:18px;font-size:13.5px}
 </style>
 <script>
 (()=>{
@@ -14107,6 +14115,78 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   new MutationObserver(()=>{box.hidden=vg.hidden}).observe(vg,{attributes:true,attributeFilter:["hidden"]});
   window.gfGestHub={abrir:(sec)=>{if(sec)AB.add(sec);S.aberto=true;gr();render();try{setView("gest")}catch(e){}},secoes:()=>SEC.map(s=>s.k)};
   render()};if(document.readyState!=="loading")run();else document.addEventListener("DOMContentLoaded",run)})();
+
+/* ---------- v199: consultar imóvel por CPF, CNPJ, matrícula ou CCIR (código do imóvel) na Prospecção rural ---------- */
+(()=>{const BASE=/^(localhost|127\.0\.0\.1)$/.test(location.hostname)?"data/reg/":"https://raw.githubusercontent.com/jpribeiro-aqua/green-fish-dados/main/data/reg/";
+  const UFS="AC AL AM AP BA CE DF ES GO MA MG MS MT PA PB PE PI PR RJ RN RO RR RS SC SE SP TO".split(" ");
+  const Ex=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const dig=s=>String(s||"").replace(/\D/g,"");
+  const cpfOk=c=>{if(c.length!==11||/^(\d)\1+$/.test(c))return false;let s=0;for(let i=0;i<9;i++)s+=+c[i]*(10-i);let d=(s*10)%11%10;if(d!==+c[9])return false;s=0;for(let i=0;i<10;i++)s+=+c[i]*(11-i);return (s*10)%11%10===+c[10]};
+  const cnpjOk=c=>{if(c.length!==14||/^(\d)\1+$/.test(c))return false;const w1=[5,4,3,2,9,8,7,6,5,4,3,2],w2=[6].concat(w1);const dv=w=>{let s=0;w.forEach((p,i)=>s+=+c[i]*p);const r=s%11;return r<2?0:11-r};return dv(w1)===+c[12]&&dv(w2)===+c[13]};
+  const fmtCod=c=>c.length===13?`${c.slice(0,3)}.${c.slice(3,6)}.${c.slice(6,9)}.${c.slice(9,12)}-${c.slice(12)}`:c;
+  const fmtCnpj=c=>c.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5");
+  const lsG=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch(e){return d}},lsS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  let uf=lsG("gf-cons-uf","MA"),tipo="auto",busy=false,out="",aberto=lsG("gf-cons-ab",true);
+  const IDX={},TL={},MUN={};
+  async function gz(url){const r=await fetch(url,{cache:"force-cache"});if(!r.ok)throw new Error("HTTP "+r.status);if(typeof DecompressionStream=="undefined")throw new Error("navegador sem suporte a .gz");return JSON.parse(await new Response(r.body.pipeThrough(new DecompressionStream("gzip"))).text())}
+  const idx=u=>IDX[u]||(IDX[u]=gz(BASE+u.toLowerCase()+"_busca.json.gz").catch(e=>{delete IDX[u];throw e}));
+  const tile=(u,k)=>TL[u+k]||(TL[u+k]=gz(BASE+u.toLowerCase()+"_"+k+".json.gz").catch(e=>{delete TL[u+k];throw e}));
+  const mun=c=>MUN[c]||(MUN[c]=fetch("https://servicodados.ibge.gov.br/api/v1/localidades/municipios/"+c).then(r=>r.json()).then(j=>j&&j.nome?j.nome:c).catch(()=>c));
+  function detecta(v){const d=dig(v);if(tipo!=="auto")return tipo;if(d.length===11)return "cpf";if(d.length===14)return "cnpj";if(d.length===13)return "ccir";return "mat"}
+  const ST={C:"Certificada no SIGEF",R:"Certificada e registrada (averbada) em cartório"};
+  function linksOficiais(extra){return `<ul class="cs-lk">
+    <li><a href="https://sigef.incra.gov.br/consultar/parcelas/" target="_blank" rel="noopener">SIGEF — consulta pública de parcelas</a> (código do imóvel, código da parcela ou município)</li>
+    <li><a href="https://sncr.serpro.gov.br/ccir/emissao" target="_blank" rel="noopener">SNCR — emitir/conferir o CCIR</a> (pede o código do imóvel e o CPF/CNPJ do titular)</li>
+    <li><a href="https://registradores.onr.org.br" target="_blank" rel="noopener">ONR — Registro de Imóveis do Brasil</a>: pesquisa de bens por CPF/CNPJ em todos os cartórios e certidão de matrícula (serviço oficial, pago)</li>
+    ${extra||""}</ul>`}
+  async function busca(v){const d=dig(v),t=detecta(v);
+    if(!d&&t!=="mat")return `<p class="cs-av">Digite um número.</p>`;
+    if(t==="cpf"){if(!cpfOk(d))return `<p class="cs-av">CPF inválido: confira os dígitos.</p>`;
+      return `<p><b>CPF válido.</b> Por proteção de dados (LGPD), o Green Fish não guarda nomes nem CPF de proprietários, então não dá para listar imóveis de um CPF por aqui. O número também não fica salvo no app.</p><p>Para achar os imóveis ligados a este CPF, use os canais oficiais:</p>${linksOficiais(`<li><a href="https://www.gov.br/receitafederal/pt-br" target="_blank" rel="noopener">Receita Federal</a> — o próprio titular vê seus imóveis rurais (ITR/CAFIR) entrando com a conta gov.br</li>`)}<p class="cs-mu">Com o código do imóvel (está no CCIR) ou a matrícula em mãos, volte aqui e consulte de novo.</p>`}
+    if(t==="cnpj"){if(!cnpjOk(d))return `<p class="cs-av">CNPJ inválido: confira os dígitos.</p>`;
+      let h=`<p><b>CNPJ ${fmtCnpj(d)}</b></p>`;try{const r=await fetch("https://brasilapi.com.br/api/cnpj/v1/"+d);if(r.ok){const j=await r.json();
+        h+=`<div class="cs-card"><b>${Ex(j.razao_social||"")}</b>${j.nome_fantasia?` · ${Ex(j.nome_fantasia)}`:""}<br>${Ex(j.descricao_situacao_cadastral||"")} · aberta em ${Ex(j.data_inicio_atividade||"")}<br>Atividade: ${Ex(j.cnae_fiscal_descricao||"")}<br>${Ex([j.municipio,j.uf].filter(Boolean).join(" / "))} · porte ${Ex(j.porte||"")}</div>`}else h+=`<p class="cs-mu">Não consegui ler o cadastro na Receita agora.</p>`}catch(e){h+=`<p class="cs-mu">Sem conexão com o cadastro de CNPJ agora.</p>`}
+      return h+`<p>Os imóveis rurais desta empresa não ficam na base pública do INCRA (sem CPF/CNPJ, por LGPD). Use:</p>`+linksOficiais(`<li><a href="https://solucoes.receita.fazenda.gov.br/servicos/cnpjreva/cnpjreva_solicitacao.asp" target="_blank" rel="noopener">Comprovante de CNPJ (Receita Federal)</a></li>`)}
+    /* código do imóvel (CCIR/SNCR) ou matrícula: base do INCRA do app */
+    let I;try{I=await idx(uf)}catch(e){return `<p class="cs-av">Não consegui carregar a base do INCRA de ${uf} (${Ex(e.message)}). Confira a internet e tente de novo.</p>`}
+    let ids=[],rot="";if(t==="ccir"){ids=I.cod[d]||[];rot=`código do imóvel ${fmtCod(d)}`}
+    else{if(!I.temMat)return `<p class="cs-av">A base de ${uf} ainda não tem as matrículas (por enquanto só o Maranhão). Consulte pelo código do imóvel (CCIR) ou no SIGEF.</p>`+linksOficiais();
+      const m=d.replace(/^0+/,"");ids=I.mat[m]||[];rot=`matrícula ${m}`}
+    const dt=I.data?new Date(I.data+"T12:00").toLocaleDateString("pt-BR"):"";
+    if(!ids.length)return `<p><b>Nada encontrado</b> para ${Ex(rot)} na base do INCRA de ${uf} (SIGEF/SNCI de ${dt}).</p><p class="cs-mu">Pode não estar certificado, ser de outro estado, ter sido certificado depois de ${dt}${t==="mat"?" ou a matrícula estar escrita de outro jeito no SIGEF":""}. Confira no SIGEF em tempo real:</p>`+linksOficiais();
+    const rows=ids.slice(0,40).map(i=>I.P[i]),tiles={};
+    for(const p of rows){try{const T=await tile(uf,p[1]);const x=T.find(q=>q[1]===p[0]);if(x)tiles[p[0]]=x}catch(e){}}
+    const muns=[...new Set(rows.map(p=>p[4]))];await Promise.all(muns.map(mun));const nm={};for(const c of muns)nm[c]=await mun(c);
+    const fmtD=s=>s&&s.length===8?`${s.slice(6)}/${s.slice(4,6)}/${s.slice(0,4)}`:"";
+    window.__gfCons=rows.map(p=>({p,x:tiles[p[0]]}));
+    return `<p><b>${ids.length} parcela${ids.length===1?"":"s"}</b> com ${Ex(rot)} na base do INCRA de ${uf} (${Ex(I.fonte||"")}, ${dt})${ids.length>40?" · mostrando 40":""}.</p>
+      <div class="cs-list">${rows.map((p,i)=>{const x=tiles[p[0]],st=ST[p[5]]||(p[7]==="snci"?"Certificada no SNCI (antes de 2013)":p[7]==="asent"?"Assentamento do INCRA":"Certificada");
+        return `<div class="cs-card"><b>${Ex(x?x[2]:"Parcela")}</b> <span class="cs-st${p[5]==="R"?" ok":""}">${Ex(st)}</span><br>
+          ${Ex(nm[p[4]]||p[4])} – ${uf}${x?` · ${Number(x[6]).toLocaleString("pt-BR",{maximumFractionDigits:2})} ha`:""}${p[2]?` · código do imóvel ${fmtCod(p[2])}`:""}${p[3]?` · matrícula ${Ex(p[3])}`:""}${p[6]?` · registrada em ${fmtD(p[6])}`:""}${x&&x[4]?` · certificada em ${new Date(x[4]+"T12:00").toLocaleDateString("pt-BR")}`:""}
+          <div class="cs-bt">${p[7]!=="asent"&&/^[0-9a-f-]{36}$/.test(p[0])?`<a class="btn" href="https://sigef.incra.gov.br/geo/parcela/detalhe/${p[0]}/" target="_blank" rel="noopener">📄 Ver no SIGEF</a>`:""}${x?`<button type="button" class="btn" data-cs-map="${i}">🗺 Ver no mapa</button><button type="button" class="btn" data-cs-kml="${i}">⬇ KML</button>`:""}</div></div>`}).join("")}</div>
+      <p class="cs-mu">A certificação do INCRA confirma os limites, não quem é o dono: a propriedade é provada pela certidão da matrícula no cartório.</p>`}
+  function centro(x){const c=x[7]||[];let la=0,lo=0,n=0;for(let i=0;i+1<c.length;i+=2){la+=c[i];lo+=c[i+1];n++}return n?[la/n,lo/n]:null}
+  function kml(x){const c=x[7]||[],pts=[];for(let i=0;i+1<c.length;i+=2)pts.push(`${c[i+1]},${c[i]},0`);if(pts.length)pts.push(pts[0]);
+    return `<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document><Placemark><name>${Ex(x[2])}</name><description>${Ex(x[3])}</description><Polygon><outerBoundaryIs><LinearRing><coordinates>${pts.join(" ")}</coordinates></LinearRing></outerBoundaryIs></Polygon></Placemark></Document></kml>`}
+  function html(){return `<details class="cs-det"${aberto?" open":""}><summary>🔎 Consultar imóvel — CPF, CNPJ, matrícula ou CCIR</summary>
+    <div class="cs-row"><label class="jr-f">Número<input data-cs="v" inputmode="numeric" autocomplete="off" placeholder="CPF, CNPJ, matrícula ou código do imóvel (CCIR)"></label>
+      <label class="jr-f">É<select data-cs="t">${[["auto","Detectar sozinho"],["ccir","CCIR / código do imóvel"],["mat","Matrícula"],["cpf","CPF"],["cnpj","CNPJ"]].map(([k,t2])=>`<option value="${k}"${tipo===k?" selected":""}>${t2}</option>`).join("")}</select></label>
+      <label class="jr-f">Estado<select data-cs="uf">${UFS.map(u=>`<option${u===uf?" selected":""}>${u}</option>`).join("")}</select></label>
+      <button type="button" class="btn solid" data-cs="go"${busy?" disabled":""}>${busy?"⏳ Consultando…":"🔎 Consultar"}</button></div>
+    <p class="hint" style="margin:4px 0 0">Matrícula e CCIR são procurados na base do INCRA (SIGEF/SNCI) do estado escolhido. CPF e CNPJ são conferidos e levam aos canais oficiais (o app não guarda dados pessoais — LGPD); o número digitado não fica salvo.</p>
+    <div class="cs-out" aria-live="polite">${out}</div></details>`}
+  function monta(){const w=document.querySelector("#rp-card");if(!w)return;let b=w.querySelector("#rp-cons");if(b)return;b=document.createElement("div");b.id="rp-cons";const h=w.querySelector(".card-head");h?h.after(b):w.prepend(b);b.innerHTML=html();liga(b)}
+  function liga(b){const q=s=>b.querySelector(s);const d=q("details");d.addEventListener("toggle",()=>{aberto=d.open;lsS("gf-cons-ab",aberto)});
+    q('[data-cs="t"]').onchange=e=>tipo=e.target.value;q('[data-cs="uf"]').onchange=e=>{uf=e.target.value;lsS("gf-cons-uf",uf)};
+    const go=async()=>{const v=q('[data-cs="v"]').value;if(busy)return;busy=true;const bt=q('[data-cs="go"]');bt.disabled=true;bt.textContent="⏳ Consultando…";q(".cs-out").innerHTML=`<p class="cs-mu">Consultando…${detecta(v)==="ccir"||detecta(v)==="mat"?" (a base do estado é carregada uma vez)":""}</p>`;
+      try{out=await busca(v)}catch(e){out=`<p class="cs-av">Erro: ${Ex(e.message||e)}</p>`}busy=false;bt.disabled=false;bt.textContent="🔎 Consultar";q(".cs-out").innerHTML=out};
+    q('[data-cs="go"]').onclick=go;q('[data-cs="v"]').onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();go()}};
+    b.addEventListener("click",e=>{const m=e.target.closest("[data-cs-map]"),k=e.target.closest("[data-cs-kml]");const L=window.__gfCons||[];
+      if(m){const r=L[+m.dataset.csMap];const c=r&&r.x&&centro(r.x);if(c)window.open(`https://www.google.com/maps/search/?api=1&query=${c[0].toFixed(6)},${c[1].toFixed(6)}`,"_blank","noopener")}
+      if(k){const r=L[+k.dataset.csKml];if(r&&r.x){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([kml(r.x)],{type:"application/vnd.google-earth.kml+xml"}));a.download=("imovel_"+(r.p[2]||r.p[0])).replace(/[^\w-]/g,"_")+".kml";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}}})}
+  let pend=false;new MutationObserver(()=>{if(pend)return;pend=true;requestAnimationFrame(()=>{pend=false;monta()})}).observe(document.body,{childList:true,subtree:true});monta();
+  window.gfConsulta={busca,cpfOk,cnpjOk,detecta:v=>detecta(v)};
+})();
 /* ---------- v188: Topografia no desenho técnico — poligonal da estação total, imóvel, memorial descritivo e planta (padrão INCRA) ---------- */
 (()=>{const K="gf-gt-v1";
   const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}},gr=s=>{try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}};
