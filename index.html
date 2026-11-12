@@ -10501,7 +10501,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v193";
+  const APP_VERSAO="ras-v194";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -13317,9 +13317,9 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #bc-ov .bc-seg button[aria-pressed="true"]{background:#166534;border-color:#22c55e;font-weight:700}#bc-ov .bc-d{color:#94a3b8;font-size:12px;margin:0}
 #bc-ov .bc-res{background:#16202a;border-radius:8px;padding:8px;font-size:13px}#bc-ov .btn{font-size:14px}#bc-ov .btn[disabled]{opacity:.45}
 @media (max-width:820px){#bc-ov .bc-b{grid-template-columns:1fr;overflow:auto}#bc-ov .bc-v,#bc-ov .bc-f{overflow:visible}}
-html.gf-fl-off #gf-mapa-fab,html.gf-fl-off #gf-res-btn,html.gf-fl-off #cp-fab{display:none!important}
+#gf-fl-pn{position:fixed;right:30px;bottom:calc(38% - 60px);z-index:950;width:230px;background:var(--surface,#fff);color:var(--ink,#0f172a);border:1px solid var(--line,#cdd);border-radius:14px;box-shadow:0 10px 30px rgb(0 0 0 / .22);padding:10px;display:grid;gap:6px;font-size:14px}#gf-fl-pn[hidden]{display:none}#gf-fl-pn .gf-fl-h{display:flex;align-items:center;justify-content:space-between}#gf-fl-pn .gf-fl-h button{border:0;background:none;font-size:15px;cursor:pointer;color:inherit}#gf-fl-pn .gf-fl-all{border:1px solid var(--accent,#1a6b5a);background:var(--accent,#1a6b5a);color:#fff;border-radius:10px;padding:8px;font-weight:700;cursor:pointer}#gf-fl-pn .gf-fl-it{display:flex;align-items:center;gap:8px;padding:6px 4px;border-radius:8px;cursor:pointer}#gf-fl-pn .gf-fl-it input{width:18px;height:18px}#gf-fl-pn small{color:var(--muted,#64748b);font-size:12px}#gf-fl-pn p{margin:0}
 #gf-fl-tab{position:fixed;right:0;bottom:38%;z-index:86;width:24px;height:46px;padding:0;border:1px solid var(--line,#cdd);border-right:0;border-radius:12px 0 0 12px;background:var(--surface,#fff);color:var(--muted,#64748b);font-size:15px;line-height:1;cursor:pointer;opacity:.6;box-shadow:0 2px 8px rgb(0 0 0 / .12)}
-#gf-fl-tab:hover,#gf-fl-tab:focus-visible{opacity:1}#gf-fl-tab[aria-pressed="true"]{opacity:.9;color:#b91c1c}
+#gf-fl-tab:hover,#gf-fl-tab:focus-visible{opacity:1}#gf-fl-tab.on{opacity:.9;color:#b91c1c}
 .gf-fl-arr{cursor:grabbing!important;opacity:.85;box-shadow:0 10px 26px rgb(0 0 0 / .3)!important}
 #gf-fl-tab[hidden]{display:none}@media print{#gf-fl-tab{display:none}}
 </style>
@@ -13905,12 +13905,23 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
 })();
 
 
-/* ---------- v192: botões flutuantes ocultos por padrão; aparecem só quando você coloca, e dá para arrastar ---------- */
-(()=>{const run=()=>{const IDS=["gf-mapa-fab","gf-res-btn","cp-fab"],PROPRIO=["cp-fab"],KV="gf-fl-vis",KP="gf-fl-pos",H=document.documentElement;
+/* ---------- v192/v194: botões flutuantes ocultos por padrão; mostrar todos ou um por vez; arrastáveis ---------- */
+(()=>{const run=()=>{const IDS=["gf-mapa-fab","gf-res-btn","cp-fab"],PROPRIO=["cp-fab"],NOME={"gf-mapa-fab":"🗺 Mapa do projeto","gf-res-btn":"📋 Etapas do projeto","cp-fab":"📲 Minhas tarefas"},KV="gf-fl-vis2",KP="gf-fl-pos";
   const lg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},ls=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
-  let vis=!!lg(KV,false),pos=lg(KP,{})||{},arrastou=0;
+  let vis=lg(KV,null);if(!vis||typeof vis!=="object"){const old=!!lg("gf-fl-vis",false);vis={};IDS.forEach(id=>vis[id]=old)}
+  let pos=lg(KP,{})||{},arrastou=0,aberto=false;
+  const st=document.createElement("style");st.id="gf-fl-st";document.head.appendChild(st);
   const tab=document.createElement("button");tab.type="button";tab.id="gf-fl-tab";document.body.appendChild(tab);
-  function marca(){H.classList.toggle("gf-fl-off",!vis);tab.textContent=vis?"✕":"⋯";tab.title=vis?"Esconder os botões flutuantes (mapa, etapas do projeto e minhas tarefas)":"Mostrar os botões flutuantes (mapa, etapas do projeto e minhas tarefas) · depois arraste para onde quiser";tab.setAttribute("aria-pressed",String(vis))}
+  const pn=document.createElement("div");pn.id="gf-fl-pn";pn.hidden=true;pn.setAttribute("role","dialog");pn.setAttribute("aria-label","Botões flutuantes");document.body.appendChild(pn);
+  const existe=id=>{const e=document.getElementById(id);return e&&!e.hidden};
+  const algumVis=()=>IDS.some(id=>vis[id]&&existe(id));
+  function marca(){st.textContent=IDS.filter(id=>!vis[id]).map(id=>"#"+id).join(",")+(IDS.some(id=>!vis[id])?"{display:none!important}":"");
+    tab.textContent=algumVis()?"✕":"⋯";tab.title="Botões flutuantes: mostrar ou esconder todos, ou um por vez";tab.setAttribute("aria-expanded",String(aberto));tab.classList.toggle("on",algumVis())}
+  function painel(){const L=IDS.filter(existe);if(!L.length){pn.innerHTML=`<p>Nenhum botão flutuante disponível nesta tela.</p>`;return}const todos=L.every(id=>vis[id]);
+    pn.innerHTML=`<div class="gf-fl-h"><b>Botões flutuantes</b><button type="button" data-fl="x" aria-label="Fechar">✕</button></div>
+      <button type="button" class="gf-fl-all" data-fl="todos">${todos?"🙈 Esconder todos":"👁 Mostrar todos"}</button>
+      ${L.map(id=>`<label class="gf-fl-it"><input type="checkbox" data-fl-id="${id}"${vis[id]?" checked":""}><span>${NOME[id]}</span></label>`).join("")}
+      <small>Depois de mostrar, arraste o botão para onde quiser.</small>`}
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   function poe(el){const p=pos[el.id];if(!p)return;const r=el.getBoundingClientRect(),w=r.width||48,h=r.height||48;el.style.left=clamp(p.x*innerWidth,4,innerWidth-w-4)+"px";el.style.top=clamp(p.y*innerHeight,4,innerHeight-h-4)+"px";el.style.right="auto";el.style.bottom="auto"}
   function liga(el){if(el.dataset.gfDrag)return;el.dataset.gfDrag="1";el.style.touchAction="none";let ini=null;
@@ -13919,11 +13930,16 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     const fim=e=>{window.removeEventListener("pointermove",mv,true);window.removeEventListener("pointerup",fim,true);window.removeEventListener("pointercancel",fim,true);if(!ini)return;if(ini.mov){const r=el.getBoundingClientRect();pos[el.id]={x:r.left/innerWidth,y:r.top/innerHeight};ls(KP,pos);arrastou=Date.now();el.classList.remove("gf-fl-arr")}ini=null};
     el.addEventListener("pointerdown",e=>{if(e.button)return;const r=el.getBoundingClientRect();ini={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,mov:false,id:e.pointerId};window.addEventListener("pointermove",mv,true);window.addEventListener("pointerup",fim,true);window.addEventListener("pointercancel",fim,true)})}
   window.addEventListener("click",e=>{if(Date.now()-arrastou<350&&e.target.closest&&IDS.some(id=>e.target.closest("#"+id))){e.stopImmediatePropagation();e.preventDefault()}},true);
-  function aplica(){IDS.forEach(id=>{const el=document.getElementById(id);if(el&&!PROPRIO.includes(id)){liga(el);if(vis)poe(el)}})}
-  tab.onclick=()=>{vis=!vis;ls(KV,vis);marca();aplica()};
+  function aplica(){IDS.forEach(id=>{const el=document.getElementById(id);if(el&&!PROPRIO.includes(id)){liga(el);if(vis[id])poe(el)}})}
+  const grava=()=>{ls(KV,vis);marca();aplica();if(aberto)painel()};
+  tab.onclick=()=>{aberto=!aberto;pn.hidden=!aberto;if(aberto)painel();marca()};
+  pn.addEventListener("click",e=>{const b=e.target.closest("[data-fl]");if(!b)return;if(b.dataset.fl==="x"){aberto=false;pn.hidden=true;marca();return}
+    const L=IDS.filter(existe),todos=L.every(id=>vis[id]);L.forEach(id=>vis[id]=!todos);grava()});
+  pn.addEventListener("change",e=>{const c=e.target.closest("[data-fl-id]");if(!c)return;vis[c.dataset.flId]=c.checked;grava()});
+  document.addEventListener("pointerdown",e=>{if(aberto&&!pn.contains(e.target)&&e.target!==tab){aberto=false;pn.hidden=true;marca()}});
   window.addEventListener("resize",aplica);new MutationObserver(aplica).observe(document.body,{childList:true});
-  window.gfFlutuantes={mostrar:v=>{vis=v!==false;ls(KV,vis);marca();aplica()},zerar:()=>{pos={};ls(KP,pos);IDS.forEach(id=>{const el=document.getElementById(id);if(el){el.style.left=el.style.top=el.style.right=el.style.bottom=""}})}};
-  const temAlgum=()=>{tab.hidden=!IDS.some(id=>{const e=document.getElementById(id);return e&&!e.hidden})};setInterval(temAlgum,1500);
+  window.gfFlutuantes={mostrar:(v,id)=>{(id?[id]:IDS).forEach(k=>vis[k]=v!==false);grava()},zerar:()=>{pos={};ls(KP,pos);IDS.forEach(id=>{const el=document.getElementById(id);if(el){el.style.left=el.style.top=el.style.right=el.style.bottom=""}})}};
+  const temAlgum=()=>{tab.hidden=!IDS.some(existe);marca();if(aberto&&tab.hidden){aberto=false;pn.hidden=true}};setInterval(temAlgum,1500);
   marca();aplica();temAlgum()};if(document.body)run();else document.addEventListener("DOMContentLoaded",run)})();
 /* ---------- v188: Topografia no desenho técnico — poligonal da estação total, imóvel, memorial descritivo e planta (padrão INCRA) ---------- */
 (()=>{const K="gf-gt-v1";
