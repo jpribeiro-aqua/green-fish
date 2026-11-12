@@ -10501,7 +10501,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v197";
+  const APP_VERSAO="ras-v198";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -13354,7 +13354,7 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #gest-hub .gh-tag{border:1px solid var(--line,#d5dbe3);background:var(--bg,#f4f6f8);border-radius:999px;padding:3px 9px;font-size:12px;cursor:pointer;color:inherit}
 #gest-hub .gh-mu{color:var(--muted,#64748b)}
 #gest-hub .gh-obr{display:grid;gap:6px}#gest-hub .gh-obr>div{display:grid;grid-template-columns:150px 1fr;gap:10px;background:var(--surface,#fff);border:1px solid var(--line,#e2e6ec);border-radius:10px;padding:8px 10px;font-size:13.5px}
-#gest-hub .gh-aviso{font-size:12px;color:var(--muted,#64748b);margin:10px 0 0}#gest-hub .gh-nav button i{margin-left:auto;font-style:normal;opacity:.7;font-size:12px}
+#gest-hub .gh-aviso{font-size:12px;color:var(--muted,#64748b);margin:10px 0 0}#gest-hub .gh-nav .gh-ntb{background:none;border:0;border-left:0;padding:6px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px!important;letter-spacing:.14em;color:#9fd3c4;font-weight:700;margin:0 0 4px}#gest-hub .gh-nav .gh-ntb:hover{background:#0f6e5e;color:#fff}#gest-hub .gh-min{grid-template-columns:auto minmax(0,1fr)}#gest-hub .gh-min .gh-nav{padding:10px 6px}#gest-hub .gh-min .gh-ntb{writing-mode:horizontal-tb;white-space:nowrap}#gest-hub .gh-nav button i{margin-left:auto;font-style:normal;opacity:.7;font-size:12px}
 #gest-hub .gh-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}#gest-hub .gh-top p{margin:0;flex:1 1 260px;color:var(--muted,#5b6878);font-size:13.5px}#gest-hub .gh-top .gh-volta{margin:0}
 #gest-hub .gh-arv{display:grid;gap:6px}
 #gest-hub .gh-p{border:1px solid var(--line,#dde3ea);border-radius:12px;background:var(--surface,#fff)}
@@ -14092,11 +14092,11 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
       pasta(s.k+"/app","🔗","No app",`${nApp(s).length} atalhos`,()=>`<div class="gh-apps">${nApp(s).map(v=>appBtn(v)).join("")}</div>`,"gh-papp"))});return h}
   function render(){const box=document.getElementById("gest-hub");if(!box)return;S.ab=[...AB];gr();
     box.innerHTML=`<details class="card wide gh"${S.aberto?" open":""}><summary class="card-head"><h2>🏛 Central de gestão<span>financeiro, administração, mercado, ambiental, logística, comércio e exportação · fontes oficiais ligadas às abas do app</span></h2></summary>
-      <div class="gh-b"><nav class="gh-nav" aria-label="Áreas de gestão"><div class="gh-nt">GESTÃO</div>${SEC.map(x=>`<button type="button" data-gh-sec="${x.k}" aria-current="${ab(x.k)?"page":"false"}"><span>${x.ic}</span>${Ex(x.t)}<i>${ab(x.k)?"▾":"▸"}</i></button>`).join("")}
-        <div class="gh-nt">PERFIL</div><select class="gh-porte" aria-label="Porte">${PORTES.map(([k,t])=>`<option value="${k}"${k===S.porte?" selected":""}>${t}</option>`).join("")}</select></nav>
+      <div class="gh-b${S.navMin?" gh-min":""}"><nav class="gh-nav" aria-label="Áreas de gestão"><button type="button" class="gh-nt gh-ntb" data-gh-nav="1" aria-expanded="${!S.navMin}" title="${S.navMin?"Mostrar o menu de gestão":"Recolher o menu de gestão"}">${S.navMin?"☰ ":""}GESTÃO <i>${S.navMin?"▸":"◂"}</i></button>${S.navMin?"":SEC.map(x=>`<button type="button" data-gh-sec="${x.k}" aria-current="${ab(x.k)?"page":"false"}"><span>${x.ic}</span>${Ex(x.t)}<i>${ab(x.k)?"▾":"▸"}</i></button>`).join("")+
+        `<div class="gh-nt">PERFIL</div><select class="gh-porte" aria-label="Porte">${PORTES.map(([k,t])=>`<option value="${k}"${k===S.porte?" selected":""}>${t}</option>`).join("")}</select>`}</nav>
       <div class="gh-c"><div class="gh-top"><p>Toque numa pasta para abrir; toque de novo para fechar. Dentro de cada pasta há outras pastas.</p><button type="button" class="gh-volta" data-gh-tudo="1">📂 Abrir as áreas</button><button type="button" class="gh-volta" data-gh-tudo="0">📁 Fechar tudo</button></div><div class="gh-arv">${arvore()}</div></div></div></details>`;
     const d=box.querySelector("details");d.addEventListener("toggle",()=>{S.aberto=d.open;gr()});
-    box.querySelector(".gh-porte").onchange=e=>{S.porte=e.target.value;gr();render()}}
+    const po=box.querySelector(".gh-porte");if(po)po.onchange=e=>{S.porte=e.target.value;gr();render()};box.querySelector("[data-gh-nav]").onclick=()=>{S.navMin=!S.navMin;gr();render()}}
   function alterna(k,forca){const o=forca!=null?forca:!ab(k);if(o)AB.add(k);else{[...AB].forEach(x=>{if(x===k||x.startsWith(k+"/"))AB.delete(x)})}render()}
   const box=document.createElement("div");box.id="gest-hub";vg.parentNode.insertBefore(box,vg);box.hidden=vg.hidden;
   box.addEventListener("click",e=>{const g=e.target.closest("[data-gh-go]"),s=e.target.closest("[data-gh-sec]"),t=e.target.closest("[data-gh-t]"),all=e.target.closest("[data-gh-tudo]");
