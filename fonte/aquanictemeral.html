@@ -1505,6 +1505,9 @@ if (typeof module !== "undefined") module.exports = Core;
     return { l };
   }
   const PAINEIS = [["od", "Oxigênio dissolvido", "mg/L"], ["ph", "pH", ""], ["temperatura", "Temperatura", "°C"]];
+  /* v206: a curva mostra também todo parâmetro que tiver leitura no dia (amônia, nitrito, alcalinidade, CO₂, salinidade…) */
+  const NOMEP = { od_saturacao: ["Saturação de O₂", "%"], co2: ["CO₂ livre", "mg/L"], alcalinidade: ["Alcalinidade", "mg/L CaCO₃"], dureza: ["Dureza", "mg/L CaCO₃"], tan: ["Amônia total", "mg/L"], nh3: ["Amônia tóxica (NH₃)", "mg/L"], nitrito: ["Nitrito", "mg/L"], nitrato: ["Nitrato", "mg/L"], salinidade: ["Salinidade", "g/L"], transparencia: ["Transparência (Secchi)", "cm"], clorofila_a: ["Clorofila-a", "µg/L"], ss_imhoff: ["Sólidos sedimentáveis", "mL/L"], sst: ["Sólidos suspensos totais", "mg/L"], vibrio: ["Vibrio", "UFC/mL"] };
+  const paineis = (L) => PAINEIS.concat(Object.keys(NOMEP).filter((p) => L.some((l) => typeof l[p] === "number")).map((p) => [p, NOMEP[p][0], NOMEP[p][1]]));
   let geo = null;
   const ultDiaU = (uid) => { const ds = S.leituras.filter((l) => l.unidade === uid && passa(l)).map((l) => l.data); return ds.length ? ultValido(ds) : null; };
   const diaVazio = (uid, d) => !S.leituras.some((l) => l.unidade === uid && l.data === d && passa(l));
@@ -1522,14 +1525,14 @@ if (typeof module !== "undefined") module.exports = Core;
         const bf = $("c-filt"); if (bf) bf.addEventListener("click", () => { S.fOrig = ""; S.fProj = ""; S.fLote = ""; sel = null; salvar(); try { renderAll(); } catch (e) { renderUnidade(); } }); }
       const b = $("c-ir"); if (b) b.addEventListener("click", () => { S.dia = dU; sel = null; salvar(); renderUnidade(); }); } }
     const u = UA(), L = L_U(), W = svgW($("charts"), 320), H = 128, m = { l: 40, r: 12, t: 20, b: 16 };
-    const x = (min) => m.l + (W - m.l - m.r) * min / 1440; geo = { W, x }; let out = "";
-    PAINEIS.forEach(([p, nome, un], idx) => {
+    const x = (min) => m.l + (W - m.l - m.r) * min / 1440; geo = { W, x }; let out = ""; const PN = paineis(L);
+    PN.forEach(([p, nome, un], idx) => {
       const pts = L.filter((l) => typeof l[p] === "number"); const f = fx(u, p);
       const vals = pts.map((l) => l[p]); const lims = [f?.ideal_min, f?.ideal_max, f?.alerta_min].filter((v) => v !== null && v !== undefined && v > 0);
       let lo = Math.min(...vals, ...lims), hi = Math.max(...vals, ...(f?.ideal_max != null ? [f.ideal_max] : []), ...(f?.ideal_min != null ? [f.ideal_min] : []));
       if (!Number.isFinite(lo)) { lo = 0; hi = 10; }
       const pad = (hi - lo) * 0.12 || 1; lo = p === "od" ? 0 : lo - pad; hi = hi + pad;
-      const hh = idx === PAINEIS.length - 1 ? H + 14 : H;
+      const hh = idx === PN.length - 1 ? H + 14 : H;
       const y = (v) => m.t + (H - m.t - m.b) * (1 - (v - lo) / (hi - lo)); const cy = (v) => y(Math.max(lo, Math.min(hi, v)));
       let bands = "";
       if (f) { const a1 = f.alerta_min ?? lo, i1 = f.ideal_min ?? lo, i2 = f.ideal_max ?? hi, a2 = f.alerta_max ?? hi;
@@ -1539,8 +1542,8 @@ if (typeof module !== "undefined") module.exports = Core;
       const ticks = niceTicks(lo, hi, 3);
       const grid = ticks.map((t) => `<line x1="${m.l}" x2="${W - m.r}" y1="${y(t)}" y2="${y(t)}"/>`).join("");
       const slotl = `<g class="slotl">${slotsDe(u).map((h) => `<line x1="${x(Core.minutos(h))}" x2="${x(Core.minutos(h))}" y1="${m.t}" y2="${H - m.b}"/>`).join("")}</g>`;
-      const ylab = ticks.map((t) => `<text x="${m.l - 6}" y="${y(t) + 3.5}" text-anchor="end">${fmt(t, p === "ph" ? 1 : 0)}</text>`).join("");
-      const xlab = idx === PAINEIS.length - 1 ? [0, 6, 12, 18, 24].map((h) => `<text x="${x(h * 60)}" y="${H + 8}" text-anchor="${h === 0 ? "start" : h === 24 ? "end" : "middle"}">${String(h).padStart(2, "0")}h</text>`).join("") : "";
+      const ylab = ticks.map((t) => `<text x="${m.l - 6}" y="${y(t) + 3.5}" text-anchor="end">${fmt(t, p === "ph" ? 1 : (hi - lo) < 1 ? 2 : (hi - lo) < 10 ? 1 : 0)}</text>`).join("");
+      const xlab = idx === PN.length - 1 ? [0, 6, 12, 18, 24].map((h) => `<text x="${x(h * 60)}" y="${H + 8}" text-anchor="${h === 0 ? "start" : h === 24 ? "end" : "middle"}">${String(h).padStart(2, "0")}h</text>`).join("") : "";
       const path = pts.map((l, i) => (i ? "L" : "M") + x(Core.minutos(l.hora)).toFixed(1) + " " + y(l[p]).toFixed(1)).join(" ");
       const dots = pts.map((l) => `<circle class="dot${sel === l.id ? " sel" : ""}" r="4" cx="${x(Core.minutos(l.hora))}" cy="${y(l[p])}"/>`).join("");
       out += `<div class="chart"><svg viewBox="0 0 ${W} ${hh}" role="img" aria-label="${nome} ao longo de 24 horas, ${pts.length} leituras">
@@ -1549,9 +1552,9 @@ if (typeof module !== "undefined") module.exports = Core;
         <rect x="${m.l}" y="0" width="${W - m.l - m.r}" height="${H}" fill="transparent"/></svg></div>`;
     });
     $("charts").innerHTML = out + '<div class="tip" id="tip" hidden></div>';
-    $("amps").innerHTML = PAINEIS.map(([p, nome, un]) => { const a = Core.amplitude(L.map((l) => l[p])); const f = fx(u, p);
+    $("amps").innerHTML = PN.map(([p, nome, un]) => { const a = Core.amplitude(L.map((l) => l[p])); const f = fx(u, p);
       if (!a) return `<div class="amp"><span>${nome}</span><strong>—</strong></div>`;
-      const lim = f?.amplitude_max_24h; const st = lim == null ? null : a.amp <= lim ? "ideal" : "alerta"; const d = p === "ph" ? 2 : 1;
+      const lim = f?.amplitude_max_24h; const st = lim == null ? null : a.amp <= lim ? "ideal" : "alerta"; const d = DEC[p] ?? 1;
       return `<div class="amp"><span>Δ ${nome.toLowerCase()} em 24 h</span><strong>${fmt(a.amp, d)} ${un}</strong><span>mín ${fmt(a.min, d)} · máx ${fmt(a.max, d)}</span>
         <span>${lim == null ? "sem limite de amplitude (vale o mínimo da madrugada)" : "limite " + fmt(lim, 1) + " · " + pill(st)}</span></div>`; }).join("");
     bindHover();
@@ -1562,8 +1565,8 @@ if (typeof module !== "undefined") module.exports = Core;
       for (const l of L) { const d = Math.abs(geo.x(Core.minutos(l.hora)) - sx); if (d < bd) { bd = d; best = l; } } return best; };
     const show = (evt, svg) => { const l = near(evt, svg); if (!l) return; const cx = geo.x(Core.minutos(l.hora));
       svgs.forEach((s) => { const c = s.querySelector(".cross"); c.hidden = false; c.setAttribute("x1", cx); c.setAttribute("x2", cx); });
-      tip.innerHTML = `<b>${l.hora}</b>` + PAINEIS.map(([p, n, un]) => { const v = l[p]; const st = typeof v === "number" ? cls(UA(), p, v) : null;
-        return `<div class="r"><span>${n.split(" ")[0]}</span><span>${fmt(v, p === "ph" ? 2 : 1)}${un ? " " + un : ""}${st && st !== "ideal" ? " · " + STLBL[st] : ""}</span></div>`; }).join("") + '<div style="opacity:.7;margin-top:4px">clique para avaliar</div>';
+      tip.innerHTML = `<b>${l.hora}</b>` + paineis(L).map(([p, n, un]) => { if (typeof l[p] !== "number" && !["od", "ph", "temperatura"].includes(p)) return ""; const v = l[p]; const st = typeof v === "number" ? cls(UA(), p, v) : null;
+        return `<div class="r"><span>${curto[p] || n.split(" ")[0]}</span><span>${fmt(v, DEC[p] ?? 1)}${un ? " " + un : ""}${st && st !== "ideal" ? " · " + STLBL[st] : ""}</span></div>`; }).join("") + '<div style="opacity:.7;margin-top:4px">clique para avaliar</div>';
       tip.hidden = false; const box = $("charts").getBoundingClientRect(), sr = svg.getBoundingClientRect();
       let left = (cx / geo.W) * sr.width + 14; if (left + 180 > box.width) left -= 196; tip.style.left = Math.max(0, left) + "px"; tip.style.top = (sr.top - box.top + 8) + "px"; };
     const hide = () => { tip.hidden = true; svgs.forEach((s) => (s.querySelector(".cross").hidden = true)); };

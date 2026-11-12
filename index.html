@@ -2499,6 +2499,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
     return { l };
   }
   const PAINEIS = [[&quot;od&quot;, &quot;Oxigênio dissolvido&quot;, &quot;mg/L&quot;], [&quot;ph&quot;, &quot;pH&quot;, &quot;&quot;], [&quot;temperatura&quot;, &quot;Temperatura&quot;, &quot;°C&quot;]];
+  /* v206: a curva mostra também todo parâmetro que tiver leitura no dia (amônia, nitrito, alcalinidade, CO₂, salinidade…) */
+  const NOMEP = { od_saturacao: [&quot;Saturação de O₂&quot;, &quot;%&quot;], co2: [&quot;CO₂ livre&quot;, &quot;mg/L&quot;], alcalinidade: [&quot;Alcalinidade&quot;, &quot;mg/L CaCO₃&quot;], dureza: [&quot;Dureza&quot;, &quot;mg/L CaCO₃&quot;], tan: [&quot;Amônia total&quot;, &quot;mg/L&quot;], nh3: [&quot;Amônia tóxica (NH₃)&quot;, &quot;mg/L&quot;], nitrito: [&quot;Nitrito&quot;, &quot;mg/L&quot;], nitrato: [&quot;Nitrato&quot;, &quot;mg/L&quot;], salinidade: [&quot;Salinidade&quot;, &quot;g/L&quot;], transparencia: [&quot;Transparência (Secchi)&quot;, &quot;cm&quot;], clorofila_a: [&quot;Clorofila-a&quot;, &quot;µg/L&quot;], ss_imhoff: [&quot;Sólidos sedimentáveis&quot;, &quot;mL/L&quot;], sst: [&quot;Sólidos suspensos totais&quot;, &quot;mg/L&quot;], vibrio: [&quot;Vibrio&quot;, &quot;UFC/mL&quot;] };
+  const paineis = (L) =&gt; PAINEIS.concat(Object.keys(NOMEP).filter((p) =&gt; L.some((l) =&gt; typeof l[p] === &quot;number&quot;)).map((p) =&gt; [p, NOMEP[p][0], NOMEP[p][1]]));
   let geo = null;
   const ultDiaU = (uid) =&gt; { const ds = S.leituras.filter((l) =&gt; l.unidade === uid &amp;&amp; passa(l)).map((l) =&gt; l.data); return ds.length ? ultValido(ds) : null; };
   const diaVazio = (uid, d) =&gt; !S.leituras.some((l) =&gt; l.unidade === uid &amp;&amp; l.data === d &amp;&amp; passa(l));
@@ -2516,14 +2519,14 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
         const bf = $(&quot;c-filt&quot;); if (bf) bf.addEventListener(&quot;click&quot;, () =&gt; { S.fOrig = &quot;&quot;; S.fProj = &quot;&quot;; S.fLote = &quot;&quot;; sel = null; salvar(); try { renderAll(); } catch (e) { renderUnidade(); } }); }
       const b = $(&quot;c-ir&quot;); if (b) b.addEventListener(&quot;click&quot;, () =&gt; { S.dia = dU; sel = null; salvar(); renderUnidade(); }); } }
     const u = UA(), L = L_U(), W = svgW($(&quot;charts&quot;), 320), H = 128, m = { l: 40, r: 12, t: 20, b: 16 };
-    const x = (min) =&gt; m.l + (W - m.l - m.r) * min / 1440; geo = { W, x }; let out = &quot;&quot;;
-    PAINEIS.forEach(([p, nome, un], idx) =&gt; {
+    const x = (min) =&gt; m.l + (W - m.l - m.r) * min / 1440; geo = { W, x }; let out = &quot;&quot;; const PN = paineis(L);
+    PN.forEach(([p, nome, un], idx) =&gt; {
       const pts = L.filter((l) =&gt; typeof l[p] === &quot;number&quot;); const f = fx(u, p);
       const vals = pts.map((l) =&gt; l[p]); const lims = [f?.ideal_min, f?.ideal_max, f?.alerta_min].filter((v) =&gt; v !== null &amp;&amp; v !== undefined &amp;&amp; v &gt; 0);
       let lo = Math.min(...vals, ...lims), hi = Math.max(...vals, ...(f?.ideal_max != null ? [f.ideal_max] : []), ...(f?.ideal_min != null ? [f.ideal_min] : []));
       if (!Number.isFinite(lo)) { lo = 0; hi = 10; }
       const pad = (hi - lo) * 0.12 || 1; lo = p === &quot;od&quot; ? 0 : lo - pad; hi = hi + pad;
-      const hh = idx === PAINEIS.length - 1 ? H + 14 : H;
+      const hh = idx === PN.length - 1 ? H + 14 : H;
       const y = (v) =&gt; m.t + (H - m.t - m.b) * (1 - (v - lo) / (hi - lo)); const cy = (v) =&gt; y(Math.max(lo, Math.min(hi, v)));
       let bands = &quot;&quot;;
       if (f) { const a1 = f.alerta_min ?? lo, i1 = f.ideal_min ?? lo, i2 = f.ideal_max ?? hi, a2 = f.alerta_max ?? hi;
@@ -2533,8 +2536,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       const ticks = niceTicks(lo, hi, 3);
       const grid = ticks.map((t) =&gt; `&lt;line x1=&quot;${m.l}&quot; x2=&quot;${W - m.r}&quot; y1=&quot;${y(t)}&quot; y2=&quot;${y(t)}&quot;/&gt;`).join(&quot;&quot;);
       const slotl = `&lt;g class=&quot;slotl&quot;&gt;${slotsDe(u).map((h) =&gt; `&lt;line x1=&quot;${x(Core.minutos(h))}&quot; x2=&quot;${x(Core.minutos(h))}&quot; y1=&quot;${m.t}&quot; y2=&quot;${H - m.b}&quot;/&gt;`).join(&quot;&quot;)}&lt;/g&gt;`;
-      const ylab = ticks.map((t) =&gt; `&lt;text x=&quot;${m.l - 6}&quot; y=&quot;${y(t) + 3.5}&quot; text-anchor=&quot;end&quot;&gt;${fmt(t, p === &quot;ph&quot; ? 1 : 0)}&lt;/text&gt;`).join(&quot;&quot;);
-      const xlab = idx === PAINEIS.length - 1 ? [0, 6, 12, 18, 24].map((h) =&gt; `&lt;text x=&quot;${x(h * 60)}&quot; y=&quot;${H + 8}&quot; text-anchor=&quot;${h === 0 ? &quot;start&quot; : h === 24 ? &quot;end&quot; : &quot;middle&quot;}&quot;&gt;${String(h).padStart(2, &quot;0&quot;)}h&lt;/text&gt;`).join(&quot;&quot;) : &quot;&quot;;
+      const ylab = ticks.map((t) =&gt; `&lt;text x=&quot;${m.l - 6}&quot; y=&quot;${y(t) + 3.5}&quot; text-anchor=&quot;end&quot;&gt;${fmt(t, p === &quot;ph&quot; ? 1 : (hi - lo) &lt; 1 ? 2 : (hi - lo) &lt; 10 ? 1 : 0)}&lt;/text&gt;`).join(&quot;&quot;);
+      const xlab = idx === PN.length - 1 ? [0, 6, 12, 18, 24].map((h) =&gt; `&lt;text x=&quot;${x(h * 60)}&quot; y=&quot;${H + 8}&quot; text-anchor=&quot;${h === 0 ? &quot;start&quot; : h === 24 ? &quot;end&quot; : &quot;middle&quot;}&quot;&gt;${String(h).padStart(2, &quot;0&quot;)}h&lt;/text&gt;`).join(&quot;&quot;) : &quot;&quot;;
       const path = pts.map((l, i) =&gt; (i ? &quot;L&quot; : &quot;M&quot;) + x(Core.minutos(l.hora)).toFixed(1) + &quot; &quot; + y(l[p]).toFixed(1)).join(&quot; &quot;);
       const dots = pts.map((l) =&gt; `&lt;circle class=&quot;dot${sel === l.id ? &quot; sel&quot; : &quot;&quot;}&quot; r=&quot;4&quot; cx=&quot;${x(Core.minutos(l.hora))}&quot; cy=&quot;${y(l[p])}&quot;/&gt;`).join(&quot;&quot;);
       out += `&lt;div class=&quot;chart&quot;&gt;&lt;svg viewBox=&quot;0 0 ${W} ${hh}&quot; role=&quot;img&quot; aria-label=&quot;${nome} ao longo de 24 horas, ${pts.length} leituras&quot;&gt;
@@ -2543,9 +2546,9 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
         &lt;rect x=&quot;${m.l}&quot; y=&quot;0&quot; width=&quot;${W - m.l - m.r}&quot; height=&quot;${H}&quot; fill=&quot;transparent&quot;/&gt;&lt;/svg&gt;&lt;/div&gt;`;
     });
     $(&quot;charts&quot;).innerHTML = out + &#x27;&lt;div class=&quot;tip&quot; id=&quot;tip&quot; hidden&gt;&lt;/div&gt;&#x27;;
-    $(&quot;amps&quot;).innerHTML = PAINEIS.map(([p, nome, un]) =&gt; { const a = Core.amplitude(L.map((l) =&gt; l[p])); const f = fx(u, p);
+    $(&quot;amps&quot;).innerHTML = PN.map(([p, nome, un]) =&gt; { const a = Core.amplitude(L.map((l) =&gt; l[p])); const f = fx(u, p);
       if (!a) return `&lt;div class=&quot;amp&quot;&gt;&lt;span&gt;${nome}&lt;/span&gt;&lt;strong&gt;—&lt;/strong&gt;&lt;/div&gt;`;
-      const lim = f?.amplitude_max_24h; const st = lim == null ? null : a.amp &lt;= lim ? &quot;ideal&quot; : &quot;alerta&quot;; const d = p === &quot;ph&quot; ? 2 : 1;
+      const lim = f?.amplitude_max_24h; const st = lim == null ? null : a.amp &lt;= lim ? &quot;ideal&quot; : &quot;alerta&quot;; const d = DEC[p] ?? 1;
       return `&lt;div class=&quot;amp&quot;&gt;&lt;span&gt;Δ ${nome.toLowerCase()} em 24 h&lt;/span&gt;&lt;strong&gt;${fmt(a.amp, d)} ${un}&lt;/strong&gt;&lt;span&gt;mín ${fmt(a.min, d)} · máx ${fmt(a.max, d)}&lt;/span&gt;
         &lt;span&gt;${lim == null ? &quot;sem limite de amplitude (vale o mínimo da madrugada)&quot; : &quot;limite &quot; + fmt(lim, 1) + &quot; · &quot; + pill(st)}&lt;/span&gt;&lt;/div&gt;`; }).join(&quot;&quot;);
     bindHover();
@@ -2556,8 +2559,8 @@ if (typeof module !== &quot;undefined&quot;) module.exports = Core;
       for (const l of L) { const d = Math.abs(geo.x(Core.minutos(l.hora)) - sx); if (d &lt; bd) { bd = d; best = l; } } return best; };
     const show = (evt, svg) =&gt; { const l = near(evt, svg); if (!l) return; const cx = geo.x(Core.minutos(l.hora));
       svgs.forEach((s) =&gt; { const c = s.querySelector(&quot;.cross&quot;); c.hidden = false; c.setAttribute(&quot;x1&quot;, cx); c.setAttribute(&quot;x2&quot;, cx); });
-      tip.innerHTML = `&lt;b&gt;${l.hora}&lt;/b&gt;` + PAINEIS.map(([p, n, un]) =&gt; { const v = l[p]; const st = typeof v === &quot;number&quot; ? cls(UA(), p, v) : null;
-        return `&lt;div class=&quot;r&quot;&gt;&lt;span&gt;${n.split(&quot; &quot;)[0]}&lt;/span&gt;&lt;span&gt;${fmt(v, p === &quot;ph&quot; ? 2 : 1)}${un ? &quot; &quot; + un : &quot;&quot;}${st &amp;&amp; st !== &quot;ideal&quot; ? &quot; · &quot; + STLBL[st] : &quot;&quot;}&lt;/span&gt;&lt;/div&gt;`; }).join(&quot;&quot;) + &#x27;&lt;div style=&quot;opacity:.7;margin-top:4px&quot;&gt;clique para avaliar&lt;/div&gt;&#x27;;
+      tip.innerHTML = `&lt;b&gt;${l.hora}&lt;/b&gt;` + paineis(L).map(([p, n, un]) =&gt; { if (typeof l[p] !== &quot;number&quot; &amp;&amp; ![&quot;od&quot;, &quot;ph&quot;, &quot;temperatura&quot;].includes(p)) return &quot;&quot;; const v = l[p]; const st = typeof v === &quot;number&quot; ? cls(UA(), p, v) : null;
+        return `&lt;div class=&quot;r&quot;&gt;&lt;span&gt;${curto[p] || n.split(&quot; &quot;)[0]}&lt;/span&gt;&lt;span&gt;${fmt(v, DEC[p] ?? 1)}${un ? &quot; &quot; + un : &quot;&quot;}${st &amp;&amp; st !== &quot;ideal&quot; ? &quot; · &quot; + STLBL[st] : &quot;&quot;}&lt;/span&gt;&lt;/div&gt;`; }).join(&quot;&quot;) + &#x27;&lt;div style=&quot;opacity:.7;margin-top:4px&quot;&gt;clique para avaliar&lt;/div&gt;&#x27;;
       tip.hidden = false; const box = $(&quot;charts&quot;).getBoundingClientRect(), sr = svg.getBoundingClientRect();
       let left = (cx / geo.W) * sr.width + 14; if (left + 180 &gt; box.width) left -= 196; tip.style.left = Math.max(0, left) + &quot;px&quot;; tip.style.top = (sr.top - box.top + 8) + &quot;px&quot;; };
     const hide = () =&gt; { tip.hidden = true; svgs.forEach((s) =&gt; (s.querySelector(&quot;.cross&quot;).hidden = true)); };
@@ -10501,7 +10504,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v205";
+  const APP_VERSAO="ras-v206";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
