@@ -11375,7 +11375,7 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #bc-ov .bc-seg button[aria-pressed="true"]{background:#166534;border-color:#22c55e;font-weight:700}#bc-ov .bc-d{color:#94a3b8;font-size:12px;margin:0}
 #bc-ov .bc-res{background:#16202a;border-radius:8px;padding:8px;font-size:13px}#bc-ov .btn{font-size:14px}#bc-ov .btn[disabled]{opacity:.45}
 @media (max-width:820px){#bc-ov .bc-b{grid-template-columns:1fr;overflow:auto}#bc-ov .bc-v,#bc-ov .bc-f{overflow:visible}}
-html.gf-fl-off #gf-mapa-fab,html.gf-fl-off #gf-res-btn{display:none!important}
+html.gf-fl-off #gf-mapa-fab,html.gf-fl-off #gf-res-btn,html.gf-fl-off #cp-fab{display:none!important}
 #gf-fl-tab{position:fixed;right:0;bottom:38%;z-index:86;width:24px;height:46px;padding:0;border:1px solid var(--line,#cdd);border-right:0;border-radius:12px 0 0 12px;background:var(--surface,#fff);color:var(--muted,#64748b);font-size:15px;line-height:1;cursor:pointer;opacity:.6;box-shadow:0 2px 8px rgb(0 0 0 / .12)}
 #gf-fl-tab:hover,#gf-fl-tab:focus-visible{opacity:1}#gf-fl-tab[aria-pressed="true"]{opacity:.9;color:#b91c1c}
 .gf-fl-arr{cursor:grabbing!important;opacity:.85;box-shadow:0 10px 26px rgb(0 0 0 / .3)!important}
@@ -11964,11 +11964,11 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
 
 
 /* ---------- v192: botões flutuantes ocultos por padrão; aparecem só quando você coloca, e dá para arrastar ---------- */
-(()=>{const run=()=>{const IDS=["gf-mapa-fab","gf-res-btn"],KV="gf-fl-vis",KP="gf-fl-pos",H=document.documentElement;
+(()=>{const run=()=>{const IDS=["gf-mapa-fab","gf-res-btn","cp-fab"],PROPRIO=["cp-fab"],KV="gf-fl-vis",KP="gf-fl-pos",H=document.documentElement;
   const lg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},ls=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
   let vis=!!lg(KV,false),pos=lg(KP,{})||{},arrastou=0;
   const tab=document.createElement("button");tab.type="button";tab.id="gf-fl-tab";document.body.appendChild(tab);
-  function marca(){H.classList.toggle("gf-fl-off",!vis);tab.textContent=vis?"✕":"⋯";tab.title=vis?"Esconder os botões flutuantes (mapa e etapas do projeto)":"Mostrar os botões flutuantes (mapa e etapas do projeto) · depois arraste para onde quiser";tab.setAttribute("aria-pressed",String(vis))}
+  function marca(){H.classList.toggle("gf-fl-off",!vis);tab.textContent=vis?"✕":"⋯";tab.title=vis?"Esconder os botões flutuantes (mapa, etapas do projeto e minhas tarefas)":"Mostrar os botões flutuantes (mapa, etapas do projeto e minhas tarefas) · depois arraste para onde quiser";tab.setAttribute("aria-pressed",String(vis))}
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   function poe(el){const p=pos[el.id];if(!p)return;const r=el.getBoundingClientRect(),w=r.width||48,h=r.height||48;el.style.left=clamp(p.x*innerWidth,4,innerWidth-w-4)+"px";el.style.top=clamp(p.y*innerHeight,4,innerHeight-h-4)+"px";el.style.right="auto";el.style.bottom="auto"}
   function liga(el){if(el.dataset.gfDrag)return;el.dataset.gfDrag="1";el.style.touchAction="none";let ini=null;
@@ -11977,7 +11977,7 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     const fim=e=>{window.removeEventListener("pointermove",mv,true);window.removeEventListener("pointerup",fim,true);window.removeEventListener("pointercancel",fim,true);if(!ini)return;if(ini.mov){const r=el.getBoundingClientRect();pos[el.id]={x:r.left/innerWidth,y:r.top/innerHeight};ls(KP,pos);arrastou=Date.now();el.classList.remove("gf-fl-arr")}ini=null};
     el.addEventListener("pointerdown",e=>{if(e.button)return;const r=el.getBoundingClientRect();ini={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,mov:false,id:e.pointerId};window.addEventListener("pointermove",mv,true);window.addEventListener("pointerup",fim,true);window.addEventListener("pointercancel",fim,true)})}
   window.addEventListener("click",e=>{if(Date.now()-arrastou<350&&e.target.closest&&IDS.some(id=>e.target.closest("#"+id))){e.stopImmediatePropagation();e.preventDefault()}},true);
-  function aplica(){IDS.forEach(id=>{const el=document.getElementById(id);if(el){liga(el);if(vis)poe(el)}})}
+  function aplica(){IDS.forEach(id=>{const el=document.getElementById(id);if(el&&!PROPRIO.includes(id)){liga(el);if(vis)poe(el)}})}
   tab.onclick=()=>{vis=!vis;ls(KV,vis);marca();aplica()};
   window.addEventListener("resize",aplica);new MutationObserver(aplica).observe(document.body,{childList:true});
   window.gfFlutuantes={mostrar:v=>{vis=v!==false;ls(KV,vis);marca();aplica()},zerar:()=>{pos={};ls(KP,pos);IDS.forEach(id=>{const el=document.getElementById(id);if(el){el.style.left=el.style.top=el.style.right=el.style.bottom=""}})}};
