@@ -10501,7 +10501,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v199";
+  const APP_VERSAO="ras-v200";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -13309,7 +13309,7 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #bc-ov .bc-tela{display:block;width:100%;height:auto;background:#000;border-radius:10px;touch-action:manipulation}
 #bc-ov .bc-num{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px;margin-top:8px}#bc-ov .bc-num>div{background:#16202a;border-radius:10px;padding:8px 10px}
 #bc-ov .bc-num small{display:block;color:#94a3b8;font-size:11.5px}#bc-ov .bc-num b{font-size:20px;font-variant-numeric:tabular-nums}#bc-ov .bc-bad{color:#fca5a5;font-size:14px}
-#bc-ov .bc-m{margin:6px 0 0;color:#a7f3d0;font-size:13px;min-height:1em}
+#bc-ov .bc-s.bc-ok b{color:#4ade80}#bc-ov .bc-s.bc-at b{color:#fbbf24}#bc-ov .bc-s.bc-rv b{color:#f87171}#bc-ov .bc-pig{grid-column:span 2}#bc-ov .bc-pig span{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:6px 0;background:#0b1015}#bc-ov .bc-pig i{display:block;height:100%}#bc-ov .bc-mot{grid-column:1/-1;margin:2px 0 0;font-size:13px;color:#fcd34d}#bc-ov .bc-mot.ok{color:#86efac}#bc-ov .bc-ajuda{font-size:12.5px;color:#cbd5e1}#bc-ov .bc-ajuda summary{cursor:pointer;color:#a7f3d0}#bc-ov .bc-ajuda p{margin:6px 0}#bc-ov .bc-m{margin:6px 0 0;color:#a7f3d0;font-size:13px;min-height:1em}
 #bc-ov .bc-f{min-width:0;overflow:auto;padding:10px 12px;background:#111821;display:flex;flex-direction:column;gap:8px}
 #bc-ov label{display:grid;gap:3px;font-size:12.5px;color:#cbd5e1}#bc-ov input,#bc-ov select{font-size:14px;padding:6px;border-radius:7px;border:1px solid #334155;background:#0b1015;color:#e8edf2;min-width:0;box-sizing:border-box;width:100%}
 #bc-ov input[type=range]{padding:0}#bc-ov .bc-g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}#bc-ov .bc-bt{display:flex;gap:6px;flex-wrap:wrap;align-items:center}#bc-ov .bc-bt input{width:auto}
@@ -13861,7 +13861,8 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
 /* ---------- v191: biometria por câmera em tempo real (alevinos, pós-larvas e adultos) ---------- */
 (()=>{const K="gf-biocam-v1",rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}},gr=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}};
   const ESP={tilapia:["Tilápia",0.0157,3.04],tambaqui:["Tambaqui",0.0236,2.98],camarao:["Camarão (L. vannamei) juvenil/adulto",0.0077,3.04],pl:["Pós-larva de camarão",0.0060,3.10],outro:["Outra espécie (digite a e b)",null,null]};
-  const MODOS={ale:["🐟 Alevinos / pós-larvas","Espalhe a amostra numa bandeja rasa de cor contrastante (branca para animais escuros), com pouca água, e segure o celular parado acima dela."],adu:["🐠 Animais adultos","Coloque um animal por vez (ou poucos, sem encostar) sobre fundo liso e contrastante, de preferência numa régua/ictiômetro, com o celular paralelo à superfície."]};
+  const MODOS={ale:["🐟 Alevinos / pós-larvas","Espalhe a amostra numa bandeja rasa de cor contrastante (branca para animais escuros), com pouca água, e segure o celular parado acima dela."],adu:["🐠 Animais adultos","Coloque um animal por vez (ou poucos, sem encostar) deitado de lado sobre fundo liso e contrastante, de preferência numa régua/ictiômetro, com o celular paralelo à superfície."],mic:["🔬 Microscópio (PL)","Acople o celular na ocular do microscópio (adaptador), uma pós-larva por vez no campo claro, e calibre com o micrômetro (📏 Calibrar). O app estima o escore lipídico do hepatopâncreas e a sanidade."]};
+  const REFEL={tilapia:0.36,tambaqui:0.45,camarao:0.2,pl:0.16,outro:0.33};
   let C=Object.assign({esp:"tilapia",a:null,b:null,modo:"ale",larg:30,fonte:"cel",dev:"",url:{},pol:"auto",minPx:10,uid:""},rd());
   const nf=(v,d)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—",Ex=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
   const num=v=>{let s=String(v==null?"":v).trim();if(/,/.test(s))s=s.replace(/\./g,"").replace(",",".");return parseFloat(s)};
@@ -13881,26 +13882,50 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     let esc=0;for(let t=0;t<=th;t++)esc+=hist[t];const escuro=C.pol==="esc"?true:C.pol==="cla"?false:esc<n/2;
     const m=new Uint8Array(n);for(let i=0;i<n;i++)m[i]=escuro?(g[i]<=th?1:0):(g[i]>th?1:0);
     const lab=new Int32Array(n),comps=[],st=new Int32Array(n);let id=0;
-    for(let i=0;i<n;i++){if(!m[i]||lab[i])continue;id++;let sp=0;st[sp++]=i;lab[i]=id;let a=0,sx=0,sy=0,sxx=0,syy=0,sxy=0,x0=W,y0=H,x1=0,y1=0,borda=false;
-      while(sp){const k=st[--sp],x=k%W,y=(k-x)/W;a++;sx+=x;sy+=y;sxx+=x*x;syy+=y*y;sxy+=x*y;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(x===0||y===0||x===W-1||y===H-1)borda=true;
+    for(let i=0;i<n;i++){if(!m[i]||lab[i])continue;id++;let sp=0;st[sp++]=i;lab[i]=id;let a=0,sx=0,sy=0,sxx=0,syy=0,sxy=0,x0=W,y0=H,x1=0,y1=0,borda=false,sr=0,sgg=0,sbb=0,sl=0,sl2=0;
+      while(sp){const k=st[--sp],x=k%W,y=(k-x)/W,j4=k*4;a++;sr+=d[j4];sgg+=d[j4+1];sbb+=d[j4+2];sl+=g[k];sl2+=g[k]*g[k];sx+=x;sy+=y;sxx+=x*x;syy+=y*y;sxy+=x*y;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(x===0||y===0||x===W-1||y===H-1)borda=true;
         if(x>0&&m[k-1]&&!lab[k-1]){lab[k-1]=id;st[sp++]=k-1}if(x<W-1&&m[k+1]&&!lab[k+1]){lab[k+1]=id;st[sp++]=k+1}if(y>0&&m[k-W]&&!lab[k-W]){lab[k-W]=id;st[sp++]=k-W}if(y<H-1&&m[k+W]&&!lab[k+W]){lab[k+W]=id;st[sp++]=k+W}}
       if(a<C.minPx||a>n*0.2||borda)continue;const mx=sx/a,my=sy/a,vxx=sxx/a-mx*mx,vyy=syy/a-my*my,vxy=sxy/a-mx*my,tr=(vxx+vyy)/2,dt=Math.sqrt(Math.max(0,((vxx-vyy)/2)**2+vxy*vxy)),l1=tr+dt,l2=Math.max(0,tr-dt);
-      comps.push({a,mx,my,L:4*Math.sqrt(l1),Wd:4*Math.sqrt(l2),ang:0.5*Math.atan2(2*vxy,vxx-vyy),x0,y0,x1,y1})}
+      const L0=4*Math.sqrt(l1),W0b=4*Math.sqrt(l2),lm=sl/a;comps.push({id,a,mx,my,L:L0,Wd:W0b,ang:0.5*Math.atan2(2*vxy,vxx-vyy),x0,y0,x1,y1,lum:lm,lsd:Math.sqrt(Math.max(0,sl2/a-lm*lm)),red:sr/(sgg+sbb+1),sol:a/(Math.PI*L0*W0b/4+1e-9),el:W0b/(L0||1)})}
     if(!comps.length)return {W,H,comps:[],N:0,ind:[],escuro,th};
     const ar=comps.map(c=>c.a).sort((p,q)=>p-q),med=ar[ar.length>>1];const pxcm=W/Math.max(0.5,num(C.larg)||30),{a:A,b:Bx}=ab();let N=0;const ind=[];
-    comps.forEach(c=>{c.k=c.a>1.7*med&&comps.length>=4?Math.round(c.a/med):1;N+=c.k;c.cm=c.L/pxcm;c.g=A*Math.pow(c.cm,Bx)});
+    comps.forEach(c=>{c.k=C.modo==="ale"&&c.a>1.7*med&&comps.length>=4?Math.round(c.a/med):1;N+=c.k;c.cm=c.L/pxcm;c.g=A*Math.pow(c.cm,Bx)});
     const sing=comps.filter(c=>c.k===1),Lm=sing.length?sing.reduce((s,c)=>s+c.cm,0)/sing.length:NaN,gm=sing.length?sing.reduce((s,c)=>s+c.g,0)/sing.length:NaN,
       sd=sing.length>1?Math.sqrt(sing.reduce((s,c)=>s+(c.cm-Lm)**2,0)/(sing.length-1)):NaN;
     comps.forEach(c=>{if(c.k===1)ind.push({c:Math.round(c.cm*100)/100,p:Math.round(c.g*1000)/1000,n:1});else if(isFinite(Lm))ind.push({c:Math.round(Lm*100)/100,p:Math.round(gm*1000)/1000,n:c.k})});
-    return {W,H,comps,N,Lm,gm,cv:isFinite(sd)&&Lm>0?100*sd/Lm:NaN,ind,escuro,th,bio:N*gm,ab:ab()}}
+    const cvL=isFinite(sd)&&Lm>0?100*sd/Lm:NaN,S2=saude(sing,cvL,d,m,lab,W,H);
+    return Object.assign({W,H,comps,N,Lm,gm,cv:cvL,ind,escuro,th,bio:N*gm,ab:ab()},S2)}
+  /* v200: triagem de sanidade, pigmentação, condição corporal (gordura) e escore lipídico (microscópio) — por imagem */
+  const medi=v=>{const a=v.filter(isFinite).sort((p,q)=>p-q);return a.length?a[a.length>>1]:NaN};
+  function saude(sing,cvL,d,m,lab,W,H){if(!sing.length)return {};
+    const mL=medi(sing.map(c=>c.lum)),mR=medi(sing.map(c=>c.red)),mE=medi(sing.map(c=>c.el));let nP=0,nR=0,nD=0;
+    sing.forEach(c=>{c.fl=[];if(Math.abs(c.lum-mL)>28){c.fl.push(c.lum>mL?"pálido/opaco":"escuro demais");nP++}
+      if(c.red>mR*1.25&&c.red>0.62){c.fl.push("avermelhado");nR++}
+      if(c.sol<0.62||(isFinite(mE)&&mE>0&&Math.abs(c.el-mE)/mE>0.45)){c.fl.push("forma anormal");nD++}});
+    const n=sing.length,pP=100*nP/n,pR=100*nR/n,pD=100*nD/n;let sc=100;const mot=[];
+    if(cvL>15){const x=Math.min(25,(cvL-15)*1.5);sc-=x;mot.push(`tamanho desuniforme (CV ${nf(cvL,0)} %)`)}
+    if(pP){sc-=Math.min(30,pP*0.8);mot.push(`${nf(pP,0)} % com cor fora do padrão (pálidos/opacos ou escuros)`)}
+    if(pR){sc-=Math.min(25,pR*1.0);mot.push(`${nf(pR,0)} % avermelhados (estresse ou doença)`)}
+    if(pD){sc-=Math.min(25,pD*1.2);mot.push(`${nf(pD,0)} % com forma anormal (deformidade ou dano)`)}
+    sc=Math.max(0,Math.round(sc));
+    const ref=REFEL[C.esp]||0.33,rel=(isFinite(mE)?mE:NaN)/ref,ecc=!isFinite(rel)?NaN:rel<0.85?1:rel<0.95?2:rel<=1.05?3:rel<=1.15?4:5;
+    let lip=NaN,lipC=NaN;if(C.modo==="mic"){const big=sing.slice().sort((p,q)=>q.a-p.a)[0];if(big){let tot=0,br=0;const ca=Math.cos(big.ang),sa=Math.sin(big.ang),A2=big.L/2,B2=big.Wd/2,lim=big.lum+Math.max(12,big.lsd);
+        for(let y=big.y0;y<=big.y1;y++)for(let x=big.x0;x<=big.x1;x++){const dx=x-big.mx,dy=y-big.my,u=dx*ca+dy*sa,v=-dx*sa+dy*ca;if((u*u)/(A2*A2)+(v*v)/(B2*B2)>1)continue;tot++;const k=y*W+x,j=k*4,lu=(d[j]*299+d[j+1]*587+d[j+2]*114)/1000;
+          if((m[k]===0||lu>lim)&&d[j]>=d[j+2]+8)br++}
+        lipC=tot?100*br/tot:NaN;lip=!isFinite(lipC)?NaN:lipC<3?0:lipC<8?1:lipC<15?2:lipC<25?3:4}}
+    return {san:sc,sanC:sc>=80?"boa":sc>=60?"atenção":"ruim",mot,pP,pR,pD,ecc,rel,lip,lipC}}
   /* ---------- desenho ao vivo ---------- */
   function pinta(R,fonte,fw,fh){const tela=ov&&ov.querySelector(".bc-tela");if(!tela)return;const box=tela.parentElement.getBoundingClientRect(),w=Math.round(box.width),h=Math.round(w*fh/fw);if(tela.width!==w||tela.height!==h){tela.width=w;tela.height=h}
     const c=tela.getContext("2d");try{c.drawImage(fonte,0,0,w,h)}catch(e){}if(!R||!R.comps)return;const k=w/R.W;c.lineWidth=2;c.font="12px system-ui";
-    R.comps.forEach(o=>{c.strokeStyle=o.k>1?"#f59e0b":"#22c55e";c.save();c.translate(o.mx*k,o.my*k);c.rotate(o.ang);c.beginPath();c.ellipse(0,0,Math.max(2,o.L*k/2),Math.max(2,o.Wd*k/2),0,0,Math.PI*2);c.stroke();c.restore();
+    R.comps.forEach(o=>{c.strokeStyle=o.k>1?"#f59e0b":(o.fl&&o.fl.length)?"#ef4444":"#22c55e";c.save();c.translate(o.mx*k,o.my*k);c.rotate(o.ang);c.beginPath();c.ellipse(0,0,Math.max(2,o.L*k/2),Math.max(2,o.Wd*k/2),0,0,Math.PI*2);c.stroke();c.restore();
       if(R.comps.length<=60||o.k>1){c.fillStyle="rgba(0,0,0,.55)";const t=o.k>1?`×${o.k}`:`${nf(o.cm,1)} cm`;const tw=c.measureText(t).width+6;c.fillRect(o.mx*k+6,o.my*k-16,tw,16);c.fillStyle="#fff";c.fillText(t,o.mx*k+9,o.my*k-4)}});
     if(cal&&cal.length){c.fillStyle="#38bdf8";cal.forEach(p=>{c.beginPath();c.arc(p[0],p[1],6,0,Math.PI*2);c.fill()});if(cal.length===2){c.strokeStyle="#38bdf8";c.beginPath();c.moveTo(cal[0][0],cal[0][1]);c.lineTo(cal[1][0],cal[1][1]);c.stroke()}}}
   function placar(R){const el=ov&&ov.querySelector(".bc-num");if(!el)return;if(!R){el.innerHTML="<b>Aguardando imagem…</b>";return}if(R.erro==="cors"){el.innerHTML=`<b class="bc-bad">A câmera IP não deixa o app ler a imagem (bloqueio de segurança CORS).</b> Use uma câmera com link HTTPS que libere acesso, ou abra o Green Fish no celular/computador ligado à câmera.`;return}
-    el.innerHTML=`<div><small>Animais na imagem</small><b>${R.N}</b></div><div><small>Comprimento médio</small><b>${nf(R.Lm,2)} cm</b></div><div><small>Peso médio estimado</small><b>${R.gm<1?nf(R.gm*1000,0)+" mg":nf(R.gm,2)+" g"}</b></div><div><small>Uniformidade (CV)</small><b>${nf(R.cv,0)} %</b></div><div><small>Biomassa da amostra</small><b>${R.bio<1000?nf(R.bio,2)+" g":nf(R.bio/1000,3)+" kg"}</b></div>`}
+    el.innerHTML=`<div><small>Animais na imagem</small><b>${R.N}</b></div><div><small>Comprimento médio</small><b>${nf(R.Lm,2)} cm</b></div><div><small>Peso médio estimado</small><b>${R.gm<0.01?nf(R.gm*1000,2)+" mg":R.gm<1?nf(R.gm*1000,0)+" mg":nf(R.gm,2)+" g"}</b></div><div><small>Uniformidade (CV)</small><b>${nf(R.cv,0)} %</b></div><div><small>Biomassa da amostra</small><b>${R.bio<1000?nf(R.bio,2)+" g":nf(R.bio/1000,3)+" kg"}</b></div>
+      ${R.san!=null?`<div class="bc-s bc-${R.sanC==="boa"?"ok":R.sanC==="atenção"?"at":"rv"}"><small>Sanidade (triagem)</small><b>${R.san}/100 · ${R.sanC}</b></div>`:""}
+      ${C.modo==="mic"?`<div><small>Escore lipídico (hepatopâncreas)</small><b>${isFinite(R.lip)?R.lip+"/4":"—"}</b><small>${isFinite(R.lipC)?nf(R.lipC,0)+" % com gotas":""}</small></div>`:`<div><small>Condição corporal (gordura)</small><b>${isFinite(R.ecc)?R.ecc+"/5 · "+["","magro","abaixo","ideal","acima","gordo"][R.ecc]:"—"}</b></div>`}
+      ${R.san!=null?`<div class="bc-pig"><small>Pigmentação</small><span><i style="width:${Math.max(0,100-R.pP-R.pR)}%;background:#22c55e"></i><i style="width:${R.pP}%;background:#e5e7eb"></i><i style="width:${R.pR}%;background:#ef4444"></i></span><small>${nf(Math.max(0,100-R.pP-R.pR),0)} % normal · ${nf(R.pP,0)} % pálido/escuro · ${nf(R.pR,0)} % avermelhado</small></div>`:""}
+      ${R.mot&&R.mot.length?`<p class="bc-mot">⚠️ ${R.mot.map(Ex).join(" · ")}</p>`:R.san!=null?`<p class="bc-mot ok">✓ Nenhum sinal de alerta na imagem.</p>`:""}`}
   function laco(){clearTimeout(timer);if(!ov)return;let fonte=null,fw=0,fh=0;const v=ov.querySelector("video");
     if(C.fonte==="ip"&&img&&img.complete&&img.naturalWidth){fonte=img;fw=img.naturalWidth;fh=img.naturalHeight}else if(C.fonte!=="ip"&&v&&v.readyState>=2&&v.videoWidth){fonte=v;fw=v.videoWidth;fh=v.videoHeight}
     if(fonte){const R=analisa(fonte,fw,fh);ult=R;pinta(R,fonte,fw,fh);placar(R)}timer=setTimeout(laco,document.hidden?1000:280)}
@@ -13934,16 +13959,17 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
       <div class="bc-bt"><button type="button" class="btn" data-bc="cal">📏 Calibrar com régua</button><input data-bc="calcm" inputmode="decimal" placeholder="cm" value="10" style="max-width:70px"></div>
       <label>Menor animal (pixels)<input type="range" min="3" max="200" step="1" data-bc="min" value="${C.minPx}"></label>
       <div class="bc-bt"><button type="button" class="btn solid" data-bc="cap">📸 Registrar esta leitura</button><button type="button" class="btn" data-bc="zera"${caps.length?"":" disabled"}>↺ Zerar</button></div>
-      <div class="bc-res">${caps.length?`<b>${caps.length} leitura(s) · ${cap} animais</b><br>${caps.map((c,i)=>`${i+1}) ${c.N} animais · ${nf(c.Lm,2)} cm · ${c.gm<1?nf(c.gm*1000,0)+" mg":nf(c.gm,2)+" g"}`).join("<br>")}`:"Nenhuma leitura registrada ainda. Registre várias imagens da amostra (cada uma com animais diferentes) e depois salve."}</div>
+      <div class="bc-res">${caps.length?`<b>${caps.length} leitura(s) · ${cap} animais</b><br>${caps.map((c,i)=>`${i+1}) ${c.N} animais · ${nf(c.Lm,2)} cm · ${c.gm<1?nf(c.gm*1000,0)+" mg":nf(c.gm,2)+" g"}${c.san!=null?` · sanidade ${c.san}`:""}${isFinite(c.lip)?` · lipídio ${c.lip}/4`:isFinite(c.ecc)?` · condição ${c.ecc}/5`:""}`).join("<br>")}`:"Nenhuma leitura registrada ainda. Registre várias imagens da amostra (cada uma com animais diferentes) e depois salve."}</div>
       <button type="button" class="btn solid" data-bc="salva"${caps.length?"":" disabled"}>💾 Salvar na Biometria</button>
-      <small class="bc-d">Estimativa por imagem (contagem, comprimento e peso pela relação P = a·C<sup>b</sup>). Confira com pesagem de vez em quando para calibrar. Animais encostados viram grupos (laranja, ×N).</small>`}
+      <small class="bc-d">Estimativa por imagem (contagem, comprimento e peso pela relação P = a·C<sup>b</sup>). Confira com pesagem de vez em quando para calibrar. Animais encostados viram grupos (laranja, ×N); animais com alerta ficam em vermelho.</small>
+      <details class="bc-ajuda"><summary>Como funciona a sanidade, a gordura e o lipídio</summary><p><b>Sanidade (0–100):</b> triagem por imagem, como nos apps de IA de larvicultura: desconta pontos por tamanho desuniforme (CV acima de 15 %), cor fora do padrão (animais pálidos/opacos, que podem indicar necrose muscular, ou escuros demais), animais avermelhados (estresse, vírus) e forma anormal (deformidade, cauda quebrada). ≥ 80 boa · 60–79 atenção · &lt; 60 ruim.</p><p><b>Condição corporal (gordura) 1–5:</b> compara a altura do corpo com o comprimento (animal deitado de lado) com o padrão da espécie: 1 magro · 3 ideal · 5 gordo.</p><p><b>Escore lipídico 0–4 (🔬 microscópio):</b> mede quanto do corpo da pós-larva tem gotas de lipídio (pontos claros e dourados no hepatopâncreas): 0 sem reserva · 4 muito lipídio. Use uma PL por imagem e calibre com o micrômetro.</p><p>É uma triagem: não substitui microscopia completa nem exames de laboratório (PCR para mancha branca, NHP, AHPND etc.).</p></details>`}
   function render(){if(!ov)return;ov.innerHTML=html();bind0();bind();iniciar()}
   function iniciar(){if(C.fonte==="ip")abrirIP();else abrirCel()}
   function renderF(rein){if(!ov)return;const f=ov.querySelector(".bc-f"),y=f.scrollTop;f.innerHTML=formHTML();f.scrollTop=y;bind();if(rein)iniciar()}
   function bind0(){const q=s=>ov.querySelector(s),m=t=>{const e=q(".bc-m");if(e)e.textContent=t};q('[data-bc="x"]').onclick=fechar;
     const tela=q(".bc-tela");tela.onclick=ev=>{if(!cal)return;const r=tela.getBoundingClientRect();cal.push([ev.clientX-r.left,ev.clientY-r.top]);if(cal.length===2){const d=Math.hypot(cal[1][0]-cal[0][0],cal[1][1]-cal[0][1]),cm=num((q('[data-bc="calcm"]')||{}).value)||10;if(d>5){C.larg=Math.round(cm*r.width/d*100)/100;gr();m(`Calibrado: a imagem mostra ${nf(C.larg,1)} cm de largura.`);const l=q('[data-bc="larg"]');if(l)l.value=String(C.larg).replace(".",",")}setTimeout(()=>{cal=null},1500)}}}
   function bind(){const q=s=>ov.querySelector(s),m=t=>{const e=q(".bc-m");if(e)e.textContent=t};
-    ov.querySelectorAll("[data-bc-modo]").forEach(b=>b.onclick=()=>{C.modo=b.dataset.bcModo;gr();renderF()});
+    ov.querySelectorAll("[data-bc-modo]").forEach(b=>b.onclick=()=>{C.modo=b.dataset.bcModo;if(C.modo==="mic"&&num(C.larg)>5){C.larg=0.6;C.esp="pl"}else if(C.modo!=="mic"&&num(C.larg)<2)C.larg=30;gr();renderF()});
     ov.querySelectorAll("[data-bc-fonte]").forEach(b=>b.onclick=()=>{C.fonte=b.dataset.bcFonte;gr();renderF(true)});
     const ch=(k,f)=>{const e=q(`[data-bc="${k}"]`);if(e)e.onchange=()=>{f(e.value);gr()}};
     ch("uid",v=>{const ip=C.fonte==="ip";C.uid=v;if((C.url||{})[v]&&!movel())C.fonte="ip";renderF(ip||C.fonte==="ip")});ch("esp",v=>{C.esp=v;C.a=null;C.b=null;renderF()});ch("a",v=>C.a=v===""?null:v);ch("b",v=>C.b=v===""?null:v);
@@ -13951,11 +13977,11 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     const mn=q('[data-bc="min"]');if(mn)mn.oninput=()=>{C.minPx=+mn.value;gr()};
     const con=q('[data-bc="con"]');if(con)con.onclick=()=>{const u=q('[data-bc="url"]').value.trim();C.url=C.url||{};if(C.uid)C.url[C.uid]=u;gr();const mm=q(".bc-m");mm.dataset.ok="";abrirIP()};
     q('[data-bc="cal"]').onclick=()=>{cal=[];m("Toque nas duas pontas da medida conhecida (régua, ictiômetro ou borda da bandeja).")};
-    q('[data-bc="cap"]').onclick=()=>{if(!ult||!ult.N){m("Nenhum animal reconhecido nesta imagem.");return}caps.push({N:ult.N,Lm:ult.Lm,gm:ult.gm,ind:ult.ind.slice(),em:Date.now()});renderF();m(`Leitura ${caps.length} registrada: ${ult.N} animais.`)};
+    q('[data-bc="cap"]').onclick=()=>{if(!ult||!ult.N){m("Nenhum animal reconhecido nesta imagem.");return}caps.push({N:ult.N,Lm:ult.Lm,gm:ult.gm,ind:ult.ind.slice(),em:Date.now(),san:ult.san,ecc:ult.ecc,lip:ult.lip,mot:(ult.mot||[]).slice()});renderF();m(`Leitura ${caps.length} registrada: ${ult.N} animais.`)};
     const z=q('[data-bc="zera"]');if(z)z.onclick=()=>{caps=[];renderF()};
     q('[data-bc="salva"]').onclick=()=>{const x=X();if(!x){m("Abra a Biometria primeiro.");return}try{const p=x.projSel();if(p==="*"){m("Escolha um projeto na Biometria (não “Todos”).");return}const u=x.uniP(p).find(v=>v.id===C.uid);if(!u){m("Escolha o tanque/viveiro.");return}
       const ind=caps.flatMap(c=>c.ind),d=new Date(),pad=v=>String(v).padStart(2,"0"),e=ab();
-      x.guardar([{uid:u.id,num:"",data:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,hora:`${pad(d.getHours())}:${pad(d.getMinutes())}`,metodo:"visao",ind,loteN:0,loteKg:0,obs:`Câmera (${MODOS[C.modo][0].replace(/^\S+\s/,"")}): ${caps.length} leitura(s), largura da imagem ${nf(C.larg,1)} cm, P = ${nf(e.a,4)}·C^${nf(e.b,2)} (${e.src})`}],{tipo:"form",nome:"câmera"},p);
+      x.guardar([{uid:u.id,num:"",data:`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`,hora:`${pad(d.getHours())}:${pad(d.getMinutes())}`,metodo:"visao",ind,loteN:0,loteKg:0,obs:`Câmera (${MODOS[C.modo][0].replace(/^\S+\s/,"")}): ${caps.length} leitura(s)${(()=>{const sv=caps.map(c=>c.san).filter(v=>v!=null),lp=caps.map(c=>c.lip).filter(isFinite),ec=caps.map(c=>c.ecc).filter(isFinite),md=a=>a.reduce((x,y)=>x+y,0)/a.length;return (sv.length?`, sanidade ${Math.round(md(sv))}/100`:"")+(lp.length?`, escore lipídico ${nf(md(lp),1)}/4`:"")+(ec.length?`, condição corporal ${nf(md(ec),1)}/5`:"")})()}, largura da imagem ${nf(C.larg,1)} cm, P = ${nf(e.a,4)}·C^${nf(e.b,2)} (${e.src})`}],{tipo:"form",nome:"câmera"},p);
       const tot=caps.reduce((s,c)=>s+c.N,0);caps=[];m(`Biometria salva em ${u.nome}: ${tot} animais. A Biomassa total em tempo real já usa esse peso.`);renderF();m(`Biometria salva em ${u.nome}: ${tot} animais. A Biomassa total em tempo real já usa esse peso.`);try{x.redraw&&x.redraw()}catch(er){}try{window.drawBio&&drawBio()}catch(er){}}catch(er){m("Erro: "+(er&&er.message||er))}}}
   function fechar(){parar();if(ov){ov.remove();ov=null}document.documentElement.classList.remove("gfc-lock")}
   window.gfBioCam=uid=>{if(ov)fechar();if(uid)C.uid=uid;if(!movel()&&C.uid&&(C.url||{})[C.uid])C.fonte="ip";if(movel()&&!(C.url||{})[C.uid])C.fonte="cel";caps=[];cal=null;ov=document.createElement("div");ov.id="bc-ov";document.body.appendChild(ov);document.documentElement.classList.add("gfc-lock");render()};
