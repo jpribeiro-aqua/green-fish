@@ -10501,7 +10501,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v191";
+  const APP_VERSAO="ras-v192";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -13317,6 +13317,11 @@ setInterval(()=>{if(document.visibilityState==="visible")atualizarBotao()},15000
 #bc-ov .bc-seg button[aria-pressed="true"]{background:#166534;border-color:#22c55e;font-weight:700}#bc-ov .bc-d{color:#94a3b8;font-size:12px;margin:0}
 #bc-ov .bc-res{background:#16202a;border-radius:8px;padding:8px;font-size:13px}#bc-ov .btn{font-size:14px}#bc-ov .btn[disabled]{opacity:.45}
 @media (max-width:820px){#bc-ov .bc-b{grid-template-columns:1fr;overflow:auto}#bc-ov .bc-v,#bc-ov .bc-f{overflow:visible}}
+html.gf-fl-off #gf-mapa-fab,html.gf-fl-off #gf-res-btn{display:none!important}
+#gf-fl-tab{position:fixed;right:0;bottom:38%;z-index:86;width:24px;height:46px;padding:0;border:1px solid var(--line,#cdd);border-right:0;border-radius:12px 0 0 12px;background:var(--surface,#fff);color:var(--muted,#64748b);font-size:15px;line-height:1;cursor:pointer;opacity:.6;box-shadow:0 2px 8px rgb(0 0 0 / .12)}
+#gf-fl-tab:hover,#gf-fl-tab:focus-visible{opacity:1}#gf-fl-tab[aria-pressed="true"]{opacity:.9;color:#b91c1c}
+.gf-fl-arr{cursor:grabbing!important;opacity:.85;box-shadow:0 10px 26px rgb(0 0 0 / .3)!important}
+#gf-fl-tab[hidden]{display:none}@media print{#gf-fl-tab{display:none}}
 </style>
 <script>
 (()=>{
@@ -13899,6 +13904,27 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   window.gfBioCamTeste={analisa,ab,C:()=>C};
 })();
 
+
+/* ---------- v192: botões flutuantes ocultos por padrão; aparecem só quando você coloca, e dá para arrastar ---------- */
+(()=>{const run=()=>{const IDS=["gf-mapa-fab","gf-res-btn"],KV="gf-fl-vis",KP="gf-fl-pos",H=document.documentElement;
+  const lg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},ls=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  let vis=!!lg(KV,false),pos=lg(KP,{})||{},arrastou=0;
+  const tab=document.createElement("button");tab.type="button";tab.id="gf-fl-tab";document.body.appendChild(tab);
+  function marca(){H.classList.toggle("gf-fl-off",!vis);tab.textContent=vis?"✕":"⋯";tab.title=vis?"Esconder os botões flutuantes (mapa e etapas do projeto)":"Mostrar os botões flutuantes (mapa e etapas do projeto) · depois arraste para onde quiser";tab.setAttribute("aria-pressed",String(vis))}
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function poe(el){const p=pos[el.id];if(!p)return;const r=el.getBoundingClientRect(),w=r.width||48,h=r.height||48;el.style.left=clamp(p.x*innerWidth,4,innerWidth-w-4)+"px";el.style.top=clamp(p.y*innerHeight,4,innerHeight-h-4)+"px";el.style.right="auto";el.style.bottom="auto"}
+  function liga(el){if(el.dataset.gfDrag)return;el.dataset.gfDrag="1";el.style.touchAction="none";let ini=null;
+    const mv=e=>{if(!ini||e.pointerId!==ini.id)return;if(!ini.mov&&Math.hypot(e.clientX-ini.x,e.clientY-ini.y)<7)return;if(!ini.mov){ini.mov=true;el.classList.add("gf-fl-arr")}
+      const r=el.getBoundingClientRect();el.style.left=clamp(e.clientX-ini.dx,4,innerWidth-r.width-4)+"px";el.style.top=clamp(e.clientY-ini.dy,4,innerHeight-r.height-4)+"px";el.style.right="auto";el.style.bottom="auto";e.preventDefault()};
+    const fim=e=>{window.removeEventListener("pointermove",mv,true);window.removeEventListener("pointerup",fim,true);window.removeEventListener("pointercancel",fim,true);if(!ini)return;if(ini.mov){const r=el.getBoundingClientRect();pos[el.id]={x:r.left/innerWidth,y:r.top/innerHeight};ls(KP,pos);arrastou=Date.now();el.classList.remove("gf-fl-arr")}ini=null};
+    el.addEventListener("pointerdown",e=>{if(e.button)return;const r=el.getBoundingClientRect();ini={x:e.clientX,y:e.clientY,dx:e.clientX-r.left,dy:e.clientY-r.top,mov:false,id:e.pointerId};window.addEventListener("pointermove",mv,true);window.addEventListener("pointerup",fim,true);window.addEventListener("pointercancel",fim,true)})}
+  window.addEventListener("click",e=>{if(Date.now()-arrastou<350&&e.target.closest&&IDS.some(id=>e.target.closest("#"+id))){e.stopImmediatePropagation();e.preventDefault()}},true);
+  function aplica(){IDS.forEach(id=>{const el=document.getElementById(id);if(el){liga(el);if(vis)poe(el)}})}
+  tab.onclick=()=>{vis=!vis;ls(KV,vis);marca();aplica()};
+  window.addEventListener("resize",aplica);new MutationObserver(aplica).observe(document.body,{childList:true});
+  window.gfFlutuantes={mostrar:v=>{vis=v!==false;ls(KV,vis);marca();aplica()},zerar:()=>{pos={};ls(KP,pos);IDS.forEach(id=>{const el=document.getElementById(id);if(el){el.style.left=el.style.top=el.style.right=el.style.bottom=""}})}};
+  const temAlgum=()=>{tab.hidden=!IDS.some(id=>{const e=document.getElementById(id);return e&&!e.hidden})};setInterval(temAlgum,1500);
+  marca();aplica();temAlgum()};if(document.body)run();else document.addEventListener("DOMContentLoaded",run)})();
 /* ---------- v188: Topografia no desenho técnico — poligonal da estação total, imóvel, memorial descritivo e planta (padrão INCRA) ---------- */
 (()=>{const K="gf-gt-v1";
   const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}},gr=s=>{try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}};
