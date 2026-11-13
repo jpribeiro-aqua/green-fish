@@ -3,6 +3,19 @@
 <meta charset="utf-8">
 <title>Green Fish</title>
 <script>
+/* v208: mostra na tela qualquer erro do app, com botão para copiar e mandar ao suporte */
+(()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
+  if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
+  const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
+  it.querySelector("code").textContent=msg;const ver="__APP_VERSAO__";
+  it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
+  it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
+ window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
+ window.addEventListener("unhandledrejection",e=>{const r=e.reason;if(!r)return;const m=String(r&&r.message||r);if(/AbortError|NetworkError|Failed to fetch|NotAllowedError/i.test(m))return;mostra(m+(r&&r.stack?"\n"+String(r.stack).split("\n").slice(1,3).join("\n"):""))});
+ window.gfMostraErro=mostra})();
+</script>
+<style>#gf-err{position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;display:flex;flex-direction:column;gap:6px;pointer-events:none;max-width:560px;margin:0 auto}.gf-err-it{pointer-events:auto;background:#3b0d0d;color:#fee2e2;border:1px solid #f87171;border-radius:12px;padding:10px 12px;font:13px/1.4 system-ui,sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.4)}.gf-err-it code{display:block;white-space:pre-wrap;word-break:break-word;font:12px/1.35 ui-monospace,Menlo,monospace;margin:4px 0 6px;max-height:120px;overflow:auto}.gf-err-it span{display:flex;gap:6px}.gf-err-it button{background:#7f1d1d;color:#fff;border:0;border-radius:8px;padding:5px 10px;font:600 12.5px system-ui;cursor:pointer}</style>
+<script>
 /* v164: formatação de números mais rápida — reaproveita o formatador (Intl) em vez de criar um novo a cada número */
 /* v164: contador de gravações por chave do localStorage, para os módulos saberem sem reler se algo mudou */
 (()=>{try{const P=Storage.prototype,si=P.setItem,ri=P.removeItem,cl=P.clear,V=window.__gfLSk={};P.setItem=function(k,v){V[k]=(V[k]||0)+1;return si.call(this,k,v)};P.removeItem=function(k){V[k]=(V[k]||0)+1;return ri.call(this,k)};P.clear=function(){for(const k in V)V[k]++;window.__gfLSc=(window.__gfLSc||0)+1;return cl.call(this)};window.addEventListener("storage",e=>{if(e.key==null)window.__gfLSc=(window.__gfLSc||0)+1;else V[e.key]=(V[e.key]||0)+1})}catch(e){}})();
@@ -716,7 +729,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
-#aqua-biodash{margin-top:4px}
+#aqua-biodash{margin-top:4px}html{scrollbar-gutter:stable}
 .gf-corr tr.off td{opacity:.5}.gf-corr input[type=checkbox]{width:18px;height:18px}
 .bn-prods{margin:0 0 4px}.bn-gh td{background:var(--accent-soft);font-weight:700;font-size:12.5px;text-align:left}.bn-tp td:first-child{padding-left:14px}.bn-mud{border-color:#e09a00!important;background:rgba(224,154,0,.08)!important}.bn-err{color:#d33f2e}
 .bn-t td .bn-in,.bn-in{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}.bn-t td small{display:block;color:var(--muted)}.bn-st{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:8px}.bn-st.ok{background:rgba(27,175,122,.15);color:#127a55}.bn-st.abaixo{background:rgba(224,154,0,.18);color:#8a5d00}.bn-st.acima{background:rgba(42,120,214,.15);color:#1d5aa5}
@@ -2255,7 +2268,8 @@ bioEl.addEventListener("click",e=>{
 });
 // tempo real: recalcula a cada minuto enquanto a aba estiver aberta e na data de hoje
 setInterval(()=>{if(bioRef===null&&!bioEl.hidden&&document.visibilityState!=="hidden") drawBio()},60000);
-let rzb;new ResizeObserver(()=>{clearTimeout(rzb);rzb=setTimeout(()=>{if(!bioEl.hidden)drawBio()},80)}).observe(bioEl);
+/* v208: só redesenha quando a LARGURA muda de verdade (antes qualquer mudança de altura redesenhava e a tela tremia) */
+let rzb,rzbW=0;new ResizeObserver(en=>{const w=Math.round(en[0].contentRect.width);if(!w||Math.abs(w-rzbW)<24)return;const w0=rzbW;rzbW=w;if(!w0)return;clearTimeout(rzb);rzb=setTimeout(()=>{if(!bioEl.hidden)drawBio()},120)}).observe(bioEl);
 
 /* ---------- Lotação para atingir a biomassa máxima no prazo ---------- */
 // metas antigas (uma só para todos) servem de padrão para grupos sem meta própria
@@ -2615,7 +2629,7 @@ feedEl.addEventListener("pointerleave",hideTip);
 setInterval(()=>{if(bioRef===null&&!dashEl.hidden&&document.visibilityState!=="hidden"&&!dashEl.contains(document.activeElement)) drawDash()},60000);
 let rzd;new ResizeObserver(()=>{clearTimeout(rzd);rzd=setTimeout(()=>{const b=document.getElementById("dash-fd-chart");if(b&&!dashEl.hidden){const fm=(feedModels()||[]).filter(m=>m.ok);if(fm.length)drawFeedChart(b,fm,bioRef===null?Date.now():bioRef)}},90)}).observe(dashEl);
 setInterval(()=>{if(bioRef===null&&!feedEl.hidden&&document.visibilityState!=="hidden"&&!feedEl.contains(document.activeElement)) drawFeedDash()},60000);
-let rzf;new ResizeObserver(()=>{clearTimeout(rzf);rzf=setTimeout(()=>{if(!feedEl.hidden)drawFeedDash()},80)}).observe(feedEl);
+let rzf,rzfW=0;new ResizeObserver(en=>{const w=Math.round(en[0].contentRect.width);if(!w||Math.abs(w-rzfW)<24)return;const w0=rzfW;rzfW=w;if(!w0)return;clearTimeout(rzf);rzf=setTimeout(()=>{if(!feedEl.hidden)drawFeedDash()},120)}).observe(feedEl);
 
 /* ---------- v100: cada quadro abre e fecha tocando no título; barra Recolher/Abrir tudo em cada aba ---------- */
 (function(){const KF="gf-fech";let F;try{F=new Set(JSON.parse(localStorage.getItem(KF)||"[]"))}catch(e){F=new Set()}
