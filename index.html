@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v217";
+  it.querySelector("code").textContent=msg;const ver="ras-v218";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -10637,7 +10637,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v217";
+  const APP_VERSAO="ras-v218";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15444,14 +15444,15 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
       const resto=T.filter(t=>!usadas.has(t)&&vis(t));if(resto.length)grupos.push(["📦","Outras",resto]);
       if(!ab)ab=grupos.map(g=>g[1]);
       const nome=t=>t.textContent.trim();
-      side.innerHTML=`<div class="gs-top"><b>🐟 Green Fish</b><button type="button" class="gs-min" title="${mini?"Abrir o menu":"Recolher o menu"}" aria-label="${mini?"Abrir o menu":"Recolher o menu"}">${mini?"▸":"◂"}</button></div><div class="gs-nt">ABAS DO APP</div>`+
-        grupos.filter(g=>g[2].length).map(g=>{const temCur=g[2].some(t=>t.dataset.view===cur),open=mini||ab.includes(g[1])||temCur;
+      desenha.cur=cur;const __h=`<div class="gs-top"><b>🐟 Green Fish</b><button type="button" class="gs-min" title="${mini?"Abrir o menu":"Recolher o menu"}" aria-label="${mini?"Abrir o menu":"Recolher o menu"}">${mini?"▸":"◂"}</button></div><div class="gs-nt">ABAS DO APP</div>`+
+        grupos.filter(g=>g[2].length).map(g=>{const temCur=g[2].some(t=>t.dataset.view===cur);if(temCur&&desenha.cur!==cur&&!ab.includes(g[1])){ab.push(g[1]);ls("gf-side-ab",ab)}const open=mini||ab.includes(g[1]);
           return `<button type="button" class="gs-g" data-gs-g="${g[1]}" aria-expanded="${open}" title="${g[1]}"><span class="gs-e">${g[0]}</span><span class="gs-l">${g[1]}</span><i>${open?"▾":"▸"}</i></button><div class="gs-sub"${open?"":" hidden"}>`+
             g[2].map(t=>`<button type="button" class="gs-i" data-gs-v="${t.dataset.view}"${t.dataset.view===cur?' aria-current="page"':""} title="${nome(t).replace(/"/g,"&quot;")}"><span class="gs-e">${ICO[t.dataset.view]||"•"}</span><span class="gs-l">${nome(t)}</span></button>`+(t.dataset.view==="gest"&&window.gfGestHub?(()=>{const sk=window.gfRow&&gfRow.atual("gest");return `<div class="gs-sub2">${gfGestHub.lista().map(([k,ic,tt])=>`<button type="button" class="gs-k" data-gs-k="${k}" aria-current="${cur==="gest"&&sk==="gh:"+k}" title="${tt}"><span class="gs-e">${ic}</span><span class="gs-l">${tt}</span></button>`).join("")}</div>`})():"")).join("")+`</div>`}).join("")+
         `<div class="gs-pe">${(()=>{const g=document.getElementById("pj-gate"),nm=g&&g.querySelector(".pjg-bar b"),falta=!!document.querySelector(".pj-trava")||!!(g&&g.querySelector(".pjg-card")),ab=H.classList.contains("gf-pj-aberto"),n=nm?nm.textContent.trim():"";
           return `<button type="button" class="gs-pj${falta&&!ab?" gs-pj-falta":""}" data-gs-pj="1" aria-expanded="${ab}" aria-controls="pj-gate" title="${ab?"Fechar o quadro do projeto":"Abrir o quadro do projeto: criar, abrir ou salvar"}"><span class="gs-e">${ab?"📂":"📁"}</span><span class="gs-l">${falta?"Escolha o projeto":"Projeto"}<small>${falta?"crie um novo ou abra um salvo":(n?n.replace(/[<>&"]/g,""):"aberto")}</small></span></button>`})()}<button type="button" class="gs-a" data-gs-a="refresh-all" title="Atualizar tudo"><span class="gs-e">↻</span><span class="gs-l">Atualizar tudo</span></button><button type="button" class="gs-a" data-gs-a="print" title="Imprimir / PDF"><span class="gs-e">🖨</span><span class="gs-l">Imprimir / PDF</span></button><div class="gs-msg"></div></div>`;
+      if(side.__h===__h)return;side.__h=__h;const msg0=(side.querySelector(".gs-msg")||{}).textContent||"";side.innerHTML=__h;{const m=side.querySelector(".gs-msg");if(m)m.textContent=msg0}
       side.querySelector(".gs-min").onclick=()=>{mini=!mini;ls("gf-side-mini",mini);H.classList.toggle("gf-side-mini",mini);desenha()};
-      side.querySelectorAll("[data-gs-g]").forEach(b=>b.onclick=()=>{if(mini){mini=false;ls("gf-side-mini",false);H.classList.remove("gf-side-mini")}const n=b.dataset.gsG,i=ab.indexOf(n);if(i>=0&&b.getAttribute("aria-expanded")==="true")ab.splice(i,1);else if(i<0)ab.push(n);ls("gf-side-ab",ab);desenha()});
+      side.querySelectorAll("[data-gs-g]").forEach(b=>b.onclick=()=>{if(mini){mini=false;ls("gf-side-mini",false);H.classList.remove("gf-side-mini")}const n=b.dataset.gsG,i=ab.indexOf(n);if(i>=0)ab.splice(i,1);else ab.push(n);ls("gf-side-ab",ab);desenha()});
       side.querySelectorAll("[data-gs-v]").forEach(b=>b.onclick=()=>{const t=document.getElementById("tab-"+b.dataset.gsV);if(t)t.click();fecha();try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}});
       side.querySelectorAll("[data-gs-a]").forEach(b=>b.onclick=()=>{const t=document.getElementById(b.dataset.gsA);if(t)t.click();fecha()});
       side.querySelectorAll("[data-gs-k]").forEach(b=>b.onclick=()=>{window.gfRow&&gfRow.sel("gest","gh:"+b.dataset.gsK);fecha()});
@@ -15474,15 +15475,15 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   const tit=c=>{const h=c.querySelector(":scope>.card-head h2, :scope>summary.card-head h2, :scope>summary h2");if(!h)return "";let t="";h.childNodes.forEach(n=>{if(n.nodeType===3||(n.nodeType===1&&n.tagName!=="SPAN"&&n.tagName!=="SMALL"))t+=n.textContent});t=t.replace(/\s+/g," ").trim();return t.length>38?t.slice(0,36)+"…":t};
   const cardsDe=v=>{const L=[...v.querySelectorAll(".card")].filter(c=>!c.closest(".gf-row")&&tit(c));return L.filter(c=>!L.some(o=>o!==c&&o.contains(c)))};
   const chave=(v,c)=>c.dataset.gfk||(v.id+"|"+tit(c));
-  function itens(v){const L=cardsDe(v).map(c=>({k:chave(v,c),t:tit(c),c}));
+  function itens(v,CD){const L=(CD||cardsDe(v)).map(c=>({k:chave(v,c),t:tit(c),c}));
     if(v.id==="view-gest"&&window.gfGestHub){const G=gfGestHub.lista().map(([k,ic,t])=>({k:"gh:"+k,t:ic+" "+t,gh:k}));return G.concat(L)}return L}
-  function aplicaView(v){const vid=v.id.replace("view-",""),I=itens(v);if(!I.length)return;
+  function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v),I=itens(v,CD);if(!I.length)return;
     let sel=SEL[vid];if(sel&&sel!=="*"&&!I.some(i=>i.k===sel))sel=null;if(!sel)sel=I[0].k;
     const gest=vid==="gest",hub=gest&&window.gfGestHub?gfGestHub.caixa():null;
     let row=gest?document.getElementById("gf-row-gest"):v.querySelector(":scope>.gf-row");
     if(!row){row=document.createElement("nav");row.className="gf-row";row.setAttribute("role","tablist");row.setAttribute("aria-label","Conteúdo da aba");
       if(gest){row.id="gf-row-gest";(hub||v).parentNode.insertBefore(row,hub||v)}else{const cb=v.querySelector(":scope>.gf-colbar");if(cb)cb.after(row);else v.prepend(row)}}
-    if(gest)row.hidden=v.hidden;
+    if(gest){row.hidden=v.hidden;if(v.hidden)return}
     const sig=I.map(i=>i.k+"="+i.t).join("|")+"#"+sel+(gest?"#"+gfGestHub.porte():"");
     if(row.dataset.sig!==sig){row.dataset.sig=sig;
       row.innerHTML=I.map(i=>`<button type="button" role="tab" data-gr="${E(i.k)}" aria-selected="${i.k===sel}" title="${E(i.t)}">${E(i.t)}</button>`).join("")+`<span class="gr-sep"></span><button type="button" role="tab" data-gr="*" aria-selected="${sel==="*"}" title="Mostrar tudo da aba, em pastas">📂 Tudo</button>`+
@@ -15490,14 +15491,14 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
       const se=row.querySelector("select");if(se)se.onchange=()=>gfGestHub.porte(se.value);
       row.querySelectorAll("[data-gr]").forEach(b=>b.onclick=()=>escolhe(vid,b.dataset.gr,true))}
     const tudo=sel==="*",it=I.find(i=>i.k===sel);
-    cardsDe(v).forEach(c=>{const k=chave(v,c),fora=!tudo&&k!==sel;if(c.classList.contains("gf-row-x")!==fora)c.classList.toggle("gf-row-x",fora)});
-    [...v.children].forEach(ch=>{if(ch.classList.contains("gf-row")||ch.classList.contains("gf-colbar"))return;if(ch.classList.contains("card"))return;const temCard=cardsDe(v).some(c=>ch.contains(c));if(temCard)return;const fora=!tudo;if(ch.classList.contains("gf-row-x")!==fora&&ch.matches("section,.card,details"))ch.classList.toggle("gf-row-x",fora)});
+    CD.forEach(c=>{const k=chave(v,c),fora=!tudo&&k!==sel;if(c.classList.contains("gf-row-x")!==fora)c.classList.toggle("gf-row-x",fora)});
+    [...v.children].forEach(ch=>{if(ch.classList.contains("gf-row")||ch.classList.contains("gf-colbar"))return;if(ch.classList.contains("card"))return;const temCard=CD.some(c=>ch.contains(c));if(temCard)return;const fora=!tudo;if(ch.classList.contains("gf-row-x")!==fora&&ch.matches("section,.card,details"))ch.classList.toggle("gf-row-x",fora)});
     const cb=v.querySelector(":scope>.gf-colbar");if(cb)cb.classList.toggle("gf-row-sozinho",!tudo);
     if(gest&&hub){const ghSel=!!(it&&it.gh);hub.classList.toggle("gf-row-x",!tudo&&!ghSel);H.classList.toggle("gf-row-ghso",ghSel);hub.querySelectorAll(".gh-arv>.gh-p").forEach(pp=>{const f=ghSel&&pp.dataset.k!==it.gh;if(pp.classList.contains("gf-row-x")!==f)pp.classList.toggle("gf-row-x",f)})}
-    if(it&&it.c&&window.gfColAbre&&it.c.classList.contains("gf-fech"))gfColAbre(it.c.dataset.gfk)}
+  }
   function escolhe(vid,k,rola){SEL[vid]=k;ls(KS,SEL);const v=document.getElementById("view-"+vid);
     if(vid==="gest"&&window.gfGestHub){if(k.startsWith("gh:"))gfGestHub.so(k.slice(3));}
-    if(v){aplicaView(v);if(rola){const row=vid==="gest"?document.getElementById("gf-row-gest"):v.querySelector(".gf-row");if(row){const r=row.getBoundingClientRect();if(r.top<0||r.top>innerHeight*.5)row.scrollIntoView({block:"start",behavior:"smooth"})}}}
+    if(v){aplicaView(v);{const c=cardsDe(v).find(c=>chave(v,c)===k);if(c&&window.gfColAbre&&c.classList.contains("gf-fech"))gfColAbre(c.dataset.gfk)}if(rola){const row=vid==="gest"?document.getElementById("gf-row-gest"):v.querySelector(".gf-row");if(row){const r=row.getBoundingClientRect();if(r.top<0||r.top>innerHeight*.5)row.scrollIntoView({block:"start",behavior:"smooth"})}}}
     try{window.gfSideDesenha&&gfSideDesenha()}catch(e){}}
   let raf=0;const tudo=()=>{raf=0;document.querySelectorAll(".dash[id^=view-]").forEach(v=>{try{aplicaView(v)}catch(e){}})};
   const agenda=()=>{if(!raf)raf=requestAnimationFrame(tudo)};
