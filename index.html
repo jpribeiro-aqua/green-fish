@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v227";
+  it.querySelector("code").textContent=msg;const ver="ras-v228";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -737,7 +737,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
-#aqua-biodash{margin-top:4px}#gest-hub .gh-card,#gest-hub .gh-tag{transition:transform .12s,box-shadow .12s,border-color .12s}#gest-hub .gh-card:hover,#gest-hub .gh-card:focus-visible{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,122,108,.15)}#gest-hub .gh-card::after{content:"Abrir ›";font-size:12px;font-weight:700;color:var(--accent,#0f766e);margin-top:4px}
+#aqua-biodash{margin-top:4px}.gf-row .gr-arr{flex:none;color:#a7f3d0;font-weight:700;margin:0 -2px;opacity:.85}#gest-hub .gh-card,#gest-hub .gh-tag{transition:transform .12s,box-shadow .12s,border-color .12s}#gest-hub .gh-card:hover,#gest-hub .gh-card:focus-visible{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,122,108,.15)}#gest-hub .gh-card::after{content:"Abrir ›";font-size:12px;font-weight:700;color:var(--accent,#0f766e);margin-top:4px}
 /* v223: botão ☰ Menu no canto inferior direito (onde ficava o "Mais") */
 @media (max-width:999px){
   #gf-side-fab{top:auto!important;left:auto!important;right:max(14px,env(safe-area-inset-right))!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;flex-direction:column;gap:0!important;width:62px;height:62px;padding:0!important;border-radius:18px!important;justify-content:center;font-size:11px!important;line-height:1.1;box-shadow:0 6px 20px rgba(11,93,79,.35)!important;z-index:901!important}
@@ -10693,7 +10693,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v227";
+  const APP_VERSAO="ras-v228";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15540,7 +15540,10 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   const chave=(v,c)=>c.dataset.gfk||(v.id+"|"+tit(c));
   function itens(v,CD){const L=(CD||cardsDe(v)).map(c=>({k:chave(v,c),t:tit(c),c}));
     if(v.id==="view-gest"&&window.gfGestHub){const G=gfGestHub.lista().map(([k,ic,t])=>({k:"gh:"+k,t:ic+" "+t,gh:k}));return G.concat(L)}return L}
-  function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v),I=itens(v,CD);if(!I.length)return;
+  function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v);let I=itens(v,CD);if(!I.length)return;
+    /* v228: no Beneficiamento a linha segue a sequência do lote (a mesma da Rastreabilidade), com setas; os demais quadros vêm depois */
+    if(vid==="benef"){const SEQ=[/Rastreabilidade/i,/Do lote ao produto/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i];
+      const pos=i=>{const j=SEQ.findIndex(r=>r.test(i.t));return j<0?99:j};I=I.map((i,j)=>Object.assign({},i,{seq:pos(i)<99,o:pos(i)*1000+j})).sort((a,b)=>a.o-b.o)}
     let sel=SEL[vid];if(sel&&sel!=="*"&&!I.some(i=>i.k===sel))sel=null;if(!sel)sel=I[0].k;
     const gest=vid==="gest",hub=gest&&window.gfGestHub?gfGestHub.caixa():null;
     let row=gest?document.getElementById("gf-row-gest"):v.querySelector(":scope>.gf-row");
@@ -15549,7 +15552,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     if(gest){row.hidden=v.hidden;if(v.hidden)return}
     const sig=I.map(i=>i.k+"="+i.t).join("|")+"#"+sel+(gest?"#"+gfGestHub.porte():"");
     if(row.dataset.sig!==sig){row.dataset.sig=sig;
-      row.innerHTML=I.map(i=>`<button type="button" role="tab" data-gr="${E(i.k)}" aria-selected="${i.k===sel}" title="${E(i.t)}">${E(i.t)}</button>`).join("")+`<span class="gr-sep"></span><button type="button" role="tab" data-gr="*" aria-selected="${sel==="*"}" title="Mostrar tudo da aba, em pastas">📂 Tudo</button>`+
+      row.innerHTML=I.map((i,j)=>(j&&i.seq&&I[j-1].seq?`<span class="gr-arr" aria-hidden="true">→</span>`:j&&!i.seq&&I[j-1].seq?`<span class="gr-sep"></span>`:"")+`<button type="button" role="tab" data-gr="${E(i.k)}" aria-selected="${i.k===sel}" title="${E(i.t)}">${E(i.t)}</button>`).join("")+`<span class="gr-sep"></span><button type="button" role="tab" data-gr="*" aria-selected="${sel==="*"}" title="Mostrar tudo da aba, em pastas">📂 Tudo</button>`+
         (gest&&window.gfGestHub?`<select aria-label="Perfil">${gfGestHub.portes().map(([k,t])=>`<option value="${k}"${k===gfGestHub.porte()?" selected":""}>${E(t)}</option>`).join("")}</select>`:"");
       const se=row.querySelector("select");if(se)se.onchange=()=>gfGestHub.porte(se.value);
       row.querySelectorAll("[data-gr]").forEach(b=>b.onclick=()=>escolhe(vid,b.dataset.gr,true))}
