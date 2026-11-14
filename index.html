@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v223";
+  it.querySelector("code").textContent=msg;const ver="ras-v224";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -737,7 +737,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
-#aqua-biodash{margin-top:4px}
+#aqua-biodash{margin-top:4px}#gest-hub .gh-card,#gest-hub .gh-tag{transition:transform .12s,box-shadow .12s,border-color .12s}#gest-hub .gh-card:hover,#gest-hub .gh-card:focus-visible{transform:translateY(-2px);box-shadow:0 6px 16px rgba(15,122,108,.15)}#gest-hub .gh-card::after{content:"Abrir ›";font-size:12px;font-weight:700;color:var(--accent,#0f766e);margin-top:4px}
 /* v223: botão ☰ Menu no canto inferior direito (onde ficava o "Mais") */
 @media (max-width:999px){
   #gf-side-fab{top:auto!important;left:auto!important;right:max(14px,env(safe-area-inset-right))!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;flex-direction:column;gap:0!important;width:62px;height:62px;padding:0!important;border-radius:18px!important;justify-content:center;font-size:11px!important;line-height:1.1;box-shadow:0 6px 20px rgba(11,93,79,.35)!important;z-index:901!important}
@@ -10684,7 +10684,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v223";
+  const APP_VERSAO="ras-v224";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -14376,6 +14376,7 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     if(g){e.preventDefault();vai(g.dataset.ghGo);return}
     if(all){if(all.dataset.ghTudo==="1")SEC.forEach(x=>AB.add(x.k));else AB.clear();render();return}
     if(t){alterna(t.dataset.ghT);const el=box.querySelector(`.gh-p[data-k="${CSS.escape(t.dataset.ghT)}"]`);if(el&&ab(t.dataset.ghT)){const r=el.getBoundingClientRect();if(r.top<0||r.top>innerHeight-80)el.scrollIntoView({block:"start",behavior:"smooth"})}return}
+    if(s&&window.gfRow&&!s.closest(".gh-nav")){e.preventDefault();gfRow.sel("gest","gh:"+s.dataset.ghSec);return}
     if(s){const k=s.dataset.ghSec,ja=ab(k),nav=!!s.closest(".gh-nav");alterna(k,nav?!ja:true);const el=box.querySelector(`.gh-p[data-k="${CSS.escape(k)}"]`);if(el&&ab(k))el.scrollIntoView({block:"start",behavior:"smooth"});return}});
   new MutationObserver(()=>{box.hidden=vg.hidden}).observe(vg,{attributes:true,attributeFilter:["hidden"]});
   window.gfGestHub={abrir:(sec)=>{if(sec)AB.add(sec);S.aberto=true;gr();render();try{setView("gest")}catch(e){}},secoes:()=>SEC.map(s=>s.k),
