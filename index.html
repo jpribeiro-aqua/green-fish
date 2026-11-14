@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v222";
+  it.querySelector("code").textContent=msg;const ver="ras-v223";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -738,6 +738,18 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+/* v223: botão ☰ Menu no canto inferior direito (onde ficava o "Mais") */
+@media (max-width:999px){
+  #gf-side-fab{top:auto!important;left:auto!important;right:max(14px,env(safe-area-inset-right))!important;bottom:calc(16px + env(safe-area-inset-bottom))!important;flex-direction:column;gap:0!important;width:62px;height:62px;padding:0!important;border-radius:18px!important;justify-content:center;font-size:11px!important;line-height:1.1;box-shadow:0 6px 20px rgba(11,93,79,.35)!important;z-index:901!important}
+  #gf-side-fab .fab-i{font-size:24px;line-height:1}
+  body.has-bnav:not(.x) #gf-side-fab{bottom:calc(80px + env(safe-area-inset-bottom))!important}
+  html.gf-nao-dono body.has-bnav #gf-side-fab{bottom:calc(16px + env(safe-area-inset-bottom))!important}
+  html.gf-side-on .wrap>header{padding-top:0!important}
+  html.gf-nao-dono body.has-bnav{padding-bottom:calc(88px + env(safe-area-inset-bottom))!important}
+  html.gf-side-open #gf-side-fab{opacity:0;pointer-events:none}
+}
+@media (orientation:landscape) and (max-height:520px){#gf-side-fab{width:52px;height:52px;bottom:calc(10px + env(safe-area-inset-bottom))!important}}
+
 /* v222: no celular, quem não é o dono navega só pelo menu verde (coluna + linha), com as abas liberadas para ele */
 html.gf-nao-dono .bnav,html.gf-nao-dono .msheet,html.gf-nao-dono .msheet-bg{display:none!important}
 html.gf-nao-dono body.has-bnav{padding-bottom:calc(16px + env(safe-area-inset-bottom))!important}
@@ -763,8 +775,8 @@ html.gf-nao-dono body.has-bnav{padding-bottom:calc(16px + env(safe-area-inset-bo
   .bnav button{min-height:38px;padding:3px 2px;grid-auto-flow:column;align-items:center;gap:6px;font-size:12px}
   .gf-row{position:static!important;padding:5px 8px}
   .gf-row button{padding:6px 10px;font-size:13px}
-  #gf-side-fab{top:6px!important;left:max(8px,env(safe-area-inset-left))!important;padding:6px 11px!important;font-size:13px!important}
-  html.gf-side-on .wrap>header{padding-top:38px!important}
+  
+  
   #gf-side{width:min(300px,50vw)!important}
 }
 
@@ -10672,7 +10684,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v222";
+  const APP_VERSAO="ras-v223";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15468,7 +15480,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   let ab=lg("gf-side-ab",null),mini=!!lg("gf-side-mini",false);
   function run(){const nav=document.querySelector("nav.tabs");if(!nav)return;
     const side=document.createElement("aside");side.id="gf-side";side.setAttribute("aria-label","Menu do app");document.body.appendChild(side);
-    const fab=document.createElement("button");fab.type="button";fab.id="gf-side-fab";fab.textContent="☰ Menu";fab.setAttribute("aria-controls","gf-side");document.body.appendChild(fab);
+    const fab=document.createElement("button");fab.type="button";fab.id="gf-side-fab";fab.innerHTML='<span class="fab-i" aria-hidden="true">☰</span><span>Menu</span>';fab.setAttribute("aria-label","Abrir o menu");fab.setAttribute("aria-controls","gf-side");document.body.appendChild(fab);
     const bk=document.createElement("div");bk.id="gf-side-bk";document.body.appendChild(bk);
     const fecha=()=>{H.classList.remove("gf-side-open");fab.setAttribute("aria-expanded","false")};
     fab.onclick=()=>{const o=!H.classList.contains("gf-side-open");H.classList.toggle("gf-side-open",o);fab.setAttribute("aria-expanded",String(o))};bk.onclick=fecha;
