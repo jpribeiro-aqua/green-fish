@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v209";
+  it.querySelector("code").textContent=msg;const ver="ras-v210";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -737,7 +737,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
-#aqua-biodash{margin-top:4px}html{scrollbar-gutter:stable}
+#aqua-biodash{margin-top:4px}.calc-memo-bt{justify-self:start;align-self:start;margin:2px 0}.calc-memo{display:grid;gap:inherit}.calc-memo[hidden]{display:none}html{scrollbar-gutter:stable}
 .gf-corr tr.off td{opacity:.5}.gf-corr input[type=checkbox]{width:18px;height:18px}
 .bn-prods{margin:0 0 4px}.bn-gh td{background:var(--accent-soft);font-weight:700;font-size:12.5px;text-align:left}.bn-tp td:first-child{padding-left:14px}.bn-mud{border-color:#e09a00!important;background:rgba(224,154,0,.08)!important}.bn-err{color:#d33f2e}
 .bn-t td .bn-in,.bn-in{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}.bn-t td small{display:block;color:var(--muted)}.bn-st{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:8px}.bn-st.ok{background:rgba(27,175,122,.15);color:#127a55}.bn-st.abaixo{background:rgba(224,154,0,.18);color:#8a5d00}.bn-st.acima{background:rgba(42,120,214,.15);color:#1d5aa5}
@@ -3199,9 +3199,12 @@ function renderCore(){
     row("Passo 4.0","Capacidade de nitrificação (CPN)",`CPN = TN × AS = ${n(p.TN)} × ${n(p.AS,0)}  (÷ 1000 = ${fmt(r.CPN/1000,3)} kg)`,n(r.CPN),"g NAT/m³/d")+
     row("Passo 4.1","Volume da mídia (VM)",`VM = NATPF / (CPN/1000) = ${fmt(r.NATPF,3)} / ${fmt(r.CPN/1000,3)}`,n(r.VM),"m³ de mídia",true)+
     (p.AS<400?`<div class="note">Área superficial abaixo de 400 m²/m³: faixa de material ruim.</div>`:""));
-  if(bad) h=`<section class="card"><div class="note"><b>Corrija ${errs.length===1?"o campo destacado":"os campos destacados"}:</b><ul style="margin:4px 0 0;padding-left:18px">${errs.map(e=>`<li>${esc(e)}</li>`).join("")}</ul></div></section>`+h;
-  else if(empty) h=`<section class="card"><div class="note">O volume total de água é zero. Informe a quantidade e o volume dos tanques.</div></section>`+h;
-  document.getElementById("steps").innerHTML=h;
+  let pre="";if(bad) pre=`<section class="card"><div class="note"><b>Corrija ${errs.length===1?"o campo destacado":"os campos destacados"}:</b><ul style="margin:4px 0 0;padding-left:18px">${errs.map(e=>`<li>${esc(e)}</li>`).join("")}</ul></div></section>`;
+  else if(empty) pre=`<section class="card"><div class="note">O volume total de água é zero. Informe a quantidade e o volume dos tanques.</div></section>`;
+  /* v210: a memória de cálculo (etapas e passos) fica oculta; aparece só quando o usuário pede */
+  let memo=false;try{memo=localStorage.getItem("gf-calc-memo")==="1"}catch(e){}
+  const st=document.getElementById("steps");st.innerHTML=pre+`<button type="button" class="btn calc-memo-bt" aria-expanded="${memo}">${memo?"▴ Ocultar a memória de cálculo":"▾ Mostrar a memória de cálculo (etapas e fórmulas)"}</button><div class="calc-memo"${memo?"":" hidden"}>${h}</div>`;
+  st.querySelector(".calc-memo-bt").onclick=()=>{try{localStorage.setItem("gf-calc-memo",memo?"0":"1")}catch(e){}const b=st.querySelector(".calc-memo-bt"),d=st.querySelector(".calc-memo");memo=!memo;d.hidden=!memo;b.setAttribute("aria-expanded",String(memo));b.textContent=memo?"▴ Ocultar a memória de cálculo":"▾ Mostrar a memória de cálculo (etapas e fórmulas)"};
 
   // com campo inválido ou sem tanques, os resultados não valem: mostra "–" em vez de números enganosos (tanques e volume continuam visíveis)
   const k=(id,v,u,always)=>document.getElementById(id).innerHTML=(bad||empty)&&!always?"–":`${v}<small>${u}</small>`;
@@ -10518,7 +10521,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v209";
+  const APP_VERSAO="ras-v210";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
