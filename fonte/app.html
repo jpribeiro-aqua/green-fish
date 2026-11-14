@@ -729,7 +729,57 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
-#aqua-biodash{margin-top:4px}.calc-adv-bt{width:100%;margin:6px 0 4px}#calc-adv[hidden]{display:none}.calc-memo-bt{justify-self:start;align-self:start;margin:2px 0}.calc-memo{display:grid;gap:inherit}.calc-memo[hidden]{display:none}html{scrollbar-gutter:stable}
+#aqua-biodash{margin-top:4px}
+/* v213: app inteiro no modelo da Central de gestão — menu lateral verde e quadros como pastas */
+.gf-colbar{gap:8px!important}.gf-colbar p{margin:0;flex:1 1 260px;color:var(--muted);font-size:13.5px}
+.gf-colbar button{border-radius:10px!important;padding:7px 14px!important;font-weight:600}
+.dash[id^=view-] .card>.card-head h2[role=button]::before{content:"▾\00a0📂\00a0"!important;width:auto;margin-right:6px;transform:none!important;font-size:.8em;vertical-align:.08em}
+.dash[id^=view-] .card.gf-fech>.card-head h2[role=button]::before{content:"▸\00a0📁\00a0"!important}
+.dash[id^=view-] .card{border-radius:14px}
+.dash[id^=view-] .card.gf-fech{box-shadow:0 1px 0 rgba(0,0,0,.02)}
+.dash[id^=view-] .card.gf-fech>.card-head{padding:10px 16px}
+.dash[id^=view-] .card.gf-fech>.card-head h2{font-size:17px;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:10px;flex:1}
+.dash[id^=view-] .card.gf-fech>.card-head h2 span{display:inline;margin-left:auto;text-transform:none;letter-spacing:0;font-size:12.5px}
+.dash[id^=view-] .card:not(.gf-fech)>.card-head{background:linear-gradient(0deg,transparent,rgba(15,122,108,.04))}
+#gf-side{position:fixed;left:0;top:0;bottom:0;width:250px;z-index:900;background:#0b5d4f;color:#d7efe8;display:flex;flex-direction:column;gap:2px;padding:14px 10px 12px;overflow-y:auto;box-sizing:border-box;font-family:var(--f-body);scrollbar-width:thin}
+#gf-side .gs-top{display:flex;align-items:center;gap:8px;margin:0 4px 8px}
+#gf-side .gs-top b{font:700 17px var(--f-display);color:#fff;flex:1;white-space:nowrap;overflow:hidden}
+#gf-side .gs-min{border:0;background:none;color:#9fd3c4;cursor:pointer;font-size:13px;padding:6px 8px;border-radius:8px}
+#gf-side .gs-min:hover{background:#0f6e5e;color:#fff}
+#gf-side .gs-nt{font-size:11px;letter-spacing:.14em;color:#9fd3c4;margin:12px 8px 4px;font-weight:700}
+#gf-side button.gs-g,#gf-side button.gs-i,#gf-side button.gs-a{display:flex;gap:10px;align-items:center;text-align:left;border:0;background:none;color:inherit;font:inherit;font-size:14px;padding:9px 10px;border-radius:9px;cursor:pointer;border-left:3px solid transparent;width:100%}
+#gf-side button.gs-g{font-weight:700;color:#eafaf5}
+#gf-side button.gs-g i,#gf-side button.gs-i i{margin-left:auto;font-style:normal;opacity:.7;font-size:12px}
+#gf-side .gs-sub{display:grid;gap:1px;margin:0 0 4px 14px;padding-left:6px;border-left:1px dashed rgba(167,243,208,.25)}
+#gf-side .gs-sub[hidden]{display:none}
+#gf-side button.gs-i{font-size:13.5px;padding:7px 10px}
+#gf-side button:hover{background:#0f6e5e}
+#gf-side button.gs-i[aria-current="page"]{background:#12806c;color:#fff;font-weight:700;border-left-color:#a7f3d0}
+#gf-side .gs-e{width:20px;text-align:center;flex:none}
+#gf-side .gs-pe{margin-top:auto;padding-top:10px;border-top:1px solid rgba(167,243,208,.18);display:grid;gap:2px}
+#gf-side .gs-msg{font-size:12px;color:#a7f3d0;padding:0 10px;min-height:0}
+@media (min-width:1000px){html.gf-side-on body{padding-left:calc(250px + 28px)}html.gf-side-mini.gf-side-on body{padding-left:calc(62px + 28px)}}
+html.gf-side-on nav.tabs>.tab{display:none!important}
+html.gf-side-on nav.tabs{border-bottom:0;justify-content:flex-end}
+html.gf-side-mini #gf-side{width:62px;padding:14px 6px}
+
+html.gf-side-mini #gf-side .gs-l,html.gf-side-mini #gf-side .gs-nt,html.gf-side-mini #gf-side .gs-top b,html.gf-side-mini #gf-side i,html.gf-side-mini #gf-side .gs-msg{display:none}
+html.gf-side-mini #gf-side .gs-sub{margin-left:0;padding-left:0;border-left:0}
+html.gf-side-mini #gf-side button{justify-content:center;padding:9px 4px}
+#gf-side-fab{display:none}
+#gf-side-bk{display:none}
+@media (max-width:999px){
+  #gf-side{width:min(290px,86vw)!important;transform:translateX(-102%);transition:transform .2s ease;box-shadow:4px 0 24px rgba(0,0,0,.25);padding:14px 10px 12px!important}
+  html.gf-side-open #gf-side{transform:none}
+  html.gf-side-mini #gf-side .gs-l,html.gf-side-mini #gf-side .gs-nt,html.gf-side-mini #gf-side .gs-top b,html.gf-side-mini #gf-side i{display:revert}
+  html.gf-side-mini #gf-side button{justify-content:flex-start;padding:9px 10px}
+  #gf-side .gs-min{display:none}
+  #gf-side-fab{display:inline-flex;align-items:center;gap:6px;position:fixed;left:10px;top:10px;z-index:899;border:0;border-radius:12px;background:#0b5d4f;color:#fff;font:700 14px var(--f-body);padding:9px 13px;box-shadow:0 4px 14px rgba(0,0,0,.2);cursor:pointer}
+  html.gf-side-open #gf-side-bk{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:898}
+  html.gf-side-on .wrap>header{padding-top:46px}
+}
+@media print{#gf-side,#gf-side-fab,#gf-side-bk{display:none!important}html.gf-side-on body{padding-left:0!important}}
+.calc-adv-bt{width:100%;margin:6px 0 4px}#calc-adv[hidden]{display:none}.calc-memo-bt{justify-self:start;align-self:start;margin:2px 0}.calc-memo{display:grid;gap:inherit}.calc-memo[hidden]{display:none}html{scrollbar-gutter:stable}
 .gf-corr tr.off td{opacity:.5}.gf-corr input[type=checkbox]{width:18px;height:18px}
 .bn-prods{margin:0 0 4px}.bn-gh td{background:var(--accent-soft);font-weight:700;font-size:12.5px;text-align:left}.bn-tp td:first-child{padding-left:14px}.bn-mud{border-color:#e09a00!important;background:rgba(224,154,0,.08)!important}.bn-err{color:#d33f2e}
 .bn-t td .bn-in,.bn-in{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}.bn-t td small{display:block;color:var(--muted)}.bn-st{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:8px}.bn-st.ok{background:rgba(27,175,122,.15);color:#127a55}.bn-st.abaixo{background:rgba(224,154,0,.18);color:#8a5d00}.bn-st.acima{background:rgba(42,120,214,.15);color:#1d5aa5}
@@ -2650,7 +2700,7 @@ let rzf,rzfW=0;new ResizeObserver(en=>{const w=Math.round(en[0].contentRect.widt
   const grava=()=>{try{localStorage.setItem(KF,JSON.stringify([...F]))}catch(e){}};
   const chave=c=>{const v=c.closest(".dash[id^=view-]"),h=c.querySelector(":scope>.card-head h2");if(!v||!h)return null;const t=(h.childNodes[0]&&h.childNodes[0].textContent||h.textContent).trim().slice(0,60);return t?v.id+"|"+t:null};
   const cards=v=>[...(v||document).querySelectorAll(".dash[id^=view-] .card")].filter(c=>c.querySelector(":scope>.card-head h2"));
-  let raf=0;function aplica(){raf=0;document.querySelectorAll(".dash[id^=view-]").forEach(v=>{if(!v.querySelector(":scope>.gf-colbar")){const b=document.createElement("div");b.className="gf-colbar";b.innerHTML=`<span>Quadros desta aba:</span><button type="button" data-gfc="fecha">▸ Recolher tudo</button><button type="button" data-gfc="abre">▾ Abrir tudo</button><small>ou toque no título de cada quadro para abrir ou fechar</small>`;v.prepend(b)}});
+  let raf=0;function aplica(){raf=0;document.querySelectorAll(".dash[id^=view-]").forEach(v=>{if(!v.querySelector(":scope>.gf-colbar")){const b=document.createElement("div");b.className="gf-colbar";b.innerHTML=`<p>Toque numa pasta para abrir; toque de novo para fechar.</p><button type="button" data-gfc="abre">📂 Abrir tudo</button><button type="button" data-gfc="fecha">📁 Fechar tudo</button>`;v.prepend(b)}});
     cards().forEach(c=>{const k=chave(c);if(!k)return;c.dataset.gfk=k;const f=F.has(k);if(c.classList.contains("gf-fech")!==f)c.classList.toggle("gf-fech",f);const h=c.querySelector(":scope>.card-head h2");if(h&&h.getAttribute("aria-expanded")!==String(!f)){h.setAttribute("aria-expanded",String(!f));h.tabIndex=0;h.setAttribute("role","button")}})}
   const agenda=()=>{if(!raf)raf=requestAnimationFrame(aplica)};
   new MutationObserver(agenda).observe(document.body,{childList:true,subtree:true});
@@ -13372,4 +13422,37 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   const r=f.getBoundingClientRect(),gb=document.querySelector(".grp-bar"),hb=gb&&gb.offsetParent!==null?Math.max(0,gb.getBoundingClientRect().bottom):0,nav=window.innerWidth<760?72:0;
   const topo=Math.max(r.top,hb),fim=Math.min(window.innerHeight-nav,r.bottom);d.documentElement.style.setProperty("--fxTop",Math.max(0,topo-r.top)+"px");d.documentElement.style.setProperty("--fxH",Math.max(220,fim-topo)+"px")}catch(e){}};
   window.gfFxPos=up;window.addEventListener("scroll",up,{passive:true});window.addEventListener("resize",up);setInterval(up,1000)})();
+</script>
+<script>
+/* v213: menu lateral verde (como a Central de gestão) com as abas em pastas; no celular abre pelo botão ☰ Menu */
+(()=>{const ICO={calc:"🧮",local:"📍",topo:"📐",proj:"🗂",bio:"⚖️",racao:"🍽",aqua:"📈",repro:"🧬",dados:"📊",gest:"🏛",fin:"💰",merc:"🗺",benef:"🏭",dash:"📌",users:"👥"};
+  const GR=[["🏗","Projeto e dimensionamento",["calc","local","topo","proj"]],["🐟","Produção e água",["bio","racao","aqua","repro","dados"]],["💼","Gestão e mercado",["gest","fin","merc","benef","dash"]],["👥","Conta e acesso",["users"]]];
+  const H=document.documentElement,lg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},ls=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  let ab=lg("gf-side-ab",null),mini=!!lg("gf-side-mini",false);
+  function run(){const nav=document.querySelector("nav.tabs");if(!nav)return;
+    const side=document.createElement("aside");side.id="gf-side";side.setAttribute("aria-label","Menu do app");document.body.appendChild(side);
+    const fab=document.createElement("button");fab.type="button";fab.id="gf-side-fab";fab.textContent="☰ Menu";fab.setAttribute("aria-controls","gf-side");document.body.appendChild(fab);
+    const bk=document.createElement("div");bk.id="gf-side-bk";document.body.appendChild(bk);
+    const fecha=()=>{H.classList.remove("gf-side-open");fab.setAttribute("aria-expanded","false")};
+    fab.onclick=()=>{const o=!H.classList.contains("gf-side-open");H.classList.toggle("gf-side-open",o);fab.setAttribute("aria-expanded",String(o))};bk.onclick=fecha;
+    document.addEventListener("keydown",e=>{if(e.key==="Escape")fecha()});
+    const tabs=()=>[...nav.querySelectorAll(".tab[data-view]")],vis=t=>!t.hidden&&t.style.display!=="none"&&!t.classList.contains("hidden");
+    function desenha(){const T=tabs(),at=(T.find(t=>t.getAttribute("aria-selected")==="true")||{}).dataset||{},cur=at.view;
+      const usadas=new Set(),grupos=GR.map(g=>[g[0],g[1],g[2].map(v=>T.find(t=>t.dataset.view===v)).filter(t=>t&&vis(t))]);grupos.forEach(g=>g[2].forEach(t=>usadas.add(t)));
+      const resto=T.filter(t=>!usadas.has(t)&&vis(t));if(resto.length)grupos.push(["📦","Outras",resto]);
+      if(!ab)ab=grupos.map(g=>g[1]);
+      const nome=t=>t.textContent.trim();
+      side.innerHTML=`<div class="gs-top"><b>🐟 Green Fish</b><button type="button" class="gs-min" title="${mini?"Abrir o menu":"Recolher o menu"}" aria-label="${mini?"Abrir o menu":"Recolher o menu"}">${mini?"▸":"◂"}</button></div><div class="gs-nt">ABAS DO APP</div>`+
+        grupos.filter(g=>g[2].length).map(g=>{const temCur=g[2].some(t=>t.dataset.view===cur),open=mini||ab.includes(g[1])||temCur;
+          return `<button type="button" class="gs-g" data-gs-g="${g[1]}" aria-expanded="${open}" title="${g[1]}"><span class="gs-e">${g[0]}</span><span class="gs-l">${g[1]}</span><i>${open?"▾":"▸"}</i></button><div class="gs-sub"${open?"":" hidden"}>`+
+            g[2].map(t=>`<button type="button" class="gs-i" data-gs-v="${t.dataset.view}"${t.dataset.view===cur?' aria-current="page"':""} title="${nome(t).replace(/"/g,"&quot;")}"><span class="gs-e">${ICO[t.dataset.view]||"•"}</span><span class="gs-l">${nome(t)}</span></button>`).join("")+`</div>`}).join("")+
+        `<div class="gs-pe"><button type="button" class="gs-a" data-gs-a="refresh-all" title="Atualizar tudo"><span class="gs-e">↻</span><span class="gs-l">Atualizar tudo</span></button><button type="button" class="gs-a" data-gs-a="print" title="Imprimir / PDF"><span class="gs-e">🖨</span><span class="gs-l">Imprimir / PDF</span></button><div class="gs-msg"></div></div>`;
+      side.querySelector(".gs-min").onclick=()=>{mini=!mini;ls("gf-side-mini",mini);H.classList.toggle("gf-side-mini",mini);desenha()};
+      side.querySelectorAll("[data-gs-g]").forEach(b=>b.onclick=()=>{if(mini){mini=false;ls("gf-side-mini",false);H.classList.remove("gf-side-mini")}const n=b.dataset.gsG,i=ab.indexOf(n);if(i>=0&&b.getAttribute("aria-expanded")==="true")ab.splice(i,1);else if(i<0)ab.push(n);ls("gf-side-ab",ab);desenha()});
+      side.querySelectorAll("[data-gs-v]").forEach(b=>b.onclick=()=>{const t=document.getElementById("tab-"+b.dataset.gsV);if(t)t.click();fecha();try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}});
+      side.querySelectorAll("[data-gs-a]").forEach(b=>b.onclick=()=>{const t=document.getElementById(b.dataset.gsA);if(t)t.click();fecha()})}
+    H.classList.add("gf-side-on");H.classList.toggle("gf-side-mini",mini);desenha();
+    let raf=0;new MutationObserver(()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;desenha()})}).observe(nav,{subtree:true,attributes:true,attributeFilter:["aria-selected","hidden","style","class"],childList:true});
+    const msg=document.getElementById("refresh-msg");if(msg)new MutationObserver(()=>{const m=side.querySelector(".gs-msg");if(m)m.textContent=msg.textContent}).observe(msg,{childList:true,subtree:true,characterData:true})}
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",run);else run()})();
 </script>
