@@ -730,6 +730,10 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+/* v222: no celular, quem não é o dono navega só pelo menu verde (coluna + linha), com as abas liberadas para ele */
+html.gf-nao-dono .bnav,html.gf-nao-dono .msheet,html.gf-nao-dono .msheet-bg{display:none!important}
+html.gf-nao-dono body.has-bnav{padding-bottom:calc(16px + env(safe-area-inset-bottom))!important}
+
 /* v221: verificação em duas etapas */
 #gf-mfa{position:fixed;inset:0;z-index:100000;background:rgba(6,30,26,.72);display:grid;place-items:center;padding:16px}
 .gf-mfa-c{background:var(--surface,#fff);color:var(--ink,#111);border-radius:16px;padding:22px;max-width:420px;width:100%;display:grid;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
@@ -13525,7 +13529,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     fab.onclick=()=>{const o=!H.classList.contains("gf-side-open");H.classList.toggle("gf-side-open",o);fab.setAttribute("aria-expanded",String(o))};bk.onclick=fecha;
     document.addEventListener("keydown",e=>{if(e.key==="Escape")fecha()});
     const tabs=()=>[...nav.querySelectorAll(".tab[data-view]")],vis=t=>!t.hidden&&t.style.display!=="none"&&!t.classList.contains("hidden");
-    function desenha(){const st0=side.scrollTop,T=tabs(),at=(T.find(t=>t.getAttribute("aria-selected")==="true")||{}).dataset||{},cur=at.view;
+    function desenha(){try{H.classList.toggle("gf-nao-dono",!!(window.Auth&&Auth.ok&&Auth.ok()&&!(Auth.dono&&Auth.dono())))}catch(e){}const st0=side.scrollTop,T=tabs(),at=(T.find(t=>t.getAttribute("aria-selected")==="true")||{}).dataset||{},cur=at.view;
       const usadas=new Set([T.find(t=>t.dataset.view==="proj")].filter(Boolean)),grupos=GR.map(g=>[g[0],g[1],g[2].map(v=>T.find(t=>t.dataset.view===v)).filter(t=>t&&vis(t))]);grupos.forEach(g=>g[2].forEach(t=>usadas.add(t)));
       const resto=T.filter(t=>!usadas.has(t)&&vis(t));if(resto.length)grupos.push(["📦","Outras",resto]);
       if(!ab)ab=grupos.map(g=>g[1]);
