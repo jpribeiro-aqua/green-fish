@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v216";
+  it.querySelector("code").textContent=msg;const ver="ras-v217";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -738,6 +738,17 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+/* v217: celular deitado (horizontal): a tela gira e o app aproveita a largura, com barras mais baixas */
+@media (orientation:landscape) and (max-height:520px){
+  .bnav{padding:2px 6px env(safe-area-inset-bottom) max(6px,env(safe-area-inset-left))}
+  .bnav button{min-height:38px;padding:3px 2px;grid-auto-flow:column;align-items:center;gap:6px;font-size:12px}
+  .gf-row{position:static!important;padding:5px 8px}
+  .gf-row button{padding:6px 10px;font-size:13px}
+  #gf-side-fab{top:6px!important;left:max(8px,env(safe-area-inset-left))!important;padding:6px 11px!important;font-size:13px!important}
+  html.gf-side-on .wrap>header{padding-top:38px!important}
+  #gf-side{width:min(300px,50vw)!important}
+}
+
 /* v216: quadro do projeto (escolher, criar, abrir, salvar) só aparece pelo botão do menu */
 html:not(.gf-pj-aberto) #pj-gate{display:none!important}
 #gf-side button.gs-pj{display:flex;gap:10px;align-items:center;text-align:left;border:1px solid rgba(167,243,208,.35);background:#0f6e5e;color:#fff;font:inherit;font-size:14px;font-weight:700;padding:10px;border-radius:10px;cursor:pointer;width:100%;margin-bottom:4px}
@@ -10626,7 +10637,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v216";
+  const APP_VERSAO="ras-v217";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
