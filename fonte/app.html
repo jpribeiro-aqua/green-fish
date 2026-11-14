@@ -729,7 +729,7 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 #aqua-orig{margin-bottom:12px}#aqua-bio{margin-bottom:12px}.pjg-sub{margin:8px 0 0;padding:10px 12px;border:1px dashed var(--accent,#1a6b5a);border-radius:12px;background:var(--surface,#fff)}.pjg-h3{margin:14px 0 4px;font-size:15px}.pjg-acts .btn.on{background:var(--accent-soft,#e3f1ec)}.pjp{margin:8px 0 0;border:1px solid var(--line,#ddd);border-radius:12px;padding:10px 12px;background:var(--surface,#fff)}.pjp-hd{display:flex;gap:10px;align-items:center}.pjp-hd .pjp-x{margin-left:auto;padding:2px 8px}.pjp-tools{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}.pjp-tools .inp{flex:1;min-width:200px}.pjp-tools input{text-align:left}.pjp-tools .lv-sel{width:auto}.pjp-l{list-style:none;margin:0;padding:0;max-height:340px;overflow:auto;border-top:1px solid var(--line,#ddd)}.pjp-it{display:flex;gap:10px;align-items:center;padding:8px 2px;border-bottom:1px solid var(--line,#ddd)}.pjp-it.on{background:var(--accent-soft,#e3f1ec)}.pjp-tx{flex:1;min-width:0}.pjp-tx small{display:block;color:var(--muted);font-size:12px}.pjp-ab{font-size:12px}.pjp-ft{font-size:12px;margin:8px 0 0}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
-#aqua-biodash{margin-top:4px}.calc-memo-bt{justify-self:start;align-self:start;margin:2px 0}.calc-memo{display:grid;gap:inherit}.calc-memo[hidden]{display:none}html{scrollbar-gutter:stable}
+#aqua-biodash{margin-top:4px}.calc-adv-bt{width:100%;margin:6px 0 4px}#calc-adv[hidden]{display:none}.calc-memo-bt{justify-self:start;align-self:start;margin:2px 0}.calc-memo{display:grid;gap:inherit}.calc-memo[hidden]{display:none}html{scrollbar-gutter:stable}
 .gf-corr tr.off td{opacity:.5}.gf-corr input[type=checkbox]{width:18px;height:18px}
 .bn-prods{margin:0 0 4px}.bn-gh td{background:var(--accent-soft);font-weight:700;font-size:12.5px;text-align:left}.bn-tp td:first-child{padding-left:14px}.bn-mud{border-color:#e09a00!important;background:rgba(224,154,0,.08)!important}.bn-err{color:#d33f2e}
 .bn-t td .bn-in,.bn-in{width:90px;font:inherit;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);text-align:right}.bn-t td small{display:block;color:var(--muted)}.bn-st{font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:8px}.bn-st.ok{background:rgba(27,175,122,.15);color:#127a55}.bn-st.abaixo{background:rgba(224,154,0,.18);color:#8a5d00}.bn-st.acima{background:rgba(42,120,214,.15);color:#1d5aa5}
@@ -1016,6 +1016,8 @@ body.has-bnav .imp-box{bottom:76px}
         </div>
         <div class="vtotal"><span>Volume total de água <em class="times">V</em></span><b id="vtotal">–</b></div>
       </fieldset>
+      <button type="button" class="btn calc-adv-bt" id="calc-adv-bt" hidden aria-expanded="false"></button>
+      <div id="calc-adv" hidden>
       <fieldset>
         <legend><i class="n">1</i>Lote</legend>
         <label class="opts" style="border:0;padding:0"><input type="checkbox" id="perEsp" checked> Usar a densidade máxima da espécie do lote de cada grupo (aba Biomassa)</label>
@@ -1046,6 +1048,7 @@ body.has-bnav .imp-box{bottom:76px}
         <div class="field"><label for="AS">Área superficial <em>AS</em></label><div class="inp"><input id="AS" inputmode="decimal" value="500"><u>m²/m³</u></div><div class="hint">Material ruim 100–400 · bom 800–1000 m²/m³</div></div>
       </fieldset>
       <label class="opts"><input type="checkbox" id="round" checked> Arredondar PNAT para 2 casas, como no documento</label>
+      </div>
     </form>
 
     <div class="right">
@@ -1263,6 +1266,10 @@ function renderCore(){
   let memo=false;try{memo=dono&&localStorage.getItem("gf-calc-memo")==="1"}catch(e){}
   const tx=m=>m?"🔓 Ocultar a memória de cálculo":"🔒 Mostrar a memória de cálculo (só o dono)";
   const st=document.getElementById("steps");st.innerHTML=pre+(dono?`<button type="button" class="btn calc-memo-bt" aria-expanded="${memo}" title="Só você, como dono, vê esta chave">${tx(memo)}</button><div class="calc-memo"${memo?"":" hidden"}>${h}</div>`:"");
+  /* v212: parâmetros técnicos (lote, filtros e mídia) também só o dono abre e fecha */
+  {const ab=document.getElementById("calc-adv-bt"),ad=document.getElementById("calc-adv");if(ab&&ad){let av=false;try{av=dono&&localStorage.getItem("gf-calc-adv")==="1"}catch(e){}
+    const t2=m=>m?"🔓 Ocultar os parâmetros técnicos":"🔒 Parâmetros técnicos: lote, filtros e mídia (só o dono)";ab.hidden=!dono;ad.hidden=!(dono&&av);ab.textContent=t2(av);ab.setAttribute("aria-expanded",String(!ad.hidden));
+    if(!ab.__b){ab.__b=1;ab.onclick=()=>{try{if(!(window.Auth&&Auth.dono&&Auth.dono()))return}catch(e){return}const v=ad.hidden;ad.hidden=!v;try{localStorage.setItem("gf-calc-adv",v?"1":"0")}catch(e){}ab.textContent=t2(v);ab.setAttribute("aria-expanded",String(v))}}}}
   const mb=st.querySelector(".calc-memo-bt");if(mb)mb.onclick=()=>{try{if(!(window.Auth&&Auth.dono&&Auth.dono()))return}catch(e){return}try{localStorage.setItem("gf-calc-memo",memo?"0":"1")}catch(e){}const d=st.querySelector(".calc-memo");memo=!memo;d.hidden=!memo;mb.setAttribute("aria-expanded",String(memo));mb.textContent=tx(memo)};
 
   // com campo inválido ou sem tanques, os resultados não valem: mostra "–" em vez de números enganosos (tanques e volume continuam visíveis)
