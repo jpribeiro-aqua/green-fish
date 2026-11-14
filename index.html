@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v225";
+  it.querySelector("code").textContent=msg;const ver="ras-v226";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -5762,7 +5762,7 @@ function fxCalc(){B.fx=B.fx||{};const fx=B.fx,esp=B.esp,D=(fx.dest=fx.dest||{})[
   const nAuto=etapas.filter(x=>isFinite(x.realA)).length+etapas.filter(x=>isFinite(x.fatA)).length+(kgAuto&&kg>0?1:0);
   return {etapas,kg,kgSrc,kgAuto,kgDoRend,pw,nPeixes,falta,aprov,desc,perdaDef,rendReal,O,nAuto}}
 function fxHTML(){B.fx=B.fx||{};const fx=B.fx;
-  const head=`<div class="mk-modos"><button type="button" class="btn${fx.open?"":" solid"}" data-fxtog="1" aria-expanded="${!!fx.open}">🧭 ${fx.open?"Fechar o fluxograma":"Abrir o fluxograma da espécie"}</button><span class="hint" style="align-self:center">Espécie: <b>${esc((ESP[B.esp]||ESP.outro).n)}</b> (troque em 📏 Rendimento corporal)</span></div>`;
+  const head=`<div class="mk-modos"><button type="button" class="btn${fx.open?"":" solid"}" data-fxtog="1" aria-expanded="${!!fx.open}">🧭 ${fx.open?"Fechar o fluxograma":"Abrir o fluxograma da espécie"}</button><span class="hint" style="align-self:center">Espécie: <b>${esc((ESP[B.esp]||ESP.outro).n)}</b> (troque em 📏 Rendimento corporal)${fx.lote?` · Lote em processamento: <b>${esc(fx.lote)}</b>`:""}</span></div>`;
   if(!fx.open)return head+`<p class="hint">Mostra cada etapa do processamento da espécie, quanto sai de cada parte (pelo rendimento medido ou estimado), para qual produto vai e quanto rende — e controla o lote: etapas feitas, peso real × esperado e histórico.</p>`;
   const C=fxCalc(),T=(ESP[B.esp]||ESP.outro).n,tol=P(fx.tol)||10,stt=d=>!isFinite(d)?"":Math.abs(d)<=tol?`<span class="bn-st ok">${d>0?"+":""}${F(d,1)}%</span>`:`<span class="bn-st ${d<0?"abaixo":"acima"}">${d>0?"+":""}${F(d,1)}%</span>`;
   const feito=fxOk(),nF=C.etapas.filter(x=>feito[x.id]).length;
@@ -5790,7 +5790,7 @@ function fxHTML(){B.fx=B.fx||{};const fx=B.fx;
    <p class="hint">Como ler: cada etapa tira uma parte do peixe; a linha “segue” mostra quanto continua na mesa. O % de cada parte vem do 📏 Rendimento corporal (medido, ou estimado pela literatura para a espécie e o peso); a carcaça é calculada por diferença. Escolha o destino de cada parte — o app usa o rendimento de referência do produto, que você pode trocar pelo seu (campo “rende”). Ao processar, marque as etapas e anote o peso real: fora da tolerância aparece em laranja. Fluxo e boas práticas: aulas de Beneficiamento do Pescado (UFMA), RIISPOA e IN 21/2017; partes da tilápia em lote de 1.400 kg — filé 38,75%, pele 7,83%, carcaça 28,23%, cabeça 17,12%, vísceras 7,97% (Anbe et al., 2015, Informações Econômicas 45(4)).</p>`}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-fxtog],[data-fxsalva],[data-fxlimpa],[data-fxdel],[data-fxauto]");if(!b||!b.closest("#view-benef"))return;B.fx=B.fx||{};const fx=B.fx;
   if(b.dataset.fxtog)fx.open=!fx.open;
-  else if(b.dataset.fxsalva){const C=fxCalc();(fx.hist=fx.hist||[]).unshift({id:Date.now().toString(36),esp:B.esp,data:fx.data||new Date().toISOString().slice(0,10),kg:C.kg,rend:C.rendReal,aprov:C.aprov,feitas:C.etapas.filter(x=>fxOk()[x.id]).length,total:C.etapas.length,real:Object.assign(Object.fromEntries(C.etapas.filter(x=>x.part&&isFinite(x.real)).map(x=>[x.part,fxNum(x.real)])),fxR()),dest:Object.assign({},(fx.dest||{})[B.esp]||{})});fx.hist=fx.hist.slice(0,60)}
+  else if(b.dataset.fxsalva){const C=fxCalc();(fx.hist=fx.hist||[]).unshift({id:Date.now().toString(36),esp:B.esp,lote:fx.lote||"",data:fx.data||new Date().toISOString().slice(0,10),kg:C.kg,rend:C.rendReal,aprov:C.aprov,feitas:C.etapas.filter(x=>fxOk()[x.id]).length,total:C.etapas.length,real:Object.assign(Object.fromEntries(C.etapas.filter(x=>x.part&&isFinite(x.real)).map(x=>[x.part,fxNum(x.real)])),fxR()),dest:Object.assign({},(fx.dest||{})[B.esp]||{})});fx.hist=fx.hist.slice(0,60)}
   else if(b.dataset.fxlimpa){(fx.okS=fx.okS||{})[B.esp]={};(fx.realS=fx.realS||{})[B.esp]={};fx.kg=""}
   else if(b.dataset.fxauto){(fx.realS=fx.realS||{})[B.esp]={};(fx.fat=fx.fat||{})[B.esp]={};fx.kg=""}
   else if(b.dataset.fxdel)fx.hist=(fx.hist||[]).filter(h=>h.id!==b.dataset.fxdel);
@@ -5911,6 +5911,10 @@ document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest
   if(d.dc)st[d.dc]=t.value;else if(d.dcp)B.preco[d.dcp]=t.value;else if(d.dccp)st.cp[d.dccp]=t.value;else return;e.stopPropagation();grava();clearTimeout(dcTm);dcTm=setTimeout(()=>dcRefresh(true),450)},true);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-dcz]");if(!b||!b.closest(".dc-box"))return;const st=dcSt();st.dp=st.dr=st.df=st.dc="";st.cKg="";grava();dcRefresh(true)});
 window.drawBenef=draw;
+/* v226: um lote da Rastreabilidade entra no fluxograma com um clique (espécie, kg, data e código do lote) */
+window.gfBenefLote=o=>{const nm=String(o.esp||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");let k=Object.keys(ESP).find(x=>{const n=String(ESP[x].n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");return nm&&(n.startsWith(nm)||nm.startsWith(n.split(" ")[0]))});
+  if(k)B.esp=k;B.fx=B.fx||{};B.fx.kg=String(o.kg).replace(".",",");B.fx.data=o.data||new Date().toISOString().slice(0,10);B.fx.lote=o.id||"";B.fx.open=true;if(B.fx.okS)B.fx.okS[B.esp]={};if(B.fx.realS)B.fx.realS[B.esp]={};grava();draw();return !!k};
+window.gfBenefLoteAtual=()=>B.fx&&B.fx.lote||"";
 window.gfBenefResumo=()=>{const e=ESP[B.esp]||ESP.outro,pw=pesoAnimal();let est=null,r=null,A=null;try{est=estimar(B.esp,pw)}catch(x){}try{r=rendFile()}catch(x){}const L=corrOn("bio_lote")?lotes():[],kgL=L.reduce((a,x)=>a+(isFinite(x.kg)?x.kg:0),0),kgM=P(B.kgMan),q=qualFalhas();if(corrOn("aqua_qual")){try{A=bxAgua()}catch(x){}}
   return {esp:e.n,pw,est:est?est.pct:null,rend:r,lotes:L.length,kg:kgM>0?kgM:kgL,kgFonte:kgM>0?"informado por você":L.length?`${L.length} lote(s) da Biomassa`:"",plan:B.lastPlan&&B.lastPlan.kg>0?B.lastPlan:null,qual:q,od:A&&A.od?A.od.odMin:null,corr:CORR.filter(x=>corrOn(x[0])).length,corrT:CORR.length}};
 })();
@@ -10684,7 +10688,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v225";
+  const APP_VERSAO="ras-v226";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15604,7 +15608,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   let D;try{D=Object.assign(vazio(),JSON.parse(localStorage.getItem(K)||"null")||{})}catch(e){D=vazio()}
   const grava=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
   const novoId=(tp,data)=>{const d=String(data||hoje()).replace(/-/g,"");const k=tp+d;D.seq[k]=(D.seq[k]||0)+1;return `${tp}-${d}-${String(D.seq[k]).padStart(tp==="CX"?3:2,"0")}`};
-  let S={aba:"rec",q:"",res:null,msg:"",tst:null};
+  let S={aba:"lot",q:"",res:null,msg:"",tst:null,pre:null};
   const PROD=["Peixe inteiro","Inteiro eviscerado","Filé sem pele","Filé com pele","Posta","Lombo","Espalmado","Carne mecanicamente separada (CMS)","Camarão inteiro","Camarão descascado","Camarão sem cabeça","Classificado por tamanho","Outro"];
   const usadoMP=id=>D.pr.reduce((s,p)=>s+(p.ent||[]).filter(x=>x.mp===id).reduce((a,x)=>a+(+x.kg||0),0),0);
   const emCaixa=id=>D.cx.filter(c=>c.pa===id).reduce((s,c)=>s+(+c.kg||0),0);
@@ -15644,6 +15648,16 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
      ${cli.length?`<div class="rt-recall"><b>🚨 Recolhimento (recall):</b> ${cli.length} cliente(s) receberam produto da mesma matéria-prima: ${cli.map(E).join(", ")}. <button type="button" class="btn" data-rt="csv">⬇ Baixar lista (CSV)</button> <button type="button" class="btn" data-rt="etq-res">🏷 Reimprimir etiquetas</button></div>`:`<div class="rt-recall"><button type="button" class="btn" data-rt="etq-res">🏷 Reimprimir etiquetas deste rastro</button></div>`}`}
 
   /* ---------- telas ---------- */
+  const vendKg=p=>D.cx.filter(c=>c.pa===p.id&&pedDaCx(c.id)).reduce((s,c)=>s+(+c.kg||0),0);
+  function lotHTML(){const fl=window.gfBenefLoteAtual?gfBenefLoteAtual():"",sdo=m=>(+m.kg||0)-usadoMP(m.id);
+    const aP=D.mp.filter(m=>sdo(m)>0.01),paV=D.pr.filter(p=>(+p.kg||0)-vendKg(p)>0.01),paF=D.pr.filter(p=>(+p.kg||0)-vendKg(p)<=0.01);
+    const sum=(L,f)=>L.reduce((s,x)=>s+f(x),0);
+    return `<p class="rt-dica">Cada descarga registrada cai em <b>📁 A processar</b>. Depois de processado, o lote do produto vai para <b>📁 Processados: para vender</b>. Escolha o destino de cada lote com um clique.</p>
+    <details class="rt-pasta" open><summary>📁 A processar <small>${aP.length} lote(s) · ${f1(sum(aP,sdo))} kg</small></summary>${aP.length?aP.map(m=>{const sd=sdo(m),no=fl===m.id;return `<div class="rt-lote${no?" rt-nofx":""}"><div><b>${E(m.id)}</b> · ${E(m.esp||"espécie?")} · ${E(m.forn||"")}${m.orig?` · ${E(m.orig)}`:""}<small>descarga ${dBR(m.data)} · <b>${f1(sd)} kg</b> para processar${sd<(+m.kg||0)-0.01?` de ${f1(m.kg)} kg`:""}${no?" · 🧭 está no fluxograma agora":m.fx?" · já foi ao fluxograma":""}</small></div>
+      <div class="rt-acts"><button type="button" class="btn solid" data-rt="fx" data-id="${E(m.id)}">🧭 ${no?"Abrir no fluxograma":"Enviar ao fluxograma"}</button><button type="button" class="btn" data-rt="processar" data-id="${E(m.id)}">🔪 Registrar produção</button></div></div>`}).join(""):`<p class="muted">Nenhum lote esperando processamento. Registre uma descarga em ① Recepção.</p>`}</details>
+    <details class="rt-pasta" open><summary>📁 Processados: para vender <small>${paV.length} lote(s) · ${f1(sum(paV,p=>(+p.kg||0)-vendKg(p)))} kg disponíveis</small></summary>${paV.length?paV.map(p=>{const disp=(+p.kg||0)-vendKg(p),sem=(+p.kg||0)-emCaixa(p.id),est=D.cx.filter(c=>c.pa===p.id&&!pedDaCx(c.id));return `<div class="rt-lote"><div><b>${E(p.id)}</b> · ${E(p.prod)}<small>processado em ${dBR(p.data)}${p.val?` · validade ${dBR(p.val)}`:""} · <b>${f1(disp)} kg</b> disponíveis · ${est.length} caixa(s) em estoque${sem>0.01?` · ${f1(sem)} kg sem caixa`:""}</small></div>
+      <div class="rt-acts">${sem>0.01?`<button type="button" class="btn${est.length?"":" solid"}" data-rt="embalar" data-id="${E(p.id)}">📦 Embalar</button>`:""}${est.length?`<button type="button" class="btn solid" data-rt="vender" data-id="${E(p.id)}">💰 Vender</button>`:""}<button type="button" class="btn" data-rt="merc" title="Ver clientes e nichos na Camada de mercado">🗺 Clientes</button></div></div>`}).join(""):`<p class="muted">Nenhum produto pronto para venda.</p>`}</details>
+    <details class="rt-pasta"><summary>📁 Vendidos <small>${paF.length} lote(s)</small></summary>${paF.length?paF.map(p=>{const cl=[...new Set(D.pd.filter(d=>(d.cx||[]).some(c=>(D.cx.find(x=>x.id===c)||{}).pa===p.id)).map(d=>d.cli))];return `<div class="rt-lote"><div><b>${E(p.id)}</b> · ${E(p.prod)} · ${f1(p.kg)} kg<small>clientes: ${E(cl.join(", ")||"—")}</small></div><div class="rt-acts"><button type="button" class="btn" data-rt="rast" data-id="${E(p.id)}">🔎 Rastrear</button></div></div>`}).join(""):`<p class="muted">Nenhum lote totalmente vendido ainda.</p>`}</details>`}
   function recHTML(){const L=D.mp.slice().reverse();return `<p class="rt-dica">🥇 <b>Regra de ouro: identifique na entrada, antes de misturar.</b> Cada descarga vira um lote com código único.</p>
     <div class="rt-form" data-f="mp">
       <label>Data da descarga<input type="date" name="data" value="${hoje()}"></label><label>Hora<input type="time" name="hora"></label>
@@ -15662,14 +15676,14 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
       <label>Produto<input name="prod" list="rt-dl-prod" placeholder="Filé sem pele" required></label>
       <label>Peso produzido (kg)<input name="kg" inputmode="decimal" required></label>
       <label>Validade<input type="date" name="val"></label>
-      <div class="rt-w rt-ent"><b>Lotes de matéria-prima usados</b>${disp.length?disp.map(m=>`<label class="rt-chk"><span>${E(m.id)} · ${E(m.esp||"")} · ${E(m.forn||"")} · saldo ${f1((+m.kg||0)-usadoMP(m.id))} kg</span><input data-ent="${E(m.id)}" inputmode="decimal" placeholder="kg usados"></label>`).join(""):`<p class="muted">Registre primeiro uma descarga na Recepção.</p>`}</div>
+      <div class="rt-w rt-ent"><b>Lotes de matéria-prima usados</b>${disp.length?disp.map(m=>`<label class="rt-chk"><span>${E(m.id)} · ${E(m.esp||"")} · ${E(m.forn||"")} · saldo ${f1((+m.kg||0)-usadoMP(m.id))} kg</span><input data-ent="${E(m.id)}" inputmode="decimal" placeholder="kg usados"${S.pre&&S.pre.mp===m.id?` value="${String(Math.round(((+m.kg||0)-usadoMP(m.id))*100)/100).replace(".",",")}"`:""}></label>`).join(""):`<p class="muted">Registre primeiro uma descarga na Recepção.</p>`}</div>
       <label class="rt-w">Observações<input name="obs" placeholder="linha, turno, responsável"></label>
       <button type="button" class="btn solid" data-rt="add-pa"${disp.length?"":" disabled"}>➕ Registrar produção e gerar lote do produto</button></div>${dl("rt-dl-prod",PROD)}
     ${tabela(["Lote do produto","Data","Produto","Peso","Rendimento","Matéria-prima","Em caixas",""],L.map(p=>{const ec=emCaixa(p.id);return [`<b>${E(p.id)}</b>`,dBR(p.data),E(p.prod),f1(p.kg)+" kg",`${f1(p.rend)} %`,(p.ent||[]).map(e=>`${E(e.mp)} <small>${f1(+e.kg)} kg</small>`).join("<br>"),`${f1(ec)} de ${f1(p.kg)} kg`,`<button type="button" class="btn rt-x" data-rt="rast" data-id="${E(p.id)}">🔎</button><button type="button" class="btn rt-x" data-rt="del-pa" data-id="${E(p.id)}">✕</button>`]}),"Nenhuma produção registrada ainda.")}`}
   function cxHTML(){const disp=D.pr.filter(p=>(+p.kg||0)-emCaixa(p.id)>0.01);const L=D.cx.slice().reverse();
     return `<p class="rt-dica">Cada caixa recebe uma <b>etiqueta com o código do lote</b>, que acompanha o produto pela câmara fria até a expedição.</p>
     <div class="rt-form" data-f="cx">
-      <label class="rt-w">Lote do produto<select name="pa">${disp.length?disp.map(p=>`<option value="${E(p.id)}">${E(p.id)} · ${E(p.prod)} · falta embalar ${f1((+p.kg||0)-emCaixa(p.id))} kg</option>`).join(""):`<option value="">Registre uma produção primeiro</option>`}</select></label>
+      <label class="rt-w">Lote do produto<select name="pa">${disp.length?disp.map(p=>`<option value="${E(p.id)}"${S.pre&&S.pre.pa===p.id?" selected":""}>${E(p.id)} · ${E(p.prod)} · falta embalar ${f1((+p.kg||0)-emCaixa(p.id))} kg</option>`).join(""):`<option value="">Registre uma produção primeiro</option>`}</select></label>
       <label>Quantas caixas<input name="n" inputmode="numeric" value="1"></label><label>Peso por caixa (kg)<input name="kg" inputmode="decimal" placeholder="ex.: 10"></label>
       <label>Data da embalagem<input type="date" name="data" value="${hoje()}"></label>
       <button type="button" class="btn solid" data-rt="add-cx"${disp.length?"":" disabled"}>➕ Criar caixas</button><button type="button" class="btn" data-rt="etq-novas">🏷 Imprimir etiquetas das caixas sem pedido</button></div>
@@ -15679,7 +15693,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     <div class="rt-form" data-f="pd">
       <label>Data<input type="date" name="data" value="${hoje()}"></label><label>Cliente<input name="cli" list="rt-dl-cli" placeholder="supermercado, peixaria, restaurante" required></label>
       <label>Contato<input name="contato" placeholder="telefone ou e-mail"></label><label>Nota fiscal de saída<input name="nf"></label>
-      <div class="rt-w rt-ent"><b>Caixas em estoque</b> <button type="button" class="btn rt-x" data-rt="todas">marcar todas</button>${est.length?`<div class="rt-cxs">${est.map(c=>{const p=D.pr.find(x=>x.id===c.pa)||{};return `<label class="rt-cx"><input type="checkbox" data-cx="${E(c.id)}"><span>${E(c.id)}<small>${E(p.prod||"")} · ${f1(c.kg)} kg</small></span></label>`}).join("")}</div>`:`<p class="muted">Nenhuma caixa em estoque.</p>`}</div>
+      <div class="rt-w rt-ent"><b>Caixas em estoque</b> <button type="button" class="btn rt-x" data-rt="todas">marcar todas</button>${est.length?`<div class="rt-cxs">${est.map(c=>{const p=D.pr.find(x=>x.id===c.pa)||{};return `<label class="rt-cx"><input type="checkbox" data-cx="${E(c.id)}"${S.pre&&S.pre.pa===c.pa?" checked":""}><span>${E(c.id)}<small>${E(p.prod||"")} · ${f1(c.kg)} kg</small></span></label>`}).join("")}</div>`:`<p class="muted">Nenhuma caixa em estoque.</p>`}</div>
       <button type="button" class="btn solid" data-rt="add-pd"${est.length?"":" disabled"}>➕ Registrar expedição</button></div>${dl("rt-dl-cli",clientes())}
     ${tabela(["Pedido","Data","Cliente","NF","Caixas","Peso",""],L.map(p=>[`<b>${E(p.id)}</b>`,dBR(p.data),E(p.cli)+(p.contato?`<small>${E(p.contato)}</small>`:""),E(p.nf||"—"),(p.cx||[]).length,f1((p.cx||[]).reduce((s,id)=>s+(+(D.cx.find(c=>c.id===id)||{}).kg||0),0))+" kg",`<button type="button" class="btn rt-x" data-rt="rast" data-id="${E(p.id)}">🔎</button><button type="button" class="btn rt-x" data-rt="del-pd" data-id="${E(p.id)}">✕</button>`]),"Nenhuma expedição registrada ainda.")}`}
   function consHTML(){const t=S.tst;return `<div class="rt-busca"><input id="rt-q" value="${E(S.q)}" list="rt-dl-tudo" placeholder="Código da caixa, do lote, nota fiscal, fornecedor ou cliente" aria-label="O que rastrear"><button type="button" class="btn solid" data-rt="buscar">🔎 Rastrear</button></div>
@@ -15689,9 +15703,9 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   function tabela(cab,linhas,vaz){return linhas.length?`<div class="scroll"><table class="rt-tab"><thead><tr>${cab.map(c=>`<th>${c}</th>`).join("")}</tr></thead><tbody>${linhas.map(l=>`<tr>${l.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:`<p class="muted">${vaz}</p>`}
   function resumo(){const est=D.cx.filter(c=>!pedDaCx(c.id));const rend=D.pr.length?D.pr.reduce((s,p)=>s+(+p.kg||0),0)/Math.max(1e-9,D.pr.reduce((s,p)=>s+(p.ent||[]).reduce((a,e)=>a+(+e.kg||0),0),0))*100:NaN;
     return `<div class="rt-kpi"><div><small>Lotes de matéria-prima</small><b>${D.mp.length}</b><span>${f1(D.mp.reduce((s,m)=>s+(+m.kg||0),0),0)} kg recebidos</span></div><div><small>Lotes de produto</small><b>${D.pr.length}</b><span>rendimento médio ${f1(rend)} %</span></div><div><small>Caixas em estoque</small><b>${est.length}</b><span>${f1(est.reduce((s,c)=>s+(+c.kg||0),0),0)} kg</span></div><div><small>Expedições</small><b>${D.pd.length}</b><span>${clientes().length} cliente(s)</span></div></div>`}
-  const ABAS=[["rec","① Recepção"],["pro","② Produção"],["emb","③ Embalagem e etiquetas"],["exp","④ Expedição"],["con","🔎 Rastrear"]];
+  const ABAS=[["lot","📂 Lotes e destinos"],["rec","① Recepção"],["pro","② Produção"],["emb","③ Embalagem e etiquetas"],["exp","④ Expedição"],["con","🔎 Rastrear"]];
   function corpo(){return resumo()+`<div class="rt-abas" role="tablist">${ABAS.map(([k,t])=>`<button type="button" role="tab" data-rta="${k}" aria-selected="${S.aba===k}">${t}</button>`).join("")}</div>`+
-    (S.msg?`<p class="rt-msg" role="status">${E(S.msg)}</p>`:"")+`<div class="rt-pane">${S.aba==="rec"?recHTML():S.aba==="pro"?prHTML():S.aba==="emb"?cxHTML():S.aba==="exp"?pdHTML():consHTML()}</div>
+    (S.msg?`<p class="rt-msg" role="status">${E(S.msg)}</p>`:"")+`<div class="rt-pane">${S.aba==="lot"?lotHTML():S.aba==="rec"?recHTML():S.aba==="pro"?prHTML():S.aba==="emb"?cxHTML():S.aba==="exp"?pdHTML():consHTML()}</div>
     <div class="rt-pe"><button type="button" class="btn" data-rt="exp-json">⬇ Exportar registros</button><label class="btn">⬆ Importar<input type="file" accept=".json,application/json" data-rt="imp" hidden></label><small>Os registros ficam guardados no projeto aberto e vão junto quando o projeto é salvo.</small></div>`}
   let box=null;
   function monta(){if(!box){box=document.createElement("section");box.className="card wide";box.id="rt-card";
@@ -15703,10 +15717,10 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   const form=f=>{const o={},el=box.querySelector(`[data-f="${f}"]`);el.querySelectorAll("[name]").forEach(i=>o[i.name]=i.value.trim());return [o,el]};
   function msg(t){S.msg=t;desenha();clearTimeout(msg.t);msg.t=setTimeout(()=>{S.msg="";desenha()},6000)}
   function busca(q){S.q=q;S.res=rastrear(q);S.aba="con";desenha()}
-  function clique(e){const a=e.target.closest("[data-rta]");if(a){S.aba=a.dataset.rta;S.msg="";desenha();return}
+  function clique(e){const a=e.target.closest("[data-rta]");if(a){S.aba=a.dataset.rta;S.msg="";S.pre=null;desenha();return}
     const b=e.target.closest("[data-rt]");if(!b)return;const k=b.dataset.rt,id=b.dataset.id;
     if(k==="add-mp"){const [o]=form("mp");const kg=num(o.kg);if(!o.forn||!(kg>0)){msg("Informe o fornecedor e o peso recebido.");return}
-      const m={id:novoId("MP",o.data),data:o.data,hora:o.hora,forn:o.forn,orig:o.orig,esp:o.esp,kg,nf:o.nf,temp:o.temp,obs:o.obs,em:Date.now()};D.mp.push(m);grava();msg(`Lote ${m.id} criado. Agora registre a produção.`);return}
+      const m={id:novoId("MP",o.data),data:o.data,hora:o.hora,forn:o.forn,orig:o.orig,esp:o.esp,kg,nf:o.nf,temp:o.temp,obs:o.obs,em:Date.now()};D.mp.push(m);grava();S.aba="lot";msg(`Lote ${m.id} criado e guardado em 📁 A processar. Escolha o destino dele.`);return}
     if(k==="add-pa"){const [o,el]=form("pa");const kg=num(o.kg),ent=[...el.querySelectorAll("[data-ent]")].map(i=>({mp:i.dataset.ent,kg:num(i.value)})).filter(x=>x.kg>0);
       if(!o.prod||!(kg>0)||!ent.length){msg("Informe o produto, o peso produzido e quantos kg de cada lote de matéria-prima entraram.");return}
       for(const x of ent){const m=D.mp.find(y=>y.id===x.mp);if(m&&x.kg>(+m.kg||0)-usadoMP(m.id)+0.01){msg(`O lote ${x.mp} só tem ${f1((+m.kg||0)-usadoMP(m.id))} kg de saldo.`);return}}
@@ -15723,6 +15737,14 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
       if(b.dataset.ok!=="1"){b.dataset.ok="1";b.textContent="Apagar?";b.classList.add("warn");setTimeout(()=>{if(b.isConnected){b.dataset.ok="";b.textContent="✕";b.classList.remove("warn")}},3000);return}
       D[L]=D[L].filter(x=>x.id!==id);grava();msg(`${id} apagado.`);return}
     if(k==="rast"){busca(id);return}
+    if(k==="fx"){const m=D.mp.find(x=>x.id===id);if(!m)return;const sd=(+m.kg||0)-usadoMP(m.id);if(!window.gfBenefLote){msg("O fluxograma ainda não abriu.");return}
+      const ok=gfBenefLote({id:m.id,esp:m.esp,kg:Math.round(sd*100)/100,data:m.data});m.fx=Date.now();grava();
+      setTimeout(()=>{try{const bt=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Fluxograma/i.test(x.textContent));if(bt)bt.click();setTimeout(()=>{const c=document.getElementById("bn-fx");if(c)c.scrollIntoView({behavior:"smooth",block:"start"})},250)}catch(e){}},60);
+      if(!ok)setTimeout(()=>alert(`O lote ${m.id} entrou no fluxograma com ${f1(sd)} kg, mas a espécie "${m.esp||"?"}" não foi reconhecida: escolha a espécie em 📏 Rendimento corporal.`),400);return}
+    if(k==="processar"){S.pre={mp:id};S.aba="pro";S.msg="";desenha();return}
+    if(k==="embalar"){S.pre={pa:id};S.aba="emb";S.msg="";desenha();return}
+    if(k==="vender"){S.pre={pa:id};S.aba="exp";S.msg="";desenha();return}
+    if(k==="merc"){try{setView("merc")}catch(e){}return}
     if(k==="buscar"){busca((box.querySelector("#rt-q")||{}).value||"");return}
     if(k==="teste"){const c=D.cx[Math.floor(Math.random()*D.cx.length)];S.tst={cx:c.id,t:Date.now()};S.q=c.id;S.res=rastrear(c.id);desenha();return}
     if(k==="csv"){const r=S.res;if(!r||r.nada)return;const L=[["pedido","data","cliente","contato","nf","caixa","lote_produto","produto","kg","lote_materia_prima","fornecedor","origem","descarga"]];
@@ -15746,12 +15768,17 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     const s="*"+String(t).toUpperCase().replace(/[^0-9A-Z\-. ]/g,"")+"*";let x=0,r="";for(const ch of s){const p=C[ch];if(!p)continue;for(let i=0;i<9;i++){const w=p[i]==="1"?3:1;if(i%2===0)r+=`<rect x="${x}" y="0" width="${w}" height="40"/>`;x+=w}x+=1}
     return `<svg viewBox="0 0 ${x} 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">${r}</svg>`}
   /* entra na aba Beneficiamento, depois do quadro de abertura */
-  const orig=window.drawBenef;if(typeof orig==="function"){window.drawBenef=function(){const r=orig.apply(this,arguments);try{const el=document.getElementById("view-benef");if(el&&!el.hidden){const c=monta();if(!el.contains(c)){const a=el.querySelector("#etapa-bn-int");if(a&&a.nextSibling)el.insertBefore(c,a.nextSibling);else el.appendChild(c)}}}catch(e){}return r}}
+  const orig=window.drawBenef;if(typeof orig==="function"){window.drawBenef=function(){const r=orig.apply(this,arguments);try{const el=document.getElementById("view-benef");if(el&&!el.hidden){const c=monta();if(!el.contains(c)){const a=el.querySelector("#bn-int");if(a&&a.nextSibling)el.insertBefore(c,a.nextSibling);else el.appendChild(c)}}}catch(e){}return r}}
+  /* o Beneficiamento redesenha a aba inteira (ex.: ao digitar num quadro dele): recoloca este quadro no lugar */
+  {const vb=document.getElementById("view-benef");if(vb)new MutationObserver(()=>{if(vb.hidden||!box||vb.contains(box)||!vb.querySelector("#bn-int"))return;const a=vb.querySelector("#bn-int");if(a.nextSibling)vb.insertBefore(box,a.nextSibling);else vb.appendChild(box)}).observe(vb,{childList:true})}
   window.gfRastreio={dados:()=>D,rastrear};
 })();
 </script>
 <style>
 #rt-card .rt-b{padding:14px 18px;display:grid;gap:12px}
+.rt-pasta{border:1px solid var(--line);border-radius:12px;background:var(--surface)}.rt-pasta>summary{cursor:pointer;list-style:none;padding:10px 14px;font-weight:700;font-size:15px;display:flex;gap:10px;align-items:baseline}.rt-pasta>summary::-webkit-details-marker{display:none}.rt-pasta>summary::before{content:"▸";color:var(--muted)}.rt-pasta[open]>summary::before{content:"▾"}.rt-pasta>summary small{margin-left:auto;font-weight:500;color:var(--muted);font-size:12.5px}
+.rt-lote{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line);font-size:14px}.rt-lote small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.rt-lote .rt-acts{display:flex;flex-wrap:wrap;gap:6px}.rt-nofx{background:rgba(15,122,108,.07);border-left:4px solid #0f766e}.rt-pasta>p{padding:0 14px 10px;margin:0}
+
 .rt-kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.rt-kpi>div{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);display:grid;gap:2px}.rt-kpi small{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}.rt-kpi b{font:700 24px var(--f-display)}.rt-kpi span{font-size:12.5px;color:var(--muted)}
 .rt-abas{display:flex;flex-wrap:wrap;gap:6px;background:#0b5d4f;padding:6px;border-radius:12px}.rt-abas button{border:0;background:none;color:#d7efe8;font:600 13.5px var(--f-body);padding:8px 12px;border-radius:9px;cursor:pointer}.rt-abas button[aria-selected="true"]{background:#12806c;color:#fff;box-shadow:inset 0 -3px 0 #a7f3d0}.rt-abas button:hover{background:#0f6e5e}
 .rt-dica{margin:0;font-size:14px;background:var(--accent-soft,#e6f4f1);border-radius:10px;padding:8px 12px}
