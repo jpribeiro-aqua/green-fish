@@ -7,7 +7,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v214";
+  it.querySelector("code").textContent=msg;const ver="ras-v215";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -738,6 +738,13 @@ tr.us-lider>td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .pjg-flash{margin:0 0 8px;padding:10px 12px;border-radius:10px;background:var(--accent-soft,#e3f1ec);border:1px solid var(--accent,#1a6b5a);font-size:14px}
 .pjg-host{margin:0 0 12px}.pjg-form input{text-align:left}.pjg-bar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border:1px solid var(--line,#ddd);border-radius:12px;padding:8px 12px;background:var(--surface,#fff);font-size:14px}.pjg-st{color:var(--muted);font-size:12px}.pjg-st.bad{color:var(--bad,#b4532a);font-weight:600}.pjg-acts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}.pjg-card{border:2px solid var(--accent);border-radius:14px;padding:16px 18px;background:var(--surface,#fff)}.pjg-card h2{margin:0 0 6px;font-size:18px}.pjg-card p{margin:6px 0}.pjg-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:12px 0 6px}.pjg-form .inp{flex:1;min-width:220px}.pj-trava{position:relative}.pj-trava>*{pointer-events:none!important;opacity:.38;filter:grayscale(.5);user-select:none}.bi-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:6px 0 10px}
 #aqua-biodash{margin-top:4px}
+/* v215: a coluna principal rola sozinha, com barra de rolagem sempre visível */
+#gf-side{overflow-y:scroll!important;overscroll-behavior:contain;scrollbar-width:auto!important;scrollbar-color:#a7f3d0 #084a3f;padding-right:4px!important}
+#gf-side::-webkit-scrollbar{width:11px}
+#gf-side::-webkit-scrollbar-track{background:#084a3f;border-radius:8px}
+#gf-side::-webkit-scrollbar-thumb{background:#5fbfa6;border-radius:8px;border:2px solid #084a3f}
+#gf-side::-webkit-scrollbar-thumb:hover{background:#a7f3d0}
+
 /* v214: linha superior com o conteúdo da aba (abre embaixo) */
 .gf-row{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;padding:8px 10px;margin:0 0 6px;background:#0b5d4f;border-radius:14px;position:sticky;top:0;z-index:30;box-shadow:0 4px 14px rgba(11,93,79,.18)}
 .gf-row button{flex:none;display:inline-flex;align-items:center;gap:6px;border:0;background:transparent;color:#d7efe8;font:600 13.5px var(--f-body);padding:8px 12px;border-radius:10px;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent}
@@ -10603,7 +10610,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v214";
+  const APP_VERSAO="ras-v215";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15405,7 +15412,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     fab.onclick=()=>{const o=!H.classList.contains("gf-side-open");H.classList.toggle("gf-side-open",o);fab.setAttribute("aria-expanded",String(o))};bk.onclick=fecha;
     document.addEventListener("keydown",e=>{if(e.key==="Escape")fecha()});
     const tabs=()=>[...nav.querySelectorAll(".tab[data-view]")],vis=t=>!t.hidden&&t.style.display!=="none"&&!t.classList.contains("hidden");
-    function desenha(){const T=tabs(),at=(T.find(t=>t.getAttribute("aria-selected")==="true")||{}).dataset||{},cur=at.view;
+    function desenha(){const st0=side.scrollTop,T=tabs(),at=(T.find(t=>t.getAttribute("aria-selected")==="true")||{}).dataset||{},cur=at.view;
       const usadas=new Set(),grupos=GR.map(g=>[g[0],g[1],g[2].map(v=>T.find(t=>t.dataset.view===v)).filter(t=>t&&vis(t))]);grupos.forEach(g=>g[2].forEach(t=>usadas.add(t)));
       const resto=T.filter(t=>!usadas.has(t)&&vis(t));if(resto.length)grupos.push(["📦","Outras",resto]);
       if(!ab)ab=grupos.map(g=>g[1]);
@@ -15419,7 +15426,8 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
       side.querySelectorAll("[data-gs-g]").forEach(b=>b.onclick=()=>{if(mini){mini=false;ls("gf-side-mini",false);H.classList.remove("gf-side-mini")}const n=b.dataset.gsG,i=ab.indexOf(n);if(i>=0&&b.getAttribute("aria-expanded")==="true")ab.splice(i,1);else if(i<0)ab.push(n);ls("gf-side-ab",ab);desenha()});
       side.querySelectorAll("[data-gs-v]").forEach(b=>b.onclick=()=>{const t=document.getElementById("tab-"+b.dataset.gsV);if(t)t.click();fecha();try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}});
       side.querySelectorAll("[data-gs-a]").forEach(b=>b.onclick=()=>{const t=document.getElementById(b.dataset.gsA);if(t)t.click();fecha()});
-      side.querySelectorAll("[data-gs-k]").forEach(b=>b.onclick=()=>{window.gfRow&&gfRow.sel("gest","gh:"+b.dataset.gsK);fecha()})}
+      side.querySelectorAll("[data-gs-k]").forEach(b=>b.onclick=()=>{window.gfRow&&gfRow.sel("gest","gh:"+b.dataset.gsK);fecha()});
+    side.scrollTop=st0;const at2=side.querySelector('[aria-current="page"],[aria-current="true"]');if(at2&&desenha.ult!==at2.dataset.gsV+"|"+(at2.dataset.gsK||"")){desenha.ult=at2.dataset.gsV+"|"+(at2.dataset.gsK||"");const r=at2.getBoundingClientRect(),rs=side.getBoundingClientRect();if(r.top<rs.top+40||r.bottom>rs.bottom-40)at2.scrollIntoView({block:"center"})}}
     window.gfSideDesenha=desenha;
     H.classList.add("gf-side-on");H.classList.toggle("gf-side-mini",mini);desenha();
     let raf=0;new MutationObserver(()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;desenha()})}).observe(nav,{subtree:true,attributes:true,attributeFilter:["aria-selected","hidden","style","class"],childList:true});
