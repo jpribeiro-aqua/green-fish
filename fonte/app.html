@@ -3,6 +3,13 @@
 <meta charset="utf-8">
 <title>Green Fish</title>
 <script>
+/* v229: quando o app roda escondido para processar um projeto salvo (aba Biomassa de todos os projetos), usa só a memória: nada toca nos dados abertos */
+(()=>{try{const fe=window.frameElement;if(!fe||!fe.dataset||!fe.dataset.gfprev)return;const src=(parent.__gfPrevDados||{})[fe.dataset.gfprev]||{};
+ const mk=o=>{const m=new Map(Object.entries(o||{}).map(([k,v])=>[String(k),String(v)]));return {getItem:k=>m.has(String(k))?m.get(String(k)):null,setItem:(k,v)=>{m.set(String(k),String(v))},removeItem:k=>{m.delete(String(k))},clear:()=>m.clear(),key:i=>[...m.keys()][i]??null,get length(){return m.size}}};
+ Object.defineProperty(window,"localStorage",{value:mk(src),configurable:true});Object.defineProperty(window,"sessionStorage",{value:mk({}),configurable:true});
+ window.__gfPrevIframe=true;window.RAS_SB_FACTORY=undefined}catch(e){}})();
+</script>
+<script>
 /* v208: mostra na tela qualquer erro do app, com botão para copiar e mandar ao suporte */
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
@@ -3625,13 +3632,15 @@ const CORR=[
  ["merc_frete","Camada de mercado (rotas)","Beneficiamento","Frete por kg das entregas → receita líquida dos produtos",()=>{const f=window.gfMerc&&window.gfMerc.freteKg();return isFinite(f)?`R$ ${F(f,2)}/kg`:"monte as rotas com clientes ativos"}],
  ["benef_rend","Beneficiamento","Camada de mercado","Rendimento de filé (medido ou estimado) → margem do filé no Resultado do Green Fish",()=>{const r=rendFile();return `${F(r[0],1)}% (${r[1]})`}],
  ["benef_prod","Beneficiamento","Camada de mercado","Produção de derivados planejada → comparação com a demanda do funil",()=>B.lastPlan&&B.lastPlan.kg>0?`${F(B.lastPlan.kg,1)} kg de ${B.lastPlan.n.replace(/^\S+\s/,"").toLowerCase()}`:"planeje um derivado"],
- ["benef_qual","Beneficiamento","Camada de mercado","Análises de qualidade → nota do nicho “Sustentável e rastreado” e alertas",()=>{const q=qualFalhas();return q.feitas?(q.falhas.length?`⚠️ fora: ${q.falhas.join(", ")}`:`✓ ${q.feitas} análise(s) dentro`):"sem análises lançadas"}]];
+ ["benef_qual","Beneficiamento","Camada de mercado","Análises de qualidade → nota do nicho “Sustentável e rastreado” e alertas",()=>{const q=qualFalhas();return q.feitas?(q.falhas.length?`⚠️ fora: ${q.falhas.join(", ")}`:`✓ ${q.feitas} análise(s) dentro`):"sem análises lançadas"}],
+ ["bio_todos","Biomassa (todos os projetos)","Beneficiamento","Projeções de crescimento e despesca de todos os projetos → avisos em tempo real e cronograma da fábrica",()=>{const r=window.gfPrev&&gfPrev.resumo();return r?`${r.projetos} projeto(s) · ${r.lotes} lote(s) · ${r.avisos} aviso(s)`:"processando"}],
+ ["bio_merc","Biomassa → Beneficiamento","Camada de mercado","Despescas previstas por semana → comanda da produção (oferta para vender)",()=>{const o=window.gfPrev&&gfPrev.oferta();return o&&o.semanas?`${o.semanas.reduce((s,w)=>s+w.kgPeixe+w.kgCamarao,0).toLocaleString("pt-BR")} kg em ${o.semanas.length} semanas`:"sem despescas previstas"}]];
 function corrHTML(onde){const c=corrGet(),on=CORR.filter(x=>c[x[0]]!==false).length;
   return `<section class="card wide" id="gf-corr-${onde}"><div class="card-head"><h2>🔗 Correlações entre abas<span>Escolha quais evidências ligam o Beneficiamento e a Camada de mercado às outras abas — ${on} de ${CORR.length} ligadas</span></h2></div><div class="body">
    <div class="mk-modos" style="margin-bottom:8px"><button type="button" class="chip" data-gfcorr="todas">Ligar todas</button><button type="button" class="chip" data-gfcorr="nenhuma">Desligar todas</button></div>
    <div class="scroll"><table class="lot gf-corr"><thead><tr><th>Usar</th><th class="l">De → Para</th><th class="l">Evidência</th><th class="l">Valor agora</th></tr></thead><tbody>${CORR.map(([id,de,pa,txt,val])=>{let v="—";try{v=val()}catch(e){}return `<tr class="${c[id]===false?"off":""}"><td><input type="checkbox" data-gfcorrid="${id}"${c[id]===false?"":" checked"} aria-label="${esc(txt)}"></td><td class="l"><b>${esc(de)}</b> → ${esc(pa)}</td><td class="l">${esc(txt)}</td><td class="l"><small>${esc(v)}</small></td></tr>`}).join("")}</tbody></table></div>
    <p class="hint">Desligada, a evidência deixa de passar de uma aba para a outra (o app usa só o que você digitar ali). As escolhas valem para as duas abas e ficam salvas neste aparelho.</p></div></section>`}
-window.gfCorrHTML=corrHTML;
+window.gfCorrHTML=corrHTML;window.gfRendFileDe=k=>rendFile(k);window.gfEspDe=espDe;
 const corrRedraw=()=>{try{draw()}catch(e){}try{window.drawMerc&&drawMerc()}catch(e){}try{window.focoRefresh&&focoRefresh()}catch(e){}};
 document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.dataset.gfcorrid)return;const c=corrGet();c[t.dataset.gfcorrid]=t.checked;localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-gfcorr]");if(!b)return;const c={};CORR.forEach(x=>c[x[0]]=b.dataset.gfcorr==="todas");localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
@@ -6790,6 +6799,10 @@ window.projAutoSalvar=()=>{auto.parado=false;return autoSalvar(true)};
 window.projStatus=()=>{const c=atual();return {aberto:!!(c&&c.id&&c.modo===st.mode&&logado()),nome:c&&c.nome,em:auto.em,erro:auto.erro,cliente:!!(c&&c.uid),logado:logado(),pronto:st.mode!=="init"}};
 window.projNovo=()=>novoEmBranco();
 window.projLista=()=>st.list.map(p=>({id:p.id,nome:p.nome,resumo:p.resumo||{},atualizadoEm:p.atualizadoEm||0,criadoEm:p.criadoEm||0,notas:p.notas||"",resp:p.resp||""}));
+/* v229: a aba Biomassa processa todos os projetos para o Beneficiamento */
+window.projDadosDe=async(id,uid)=>{const p=uid?await nuvem.get(id,uid):await back().get(id);return (p&&p.dados)||{}};
+window.projAtualKey=()=>{const c=atual();return c&&c.id&&c.modo===st.mode&&logado()?((c.uid||"me")+"/"+c.id):null};
+window.projTodosClientes=async()=>{if(!ehDono())return [];if(!st.todos){try{st.todos=(await Auth.todosProjetos()).sort((a,b)=>(b.atualizadoEm||0)-(a.atualizadoEm||0))}catch(e){return []}}return st.todos};
 const nomeOk=nome=>{nome=String(nome||"").trim().slice(0,80);if(!nome)throw new Error("Dê um nome ao projeto.");
   if(!logado())throw new Error("Entre na sua conta para criar o projeto.");if(bloq())throw new Error(gate().txt||"Sua conta ainda não pode criar projetos.");
   if(st.list.some(p=>String(p.nome||"").trim().toLowerCase()===nome.toLowerCase()))throw new Error("Já existe um projeto com esse nome: abra-o na pasta de projetos ou use outro nome.");return nome};
@@ -13597,7 +13610,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     if(v.id==="view-gest"&&window.gfGestHub){const G=gfGestHub.lista().map(([k,ic,t])=>({k:"gh:"+k,t:ic+" "+t,gh:k}));return G.concat(L)}return L}
   function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v);let I=itens(v,CD);if(!I.length)return;
     /* v228: no Beneficiamento a linha segue a sequência do lote (a mesma da Rastreabilidade), com setas; os demais quadros vêm depois */
-    if(vid==="benef"){const SEQ=[/Rastreabilidade/i,/Do lote ao produto/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i];
+    if(vid==="benef"){const SEQ=[/Avisos da Biomassa/i,/Rastreabilidade/i,/Do lote ao produto/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i];
       const pos=i=>{const j=SEQ.findIndex(r=>r.test(i.t));return j<0?99:j};I=I.map((i,j)=>Object.assign({},i,{seq:pos(i)<99,o:pos(i)*1000+j})).sort((a,b)=>a.o-b.o)}
     let sel=SEL[vid];if(sel&&sel!=="*"&&!I.some(i=>i.k===sel))sel=null;if(!sel)sel=I[0].k;
     const gest=vid==="gest",hub=gest&&window.gfGestHub?gfGestHub.caixa():null;
@@ -13873,4 +13886,191 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
 .rt-it{font-size:13px;border-left:3px solid #7cc7b5;padding:4px 8px;background:var(--bg);border-radius:0 8px 8px 0}.rt-it small{color:var(--muted)}
 .rt-recall{margin-top:10px;padding:10px 12px;border-radius:10px;background:#fef3c7;color:#78350f;font-size:13.5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.rt-est{font-size:12.5px;color:var(--muted);margin:4px 0 0}.rt-nada{font-size:14px;color:var(--muted)}
 .rt-pe{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.rt-pe small{color:var(--muted);font-size:12px}
+</style>
+<script>
+/* ===================== v229: Biomassa de TODOS os projetos → avisos e cronograma no Beneficiamento → comanda na Camada de mercado =====================
+   Cada projeto salvo é processado pela própria aba Biomassa total em tempo real (o app roda escondido num quadro, com os dados do projeto,
+   sem tocar nos dados abertos). O projeto aberto entra ao vivo. Os avisos saem sozinhos quando um lote chega ao acabamento, perto da despesca ou pronto. */
+(function(){
+if(window.__gfPrevIframe)return;
+const DAY=864e5,CK="greenfish-prev-bio",CFG="greenfish-prev-cfg",SEEN="greenfish-prev-vistos",OF="greenfish-comanda-bio";
+const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const P=v=>{let t=String(v??"").trim();if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const dBR=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+const dBRa=ms=>new Date(ms).toLocaleDateString("pt-BR");
+const hm=ms=>new Date(ms).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const cfg=()=>Object.assign({need:"",dPronto:7,dPerto:21,dAcab:45,sem:12,notif:false},rd(CFG,{}));
+const corr=id=>{try{return window.gfCorrOn?gfCorrOn(id):true}catch(e){return true}};
+const ehCam=l=>/camar/i.test(l.sp+" "+l.spn);
+
+/* ---- tira da aba Biomassa (de qualquer janela do app) a curva de cada lote até a despesca ---- */
+function extrai(w){let fm=null;try{fm=w.feedModels&&w.feedModels()}catch(e){fm=null}if(!fm)return null;const now=Date.now(),hoje=Math.floor(now/DAY)*DAY,out=[];
+  for(const m of fm){try{if(!m||!m.ok||!(m.harvest>0))continue;if(m.harvest<now-30*DAY)continue;
+    const fim=m.at(m.harvest-1),l={g:String(m.name||"Grupo"),sp:String(m.L&&m.L.sp||""),spn:String(m.sp&&m.sp.name||""),st:+m.start,h:+m.harvest,alvo:+m.alvo,q:+(m.g&&m.g.q)||0,
+      wF:+(fim.w||0),bF:+(fim.bio||0),nF:+(fim.n||0),t0:Math.max(+m.start,hoje),w:[],b:[]};
+    if(!(l.wF>0)){const v=m.val(Math.max(0,(m.harvest-m.start)/DAY-1e-3));l.wF=+v.w||0;l.bF=+v.bio||0;l.nF=+v.n||0}
+    for(let t=l.t0,i=0;t<l.h&&i<720;t+=DAY,i++){const v=m.at(t);l.w.push(Math.round((+v.w||0)*10)/10);l.b.push(Math.round((+v.bio||0)*10)/10)}
+    out.push(l)}catch(e){}}
+  return out}
+const aoVivo=()=>extrai(window);
+
+/* ---- processa um projeto salvo: o app abre escondido com os dados dele (num armazenamento só da memória) ---- */
+let tpl=null;
+function calcProjeto(dados){return new Promise(res=>{const key="k"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  (window.__gfPrevDados=window.__gfPrevDados||{})[key]=dados||{};
+  const f=document.createElement("iframe");f.dataset.gfprev=key;f.setAttribute("aria-hidden","true");f.tabIndex=-1;f.title="processamento";
+  f.style.cssText="position:fixed;left:-12000px;top:0;width:1200px;height:900px;opacity:0;pointer-events:none;border:0;visibility:hidden";
+  let fim=false;const t0=Date.now();const acaba=r=>{if(fim)return;fim=true;clearInterval(iv);clearTimeout(to);delete window.__gfPrevDados[key];setTimeout(()=>{try{f.src="about:blank"}catch(e){}f.remove()},30);res(r)};
+  const iv=setInterval(()=>{try{const w=f.contentWindow;if(!w||!w.document||w.document.readyState!=="complete"||typeof w.feedModels!=="function")return;if(Date.now()-t0<1500)return;
+    const r=extrai(w);if(r===null&&Date.now()-t0<12000)return;acaba(r||[])}catch(e){}},400);
+  const to=setTimeout(()=>acaba(null),30000);f.src=location.pathname+"?gfprev=1";document.body.appendChild(f)})}
+
+/* ---- lista de projetos: os seus e, para o dono do app, os dos clientes ---- */
+const S={cache:rd(CK,{}),fila:false,rodando:"",ult:0,erro:"",live:[],msg:""};
+async function projetos(){const L=[];try{for(const p of (window.projLista?projLista():[]))L.push({k:"me/"+p.id,id:p.id,uid:null,nome:p.nome||"Projeto",cli:"",em:p.atualizadoEm||0})}catch(e){}
+  try{if(window.projTodosClientes){const T=await projTodosClientes();for(const p of (T||[]).slice(0,60))L.push({k:p.uid+"/"+p.id,id:p.id,uid:p.uid,nome:p.nome||"Projeto",cli:p.cliente||"cliente",em:p.atualizadoEm||0})}}catch(e){}
+  return L}
+async function processa(forcar){if(S.fila)return;S.fila=true;try{
+  const L=await projetos(),aberto=window.projAtualKey?projAtualKey():null,vivos=new Set(L.map(p=>p.k));
+  for(const k of Object.keys(S.cache))if(!vivos.has(k))delete S.cache[k];
+  for(const p of L){if(p.k===aberto)continue;const c=S.cache[p.k];if(!forcar&&c&&c.em===p.em&&c.lotes&&Date.now()-(c.calc||0)<7*DAY)continue;
+    while(document.hidden)await new Promise(r=>setTimeout(r,4000));
+    S.rodando=p.nome;desenhaTudo();let lotes=null,erro="";
+    try{const dados=window.projDadosDe?await projDadosDe(p.id,p.uid):null;if(dados)lotes=await calcProjeto(dados);else erro="sem acesso aos dados"}catch(e){erro=(e&&e.message)||"erro ao abrir"}
+    S.cache[p.k]={em:p.em,calc:Date.now(),nome:p.nome,cli:p.cli,lotes:lotes||[],erro:lotes===null?(erro||"não terminou de calcular"):""};wr(CK,S.cache);
+    await new Promise(r=>setTimeout(r,1200))}
+  for(const p of L)if(S.cache[p.k]){S.cache[p.k].nome=p.nome;S.cache[p.k].cli=p.cli}
+  S.ult=Date.now();S.erro=""}catch(e){S.erro=(e&&e.message)||"erro"}finally{S.fila=false;S.rodando="";wr(CK,S.cache);tick()}}
+
+/* ---- situação de cada lote agora ---- */
+function valor(l,ms){if(ms<l.st)return {pre:true,w:0,b:0};if(ms>=l.h)return {done:true,w:l.wF,b:l.bF};const x=(ms-l.t0)/DAY;if(!l.w.length||x<0)return {w:l.w[0]||0,b:l.b[0]||0};
+  const i=Math.min(l.w.length-1,Math.floor(x)),j=Math.min(l.w.length-1,i+1),t=Math.max(0,Math.min(1,x-i));return {w:l.w[i]+(l.w[j]-l.w[i])*t,b:l.b[i]+(l.b[j]-l.b[i])*t}}
+const NIV=[["⚪","Ainda não povoado","pre"],["🟢","Engorda","eng"],["🟡","Acabamento — peso final se aproximando","acab"],["🟠","Perto da despesca","perto"],["🔴","Despesca nos próximos dias","desp"],["✅","Biomassa pronta — despescar","pronto"]];
+function nivel(l,now,C){const v=valor(l,now),dias=(l.h-now)/DAY,pct=l.alvo>0?v.w/l.alvo:NaN;
+  if(v.pre)return {n:0,v,dias,pct};if(dias<=0)return {n:5,v,dias,pct:1};if(dias<=C.dPronto||pct>=.98)return {n:4,v,dias,pct};if(dias<=C.dPerto||pct>=.9)return {n:3,v,dias,pct};if(dias<=C.dAcab||pct>=.8)return {n:2,v,dias,pct};return {n:1,v,dias,pct}}
+function todos(){const now=Date.now(),C=cfg(),A=[],aberto=window.projAtualKey?projAtualKey():null;let st={};try{st=window.projStatus?projStatus():{}}catch(e){}
+  const add=(k,nome,cli,lotes,vivo)=>(lotes||[]).forEach(l=>{const s=nivel(l,now,C);A.push({...l,pk:k,proj:nome,cli,vivo,s,id:k+"|"+l.g+"|"+l.st})});
+  add(aberto||"aberto",(st&&st.nome)||"Projeto aberto (abas atuais)","",S.live,true);
+  for(const [k,c] of Object.entries(S.cache))if(k!==aberto)add(k,c.nome,c.cli,c.lotes,false);
+  return A.sort((a,b)=>a.h-b.h)}
+/* cronograma semanal: despescas previstas × necessidade da fábrica */
+function semanas(A){const C=cfg(),now=new Date(),d=new Date(now.getFullYear(),now.getMonth(),now.getDate()),seg=d.getTime()-((d.getDay()+6)%7)*DAY,N=Math.max(4,Math.min(52,+C.sem||12));
+  let need=P(C.need),needSrc="informada aqui";if(!(need>0)&&corr("bio_merc")){try{const M=window.gfMercResumo&&gfMercResumo();if(M&&M.volAt>0){need=M.volAt;needSrc="clientes ativos da Camada de mercado"}}catch(e){}}if(!(need>0)){need=NaN;needSrc=""}
+  const W=[];for(let i=0;i<N;i++){const a=seg+i*7*DAY,b=a+7*DAY,L=A.filter(l=>l.s.n>0&&(i===0?l.h<b:l.h>=a&&l.h<b));const kp=L.filter(l=>!ehCam(l)).reduce((s,l)=>s+l.bF,0),kc=L.filter(ehCam).reduce((s,l)=>s+l.bF,0);
+    W.push({i,a,b,L,kp,kc,kg:kp+kc,need,saldo:isFinite(need)?kp+kc-need:NaN})}
+  return {W,need,needSrc,seg}}
+function sugestoes(A,R){const out=[],C=cfg();if(!isFinite(R.need))return out;
+  const ciclo=sp=>{const L=A.filter(l=>l.sp===sp&&l.h>l.st);if(L.length){const v=L.map(l=>(l.h-l.st)/DAY).sort((a,b)=>a-b);return v[Math.floor(v.length/2)]}return /camar/i.test(sp)?110:/tambaqui/i.test(sp)?300:190};
+  const falta=R.W.filter(w=>w.saldo<-R.need*0.1),runs=[];for(const w of falta){const r=runs[runs.length-1];if(r&&r[r.length-1].i===w.i-1)r.push(w);else runs.push([w])}
+  const per=r=>r.length===1?`Semana de ${dBR(r[0].a)}`:`Semanas de ${dBR(r[0].a)} a ${dBR(r[r.length-1].b-DAY)} (${r.length} semanas)`;
+  for(const r of runs.slice(0,4)){const tot=r.reduce((s,w)=>s-w.saldo,0),med=tot/r.length;
+    const ant=A.filter(l=>l.h>=r[r.length-1].b&&l.s.n>=1).map(l=>{const v=valor(l,r[r.length-1].a+3.5*DAY);return {l,v,pct:l.alvo>0?v.w/l.alvo:0}}).filter(x=>x.pct>=.85).sort((a,b)=>b.pct-a.pct)[0];
+    if(ant)out.push(["warn",`📅 Semana de ${dBR(r[r.length-1].a)}: antecipe parte do lote <b>${E(ant.l.g)}</b> (${E(ant.l.proj)}), que estará com ≈ ${F(ant.v.w)} g (${F(ant.pct*100)}% do peso de abate) e ${F(ant.v.b)} kg de biomassa — cobre até ${F(Math.min(ant.v.b,-r[r.length-1].saldo))} kg da falta.`]);
+    const sp=(A.find(l=>!ehCam(l))||A[0]||{sp:"tilapia"}).sp,c=ciclo(sp),ex=A.find(l=>l.sp===sp),alvo=ex&&ex.alvo>0?ex.alvo:sp==="camarao"?14:600,juv=kg=>Math.ceil(kg/(alvo/1000)/0.9/10)*10;
+    const passou=r.filter(w=>w.a-c*DAY<Date.now()),da=r.filter(w=>w.a-c*DAY>=Date.now());
+    if(passou.length)out.push(["crit",`🐟 ${per(passou)}: faltam ≈ ${F(passou.reduce((s,w)=>s-w.saldo,0))} kg e nenhum lote chega ao peso de abate a tempo (o ciclo de ≈ ${F(c)} dias já não permite povoar para essas datas). Compre matéria-prima de terceiros, antecipe despescas parciais ou ajuste a produção da fábrica.`]);
+    if(da.length){const w0=da[0];out.push(["warn",`🐟 ${per(da)}: faltam ≈ ${F(med)} kg/semana. Para cobrir, povoe lotes escalonados a cada 7 dias a partir de <b>${dBRa(w0.a-c*DAY)}</b> (ciclo de ≈ ${F(c)} dias): ≈ ${F(juv(med))} juvenis por lote, para ${F(med)} kg com ${F(alvo)} g na despesca e 90% de sobrevivência.`])}}
+  /* além do horizonte do cronograma: quando povoar para a semana seguinte ao último lote previsto */
+  if(isFinite(R.need)&&A.length){const ult=Math.max(...A.map(l=>l.h)),sp=(A.find(l=>!ehCam(l))||A[0]).sp,c=ciclo(sp),pov=ult+7*DAY-c*DAY;if(ult>Date.now())out.push(["n",`🗓 Último lote previsto: despesca em ${dBRa(ult)}. Para a fábrica não parar depois disso, o próximo povoamento deve ser até <b>${dBRa(Math.max(Date.now(),pov))}</b>${pov<Date.now()?" (já está atrasado)":""}.`])}
+  const sobra=R.W.filter(w=>w.saldo>R.need*0.3);
+  if(sobra.length){const w=sobra[0],prox=R.W.find(x=>x.i>w.i&&x.saldo<0);out.push(["n",`📦 Semana de ${dBR(w.a)}: sobram ≈ ${F(w.saldo)} kg acima da necessidade da fábrica. ${prox?`Escalone: adie parte da despesca para a semana de ${dBR(prox.a)} (falta ≈ ${F(-prox.saldo)} kg), ou congele, venda inteiro ou ofereça aos clientes do funil.`:"Escalone a despesca em semanas seguidas, congele, venda inteiro ou ofereça aos clientes do funil."}`])}
+  if(!falta.length&&!sobra.length&&R.W.some(w=>w.kg>0))out.push(["ok","✓ As despescas previstas cobrem a necessidade da fábrica nas próximas semanas."]);
+  return out}
+/* produtos para a comanda (rendimentos do Beneficiamento) */
+function rend(l){try{if(window.gfRendFileDe){const k=window.gfEspDe?gfEspDe(l.spn||l.sp):l.sp,r=gfRendFileDe(k);if(r&&isFinite(r[0]))return r[0]/100}}catch(e){}return ehCam(l)?.513:/tambaqui/i.test(l.sp)?.257:.33}
+function oferta(A,R){const o={em:Date.now(),need:R.need,needSrc:R.needSrc,semanas:R.W.map(w=>({ini:w.a,kgPeixe:Math.round(w.kp),kgCamarao:Math.round(w.kc),kgProduto:Math.round(w.L.reduce((s,l)=>s+l.bF*rend(l),0)),lotes:w.L.map(l=>({proj:l.proj,grupo:l.g,esp:l.spn,data:l.h,kg:Math.round(l.bF),peso:Math.round(l.wF)}))}))};
+  if(corr("bio_merc"))wr(OF,o);return o}
+
+/* ---- avisos em tempo real ---- */
+function avisos(A){if(!corr("bio_todos"))return;const vistos=rd(SEEN,{}),novos=[];
+  for(const l of A){if(l.s.n<2)continue;const v=vistos[l.id]||0;if(l.s.n>v){novos.push(l);vistos[l.id]=l.s.n}}
+  for(const k of Object.keys(vistos))if(!A.some(l=>l.id===k))delete vistos[k];wr(SEEN,vistos);
+  if(!novos.length)return;const t=novos.length===1?`${NIV[novos[0].s.n][0]} ${novos[0].proj} · ${novos[0].g}: ${NIV[novos[0].s.n][1].toLowerCase()} (${dBR(novos[0].h)}, ≈ ${F(novos[0].bF)} kg)`:`${novos.length} lotes mudaram de situação: ${novos.slice(0,3).map(l=>`${NIV[l.s.n][0]} ${l.g}`).join(", ")}${novos.length>3?"…":""}`;
+  toast(t);if(cfg().notif&&window.Notification&&Notification.permission==="granted"){try{navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification("Green Fish · Beneficiamento",{body:t.replace(/<[^>]+>/g,""),tag:"gf-prev",icon:"icon-192.png"})).catch(()=>{})}catch(e){}}}
+function toast(t){let b=document.getElementById("gfp-toast");if(!b){b=document.createElement("div");b.id="gfp-toast";b.setAttribute("role","status");document.body.appendChild(b)}
+  b.innerHTML=`<span>${E(t)}</span><button type="button" data-gfp="ver">Ver no Beneficiamento</button><button type="button" data-gfp="x" aria-label="Fechar">✕</button>`;b.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{b.hidden=true},20000)}
+function badge(A){const n=corr("bio_todos")?A.filter(l=>l.s.n>=2).length:0,h=document.documentElement;if(n){h.style.setProperty("--gfp-n",`"${n}"`);h.classList.add("gfp-tem")}else{h.classList.remove("gfp-tem")}}
+
+/* ---- quadro na aba Beneficiamento ---- */
+let box=null,boxM=null,abre={proj:false};
+const chip=n=>`<span class="gfp-ch gfp-${NIV[n][2]}">${NIV[n][0]} ${NIV[n][1]}</span>`;
+function htmlBenef(){const C=cfg();
+  if(!corr("bio_todos"))return `<div class="note">A correlação <b>Biomassa (todos os projetos) → Beneficiamento</b> está desligada. <button type="button" class="btn solid" data-gfp="liga">🔗 Ligar a correlação</button></div>`;
+  const A=todos(),R=semanas(A),of=oferta(A,R),av=A.filter(l=>l.s.n>=2),eng=A.filter(l=>l.s.n===1),prox=A.find(l=>l.s.n>=1&&l.h>=Date.now()-30*DAY);
+  const nP=Object.keys(S.cache).length+1,falt=Object.values(S.cache).filter(c=>c.erro).length;
+  const kpi=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d||""}</small></div></div>`;
+  const mx=Math.max(1,...R.W.map(w=>Math.max(w.kg,isFinite(w.need)?w.need:0)));
+  const sug=sugestoes(A,R);
+  return `<div class="gfp-st">${S.rodando?`⏳ Processando na aba Biomassa: <b>${E(S.rodando)}</b>…`:`🔄 ${nP} projeto${nP===1?"":"s"} processado${nP===1?"":"s"} pela aba Biomassa total em tempo real${S.ult?` · ${hm(S.ult)}`:""}${falt?` · ${falt} com aviso`:""}`} · avisos conferidos a cada minuto <button type="button" class="chip" data-gfp="re">Reprocessar todos</button></div>
+   <div class="gfh-kpis bx-kpis">${kpi("Lotes acompanhados",F(A.length),`${eng.length} em engorda · ${A.filter(l=>l.s.n===0).length} a povoar`)}${kpi("Avisos para a fábrica",F(av.length),`${F(av.reduce((s,l)=>s+l.bF,0))} kg previstos nesses lotes`,av.some(l=>l.s.n>=4)?"crit":av.length?"warn":"ok")}${kpi("Próxima despesca",prox?dBR(prox.h):"—",prox?`${E(prox.proj)} · ${E(prox.g)} · ≈ ${F(prox.bF)} kg`:"cadastre lotes na aba Biomassa","ok")}${kpi("Necessidade da fábrica",isFinite(R.need)?F(R.need)+" kg/sem":"—",R.needSrc||"informe abaixo")}</div>
+   <h3 class="gfp-h">🚨 Avisos em tempo real</h3>
+   ${av.length?`<div class="gfp-av">${av.map(l=>`<div class="gfp-it gfp-${NIV[l.s.n][2]}"><div>${chip(l.s.n)}<b>${E(l.proj)}${l.cli?` <small>(${E(l.cli)})</small>`:""} · ${E(l.g)}</b> <small>${E(l.spn)}${l.vivo?" · ao vivo":""}</small></div>
+      <div class="gfp-num">Agora: <b>${F(l.s.v.w)} g</b> (${F(l.s.pct*100)}% do peso de abate de ${F(l.alvo)} g) · biomassa <b>${F(l.s.v.b)} kg</b> → despesca <b>${dBRa(l.h)}</b> ${l.s.dias>0?`(em ${F(Math.ceil(l.s.dias))} dia${Math.ceil(l.s.dias)===1?"":"s"})`:`(${F(Math.floor(-l.s.dias))} dia(s) atrás)`} com ≈ <b>${F(l.bF)} kg</b> e ${F(l.wF)} g/animal</div>
+      <div class="gfp-bt"><button type="button" class="btn" data-gfp="usar" data-id="${E(l.id)}">🏭 Programar no Beneficiamento</button></div></div>`).join("")}</div>`:`<p class="muted">Nenhum lote em acabamento, perto da despesca ou pronto agora. Os avisos aparecem sozinhos ${F(C.dAcab)} dias antes (acabamento), ${F(C.dPerto)} dias antes (perto) e ${F(C.dPronto)} dias antes (despesca).</p>`}
+   <h3 class="gfp-h">📅 Cronograma da fábrica — para não faltar ${A.some(ehCam)&&A.some(l=>!ehCam(l))?"peixe nem camarão":A.some(ehCam)?"camarão":"peixe"}</h3>
+   <div class="mk-form gfp-cfg"><label class="jr-f">Necessidade da fábrica (kg/semana)<input data-gfpc="need" value="${E(C.need)}" inputmode="decimal" placeholder="${isFinite(R.need)&&!P(C.need)?F(R.need):"ex.: 500"}"></label><label class="jr-f">Aviso de acabamento (dias antes)<input data-gfpc="dAcab" value="${E(C.dAcab)}" inputmode="numeric"></label><label class="jr-f">Perto da despesca (dias)<input data-gfpc="dPerto" value="${E(C.dPerto)}" inputmode="numeric"></label><label class="jr-f">Despesca (dias)<input data-gfpc="dPronto" value="${E(C.dPronto)}" inputmode="numeric"></label><label class="jr-f">Semanas<select data-gfpc="sem">${[8,12,16,26,52].map(n=>`<option${+C.sem===n?" selected":""}>${n}</option>`).join("")}</select></label></div>
+   <div class="scroll"><table class="lot gfp-tab"><thead><tr><th class="l">Semana</th><th class="l">Despescas previstas</th><th>Peixe</th><th>Camarão</th><th class="l gfp-barh">Total × necessidade</th><th>Saldo</th></tr></thead><tbody>${R.W.map(w=>`<tr class="${isFinite(w.saldo)?(w.saldo<-w.need*.1?"gfp-falta":w.saldo>w.need*.3?"gfp-sobra":""):""}"><td class="l"><b>${dBR(w.a)}–${dBR(w.b-DAY)}</b></td><td class="l">${w.L.length?w.L.map(l=>`<small>${E(l.proj)} · ${E(l.g)} · ${dBR(l.h)} · ${F(l.bF)} kg</small>`).join(""):"<small class=\"muted\">—</small>"}</td><td>${w.kp?F(w.kp)+" kg":"—"}</td><td>${w.kc?F(w.kc)+" kg":"—"}</td><td class="l gfp-barh"><div class="gfp-bar"><i style="width:${w.kg/mx*100}%"></i>${isFinite(w.need)?`<em style="left:${w.need/mx*100}%"></em>`:""}</div></td><td>${isFinite(w.saldo)?`<b class="${w.saldo<0?"neg":""}">${w.saldo>=0?"+":"−"}${F(Math.abs(w.saldo))} kg</b>`:"—"}</td></tr>`).join("")}</tbody></table></div>
+   ${sug.length?`<ul class="gfp-sug">${sug.map(([c,t])=>`<li class="gfp-${c}">${t}</li>`).join("")}</ul>`:isFinite(R.need)?"":`<p class="hint">Informe a necessidade da fábrica (ou cadastre clientes ativos na Camada de mercado) para o app apontar as semanas em que vai faltar ou sobrar matéria-prima.</p>`}
+   <p class="hint">📦 ${corr("bio_merc")?`Comanda enviada automaticamente para a <b>Camada de mercado</b> (${F(of.semanas.reduce((s,w)=>s+w.kgPeixe+w.kgCamarao,0))} kg em ${R.W.length} semanas). <button type="button" class="linkbtn" data-gfp="merc">Abrir a Camada de mercado</button>`:`Envio para a Camada de mercado desligado em 🔗 Correlações entre abas.`}</p>
+   <details class="gfp-pj"${abre.proj?" open":""}><summary>🗂 Projetos processados (${nP})</summary><div class="scroll"><table class="lot"><thead><tr><th class="l">Projeto</th><th class="l">Processamento</th><th>Lotes</th></tr></thead><tbody>
+     <tr><td class="l"><b>${E((window.projStatus&&projStatus().nome)||"Projeto aberto (abas atuais)")}</b></td><td class="l">ao vivo</td><td>${S.live.length}</td></tr>
+     ${Object.entries(S.cache).map(([k,c])=>`<tr><td class="l"><b>${E(c.nome)}</b>${c.cli?`<small>${E(c.cli)}</small>`:""}</td><td class="l">${c.erro?`⚠️ ${E(c.erro)}`:`✓ ${dBR(c.calc)} ${hm(c.calc)}`}</td><td>${(c.lotes||[]).length}</td></tr>`).join("")}</tbody></table></div>
+     <p class="hint">Cada projeto salvo é aberto escondido, com os dados dele, e passa pela aba Biomassa total em tempo real (curva de crescimento, biometrias, mortalidade e peso de despesca de cada grupo). O projeto aberto é lido ao vivo. Projetos alterados são processados de novo sozinhos.</p></details>
+   <div class="gfp-nt"><label><input type="checkbox" data-gfpc="notif"${C.notif?" checked":""}> 🔔 Avisar também com notificação do celular (enquanto o app estiver aberto)</label></div>`}
+function htmlMerc(){if(!corr("bio_merc"))return `<div class="note">A correlação <b>Biomassa → Camada de mercado</b> está desligada em 🔗 Correlações entre abas.</div>`;
+  const A=todos(),R=semanas(A),of=oferta(A,R),M=(()=>{try{return window.gfMercResumo&&gfMercResumo()}catch(e){return null}})(),dem=M&&M.volAt>0?M.volAt:NaN;
+  const prox=A.filter(l=>l.s.n>=1).slice(0,8);
+  return `<div class="scroll"><table class="lot gfp-tab"><thead><tr><th class="l">Semana</th><th>Peixe inteiro</th><th>Camarão</th><th>Filé / descascado</th><th>Clientes ativos</th><th>Saldo para vender</th></tr></thead><tbody>${of.semanas.map(w=>{const t=w.kgPeixe+w.kgCamarao,s=isFinite(dem)?t-dem:NaN;return `<tr><td class="l"><b>${dBR(w.ini)}</b></td><td>${w.kgPeixe?F(w.kgPeixe)+" kg":"—"}</td><td>${w.kgCamarao?F(w.kgCamarao)+" kg":"—"}</td><td>${w.kgProduto?F(w.kgProduto)+" kg":"—"}</td><td>${isFinite(dem)?F(dem)+" kg":"—"}</td><td>${isFinite(s)?`<b class="${s<0?"neg":""}">${s>=0?"+":"−"}${F(Math.abs(s))} kg</b>`:"—"}</td></tr>`}).join("")}</tbody></table></div>
+   ${prox.length?`<p class="hint" style="margin-top:6px"><b>Próximas despescas:</b> ${prox.map(l=>`${NIV[l.s.n][0]} ${E(l.proj)} · ${E(l.g)} em ${dBR(l.h)} (≈ ${F(l.bF)} kg, ${F(l.wF)} g)`).join(" · ")}</p>`:""}
+   <p class="hint">Enviado sozinho pelo Beneficiamento a partir das projeções da aba Biomassa de todos os projetos (${hm(of.em)}). Filé/descascado pelos rendimentos do Beneficiamento. ${isFinite(dem)?"":"Cadastre clientes ativos no funil para comparar com a demanda."}</p>`}
+function montaCard(id,ico,t,sub){const b=document.createElement("section");b.className="card wide gfp-card";b.id=id;b.innerHTML=`<div class="card-head"><i class="n">${ico}</i><h2>${t}<span>${sub}</span></h2></div><div class="gfp-b"></div>`;
+  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();const k=e.target.dataset&&e.target.dataset.gfpc;if(!k)return;if(ev==="input"&&e.target.type!=="checkbox"&&e.target.tagName!=="SELECT"){const c=rd(CFG,{});c[k]=e.target.value;wr(CFG,c);clearTimeout(montaCard.t);montaCard.t=setTimeout(()=>{const a=document.activeElement,den=b.contains(a),id2=den&&a.dataset.gfpc,pos=den?a.selectionStart:0;desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc);if(id2){const n=b.querySelector(`[data-gfpc="${id2}"]`);if(n&&n!==a){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}},600);return}
+    if(ev==="change"){const c=rd(CFG,{});if(k==="notif"){c.notif=e.target.checked;if(c.notif&&window.Notification&&Notification.permission==="default")Notification.requestPermission().catch(()=>{})}else c[k]=e.target.value;wr(CFG,c);desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc)}}));
+  b.addEventListener("toggle",e=>{if(e.target.classList&&e.target.classList.contains("gfp-pj"))abre.proj=e.target.open},true);
+  b.addEventListener("click",clique);return b}
+function clique(e){const a=e.target.closest&&e.target.closest("[data-gfp]");if(!a)return;const k=a.dataset.gfp;
+  if(k==="re"){S.cache={};wr(CK,{});wr(SEEN,{});processa(true);desenhaTudo()}
+  else if(k==="liga"){try{const c=JSON.parse(localStorage.getItem("greenfish-corr")||"{}");c.bio_todos=true;c.bio_merc=true;localStorage.setItem("greenfish-corr",JSON.stringify(c))}catch(_){}desenhaTudo();try{window.drawBenef&&drawBenef()}catch(_){}}
+  else if(k==="merc"){try{setView("merc")}catch(_){}}
+  else if(k==="usar"){const l=todos().find(x=>x.id===a.dataset.id);if(!l)return;try{window.gfBenefLote&&gfBenefLote({esp:l.spn,kg:Math.round(l.bF),id:"BIO-"+(l.proj+"-"+l.g).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w]+/g,"").slice(0,18).toUpperCase(),data:new Date(l.h).toISOString().slice(0,10)})}catch(_){}
+    toast(`${l.g} (${l.proj}): ${F(l.bF)} kg programados nos quadros do Beneficiamento para ${dBRa(l.h)}.`)}
+  else if(k==="ver"){const t=document.getElementById("gfp-toast");if(t)t.hidden=true;try{setView("benef");setTimeout(()=>{poe();const r=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Avisos da Biomassa/.test(x.textContent));if(r&&r.getAttribute("aria-selected")!=="true")r.click();setTimeout(()=>{const c=document.getElementById("gfp-card");c&&c.scrollIntoView({behavior:"smooth",block:"start"})},120)},250)}catch(_){}}
+  else if(k==="x"){const t=document.getElementById("gfp-toast");if(t)t.hidden=true}}
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("#gfp-toast [data-gfp]");if(a)clique(e)});
+function poe(){const vb=document.getElementById("view-benef");if(vb&&!vb.hidden&&vb.querySelector("#bn-int")){if(!box)box=montaCard("gfp-card","📡","📡 Avisos da Biomassa · cronograma da fábrica","Todos os projetos processados pela aba Biomassa total em tempo real: o que está pronto, perto da despesca ou no acabamento");
+    if(!vb.contains(box)){const a=vb.querySelector("#bn-int");a.nextSibling?vb.insertBefore(box,a.nextSibling):vb.appendChild(box);desenha(box,htmlBenef)}}
+  const vm=document.getElementById("view-merc");if(vm&&!vm.hidden&&vm.querySelector(".card")){if(!boxM)boxM=montaCard("gfp-merc","📦","📦 Comanda da produção · despescas previstas","Enviada pelo Beneficiamento a partir da aba Biomassa de todos os projetos");
+    if(!vm.contains(boxM)){const c=[...vm.children].find(x=>x.classList&&x.classList.contains("card"));c?vm.insertBefore(boxM,c):vm.appendChild(boxM);desenha(boxM,htmlMerc)}}}
+function desenha(b,fn){const d=b.querySelector(".gfp-b");if(!d)return;const h=fn();if(d.__h!==h){d.innerHTML=h;d.__h=h}}
+function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activeElement))desenha(box,htmlBenef)}catch(e){}try{if(boxM&&boxM.isConnected)desenha(boxM,htmlMerc)}catch(e){}}
+for(const id of ["view-benef","view-merc"]){const v=document.getElementById(id);if(v)new MutationObserver(()=>{if(!v.hidden)poe()}).observe(v,{childList:true,attributes:true,attributeFilter:["hidden"]})}
+/* ---- relógio: ao vivo a cada minuto ---- */
+function tick(){try{S.live=aoVivo()||[]}catch(e){S.live=[]}const A=todos();try{const R=semanas(A);oferta(A,R)}catch(e){}badge(A);avisos(A);poe();desenhaTudo()}
+window.gfPrev={todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
+setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);
+setTimeout(()=>processa(false),7000);setInterval(()=>{if(!document.hidden)processa(false)},15*60000);
+window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
+})();
+</script>
+<style>
+#gfp-card .gfp-b,#gfp-merc .gfp-b{padding:14px 18px;display:grid;gap:10px}
+.gfp-st{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.gfp-h{margin:6px 0 0;font-size:15px}
+.gfp-av{display:grid;gap:8px}
+.gfp-it{border-left:4px solid #9ca3af;background:var(--bg);border-radius:0 10px 10px 0;padding:8px 12px;display:grid;gap:4px;font-size:13.5px}
+.gfp-it small{color:var(--muted)}.gfp-num{font-size:13px}.gfp-bt{display:flex;gap:6px;flex-wrap:wrap}
+.gfp-it.gfp-acab{border-color:#eab308}.gfp-it.gfp-perto{border-color:#f97316}.gfp-it.gfp-desp{border-color:#dc2626}.gfp-it.gfp-pronto{border-color:#16a34a}
+.gfp-ch{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:1px 9px;margin-right:6px;background:#e5e7eb;color:#374151}
+.gfp-ch.gfp-acab{background:#fef9c3;color:#854d0e}.gfp-ch.gfp-perto{background:#ffedd5;color:#9a3412}.gfp-ch.gfp-desp{background:#fee2e2;color:#991b1b}.gfp-ch.gfp-pronto{background:#dcfce7;color:#166534}.gfp-ch.gfp-eng{background:#ecfdf5;color:#065f46}
+.gfp-tab td small{display:block}.gfp-tab tr.gfp-falta td{background:rgba(220,38,38,.07)}.gfp-tab tr.gfp-sobra td{background:rgba(234,179,8,.08)}
+.gfp-barh{min-width:140px}.gfp-bar{position:relative;height:12px;border-radius:6px;background:var(--line,#e5e7eb);overflow:visible}.gfp-bar i{display:block;height:100%;border-radius:6px;background:#0f766e}.gfp-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:#dc2626}
+.gfp-sug{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}.gfp-sug .gfp-crit{color:#991b1b}.gfp-sug .gfp-warn{color:#9a3412}.gfp-sug .gfp-ok{color:#166534}
+.gfp-pj summary{cursor:pointer;font-weight:600;font-size:14px}.gfp-nt{font-size:13px}
+#gfp-toast{position:fixed;right:16px;bottom:16px;z-index:9998;max-width:min(520px,calc(100vw - 32px));background:#064e3b;color:#ecfdf5;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px}
+#gfp-toast[hidden]{display:none}#gfp-toast button{border:0;border-radius:8px;padding:5px 10px;background:#10b981;color:#fff;font-weight:600;cursor:pointer}#gfp-toast button[data-gfp="x"]{background:transparent;color:#a7f3d0;padding:5px 6px}
+html.gfp-tem .gs-i[data-gs-v="benef"]{position:relative}html.gfp-tem .gs-i[data-gs-v="benef"]::after{content:var(--gfp-n);position:absolute;right:8px;top:50%;transform:translateY(-50%);min-width:18px;height:18px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px}
+@media (max-width:640px){#gfp-toast{left:8px;right:8px;bottom:76px}}
 </style>
