@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v238";
+  it.querySelector("code").textContent=msg;const ver="ras-v239";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10719,7 +10719,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v238";
+  const APP_VERSAO="ras-v239";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -14382,6 +14382,8 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
     ["Anual (abr–mai)","IRPF com a atividade rural e, se obrigado, o LCDPR","pf"],["Anual (ago–set)","ITR do imóvel rural","pf me mg coop"],["Anual (mai)","DASN-SIMEI do MEI","mei"],["Conforme a licença","Renovação da licença ambiental, outorga e relatórios de monitoramento da água","pf me mg coop mei"],
     ["Por safra","Plano de crédito e seguro (julho inicia o novo Plano Safra)","pf me mg coop"]];
   const porta=p=>!p||p.split(" ").includes(S.porte);
+  /* v239: ficha de cadastro e diagnóstico da propriedade (primeira área da AquaGestão) */
+  SEC.splice(1,0,{k:"diag",ic:"📋",t:"Cadastro e diagnóstico da propriedade",d:"Ficha de cada propriedade e produto, com diagnóstico inicial e atualizado para a tomada de decisão.",app:["local","calc","bio","aqua","fin","merc","benef"],subs:[],html:()=>window.gfDiag?gfDiag.html():"",info:()=>window.gfDiag?gfDiag.info():""});
   /* correlação: quais áreas cada aba alimenta */
   const AREAS_DE=v=>SEC.filter(s=>(s.app||[]).includes(v)||(s.tool||[]).includes(v));
   function vai(v){if(v==="@topografia"){window.gfTopoAbrir&&gfTopoAbrir();return}if(v==="@camera"){try{setView("bio")}catch(e){}setTimeout(()=>{window.gfBioCam&&gfBioCam()},300);return}try{setView(v)}catch(e){const t=document.querySelector(`[data-view="${v}"]`);t&&t.click()}scrollTo({top:0,behavior:"smooth"})}
@@ -14395,7 +14397,7 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
       pasta("geral/areas","🗂","Áreas de gestão",`${SEC.length-1} pastas`,()=>`<div class="gh-cards">${SEC.slice(1).map(x=>`<button type="button" class="gh-card" data-gh-sec="${x.k}"><span>${x.ic}</span><b>${Ex(x.t)}</b><small>${Ex(x.d)}</small></button>`).join("")}</div>`)+
       pasta("geral/mapa","🔗","Abas do app × áreas de gestão",`${Object.keys(APP).length} abas`,()=>Object.keys(APP).map(v=>{const ar=AREAS_DE(v);return pasta("mapa/"+v,APP[v][0],APP[v][1],ar.length?ar.length+" área(s)":"base de todas",()=>`<div class="gh-ml">${appBtn(v)}<div>${ar.map(x=>`<button type="button" class="gh-tag" data-gh-sec="${x.k}">${x.ic} ${Ex(x.t)}</button>`).join("")||'<small class="gh-mu">usada como base por todas as áreas</small>'}</div></div>`)}).join(""))+
       pasta("geral/obr","🗓","Obrigações recorrentes",Ex((PORTES.find(p=>p[0]===S.porte)||[])[1]||""),()=>`<div class="gh-obr">${OBR.filter(o=>porta(o[2])).map(o=>`<div><b>${Ex(o[0])}</b><span>${Ex(o[1])}</span></div>`).join("")}</div><p class="gh-aviso">Prazos e regras mudam: confira sempre na fonte oficial e com seu contador ou técnico. Lista consultada em novembro de 2026.</p>`));
-    SEC.slice(1).forEach(s=>{h+=pasta(s.k,s.ic,s.t,`${s.subs.reduce((n,q)=>n+q[1].filter(i=>porta(i.p)).length,0)} fontes · ${nApp(s).length} atalhos`,()=>`<p class="gh-desc">${Ex(s.d)}</p>`+
+    SEC.slice(1).forEach(s=>{if(s.html){h+=pasta(s.k,s.ic,s.t,s.info(),()=>`<p class="gh-desc">${Ex(s.d)}</p>`+s.html());return}h+=pasta(s.k,s.ic,s.t,`${s.subs.reduce((n,q)=>n+q[1].filter(i=>porta(i.p)).length,0)} fontes · ${nApp(s).length} atalhos`,()=>`<p class="gh-desc">${Ex(s.d)}</p>`+
       s.subs.map((q,i)=>pasta(s.k+"/"+i,"",q[0],`${q[1].filter(it=>porta(it.p)).length} de ${q[1].length}`,()=>q[1].map((it,j)=>item(s.k+"/"+i+"/"+j,it)).join(""))).join("")+
       pasta(s.k+"/app","🔗","No app",`${nApp(s).length} atalhos`,()=>`<div class="gh-apps">${nApp(s).map(v=>appBtn(v)).join("")}</div>`,"gh-papp"))});return h}
   function render(){const box=document.getElementById("gest-hub");if(!box)return;S.ab=[...AB];gr();
@@ -16184,7 +16186,7 @@ function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activ
 for(const id of ["view-benef","view-merc"]){const v=document.getElementById(id);if(v)new MutationObserver(()=>{if(!v.hidden)poe()}).observe(v,{childList:true,attributes:true,attributeFilter:["hidden"]})}
 /* ---- relógio: ao vivo a cada minuto ---- */
 function tick(){try{S.live=aoVivo()||[]}catch(e){S.live=[]}const A=todos();try{const R=semanas(A);oferta(A,R)}catch(e){}badge(A);avisos(A);poe();desenhaTudo()}
-window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()}};window.gfPrev={todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
+window.gfPrevToast=t=>toast(t);window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()}};window.gfPrev={cache:()=>S.cache,todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
 setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);
 setTimeout(()=>processa(false),7000);setInterval(()=>{if(!document.hidden)processa(false)},15*60000);
 window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
@@ -16325,3 +16327,173 @@ window.gfDespReal=function(nome,start){try{if(!window.gfOrdens)return null;const
   const h=(o.hist||[]).find(x=>x.s==="captura")||(o.hist||[]).find(x=>x.s==="conferida");return h?h.em:null}catch(e){return null}};
 </script>
 <style>.pill.pill-over{background:#fef3c7;color:#92400e}</style>
+<script>
+/* ===================== v239: AquaGestão · ficha de cadastro e diagnóstico de cada propriedade e produto (inicial e atualizado) ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="ras-multitanques-v1-diag",DAY=864e5;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const P=v=>{let t=String(v??"").trim();if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const dB=ms=>new Date(ms).toLocaleDateString("pt-BR");
+const nid=()=>"d"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+let D;const ler=()=>{try{D=JSON.parse(localStorage.getItem(K)||"null")}catch(e){D=null}D=Object.assign({props:[],sel:null},D||{});return D};
+const grava=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch(e){}};
+const N0=v=>isFinite(v)?String(Math.round(v)):"",N2=v=>isFinite(v)?String(Math.round(v*100)/100).replace(".",","):"";
+const T=(f,d)=>{try{const v=f();return v===undefined?d:v}catch(e){return d}};
+/* ---- campos da ficha ---- */
+const OPC={sist:[["","—"],["viveiro","Viveiro escavado"],["ras","RAS (recirculação)"],["tanque","Tanque de alvenaria/lona"],["rede","Tanque-rede"],["biofloco","Bioflocos"],["aquaponia","Aquaponia"],["misto","Misto"]],
+ fonte:[["","—"],["poco","Poço"],["rio","Rio/igarapé"],["acude","Açude/barragem"],["nascente","Nascente"],["rede","Rede pública"],["chuva","Chuva"]],
+ agua:[["","—"],["sobra","Sobra o ano todo"],["ok","Suficiente"],["lim","Falta na seca"]],
+ ener:[["","—"],["rede","Rede elétrica"],["solar","Solar"],["misto","Rede + solar"],["gerador","Só gerador"],["nao","Sem energia"]],
+ sn:[["","—"],["sim","Sim"],["nao","Não"]],
+ sna:[["","—"],["sim","Sim"],["and","Em andamento"],["nao","Não"]],
+ outorga:[["","—"],["sim","Sim"],["disp","Dispensada (uso insignificante)"],["and","Em andamento"],["nao","Não"]],
+ insp:[["","—"],["sif","SIF (federal)"],["sie","SIE (estadual)"],["sim","SIM (municipal)"],["sisbi","SISBI-POA"],["nao","Nenhuma"]],
+ acesso:[["","—"],["asf","Asfalto até a porteira"],["terra","Estrada de terra boa"],["ruim","Estrada ruim na chuva"]],
+ reg:[["","—"],["app","No app/planilha, em dia"],["papel","Caderno/papel"],["nao","Não registra"]],
+ fase:[["engorda","Engorda"],["alevinagem","Alevinagem/larvicultura"],["recria","Recria"],["benef","Beneficiado (filé, defumado…)"],["outro","Outro"]]};
+const CAD=[["🆔 Identificação e localização",[["nome","Nome da propriedade"],["resp","Responsável técnico / gestor"],["mun","Município – UF"],["lat","Latitude"],["lon","Longitude"],["ha","Área total (ha)"],["lam","Lâmina d'água (ha)"],["vol","Volume de água (m³)"],["un","Nº de viveiros/tanques"],["sist","Sistema de cultivo","sist"]]],
+ ["💧 Estrutura, água e energia",[["fonte","Fonte de água","fonte"],["agua","Disponibilidade de água","agua"],["ener","Energia","ener"],["back","Gerador de reserva","sn"],["aer","Aeração","sn"],["acesso","Acesso","acesso"],["frio","Gelo/câmara fria","sn"],["bal","Balança","sn"]]],
+ ["📜 Situação legal e ambiental",[["lic","Licença ambiental","sna"],["licVal","Validade da licença"],["outorga","Outorga de água","outorga"],["car","CAR (Cadastro Ambiental Rural)","sn"],["rgp","Registro de aquicultor (RGP/MPA)","sn"],["insp","Inspeção sanitária (produtos)","insp"]]],
+ ["📊 Gestão e mercado",[["func","Pessoas trabalhando"],["capac","Equipe capacitada","sn"],["ater","Assistência técnica (ATER)","sn"],["reg","Registros de produção","reg"],["canais","Canais de venda (ex.: feira, peixaria, mercado)"],["contr","Contrato/compra garantida","sn"],["cred","Acesso a crédito rural","sn"]]]];
+/* referências por espécie (literatura e aulas usadas no app) */
+const REF={tilapia:{n:"Tilápia",fca:1.5,sob:85,ciclo:180},tambaqui:{n:"Tambaqui",fca:1.7,sob:85,ciclo:300},camarao:{n:"Camarão",fca:1.4,sob:70,ciclo:110},outro:{n:"Outra",fca:1.7,sob:80,ciclo:240}};
+const espK=n=>{n=String(n||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");return /tilap/.test(n)?"tilapia":/tambaq|tambat/.test(n)?"tambaqui":/camar/.test(n)?"camarao":"outro"};
+/* ---- dados das abas do app (projeto aberto) ---- */
+function doApp(){const r={cad:{},prods:[]};const lr=T(()=>window.lvResumo&&lvResumo(),null),LV=lr&&lr.LV,o=lr&&lr.o;
+  const st=T(()=>window.projStatus&&projStatus(),{});r.cad.nome=(st&&st.nome)||"";if(LV){r.cad.mun=LV.loc||"";r.cad.lat=LV.lat||"";r.cad.lon=LV.lon||"";if(+P(LV.nFunc)>0)r.cad.func=String(LV.nFunc)}
+  if(o){if(isFinite(o.ha)&&o.ha>0)r.cad.ha=N2(o.ha);if(isFinite(o.V)&&o.V>0)r.cad.vol=N0(o.V)}
+  const fm=T(()=>window.feedModels&&feedModels(),null)||[];if(fm.length){r.cad.un=String(fm.reduce((s,m)=>s+((m.g&&m.g.q)||0),0));r.cad.sist="ras";if(!r.cad.vol)r.cad.vol=N0(fm.reduce((s,m)=>s+((m.g&&m.g.vol)||0),0))}
+  const sp={};fm.filter(m=>m.ok).forEach(m=>{const k=m.sp.name;(sp[k]=sp[k]||[]).push(m)});
+  const totBio=fm.filter(m=>m.ok).reduce((s,m)=>s+T(()=>m.at(m.harvest-1).bio,0),0);
+  for(const [n,ms] of Object.entries(sp)){const cyc=ms.reduce((s,m)=>s+(m.harvest-m.start)/DAY,0)/ms.length,bio=ms.reduce((s,m)=>s+T(()=>m.at(m.harvest-1).bio,0),0),share=totBio>0?bio/totBio:1/Object.keys(sp).length;
+    r.prods.push({esp:n,fase:"engorda",prod:isFinite(o&&o.prod)&&o.prod>0?N0(o.prod*share):N0(bio*365/Math.max(30,cyc)),preco:o&&o.pV>0?N2(o.pV):"",custo:o&&isFinite(o.cKg)?N2(o.cKg):"",ciclo:N0(cyc),fca:LV?String(LV.fca||""):"",sob:LV?String(LV.sobrev||""):"",peso:N0(ms[0].alvo),dest:""})}
+  return r}
+const novaProp=(base)=>{const p={id:nid(),cad:{},prods:[],snaps:[],em:Date.now()};if(base){Object.assign(p.cad,base.cad||{});p.prods=(base.prods||[]).map(x=>({id:nid(),...x}))}return p};
+/* ---- diagnóstico ---- */
+const pt=(v,map)=>v in map?map[v]:null;
+function diag(p){const c=p.cad,dims=[],recs=[];const add=(k,t,itens)=>{let got=0,max=0,inf=0;for(const it of itens){const tem=it.v!==null&&it.v!==undefined&&!isNaN(it.v);max+=it.w;if(tem){inf++;got+=it.w*Math.max(0,Math.min(1,it.v))}else if(it.nd)recs.push(["n",it.nd,k]);if(tem&&it.v<.75&&it.r)recs.push([it.v<=.34?"crit":"warn",it.r,k])}
+    dims.push({k,t,s:max&&inf?got/max*100:NaN,inf,n:itens.length})};
+  add("legal","📜 Legal e ambiental",[
+    {w:30,v:pt(c.lic,{sim:1,and:.5,nao:0}),r:"Licença ambiental: sem ela não há crédito rural, seguro nem venda formal. Procure o órgão ambiental do estado (no MA, a SEMA) — piscicultura de pequeno porte costuma ter licenciamento simplificado.",nd:"Informe a situação da licença ambiental."},
+    {w:25,v:pt(c.outorga,{sim:1,disp:1,and:.5,nao:0}),r:"Outorga de água: regularize o uso da água (ou a dispensa por uso insignificante) no órgão gestor de recursos hídricos."},
+    {w:20,v:pt(c.car,{sim:1,nao:0}),r:"Faça o CAR da propriedade no SICAR: é exigido para licença e crédito."},
+    {w:15,v:pt(c.rgp,{sim:1,nao:0}),r:"Registre-se como aquicultor no RGP (Ministério da Pesca e Aquicultura): dá acesso a políticas públicas e comprova a origem do pescado."},
+    {w:10,v:pt(c.insp,{sif:1,sie:1,sisbi:1,sim:.7,nao:0}),r:"Para vender beneficiado (filé, defumado) fora da propriedade é preciso inspeção sanitária (SIM, SIE ou SIF)."}]);
+  add("infra","💧 Estrutura, água e energia",[
+    {w:20,v:pt(c.agua,{sobra:1,ok:.8,lim:.2}),r:"A água falta na seca: planeje reservatório, recirculação ou reduza a densidade na estiagem."},
+    {w:15,v:pt(c.fonte,{poco:1,nascente:.9,acude:.8,rio:.7,rede:.6,chuva:.3})},
+    {w:20,v:pt(c.ener,{rede:.8,misto:1,solar:.8,gerador:.4,nao:0}),r:"Energia frágil: com aeração ou bombeamento, uma queda de energia à noite pode matar o lote — avalie solar e reserva."},
+    {w:15,v:pt(c.back,{sim:1,nao:0}),r:"Sem gerador de reserva: em sistema com aeração, falta de energia de madrugada derruba o oxigênio em poucas horas."},
+    {w:10,v:pt(c.aer,{sim:1,nao:.3}),r:"Sem aeração: a densidade e a ração por dia ficam limitadas pelo oxigênio da madrugada."},
+    {w:10,v:pt(c.acesso,{asf:1,terra:.7,ruim:.3}),r:"Acesso ruim na chuva: programe as despescas para a seca ou combine o transporte antes."},
+    {w:5,v:pt(c.frio,{sim:1,nao:0}),r:"Sem gelo ou câmara fria: o pescado perde qualidade e preço entre a despesca e a venda."},
+    {w:5,v:pt(c.bal,{sim:1,nao:0}),r:"Sem balança: biometria e venda ficam no olho — compre uma balança."}]);
+  const fm=p.auto?T(()=>window.feedModels&&feedModels(),null)||[]:[];
+  const pr=p.prods.map(x=>{const r=REF[espK(x.esp)],fca=P(x.fca),sob=P(x.sob),pre=P(x.preco),cus=P(x.custo),kg=P(x.prod);return {x,r,fca,sob,pre,cus,kg,marg:pre>0&&isFinite(cus)?(pre-cus)/pre*100:NaN,rec:kg>0&&pre>0?kg*pre:NaN,luc:kg>0&&pre>0&&isFinite(cus)?kg*(pre-cus):NaN}});
+  const avg=(arr,f)=>{const v=arr.map(f).filter(isFinite);return v.length?v.reduce((a,b)=>a+b,0)/v.length:NaN};
+  const sFca=avg(pr,q=>isFinite(q.fca)&&q.fca>0?Math.min(1,q.r.fca/q.fca):NaN),sSob=avg(pr,q=>isFinite(q.sob)?Math.min(1,q.sob/q.r.sob):NaN);
+  const bioOk=fm.length?fm.some(m=>m.cal):null,A=p.auto?T(()=>typeof bxAgua==="function"?bxAgua():null,null):null,occ=fm.length?T(()=>{const now=Date.now(),b=fm.reduce((s,m)=>s+m.at(now).bio,0),cap=fm.reduce((s,m)=>s+(m.cap||0),0);return cap>0?b/cap:NaN},NaN):NaN;
+  add("prod","🐟 Produção e técnica",[
+    {w:30,v:isFinite(sFca)?sFca:null,r:"Conversão alimentar acima da referência: revise a tabela de arraçoamento, a qualidade da ração e as sobras.",nd:"Informe a conversão alimentar (FCA) de cada produto."},
+    {w:30,v:isFinite(sSob)?sSob:null,r:"Sobrevivência abaixo da referência: revise a aclimatação no povoamento, a densidade e a qualidade da água.",nd:"Informe a sobrevivência (%) de cada produto."},
+    {w:20,v:bioOk===null?pt(c.reg,{app:.8,papel:.5,nao:0}):bioOk?1:.3,r:"Faça biometrias a cada 15 dias: elas corrigem a biomassa, a ração e a data de despesca."},
+    {w:20,v:isFinite(occ)?(occ<=.85?1:occ<=1?.5:0):null,r:isFinite(occ)&&occ>1?"Biomassa acima da capacidade: faça despesca parcial ou transfira peixes já.":"Ocupação acima de 85% da capacidade: planeje despesca parcial ou transferência."}]);
+  if(p.auto)add("aguaq","🌡 Qualidade da água (AquaNictemeral)",[
+    {w:50,v:A&&A.od?(A.od.odMin>=5?1:A.od.odMin>=4?.7:A.od.odMin>=3?.35:0):null,r:A&&A.od?`Oxigênio mínimo de ${F(A.od.odMin,1)} mg/L: reforce a aeração na madrugada e reduza os tratos cedo.`:"",nd:"Importe as leituras de água no AquaNictemeral para avaliar a qualidade da água."},
+    {w:50,v:A&&A.tm!=null?(A.tm>=26&&A.tm<=32?1:A.tm>=24&&A.tm<=34?.6:.2):null,r:A&&A.tm!=null?`Temperatura média de ${F(A.tm,1)} °C fora da faixa ideal (26–32 °C): o crescimento fica mais lento.`:""}]);
+  const mg=avg(pr,q=>q.marg),lr=p.auto?T(()=>window.lvResumo&&lvResumo(),null):null,o=lr&&lr.o;
+  add("eco","💰 Econômico-financeiro",[
+    {w:50,v:isFinite(mg)?(mg>=30?1:mg>=15?.7:mg>=5?.35:0):null,r:isFinite(mg)?`Margem média de ${F(mg,0)}%: ${mg<5?"a produção não paga o custo — reveja ração, densidade e preço de venda, ou agregue valor beneficiando":"baixa — negocie a ração, reduza perdas e busque canais de maior preço"}.`:"",nd:"Informe o preço de venda e o custo por kg de cada produto."},
+    {w:30,v:o&&isFinite(o.VPL)?(o.VPL>0?1:0):null,r:o&&o.VPL<=0?"VPL negativo na aba Local e viabilidade: o investimento não se paga no horizonte analisado.":""},
+    {w:20,v:o&&isFinite(o.PRC)?(o.PRC<=4?1:o.PRC<=7?.6:.2):pt(c.cred,{sim:.8,nao:.3}),r:"Retorno do investimento lento ou sem acesso a crédito: busque linhas do Pronaf/Pronamp com o Plano Safra."}]);
+  const M=p.auto?T(()=>window.gfMercResumo&&gfMercResumo(),null):null,canais=String(c.canais||"").split(/[,;]+/).map(s=>s.trim()).filter(Boolean).length;
+  add("merc","🛒 Mercado e comercialização",[
+    {w:35,v:M?(M.ativos>=3?1:M.ativos>=1?.6:0):canais?Math.min(1,canais/3):null,r:"Poucos clientes ativos: dependência alta de um comprador — prospecte na Camada de mercado.",nd:"Informe os canais de venda (ou cadastre clientes na Camada de mercado)."},
+    {w:35,v:canais?Math.min(1,canais/3):null,r:"Diversifique os canais de venda (feira, peixaria, mercado, restaurante, PNAE/PAA)."},
+    {w:30,v:pt(c.contr,{sim:1,nao:.3}),r:"Sem compra garantida: feche contratos ou pedidos programados antes da despesca."}]);
+  add("gest","📊 Gestão",[
+    {w:30,v:pt(c.reg,{app:1,papel:.5,nao:0}),r:"Registre ração, biometrias, mortalidade e vendas: sem registro não dá para saber se o lote deu lucro."},
+    {w:25,v:pt(c.ater,{sim:1,nao:.2}),r:"Busque assistência técnica (ATER estadual, SENAR, Embrapa, universidade)."},
+    {w:25,v:pt(c.capac,{sim:1,nao:.3}),r:"Capacite a equipe (cursos SENAR de piscicultura e boas práticas)."},
+    {w:20,v:P(c.func)>0?1:c.func===undefined||c.func===""?null:0}]);
+  const val=dims.filter(d=>isFinite(d.s)),tot=val.length?val.reduce((s,d)=>s+d.s,0)/val.length:NaN;
+  const prodDiag=pr.map(q=>{const al=[];if(isFinite(q.marg)&&q.marg<10)al.push("margem baixa: rever custo/preço ou beneficiar");if(isFinite(q.fca)&&q.fca>q.r.fca*1.15)al.push(`FCA ${F(q.fca,2)} > ${F(q.r.fca,1)} de referência`);if(isFinite(q.sob)&&q.sob<q.r.sob*.9)al.push(`sobrevivência ${F(q.sob)}% < ${F(q.r.sob)}%`);
+    return {esp:q.x.esp||"—",fase:q.x.fase,kg:q.kg,pre:q.pre,cus:q.cus,marg:q.marg,rec:q.rec,luc:q.luc,fca:q.fca,sob:q.sob,al,dec:!al.length&&isFinite(q.marg)?"manter e ampliar":al.length?al[0]:"complete os dados"}});
+  return {dims,tot,recs:recs.filter(r=>r[1]),prods:prodDiag}}
+const cor=s=>!isFinite(s)?"nd":s>=75?"ok":s>=50?"warn":"crit",nivel=s=>!isFinite(s)?"sem dados":s>=75?"bom":s>=50?"regular":"crítico";
+/* ---- tela ---- */
+function sel(){ler();let p=D.props.find(x=>x.id===D.sel)||D.props[0]||null;if(p&&D.sel!==p.id){D.sel=p.id}return p}
+function fld(p,[k,t,op]){const v=p.cad[k]??"";return op?`<label class="jr-f">${E(t)}<select data-dgc="${k}">${OPC[op].map(([a,b])=>`<option value="${a}"${a===v?" selected":""}>${E(b)}</option>`).join("")}</select></label>`:`<label class="jr-f">${E(t)}<input data-dgc="${k}" value="${E(v)}"${/^(lat|lon|ha|lam|vol|un|func)$/.test(k)?' inputmode="decimal"':""}></label>`}
+function prodsHTML(p){return `<div class="scroll"><table class="lot dg-pt"><thead><tr><th class="l">Produto / espécie</th><th>Fase</th><th>Produção (kg/ano)</th><th>Preço (R$/kg)</th><th>Custo (R$/kg)</th><th>Ciclo (dias)</th><th>FCA</th><th>Sobrevivência (%)</th><th>Peso final (g)</th><th class="l">Mercado de destino</th><th></th></tr></thead><tbody>
+   ${p.prods.map((x,i)=>`<tr>${["esp"].map(k=>`<td class="l"><input data-dgp="${i}.${k}" value="${E(x[k]??"")}" placeholder="ex.: Tilápia"></td>`).join("")}<td><select data-dgp="${i}.fase">${OPC.fase.map(([a,b])=>`<option value="${a}"${a===x.fase?" selected":""}>${E(b)}</option>`).join("")}</select></td>${["prod","preco","custo","ciclo","fca","sob","peso"].map(k=>`<td><input data-dgp="${i}.${k}" value="${E(x[k]??"")}" inputmode="decimal" class="bn-in"></td>`).join("")}<td class="l"><input data-dgp="${i}.dest" value="${E(x.dest??"")}" placeholder="ex.: peixarias de São Luís"></td><td><button type="button" class="chip" data-dg="prod-del" data-i="${i}" aria-label="Remover produto">✕</button></td></tr>`).join("")||`<tr><td colspan="11" class="l muted">Nenhum produto. Adicione abaixo${p.auto?" ou traga da aba Biomassa":""}.</td></tr>`}</tbody></table></div>
+   <div class="gfp-bt"><button type="button" class="btn" data-dg="prod-add">➕ Produto</button>${p.auto?`<button type="button" class="btn" data-dg="prod-app">🐟 Trazer da Biomassa e da aba Local</button>`:""}</div>`}
+function resHTML(p){const d=diag(p),S=p.snaps||[],ini=S[0],ult=S[S.length-1];
+  const bar=d=>`<div class="dg-dim dg-${cor(d.s)}"><span>${d.t}</span><i><em style="width:${isFinite(d.s)?Math.max(2,d.s):0}%"></em></i><b>${isFinite(d.s)?F(d.s):"—"}</b><small>${nivel(d.s)} · ${d.inf}/${d.n} itens</small></div>`;
+  const cmp=ini?`<div class="scroll"><table class="lot dg-cmp"><thead><tr><th class="l">Dimensão</th><th>Inicial<small>${dB(ini.em)}</small></th>${ult!==ini?`<th>Última atualização<small>${dB(ult.em)}</small></th>`:""}<th>Agora</th><th>Variação desde o inicial</th></tr></thead><tbody>
+     ${[{k:"tot",t:"⭐ Nota geral",s:d.tot}].concat(d.dims).map(x=>{const a=x.k==="tot"?ini.tot:(ini.dims.find(y=>y.k===x.k)||{}).s,u=x.k==="tot"?ult.tot:(ult.dims.find(y=>y.k===x.k)||{}).s,dv=isFinite(x.s)&&isFinite(a)?x.s-a:NaN;
+       return `<tr${x.k==="tot"?' class="tot"':""}><td class="l">${x.t}</td><td>${F(a)}</td>${ult!==ini?`<td>${F(u)}</td>`:""}<td><b>${F(x.s)}</b></td><td class="${dv>0.5?"dg-up":dv<-0.5?"dg-dn":""}">${isFinite(dv)?(dv>0.5?"▲ +":dv<-0.5?"▼ ":"= ")+F(dv):"—"}</td></tr>`}).join("")}</tbody></table></div>`
+    :`<p class="note">Ainda sem diagnóstico inicial: confira a ficha e clique em <b>📌 Registrar diagnóstico inicial</b>. Depois, a cada visita ou ciclo, registre uma atualização para comparar.</p>`;
+  const ini_p=ini?ini.prods||[]:[];
+  return `<div class="dg-top"><div class="dg-nota dg-${cor(d.tot)}"><small>Nota geral agora</small><b>${F(d.tot)}</b><span>${nivel(d.tot)}</span></div><div class="dg-dims">${d.dims.map(bar).join("")}</div></div>
+   <div class="gfp-bt">${ini?`<button type="button" class="btn solid" data-dg="snap">🔄 Registrar diagnóstico atualizado</button>`:`<button type="button" class="btn solid" data-dg="snap">📌 Registrar diagnóstico inicial</button>`}<button type="button" class="btn" data-dg="print">🖨 Imprimir a ficha</button></div>
+   <h4 class="dg-h">📈 Inicial × atualizado</h4>${cmp}
+   <h4 class="dg-h">🐟 Diagnóstico por produto</h4>${d.prods.length?`<div class="scroll"><table class="lot"><thead><tr><th class="l">Produto</th><th>Produção</th><th>Margem</th><th>Lucro/ano</th><th>FCA</th><th>Sobrev.</th>${ini?"<th>Margem inicial</th>":""}<th class="l">Decisão sugerida</th></tr></thead><tbody>${d.prods.map((q,i)=>{const a=ini_p.find(y=>y.esp===q.esp)||ini_p[i];return `<tr><td class="l"><b>${E(q.esp)}</b><small>${E((OPC.fase.find(f=>f[0]===q.fase)||["",""])[1])}</small></td><td>${F(q.kg)} kg</td><td class="${q.marg<10?"neg":""}">${isFinite(q.marg)?F(q.marg)+"%":"—"}</td><td>${isFinite(q.luc)?"R$ "+F(q.luc):"—"}</td><td>${F(q.fca,2)}</td><td>${isFinite(q.sob)?F(q.sob)+"%":"—"}</td>${ini?`<td>${a&&isFinite(a.marg)?F(a.marg)+"%":"—"}</td>`:""}<td class="l">${q.al.length?"⚠️ ":"✅ "}${E(q.dec)}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted">Cadastre os produtos para o diagnóstico por produto.</p>`}
+   <h4 class="dg-h">🧭 Para a tomada de decisão</h4>${d.recs.length?`<ul class="dg-rec">${d.recs.filter(r=>r[0]!=="n").sort((a,b)=>(a[0]==="crit"?0:1)-(b[0]==="crit"?0:1)).slice(0,10).map(r=>`<li class="dg-${r[0]}">${r[1]}</li>`).join("")}${d.recs.filter(r=>r[0]==="n").slice(0,5).map(r=>`<li class="dg-n">ℹ️ ${E(r[1])}</li>`).join("")}</ul>`:`<p class="muted">Nada crítico agora.</p>`}
+   ${S.length>1?`<details class="dg-hist"><summary>🗂 Histórico de diagnósticos (${S.length})</summary><ul>${S.map((s,i)=>`<li>${dB(s.em)} · ${i?"atualização":"inicial"} · nota ${F(s.tot)}</li>`).join("")}</ul></details>`:""}`}
+function html(){const p=sel();
+  const chips=D.props.map(x=>`<button type="button" class="chip${p&&x.id===p.id?" on":""}" data-dg="sel" data-id="${x.id}">${x.auto?"📂 ":"🏡 "}${E(x.cad.nome||"Sem nome")}</button>`).join("");
+  if(!p)return `<div id="dg-root" class="dg"><p class="gh-desc">Uma ficha por propriedade, com os produtos dela, um diagnóstico inicial e os diagnósticos atualizados para comparar e decidir.</p><div class="gfp-bt"><button type="button" class="btn solid" data-dg="nova-app">📂 Criar a ficha do projeto aberto (dados das abas)</button><button type="button" class="btn" data-dg="nova">🏡 Nova propriedade em branco</button><button type="button" class="btn" data-dg="importar">⬇ Trazer as propriedades dos projetos salvos</button></div></div>`;
+  return `<div id="dg-root" class="dg"><div class="dg-chips">${chips}<button type="button" class="chip" data-dg="nova">➕ Nova</button>${D.props.some(x=>x.auto)?"":`<button type="button" class="chip" data-dg="nova-app">📂 Do projeto aberto</button>`}<button type="button" class="chip" data-dg="importar">⬇ Dos projetos salvos</button></div>
+   <h4 class="dg-h">📝 Ficha de cadastro${p.auto?' <small class="muted">· ligada às abas do projeto aberto</small>':""}</h4>
+   ${CAD.map(([t,fs],i)=>`<details class="dg-sec"${i<2||!(p.snaps||[]).length?" open":""}><summary>${t}</summary><div class="mk-form">${fs.map(f=>fld(p,f)).join("")}</div></details>`).join("")}
+   <div class="gfp-bt">${p.auto?`<button type="button" class="btn" data-dg="app">🔄 Atualizar com os dados das abas</button>`:""}<button type="button" class="btn" data-dg="del">🗑 Excluir esta ficha</button></div>
+   <h4 class="dg-h">🐟 Produtos da propriedade</h4>${prodsHTML(p)}
+   <h4 class="dg-h">🩺 Diagnóstico</h4><div id="dg-res">${resHTML(p)}</div></div>`}
+function pinta(full){const r=document.getElementById(full?"dg-root":"dg-res");if(!r)return;const p=sel();if(full){const w=document.createElement("div");w.innerHTML=html();r.replaceWith(w.firstElementChild)}else if(p)r.innerHTML=resHTML(p)}
+function snap(p){const d=diag(p);p.snaps=p.snaps||[];p.snaps.push({em:Date.now(),tot:d.tot,dims:d.dims.map(x=>({k:x.k,s:x.s})),prods:d.prods.map(q=>({esp:q.esp,marg:q.marg,kg:q.kg,fca:q.fca,sob:q.sob})),cad:JSON.parse(JSON.stringify(p.cad))})}
+function imprime(p){const d=diag(p),w=window.open("","_blank");if(!w)return;const S=p.snaps||[];
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Ficha ${E(p.cad.nome||"")}</title><style>body{font:13px system-ui,sans-serif;margin:14mm;color:#111}h1{font-size:20px;margin:0}h2{font-size:15px;border-bottom:2px solid #0f766e;margin:18px 0 6px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:4px 6px;text-align:left;vertical-align:top}th{background:#eef4f1}</style></head><body>
+   <h1>Ficha de cadastro e diagnóstico · ${E(p.cad.nome||"Propriedade")}</h1><p>Green Fish · ${dB(Date.now())}${S.length?` · diagnóstico inicial em ${dB(S[0].em)}`:""}</p>
+   ${CAD.map(([t,fs])=>`<h2>${t}</h2><table>${fs.map(([k,tt,op])=>`<tr><th style="width:40%">${E(tt)}</th><td>${E(op?((OPC[op].find(o=>o[0]===p.cad[k])||["",""])[1]):p.cad[k]||"")}</td></tr>`).join("")}</table>`).join("")}
+   <h2>Produtos</h2><table><tr><th>Produto</th><th>Produção (kg/ano)</th><th>Preço</th><th>Custo</th><th>Margem</th><th>FCA</th><th>Sobrev.</th><th>Destino</th></tr>${p.prods.map((x,i)=>`<tr><td>${E(x.esp)}</td><td>${E(x.prod)}</td><td>${E(x.preco)}</td><td>${E(x.custo)}</td><td>${isFinite(d.prods[i].marg)?F(d.prods[i].marg)+"%":"—"}</td><td>${E(x.fca)}</td><td>${E(x.sob)}</td><td>${E(x.dest)}</td></tr>`).join("")}</table>
+   <h2>Diagnóstico · nota geral ${F(d.tot)} (${nivel(d.tot)})</h2><table><tr><th>Dimensão</th><th>Agora</th>${S.length?"<th>Inicial</th>":""}</tr>${d.dims.map(x=>`<tr><td>${x.t}</td><td>${F(x.s)}</td>${S.length?`<td>${F((S[0].dims.find(y=>y.k===x.k)||{}).s)}</td>`:""}</tr>`).join("")}</table>
+   <h2>Recomendações</h2><ul>${d.recs.filter(r=>r[0]!=="n").map(r=>`<li>${r[1]}</li>`).join("")}</ul><script>setTimeout(()=>print(),300)<\/script><\/body><\/html>`);w.document.close()}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-dg]");if(!b||!b.closest("#dg-root,.gh"))return;e.preventDefault();const k=b.dataset.dg;ler();let p=D.props.find(x=>x.id===D.sel)||D.props[0];
+  if(k==="sel"){D.sel=b.dataset.id;grava();pinta(true);return}
+  if(k==="nova"){const n=novaProp();D.props.push(n);D.sel=n.id;grava();pinta(true);return}
+  if(k==="nova-app"){if(D.props.some(x=>x.auto)){D.sel=D.props.find(x=>x.auto).id}else{const n=novaProp(doApp());n.auto=true;D.props.unshift(n);D.sel=n.id}grava();pinta(true);return}
+  if(k==="importar"){let L=[];try{L=window.gfPrev?gfPrev.todos():[]}catch(_){}const C=T(()=>window.gfPrev&&gfPrev.cache&&gfPrev.cache(),{})||{},por={};L.filter(l=>!l.vivo).forEach(l=>{(por[l.pk]=por[l.pk]||{nome:l.proj,cli:l.cli,lotes:[]}).lotes.push(l)});let n=0;
+    for(const [pk,v] of Object.entries(por)){if(D.props.some(x=>x.pk===pk))continue;const g=(C[pk]||{}).geo||{},sp={};v.lotes.forEach(l=>{(sp[l.spn]=sp[l.spn]||[]).push(l)});
+      const np=novaProp({cad:{nome:v.nome+(v.cli?` (${v.cli})`:""),mun:g.nome||"",lat:isFinite(g.lat)?String(g.lat).replace(".",","):"",lon:isFinite(g.lon)?String(g.lon).replace(".",","):"",sist:"ras"},prods:Object.entries(sp).map(([s,ls])=>({esp:s,fase:"engorda",prod:N0(ls.reduce((a,l)=>a+l.bF,0)*365/Math.max(30,ls.reduce((a,l)=>a+(l.h-l.st)/DAY,0)/ls.length)),ciclo:N0(ls.reduce((a,l)=>a+(l.h-l.st)/DAY,0)/ls.length),peso:N0(ls[0].alvo)}))});np.pk=pk;D.props.push(np);n++}
+    grava();pinta(true);try{window.gfPrevToast&&gfPrevToast(n?`${n} propriedade(s) trazida(s) dos projetos salvos.`:"Nenhuma propriedade nova nos projetos salvos (abra o Beneficiamento para processar os projetos).")}catch(_){}return}
+  if(!p)return;
+  if(k==="del"){if(!confirm(`Excluir a ficha “${p.cad.nome||"sem nome"}” e todos os diagnósticos dela?`))return;D.props=D.props.filter(x=>x!==p);D.sel=(D.props[0]||{}).id||null;grava();pinta(true);return}
+  if(k==="app"){const a=doApp();Object.entries(a.cad).forEach(([kk,v])=>{if(v!=="")p.cad[kk]=v});grava();pinta(true);return}
+  if(k==="prod-add"){p.prods.push({id:nid(),esp:"",fase:"engorda"});grava();pinta(true);return}
+  if(k==="prod-app"){const a=doApp();a.prods.forEach(x=>{const ja=p.prods.find(y=>espK(y.esp)===espK(x.esp));if(ja)Object.entries(x).forEach(([kk,v])=>{if(v!==""&&v!=null)ja[kk]=v});else p.prods.push({id:nid(),...x})});grava();pinta(true);return}
+  if(k==="prod-del"){p.prods.splice(+b.dataset.i,1);grava();pinta(true);return}
+  if(k==="snap"){snap(p);grava();pinta(false);return}
+  if(k==="print"){imprime(p);return}});
+const onIn=e=>{const t=e.target;if(!t.closest||!t.closest("#dg-root"))return;const c=t.dataset.dgc,pp=t.dataset.dgp;if(!c&&!pp)return;e.stopPropagation();ler();const p=D.props.find(x=>x.id===D.sel)||D.props[0];if(!p)return;
+  if(c){p.cad[c]=t.value;if(c==="nome"){const ch=document.querySelector(`#dg-root [data-dg="sel"][data-id="${p.id}"]`);if(ch)ch.textContent=(p.auto?"📂 ":"🏡 ")+(t.value||"Sem nome")}}else{const [i,kk]=pp.split(".");if(p.prods[+i])p.prods[+i][kk]=t.value}
+  grava();clearTimeout(onIn.t);onIn.t=setTimeout(()=>pinta(false),e.type==="change"?0:500)};
+document.addEventListener("input",onIn,true);document.addEventListener("change",onIn,true);
+window.gfDiag={html,info:()=>{ler();return D.props.length?`${D.props.length} ficha(s)`:"nova"}};
+})();
+</script>
+<style>
+.dg{display:grid;gap:10px;min-width:0;max-width:100%}.gh-c,.gh-arv,.gh-p,.gh-pc{min-width:0}.dg>*{min-width:0}.dg .scroll{max-width:100%;overflow-x:auto}.dg-chips{display:flex;flex-wrap:wrap;gap:6px}.dg-chips .chip.on{background:#0f766e;color:#fff;border-color:#0f766e}
+.dg-h{margin:8px 0 2px;font-size:15px}.dg-sec{border:1px solid var(--line,#e5e7eb);border-radius:10px;padding:6px 10px;background:var(--bg)}.dg-sec summary{cursor:pointer;font-weight:600}
+.dg-pt input,.dg-pt select{min-width:70px}.dg-pt td.l input{min-width:150px}
+.dg-top{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:start}@media(max-width:640px){.dg-top{grid-template-columns:1fr}}
+.dg-nota{border-radius:14px;padding:12px;text-align:center;display:grid;gap:2px;background:#e5e7eb}.dg-nota b{font-size:36px;line-height:1}.dg-nota small,.dg-nota span{font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+.dg-nota.dg-ok{background:#dcfce7;color:#166534}.dg-nota.dg-warn{background:#fef9c3;color:#854d0e}.dg-nota.dg-crit{background:#fee2e2;color:#991b1b}
+.dg-dims{display:grid;gap:6px}.dg-dim{display:grid;grid-template-columns:minmax(150px,230px) 1fr 40px;gap:8px;align-items:center;font-size:13.5px}.dg-dim small{grid-column:2/4;color:var(--muted);font-size:11.5px;margin-top:-4px}
+.dg-dim i{height:12px;border-radius:6px;background:var(--line,#e5e7eb);overflow:hidden}.dg-dim em{display:block;height:100%;background:#9ca3af}.dg-dim.dg-ok em{background:#16a34a}.dg-dim.dg-warn em{background:#eab308}.dg-dim.dg-crit em{background:#dc2626}
+@media(max-width:640px){.dg-dim{grid-template-columns:1fr 44px}.dg-dim span{grid-column:1/3}.dg-dim i{grid-column:1/2}.dg-dim small{grid-column:1/3;margin-top:0}}
+.dg-cmp th small{display:block;font-weight:400;font-size:11px}.dg-up{color:#166534;font-weight:700}.dg-dn{color:#991b1b;font-weight:700}
+.dg-rec{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}.dg-rec .dg-crit{color:#991b1b}.dg-rec .dg-warn{color:#9a3412}.dg-rec .dg-n{color:var(--muted)}
+.dg-hist summary{cursor:pointer;font-weight:600}
+</style>
