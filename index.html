@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v237";
+  it.querySelector("code").textContent=msg;const ver="ras-v238";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10719,7 +10719,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v237";
+  const APP_VERSAO="ras-v238";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15883,7 +15883,7 @@ function calcProjeto(dados){return new Promise(res=>{const key="k"+Date.now().to
   f.style.cssText="position:fixed;left:-12000px;top:0;width:1200px;height:900px;opacity:0;pointer-events:none;border:0;visibility:hidden";
   let fim=false;const t0=Date.now();const acaba=r=>{if(fim)return;fim=true;clearInterval(iv);clearTimeout(to);delete window.__gfPrevDados[key];setTimeout(()=>{try{f.src="about:blank"}catch(e){}f.remove()},30);res(r)};
   const iv=setInterval(()=>{try{const w=f.contentWindow;if(!w||!w.document||w.document.readyState!=="complete"||typeof w.feedModels!=="function")return;if(Date.now()-t0<1500)return;
-    const r=extrai(w);if(r===null&&Date.now()-t0<12000)return;acaba(r||[])}catch(e){}},400);
+    const r=extrai(w);if(r===null&&Date.now()-t0<12000)return;const out=r||[];try{const lr=w.lvResumo&&w.lvResumo();if(lr&&lr.LV){const g={lat:P(lr.LV.lat),lon:P(lr.LV.lon),nome:String(lr.LV.loc||"")};if(isFinite(g.lat)&&isFinite(g.lon))out.geo=g}}catch(e){}acaba(out)}catch(e){}},400);
   const to=setTimeout(()=>acaba(null),30000);f.src=location.pathname+"?gfprev=1";document.body.appendChild(f)})}
 
 /* ---- lista de projetos: os seus e, para o dono do app, os dos clientes ---- */
@@ -15898,7 +15898,7 @@ async function processa(forcar){if(S.fila)return;S.fila=true;try{
     while(document.hidden)await new Promise(r=>setTimeout(r,4000));
     S.rodando=p.nome;desenhaTudo();let lotes=null,erro="";
     try{const dados=window.projDadosDe?await projDadosDe(p.id,p.uid):null;if(dados)lotes=await calcProjeto(dados);else erro="sem acesso aos dados"}catch(e){erro=(e&&e.message)||"erro ao abrir"}
-    S.cache[p.k]={em:p.em,calc:Date.now(),nome:p.nome,cli:p.cli,lotes:lotes||[],erro:lotes===null?(erro||"não terminou de calcular"):""};wr(CK,S.cache);
+    S.cache[p.k]={em:p.em,calc:Date.now(),nome:p.nome,cli:p.cli,lotes:lotes||[],geo:(lotes&&lotes.geo)||null,erro:lotes===null?(erro||"não terminou de calcular"):""};wr(CK,S.cache);
     await new Promise(r=>setTimeout(r,1200))}
   for(const p of L)if(S.cache[p.k]){S.cache[p.k].nome=p.nome;S.cache[p.k].cli=p.cli}
   S.ult=Date.now();S.erro=""}catch(e){S.erro=(e&&e.message)||"erro"}finally{S.fila=false;S.rodando="";wr(CK,S.cache);tick()}}
@@ -15973,19 +15973,94 @@ function aceiteHTML(l){const f=ui.f[l.id]||(ui.f[l.id]=Object.assign({data:isoD(
   return `<div class="gfp-acf"><b>✅ Aceite da despesca — ordem para o setor de despesca e transporte</b>
    <div class="mk-form">${inp("data","Data da despesca","","date")}${inp("kg","Quantidade a despescar (kg)",F(kgD))}${inp("resp","Responsável pela captura","nome da equipe")}${inp("veic","Veículo / placa","ex.: caminhão isotérmico ABC-1D23")}${inp("mot","Motorista","")}${inp("obs","Observações","jejum, horário, gelo, caixas…")}</div>
    <p class="hint">Na data escolhida a aba Biomassa prevê ≈ <b>${F(kgD)} kg</b> com ${F(wD)} g/animal${l.alvo>0?` (${F(wD/l.alvo*100)}% do peso de abate)`:""}. Deixe a quantidade em branco para usar a biomassa prevista na data.</p>
-   <div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-criar" data-id="${E(l.id)}">📨 Aceitar e enviar a ordem</button><button type="button" class="btn" data-gfp="od-nao">Cancelar</button></div></div>`}
+   ${geoAceite(l,f)}<div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-criar" data-id="${E(l.id)}">📨 Aceitar e enviar a ordem</button><button type="button" class="btn" data-gfp="od-nao">Cancelar</button></div></div>`}
 function criaOrdem(l){const f=ui.f[l.id]||{},data=f.data||isoD(Date.now()),kg=P(f.kg)>0?P(f.kg):Math.round(kgNaData(l,data)),ms=msD(data),v=valor(l,Math.min(isFinite(ms)?ms:l.h,l.h-1));
   const o={id:novoOD(data),lid:l.id,proj:l.proj,cli:l.cli||"",g:l.g,sp:l.sp,spn:l.spn,data,kgPrev:Math.round(kg),peso:Math.round(v.w||l.wF),alvo:l.alvo,resp:f.resp||"",veic:f.veic||"",mot:f.mot||"",obs:f.obs||"",status:"aceita",hist:[{s:"aceita",em:Date.now()}],rasc:{},em:Date.now()};
-  O.ult={resp:o.resp,veic:o.veic,mot:o.mot};o.rasc={resp:o.resp,hIni:hh()};O.L.unshift(o);gravaO();delete ui.f[l.id];ui.aceita=null;ui.ab=o.id;return o}
+  o.geo=geoNovo(l,f);O.ult={resp:o.resp,veic:o.veic,mot:o.mot};o.rasc={resp:o.resp,hIni:hh()};O.L.unshift(o);gravaO();delete ui.f[l.id];ui.aceita=null;ui.ab=o.id;return o}
 const passo=(o,s)=>{o.status=s;o.hist.push({s,em:Date.now()});gravaO()};
 const quandoS=(o,s)=>{const h=(o.hist||[]).filter(x=>x.s===s).pop();return h?`${dBR(h.em)} ${hm(h.em)}`:""};
 function txtOrdem(o){return `ORDEM DE DESPESCA E TRANSPORTE ${o.id}\nProjeto: ${o.proj}${o.cli?` (${o.cli})`:""}\nGrupo/tanque: ${o.g} · ${o.spn}\nData da despesca: ${dBRa(msD(o.data))}\nQuantidade: ${F(o.kgPrev)} kg · peso médio previsto ${F(o.peso)} g\nResponsável: ${o.resp||"—"} · Veículo: ${o.veic||"—"} · Motorista: ${o.mot||"—"}\n${o.obs?"Obs.: "+o.obs+"\n":""}Levar gelo (1 kg de gelo para cada 1 kg de peixe), caixas identificadas com o código ${o.id} e a GTA. Na chegada a fábrica confere peso, temperatura e origem.`}
 function imprime(o){const w=window.open("","_blank");if(!w){toast("Libere as janelas do navegador para imprimir a ordem.");return}
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${E(o.id)}</title><style>body{font:14px system-ui,sans-serif;margin:16mm;color:#111}h1{font-size:20px;margin:0 0 4px}table{border-collapse:collapse;width:100%;margin:10px 0}td{border:1px solid #999;padding:6px 8px;vertical-align:top}td:first-child{width:38%;font-weight:600;background:#f3f4f6}.ass{display:flex;gap:30px;margin-top:40px}.ass div{flex:1;border-top:1px solid #333;padding-top:4px;font-size:12px;text-align:center}@media print{body{margin:10mm}}</style></head><body>
    <h1>Ordem de despesca e transporte</h1><div style="font:700 26px monospace;letter-spacing:2px">${E(o.id)}</div>
-   <table>${[["Projeto",o.proj+(o.cli?` (${o.cli})`:"")],["Grupo / tanque",o.g],["Espécie",o.spn],["Data da despesca",dBRa(msD(o.data))],["Quantidade prevista",F(o.kgPrev)+" kg"],["Peso médio previsto",F(o.peso)+" g"],["Responsável pela captura",o.resp||""],["Veículo / placa",o.veic||""],["Motorista",o.mot||""],["Observações",o.obs||""],["Kg capturados",""],["Hora da saída",""],["Kg na chegada / temperatura",""]].map(([a,b])=>`<tr><td>${E(a)}</td><td>${E(b)}</td></tr>`).join("")}</table>
+   <table>${[["Projeto",o.proj+(o.cli?` (${o.cli})`:"")],["Grupo / tanque",o.g],["Espécie",o.spn],["Data da despesca",dBRa(msD(o.data))],["Propriedade (lat, lon)",okG(o.geo)?gTxt(o.geo):"—"],["Rota da fábrica",(()=>{const F0=fab();if(!F0||!okG(o.geo))return "—";const e=estrada(F0,o.geo);return `≈ ${F(e.km,1)} km · ${hmD(e.h)} de ida`})()],["Quantidade prevista",F(o.kgPrev)+" kg"],["Peso médio previsto",F(o.peso)+" g"],["Responsável pela captura",o.resp||""],["Veículo / placa",o.veic||""],["Motorista",o.mot||""],["Observações",o.obs||""],["Kg capturados",""],["Hora da saída",""],["Kg na chegada / temperatura",""]].map(([a,b])=>`<tr><td>${E(a)}</td><td>${E(b)}</td></tr>`).join("")}</table>
    <p>Levar gelo (≈ 1 kg de gelo por kg de pescado), caixas identificadas com o código <b>${E(o.id)}</b> e a GTA. Na chegada a fábrica confere origem, peso e temperatura (≤ 4 °C) antes de aceitar o lote.</p>
    <div class="ass"><div>Beneficiamento (aceite)</div><div>Despesca</div><div>Transporte</div><div>Recepção da fábrica</div></div><script>setTimeout(()=>print(),300)<\/script><\/body><\/html>`);w.document.close()}
+/* ---- v238: inteligência geográfica nativa — propriedade georreferenciada, rota da fábrica até a despesca (ao vivo) e até o mercado ---- */
+const rad=x=>x*Math.PI/180;
+const linhaKm=(a,b)=>{const dLa=rad(b.lat-a.lat),dLo=rad(b.lon-a.lon),h=Math.sin(dLa/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLo/2)**2;return 2*6371*Math.asin(Math.min(1,Math.sqrt(h)))};
+const mercS=()=>{try{return (JSON.parse(localStorage.getItem("greenfish-mercado")||"{}").crm)||{}}catch(e){return {}}};
+const okG=g=>!!g&&isFinite(g.lat)&&isFinite(g.lon)&&Math.abs(g.lat)<=90&&Math.abs(g.lon)<=180&&!(g.lat===0&&g.lon===0);
+const gTxt=g=>`${g.lat.toFixed(5)}, ${g.lon.toFixed(5)}`;
+/* estrada estimada: linha reta × fator de sinuosidade (mais alto em trechos curtos), 8 km de saída/chegada em ritmo urbano e o resto na velocidade de estrada */
+function estrada(a,b){const d=linhaKm(a,b),ent=mercS().ent||{},fu=P(ent.fator),f=fu>0?fu:(d<10?1.45:d<100?1.32:1.22),km=d*f,v=P(ent.vel)>0?P(ent.vel):55,urb=Math.min(km,8);
+  return {lin:d,km,h:urb/25+(km-urb)/v,f,v,custo:km*(P(ent.custo)>0?P(ent.custo):1.5)}}
+const hmD=h=>{const m=Math.round(h*60);return m<60?`${m} min`:`${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")}`};
+const gmaps=(a,b,via)=>`https://www.google.com/maps/dir/?api=1&origin=${a.lat},${a.lon}&destination=${b.lat},${b.lon}${via&&via.length?`&waypoints=${via.map(p=>p.lat+","+p.lon).join("|")}`:""}&travelmode=driving`;
+function fab(){if(okG(O.fab))return Object.assign({nome:"Fábrica",fonte:"informado aqui"},O.fab);const L0=mercS().local;if(L0&&okG({lat:+L0.lat,lon:+L0.lon}))return {lat:+L0.lat,lon:+L0.lon,nome:L0.nome||"Ponto de venda / fábrica",fonte:"Camada de mercado"};return null}
+function geoLote(l){const ov=(O.geo||{})[l.pk];if(okG(ov))return ov;let g=null;try{if(l.vivo){const r=window.lvResumo&&lvResumo();if(r&&r.LV)g={lat:P(r.LV.lat),lon:P(r.LV.lon),nome:r.LV.loc||"",fonte:"aba Local e viabilidade do projeto"}}else{const c=S.cache[l.pk];if(c&&c.geo)g=Object.assign({},c.geo,{fonte:"aba Local e viabilidade do projeto"})}}catch(e){}return okG(g)?g:null}
+function gps(fn){if(!navigator.geolocation){toast("Este aparelho não oferece GPS ao navegador.");return}toast("Procurando o sinal de GPS…");navigator.geolocation.getCurrentPosition(p=>fn({lat:+p.coords.latitude.toFixed(6),lon:+p.coords.longitude.toFixed(6),prec:Math.round(p.coords.accuracy||0)}),()=>toast("Não consegui a posição: libere a localização para o app e tente de novo."),{enableHighAccuracy:true,timeout:20000,maximumAge:60000})}
+function loadLeaf(){if(window.L&&window.L.map)return Promise.resolve(window.L);return new Promise((ok,err)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>ok(window.L);s.onerror=()=>err(new Error("sem internet"));document.head.appendChild(s)})}
+function abreMapa(op){loadLeaf().then(Lf=>{let ov=document.getElementById("gfp-map");if(ov)ov.remove();ov=document.createElement("div");ov.id="gfp-map";
+  ov.innerHTML=`<div class="gfp-map-b"><div class="gfp-map-h"><b>${E(op.t)}</b><span>${op.pick?"Toque no mapa para marcar o ponto":E(op.sub||"")}</span><button type="button" class="btn" data-x>✕ Fechar</button></div><div class="gfp-map-m"></div>${op.pick?`<div class="gfp-map-f"><span data-c>nenhum ponto marcado</span><button type="button" class="btn solid" data-ok disabled>Usar este ponto</button></div>`:""}</div>`;document.body.appendChild(ov);
+  const m=Lf.map(ov.querySelector(".gfp-map-m"));Lf.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(m);
+  const pts=(op.pontos||[]).filter(okG);pts.forEach(p=>Lf.circleMarker([p.lat,p.lon],{radius:p.r||8,color:"#fff",weight:2,fillColor:p.c||"#0f766e",fillOpacity:1}).addTo(m).bindTooltip(E(p.t),{permanent:true,direction:"top",offset:[0,-6]}));
+  (op.linhas||[]).forEach(li=>Lf.polyline(li.p.filter(okG).map(p=>[p.lat,p.lon]),{color:li.c||"#0f766e",weight:4,dashArray:li.d||null,opacity:.9}).addTo(m));
+  if(pts.length>1)m.fitBounds(pts.map(p=>[p.lat,p.lon]),{padding:[50,50]});else if(pts.length)m.setView([pts[0].lat,pts[0].lon],13);else m.setView([-2.53,-44.3],8);
+  let sel=null,mk=null;if(op.pick)m.on("click",e=>{sel={lat:+e.latlng.lat.toFixed(6),lon:+e.latlng.lng.toFixed(6)};if(mk)mk.remove();mk=Lf.marker([sel.lat,sel.lon]).addTo(m);ov.querySelector("[data-c]").textContent=gTxt(sel);ov.querySelector("[data-ok]").disabled=false});
+  ov.addEventListener("click",e=>{if(e.target.closest("[data-x]")||e.target===ov)ov.remove();else if(e.target.closest("[data-ok]")&&sel){op.pick(sel);ov.remove()}});setTimeout(()=>m.invalidateSize(),150)}).catch(()=>toast("Sem internet para abrir o mapa: digite as coordenadas."))}
+/* no aceite: a propriedade da despesca fica georreferenciada */
+function geoAceite(l,f){const g0=geoLote(l);if(f.lat===undefined&&g0){f.lat=String(g0.lat);f.lon=String(g0.lon);f.gf=g0.fonte}const g={lat:P(f.lat),lon:P(f.lon)},F0=fab();
+  const e=okG(g)&&F0?estrada(F0,g):null;
+  return `<div class="gfp-geo"><b>📍 Propriedade da despesca (georreferenciada)</b>
+   <div class="mk-form"><label class="jr-f">Latitude<input data-acf="lat" value="${E(f.lat||"")}" inputmode="decimal" placeholder="ex.: -2,5213"></label><label class="jr-f">Longitude<input data-acf="lon" value="${E(f.lon||"")}" inputmode="decimal" placeholder="ex.: -45,0821"></label>
+   <div class="gfp-bt"><button type="button" class="btn" data-gfp="geo-gps">📍 GPS deste aparelho</button><button type="button" class="btn" data-gfp="geo-mapa" data-id="${E(l.id)}">🗺 Marcar no mapa</button></div></div>
+   <small class="muted">${okG(g)?`Fonte: ${E(f.gf||"informado no aceite")}`:"Sem coordenadas: preencha a latitude e a longitude na aba Local e viabilidade do projeto, use o GPS na propriedade ou marque no mapa."}</small>
+   ${e?`<p class="gfp-rt">🚚 Fábrica → propriedade: <b>≈ ${F(e.km,1)} km</b> pela estrada (${F(e.lin,1)} km em linha reta) · <b>${hmD(e.h)}</b> de ida · ida e volta ≈ ${F(e.km*2,0)} km e R$ ${F(e.custo*2,2)}</p>`:!F0?`<p class="hint">Informe o local da fábrica no quadro 🚚 Despesca e transporte para calcular a rota.</p>`:""}</div>`}
+function geoNovo(l,f){const g={lat:P(f.lat),lon:P(f.lon)};if(okG(g)){const g0=geoLote(l),igual=g0&&Math.abs(g0.lat-g.lat)<1e-6&&Math.abs(g0.lon-g.lon)<1e-6;const r={lat:g.lat,lon:g.lon,fonte:igual?g0.fonte:"informado no aceite"};if(!igual){O.geo=O.geo||{};O.geo[l.pk]=r}return r}return geoLote(l)}
+/* local da fábrica: ponto de saída e chegada dos caminhões */
+function fabHTML(){const F0=fab(),fb=O.fab||{};
+  return `<div class="gfp-fab"><span>🏭 <b>Fábrica</b> (saída e chegada dos caminhões): ${F0?`${E(F0.nome)} · ${gTxt(F0)} <small class="muted">(${E(F0.fonte)})</small>`:"<b>não informada</b>"}</span>
+   <details${F0?"":" open"}><summary>${F0?"Alterar":"Informar o local"}</summary><div class="mk-form"><label class="jr-f">Nome<input data-fab="nome" value="${E(fb.nome||"")}" placeholder="ex.: Fábrica Green Fish"></label><label class="jr-f">Latitude<input data-fab="lat" value="${E(fb.lat??"")}" inputmode="decimal"></label><label class="jr-f">Longitude<input data-fab="lon" value="${E(fb.lon??"")}" inputmode="decimal"></label>
+   <div class="gfp-bt"><button type="button" class="btn" data-gfp="fab-gps">📍 GPS deste aparelho</button><button type="button" class="btn" data-gfp="fab-mapa">🗺 Marcar no mapa</button></div></div><small class="muted">Sem preencher, o app usa o ponto de venda marcado na Camada de mercado.</small></details></div>`}
+/* rota ao vivo da despesca: fábrica → propriedade → fábrica, com a posição do caminhão */
+function rotaOD(o){const F0=fab(),G=okG(o.geo)?o.geo:null;
+  if(!G)return `<div class="gfp-rota"><b>🗺 Rota da despesca</b><p class="hint">A propriedade desta ordem não tem coordenadas.</p><div class="mk-form"><label class="jr-f">Latitude<input data-odf="gLat" value="${E((o.rasc||{}).gLat??"")}" inputmode="decimal"></label><label class="jr-f">Longitude<input data-odf="gLon" value="${E((o.rasc||{}).gLon??"")}" inputmode="decimal"></label><div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-geo-ok" data-id="${o.id}">Salvar</button><button type="button" class="btn" data-gfp="od-geo-gps" data-id="${o.id}">📍 GPS</button><button type="button" class="btn" data-gfp="od-geo-mapa" data-id="${o.id}">🗺 Mapa</button></div></div></div>`;
+  if(!F0)return `<div class="gfp-rota"><b>🗺 Rota da despesca</b> · propriedade em ${gTxt(G)}<p class="hint">Informe o local da fábrica (acima) para calcular a rota.</p></div>`;
+  const e=estrada(F0,G),hc=1+o.kgPrev/2000,now=Date.now(),H=s=>((o.hist||[]).filter(x=>x.s===s).pop()||{}).em;let viva="",frac=null,pos=null;
+  if(o.status==="aceita"){viva=`Saída sugerida da fábrica: ${hmD(e.h)} antes da hora marcada para a captura · ciclo completo ≈ ${hmD(e.h*2+hc)} (ida, captura de ${F(o.kgPrev)} kg e volta)`}
+  else if(o.status==="captura"){const t=H("captura")||now,eta=t+(hc+e.h)*36e5;viva=`🎣 Captura desde ${hm(t)} · volta à fábrica prevista às <b>${hm(eta)}</b>${eta<now?" (atrasada)":""}`}
+  else if(o.status==="transporte"){const t=H("transporte")||now,gpsOk=o.pos&&now-o.pos.em<30*60e3;
+    if(gpsOk){pos=o.pos;const r=estrada(pos,F0);frac=Math.max(0,Math.min(1,1-r.km/e.km));viva=`📡 GPS às ${hm(o.pos.em)}: faltam <b>≈ ${F(r.km,1)} km</b> · chegada prevista às <b>${hm(now+r.h*36e5)}</b>`}
+    else{frac=Math.max(0,Math.min(1,(now-t)/(e.h*36e5)));pos={lat:G.lat+(F0.lat-G.lat)*frac,lon:G.lon+(F0.lon-G.lon)*frac};const eta=t+e.h*36e5;viva=`🚚 Saiu às ${hm(t)} · ${F(frac*100)}% do caminho (estimado pelo tempo) · faltam ≈ ${F(e.km*(1-frac),1)} km · chegada prevista às <b>${hm(eta)}</b>${eta<now?" (passou do previsto)":""}`}}
+  else if(o.status==="chegou"||o.status==="conferida"){const a=H("transporte"),b=H("chegou");viva=a&&b?`✓ Viagem feita em ${hmD((b-a)/36e5)} (previsto ${hmD(e.h)})`:""}
+  return `<div class="gfp-rota"><b>🗺 Rota da despesca</b> · ${E(F0.nome)} → propriedade (${gTxt(G)})
+   <div class="gfp-rk"><span><small>Estrada (estimada)</small><b>${F(e.km,1)} km</b><small>${F(e.lin,1)} km em linha reta × ${F(e.f,2)}</small></span><span><small>Tempo de viagem</small><b>${hmD(e.h)}</b><small>${F(e.v)} km/h na estrada</small></span><span><small>Ida e volta</small><b>${F(e.km*2,0)} km</b><small>R$ ${F(e.custo*2,2)} de frete</small></span></div>
+   ${frac!==null?`<div class="meter"><div style="width:${(frac*100).toFixed(1)}%"></div></div>`:""}${viva?`<p class="gfp-viva">${viva}</p>`:""}
+   <div class="gfp-bt"><button type="button" class="btn" data-gfp="od-mapa" data-id="${o.id}">🗺 Ver no mapa</button><a class="btn" href="${gmaps(F0,G)}" target="_blank" rel="noopener">🧭 Navegar até a propriedade</a>${o.status==="transporte"||o.status==="captura"?`<button type="button" class="btn" data-gfp="od-pos" data-id="${o.id}">📡 Atualizar posição do caminhão (GPS)</button>`:""}</div></div>`}
+/* rota até o mercado de destino: fábrica → clientes escolhidos → fábrica (vizinho mais próximo + 2-opt) */
+function tour(F0,D){let r=[],rest=D.slice(),cur=F0;while(rest.length){rest.sort((a,b)=>linhaKm(cur,a)-linhaKm(cur,b));cur=rest.shift();r.push(cur)}
+  const len=t=>{let s=0,p=F0;for(const x of t){s+=linhaKm(p,x);p=x}return s+linhaKm(p,F0)};let melhor=true;while(melhor){melhor=false;for(let i=0;i<r.length-1;i++)for(let j=i+1;j<r.length;j++){const t=r.slice(0,i).concat(r.slice(i,j+1).reverse(),r.slice(j+1));if(len(t)+1e-9<len(r)){r=t;melhor=true}}}return r}
+function mercOD(o){const F0=fab();let C=[];try{C=(window.gfMercAPI?gfMercAPI.clientes():[]).filter(c=>okG({lat:+c.lat,lon:+c.lon})&&c.etapa!=="perd")}catch(e){}
+  if(!C.length)return `<details class="gfp-merc"><summary>🛒 Rota até o mercado de destino</summary><p class="hint">Cadastre clientes no mapa da Camada de mercado para o app traçar a rota de entrega.</p></details>`;
+  const r=o.rasc||{},sel=C.filter(c=>r["d_"+c.id]),ord=["cli","neg","prop","cont","prosp"];C.sort((a,b)=>(ord.indexOf(a.etapa)-ord.indexOf(b.etapa))||(F0?linhaKm(F0,a)-linhaKm(F0,b):0));
+  let res="";if(F0&&sel.length){const T=tour(F0,sel.map(c=>({...c,lat:+c.lat,lon:+c.lon}))),ent=mercS().ent||{},par=P(ent.parada)>0?P(ent.parada):15;let km=0,h=0,p=F0;const pernas=T.map(c=>{const e=estrada(p,c);km+=e.km;h+=e.h+par/60;p=c;return {c,e}}),vb=estrada(p,F0);km+=vb.km;h+=vb.h;
+    const kgP=sel.reduce((s,c)=>s+(P(c.vol)||0),0);
+    res=`<ol class="gfp-seq"><li>🏭 ${E(F0.nome)}</li>${pernas.map(x=>`<li>${E(x.c.nome)} <small>${F(x.e.km,1)} km · ${hmD(x.e.h)}${P(x.c.vol)>0?` · ${F(P(x.c.vol))} kg/semana`:""}</small></li>`).join("")}<li>🏭 volta <small>${F(vb.km,1)} km</small></li></ol>
+     <div class="gfp-rk"><span><small>Rota de entrega</small><b>${F(km,1)} km</b><small>${T.length} parada(s)</small></span><span><small>Tempo total</small><b>${hmD(h)}</b><small>com ${F(par)} min por entrega</small></span><span><small>Frete</small><b>R$ ${F(km*(P(ent.custo)>0?P(ent.custo):1.5),2)}</b><small>${o.kgCheg||o.kgCap?`R$ ${F(km*(P(ent.custo)>0?P(ent.custo):1.5)/(o.kgCheg||o.kgCap),2)} por kg do lote`:""}${kgP?` · clientes compram ${F(kgP)} kg/sem.`:""}</small></span></div>
+     <div class="gfp-bt"><button type="button" class="btn" data-gfp="od-merc-mapa" data-id="${o.id}">🗺 Ver no mapa</button><a class="btn" href="${gmaps(F0,F0,T)}" target="_blank" rel="noopener">🧭 Navegar a entrega</a></div>`}
+  return `<details class="gfp-merc"${sel.length?" open":""}><summary>🛒 Rota até o mercado de destino${sel.length?` · ${sel.length} cliente(s)`:""}</summary>
+   <div class="gfp-cli">${C.slice(0,30).map(c=>`<label><input type="checkbox" data-odf="d_${E(c.id)}"${r["d_"+c.id]?" checked":""}> ${E(c.nome)} <small>${E(c.tipo||"")}${c.etapa==="cli"?" · cliente ativo":""}${F0?` · ${F(estrada(F0,{lat:+c.lat,lon:+c.lon}).km,1)} km`:""}</small></label>`).join("")}</div>
+   ${F0?res||`<p class="hint">Marque os clientes que vão receber este lote.</p>`:`<p class="hint">Informe o local da fábrica para calcular a rota.</p>`}</details>`}
+function mapaOD(o,merc){const F0=fab(),G=okG(o.geo)?o.geo:null,pts=[],lin=[];if(F0)pts.push({...F0,t:"🏭 "+F0.nome,c:"#0f766e"});
+  if(!merc){if(G)pts.push({...G,t:"📍 "+o.proj+" · "+o.g,c:"#2563eb"});if(F0&&G)lin.push({p:[F0,G],d:"8 6"});
+    if(o.status==="transporte"&&F0&&G){const now=Date.now(),e=estrada(F0,G),t=((o.hist||[]).filter(x=>x.s==="transporte").pop()||{}).em||now,gpsOk=o.pos&&now-o.pos.em<30*60e3,fr=Math.max(0,Math.min(1,(now-t)/(e.h*36e5)));
+      pts.push({...(gpsOk?o.pos:{lat:G.lat+(F0.lat-G.lat)*fr,lon:G.lon+(F0.lon-G.lon)*fr}),t:"🚚 caminhão"+(gpsOk?" (GPS)":" (estimado)"),c:"#f97316",r:9})}
+    abreMapa({t:`Rota da despesca · ${o.id}`,sub:F0&&G?`${F(estrada(F0,G).km,1)} km pela estrada (estimado)`:"",pontos:pts,linhas:lin});return}
+  let C=[];try{C=(window.gfMercAPI?gfMercAPI.clientes():[]).filter(c=>(o.rasc||{})["d_"+c.id]).map(c=>({...c,lat:+c.lat,lon:+c.lon})).filter(okG)}catch(e){}
+  const T=F0?tour(F0,C):C;T.forEach((c,i)=>pts.push({...c,t:`${i+1}. ${c.nome}`,c:"#7c3aed"}));if(F0&&T.length)lin.push({p:[F0,...T,F0],c:"#7c3aed"});
+  abreMapa({t:`Rota até o mercado · ${o.id}`,pontos:pts,linhas:lin})}
+
 function odHTML(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].includes(o.status)),H=O.L.filter(o=>!A.includes(o));
   if(!O.L.length)return `<p class="muted">Nenhuma ordem ainda. Quando o 📡 aviso da Biomassa mostrar um lote perto da despesca ou pronto, clique em <b>✅ Aceitar despesca</b>: a ordem vem para cá, para a equipe de despesca e transporte, e segue até a checagem de rastreabilidade na chegada à fábrica.</p>`;
   const caixa=o=>{const r=o.rasc||{},i=OST.findIndex(x=>x[0]===o.status),ab=ui.ab===o.id||A.includes(o)&&A.length<=3;
@@ -16008,13 +16083,21 @@ function odHTML(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].i
       <ol class="gfp-steps">${OST.map(([s,t],j)=>`<li class="${o.status==="cancelada"||o.status==="reprovada"?(quandoS(o,s)?"ok":""):j<i?"ok":j===i?"at":""}">${t}<small>${quandoS(o,s)}</small></li>`).join("")}</ol>
       <div class="gfp-odd">Despesca prevista em <b>${dBRa(msD(o.data))}</b> · ${F(o.kgPrev)} kg · ${F(o.peso)} g/animal · responsável ${E(o.resp||"—")} · veículo ${E(o.veic||"—")} · motorista ${E(o.mot||"—")}${o.obs?` · ${E(o.obs)}`:""}${o.kgCap>0?` · capturado ${F(o.kgCap)} kg${o.cx?` em ${E(o.cx)} caixas`:""}`:""}${o.kgCheg>0?` · recebido ${F(o.kgCheg)} kg${isFinite(P(o.tempC))?` a ${F(P(o.tempC),1)} °C`:""}`:""}${isFinite(tempo)?` · ${F(tempo,1)} h da captura à fábrica`:""}</div>
       ${acao}
+      ${!["cancelada","reprovada"].includes(o.status)?rotaOD(o)+mercOD(o):""}
       <div class="gfp-bt gfp-od-ex"><button type="button" class="btn" data-gfp="od-imp" data-id="${o.id}">🖨 Imprimir a ordem</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent(txtOrdem(o))}" target="_blank" rel="noopener">📲 Enviar pelo WhatsApp</a>${ativo?`<button type="button" class="btn" data-gfp="od-canc" data-id="${o.id}">✖ Cancelar a ordem</button>`:""}</div></details>`};
   return `<div class="gfh-kpis bx-kpis"><div class="hk hk-warn"><div><span class="hk-l">Ordens em andamento</span><b>${A.length}</b><small>${F(A.reduce((s,o)=>s+o.kgPrev,0))} kg a caminho da fábrica</small></div></div><div class="hk"><div><span class="hk-l">Em captura / transporte</span><b>${A.filter(o=>o.status==="captura"||o.status==="transporte").length}</b><small>${A.filter(o=>o.status==="chegou").length} aguardando checagem</small></div></div><div class="hk hk-ok"><div><span class="hk-l">Conferidas</span><b>${O.L.filter(o=>o.status==="conferida").length}</b><small>viraram lotes de matéria-prima na Rastreabilidade</small></div></div></div>
+   ${fabHTML()}
    ${A.map(caixa).join("")||`<p class="muted">Nenhuma ordem em andamento.</p>`}
    ${H.length?`<details class="gfp-pj"${H.some(o=>o.id===ui.ab)?" open":""}><summary>📁 Histórico (${H.length})</summary>${H.map(caixa).join("")}</details>`:""}
    <p class="hint">Fluxo: aceite no 📡 aviso da Biomassa → ordem para a despesca e o transporte (imprima ou envie pelo WhatsApp) → captura → transporte → chegada → checagem de rastreabilidade. Aprovada, a carga vira um lote de matéria-prima na 🏷 Rastreabilidade com a origem (projeto, grupo, ordem) e segue a sequência do beneficiamento.</p>`}
 function acaoOD(k,id){const o=O.L.find(x=>x.id===id);if(!o)return;const r=o.rasc||(o.rasc={});ui.ab=id;
   if(k==="od-imp"){imprime(o);return}
+  if(k==="od-mapa"){mapaOD(o,false);return}
+  if(k==="od-merc-mapa"){mapaOD(o,true);return}
+  if(k==="od-pos"){gps(p=>{o.pos={lat:p.lat,lon:p.lon,em:Date.now()};gravaO();if(boxO)desenha(boxO,odHTML);toast(`${o.id}: posição do caminhão atualizada.`)});return}
+  if(k==="od-geo-ok"){const g={lat:P(r.gLat),lon:P(r.gLon)};if(!okG(g)){toast("Coordenadas inválidas: use, por exemplo, -2,5213 e -45,0821.");return}o.geo={...g,fonte:"informado na ordem"};gravaO();return}
+  if(k==="od-geo-gps"){gps(p=>{o.geo={lat:p.lat,lon:p.lon,fonte:`GPS na propriedade (±${p.prec} m)`};gravaO();if(boxO)desenha(boxO,odHTML)});return}
+  if(k==="od-geo-mapa"){abreMapa({t:"Marque a propriedade da despesca",pontos:fab()?[{...fab(),t:"🏭 fábrica"}]:[],pick:p=>{o.geo={...p,fonte:"marcado no mapa"};gravaO();if(boxO)desenha(boxO,odHTML)}});return}
   if(k==="od-canc"){if(!confirm(`Cancelar a ordem ${o.id}?`))return;passo(o,"cancelada");return}
   if(k==="od-cap"){if(r.resp)o.resp=r.resp;o.hIni=r.hIni||hh();const kgC=o.kgPrev;Object.assign(r,{kgCap:String(kgC),cx:String(Math.ceil(kgC/20)),gelo:String(kgC),hSai:hh()});passo(o,"captura");toast(`${o.id}: captura iniciada.`);return}
   if(k==="od-sai"){const kg=P(r.kgCap);o.kgCap=kg>0?kg:o.kgPrev;o.cx=r.cx||"";o.gelo=r.gelo||"";o.hSai=r.hSai||hh();Object.assign(r,{kgCheg:String(o.kgCap),hChe:hh()});passo(o,"transporte");toast(`${o.id}: ${F(o.kgCap)} kg saíram para a fábrica.`);return}
@@ -16063,7 +16146,9 @@ function htmlMerc(){if(!corr("bio_merc"))return `<div class="note">A correlaçã
    ${prox.length?`<p class="hint" style="margin-top:6px"><b>Próximas despescas:</b> ${prox.map(l=>`${NIV[l.s.n][0]} ${E(l.proj)} · ${E(l.g)} em ${dBR(l.h)} (≈ ${F(l.bF)} kg, ${F(l.wF)} g)`).join(" · ")}</p>`:""}
    <p class="hint">Enviado sozinho pelo Beneficiamento a partir das projeções da aba Biomassa de todos os projetos (${hm(of.em)}). Filé/descascado pelos rendimentos do Beneficiamento. ${isFinite(dem)?"":"Cadastre clientes ativos no funil para comparar com a demanda."}</p>`}
 function montaCard(id,ico,t,sub){const b=document.createElement("section");b.className="card wide gfp-card";b.id=id;b.innerHTML=`<div class="card-head"><i class="n">${ico}</i><h2>${t}<span>${sub}</span></h2></div><div class="gfp-b"></div>`;
-  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();const odf=e.target.dataset&&e.target.dataset.odf;if(odf){const bx=e.target.closest("[data-odbox]"),o=bx&&O.L.find(x=>x.id===bx.dataset.odbox);if(o){(o.rasc=o.rasc||{})[odf]=e.target.type==="checkbox"?e.target.checked:e.target.value;gravaO()}return}
+  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();const fbk=e.target.dataset&&e.target.dataset.fab;if(fbk){O.fab=O.fab||{};O.fab[fbk]=fbk==="nome"?e.target.value:P(e.target.value);O.fab.fonte="informado aqui";gravaO();if(ev==="change")desenha(b,odHTML);return}
+    if(e.target.dataset&&/^d_/.test(e.target.dataset.odf||"")&&ev==="change"){const bx=e.target.closest("[data-odbox]"),o=bx&&O.L.find(x=>x.id===bx.dataset.odbox);if(o){(o.rasc=o.rasc||{})[e.target.dataset.odf]=e.target.checked;gravaO();ui.ab=o.id;desenha(b,odHTML)}return}
+    const odf=e.target.dataset&&e.target.dataset.odf;if(odf){const bx=e.target.closest("[data-odbox]"),o=bx&&O.L.find(x=>x.id===bx.dataset.odbox);if(o){(o.rasc=o.rasc||{})[odf]=e.target.type==="checkbox"?e.target.checked:e.target.value;gravaO()}return}
     const acf=e.target.dataset&&e.target.dataset.acf;if(acf){const f=ui.f[ui.aceita]||(ui.f[ui.aceita]={});f[acf]=e.target.value;if(acf==="data"&&ev==="change"){delete f.kg;desenha(b,htmlBenef)}return}
     const k=e.target.dataset&&e.target.dataset.gfpc;if(!k)return;if(ev==="input"&&e.target.type!=="checkbox"&&e.target.tagName!=="SELECT"){const c=rd(CFG,{});c[k]=e.target.value;wr(CFG,c);clearTimeout(montaCard.t);montaCard.t=setTimeout(()=>{const a=document.activeElement,den=b.contains(a),id2=den&&a.dataset.gfpc,pos=den?a.selectionStart:0;desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc);if(id2){const n=b.querySelector(`[data-gfpc="${id2}"]`);if(n&&n!==a){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}},600);return}
     if(ev==="change"){const c=rd(CFG,{});if(k==="notif"){c.notif=e.target.checked;if(c.notif&&window.Notification&&Notification.permission==="default")Notification.requestPermission().catch(()=>{})}else c[k]=e.target.value;wr(CFG,c);desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc)}}));
@@ -16081,6 +16166,10 @@ function clique(e){const a=e.target.closest&&e.target.closest("[data-gfp]");if(!
   else if(k==="od-nao"){ui.aceita=null;desenha(box,htmlBenef)}
   else if(k==="od-criar"){const l=todos().find(x=>x.id===a.dataset.id);if(!l)return;const o=criaOrdem(l);desenha(box,htmlBenef);poe();if(boxO)desenha(boxO,odHTML);toast(`Despesca aceita: ordem ${o.id} enviada ao setor de despesca e transporte (${F(o.kgPrev)} kg em ${dBRa(msD(o.data))}).`)}
   else if(k==="od-ver"){ui.ab=a.dataset.id;irOD()}
+  else if(k==="geo-gps"){const lid=ui.aceita;gps(p=>{const f=ui.f[lid]||(ui.f[lid]={});f.lat=String(p.lat);f.lon=String(p.lon);f.gf=`GPS deste aparelho (±${p.prec} m)`;desenha(box,htmlBenef)})}
+  else if(k==="geo-mapa"){const lid=ui.aceita,f=ui.f[lid]||{},F0=fab(),g={lat:P(f.lat),lon:P(f.lon)};abreMapa({t:"Marque a propriedade da despesca",pontos:[okG(g)?{...g,t:"📍 atual",c:"#2563eb"}:null,F0?{...F0,t:"🏭 "+F0.nome}:null].filter(Boolean),pick:p=>{const ff=ui.f[lid]||(ui.f[lid]={});ff.lat=String(p.lat);ff.lon=String(p.lon);ff.gf="marcado no mapa";desenha(box,htmlBenef)}})}
+  else if(k==="fab-gps"){gps(p=>{O.fab=Object.assign(O.fab||{},{lat:p.lat,lon:p.lon,fonte:`GPS deste aparelho (±${p.prec} m)`});gravaO();if(boxO)desenha(boxO,odHTML)})}
+  else if(k==="fab-mapa"){const F0=fab();abreMapa({t:"Marque o local da fábrica",pontos:F0?[{...F0,t:"🏭 atual"}]:[],pick:p=>{O.fab=Object.assign(O.fab||{},{lat:p.lat,lon:p.lon,fonte:"marcado no mapa"});gravaO();if(boxO)desenha(boxO,odHTML)}})}
   else if(/^od-/.test(k)){acaoOD(k,a.dataset.id);if(boxO)desenha(boxO,odHTML);if(box)desenha(box,htmlBenef)}}
 function irOD(){try{setView("benef")}catch(_){}setTimeout(()=>{poe();if(boxO)desenha(boxO,odHTML);const r=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Despesca e transporte/.test(x.textContent));if(r&&r.getAttribute("aria-selected")!=="true")r.click();setTimeout(()=>{const c=document.querySelector(`#gfp-od [data-odbox="${ui.ab}"]`)||document.getElementById("gfp-od");c&&c.scrollIntoView({behavior:"smooth",block:"start"})},150)},200)}
 document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("#gfp-toast [data-gfp]");if(a)clique(e)});
@@ -16124,6 +16213,13 @@ window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
 .gfp-odd{font-size:13px;margin-bottom:6px}.gfp-ck{display:grid;gap:4px;font-size:13.5px;margin:6px 0}.gfp-ck label{display:flex;gap:6px;align-items:flex-start}
 .gfp-alerta{color:#991b1b;font-size:13px;margin:4px 0}.gfp-od-ex{margin-top:6px}
 #gfp-od .gfp-b{padding:14px 18px;display:grid;gap:10px}
+.gfp-geo,.gfp-rota{margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.25);display:grid;gap:6px;font-size:13.5px}
+.gfp-rt{margin:0;font-size:13px}.gfp-rk{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.gfp-rk span{display:grid}.gfp-rk small{color:var(--muted);font-size:11.5px}.gfp-rk b{font-size:16px}
+.gfp-viva{margin:0;font-size:13.5px}.gfp-fab{display:grid;gap:4px;font-size:13.5px;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line,#e5e7eb)}.gfp-fab summary{cursor:pointer;font-size:13px;color:#0f766e}
+.gfp-merc{margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.25);font-size:13.5px}.gfp-merc summary{cursor:pointer;font-weight:600}
+.gfp-cli{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:4px;margin:6px 0}.gfp-cli small{color:var(--muted)}.gfp-seq{margin:6px 0;padding-left:20px;display:grid;gap:2px}.gfp-seq small{color:var(--muted)}
+#gfp-map{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.55);display:flex;padding:10px}.gfp-map-b{flex:1;display:flex;flex-direction:column;background:var(--surface,#fff);border-radius:12px;overflow:hidden}
+.gfp-map-h,.gfp-map-f{display:flex;gap:10px;align-items:center;padding:8px 12px;flex-wrap:wrap}.gfp-map-h span,.gfp-map-f span{color:var(--muted);font-size:13px;flex:1}.gfp-map-m{flex:1;min-height:300px}
 #gfp-toast{position:fixed;right:16px;bottom:16px;z-index:9998;max-width:min(520px,calc(100vw - 32px));background:#064e3b;color:#ecfdf5;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px}
 #gfp-toast[hidden]{display:none}#gfp-toast button{border:0;border-radius:8px;padding:5px 10px;background:#10b981;color:#fff;font-weight:600;cursor:pointer}#gfp-toast button[data-gfp="x"]{background:transparent;color:#a7f3d0;padding:5px 6px}
 html.gfp-tem .gs-i[data-gs-v="benef"]{position:relative}html.gfp-tem .gs-i[data-gs-v="benef"]::after{content:var(--gfp-n);position:absolute;right:8px;top:50%;transform:translateY(-50%);min-width:18px;height:18px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px}
