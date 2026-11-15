@@ -2281,7 +2281,8 @@ function drawBio(){
     const bad={date:m.start===null,w0:!(m.w0>0),alvo:!(m.alvo>0)||(m.w0>0&&m.alvo<=m.w0),n:!(Number.isInteger(m.nT)&&m.nT>=0)};
     Object.entries(bad).forEach(([k,b])=>{const el=row.querySelector(`[data-lk="${k}"]`);if(el)el.classList.toggle("bad",b)})});
   const st=models.map(m=>({m,s:m.at(now)}));
-  const tot=st.reduce((a,{s})=>({bio:a.bio+s.bio,n:a.n+s.n,feed:a.feed+s.feed,gain:a.gain+s.gain}),{bio:0,n:0,feed:0,gain:0});
+  const stH=st.map(({m,s})=>({m,s:s.done&&m.ok?Object.assign({},m.val(Math.max(0,(m.harvest-m.start)/DAY-1e-6)),{gain:0}):s}));
+  const tot=stH.reduce((a,{s})=>({bio:a.bio+s.bio,n:a.n+s.n,feed:a.feed+s.feed,gain:a.gain+s.gain}),{bio:0,n:0,feed:0,gain:0});
   const cap=r.BM,occ=cap>0?tot.bio/cap:0;
   const next=models.filter(m=>m.ok&&m.harvest>now).sort((a,b)=>a.harvest-b.harvest)[0];
   const alertM=models.filter(m=>m.ok&&m.dmAt!==null);
@@ -2316,7 +2317,7 @@ function drawBio(){
     const state=mode==="pre"
       ?`<span class="pill">Aguardando povoamento</span> em ${fmtD(m.start)} · daqui a ${f0(Math.ceil((m.start-now)/DAY))} d`
       :mode==="done"
-      ?`<span class="pill">Despescado</span> em ${fmtD(m.harvest)} · há ${f0(Math.floor((now-m.harvest)/DAY))} d`
+      ?`<span class="pill">No peso de abate</span> desde ${fmtD(m.harvest)} · ${Math.floor((now-m.harvest)/DAY)>0?"há "+f0(Math.floor((now-m.harvest)/DAY))+" d":"hoje"} · aguardando despesca`
       :`<span class="pill">${v.phase}</span> ${f0(Math.floor(v.e))} dias de cultivo`;
     const when=mode==="pre"?"no povoamento":mode==="done"?"na despesca":"";
     const lastRow=mode==="pre"
@@ -2327,7 +2328,7 @@ function drawBio(){
     const tail=mode==="pre"
       ?`<div class="warnline">Valores do dia do povoamento. Mude a data de referência para acompanhar o lote depois disso.</div>`
       :mode==="done"
-      ?`<div class="warnline">Lote já atingiu o peso de despesca (${n(m.alvo,0)} g). Se ainda está no tanque, ajuste a data de povoamento, o peso inicial ou o peso de despesca.</div>`
+      ?`<div class="warnline">Lote atingiu o peso de abate (${n(m.alvo,0)} g) em ${f0(Math.ceil(cyc))} dias de cultivo. Enquanto não for despescado, a biomassa continua ocupando o espaço e contando no total e na ocupação.</div>`
       :o>=1?`<div class="note">Acima da densidade máxima. Faça uma despesca parcial ou transfira peixes.</div>`:m.dmAt!==null&&m.dmAt>now?`<div class="warnline">Atinge a densidade máxima em ${fmtD(m.dmAt)}, antes da despesca.</div>`:"";
     return `<div class="gcard${mode==="on"&&o>=1?" hot":""}${mode!=="on"?" off":""}">${head}<p class="state">${state}</p>
       <dl><dt>Peso médio${when?` ${when}`:""}</dt><dd>${fw(v.w)} g</dd>
@@ -14184,10 +14185,15 @@ const dBa=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-di
 window.gfOcupHTML=function(models,now,live,cap,p){
   const G=(models||[]).filter(m=>m.ok&&m.harvest>m.start);if(!G.length||!(cap>0))return "";
   const S=rd(),ini0=Math.min(...G.map(m=>m.start)),fim0=Math.max(...G.map(m=>m.harvest));
-  let de=msD(S.de),ate=msD(S.ate);if(!isFinite(de))de=ini0;if(!isFinite(ate))ate=fim0;if(ate<=de+DAY){de=ini0;ate=fim0}
+  const modo=S.modo===undefined?"real":S.modo;let de=msD(S.de),ate=msD(S.ate);
+  /* v233: padrão = tempo real: do povoamento até agora (o intervalo que a biomassa já percorreu) */
+  const real=modo==="real"&&now>ini0+DAY;if(real){de=ini0;ate=now}
+  else{if(!isFinite(de))de=ini0;if(!isFinite(ate))ate=fim0;if(ate<=de+DAY){de=ini0;ate=fim0}}
   const vol=G.reduce((s,m)=>s+(m.g.vol||0),0),capG=m=>(m.g.dm??p.DM)*(m.g.vol||0);
   const dias=(ate-de)/DAY,step=Math.max(DAY/4,(ate-de)/300),T=[];for(let t=de;t<=ate;t+=step)T.push(t);if(T[T.length-1]<ate)T.push(ate);
-  const at=(m,t)=>{try{const v=m.at(t);return v&&v.on!==false?v.bio:0}catch(e){return 0}};
+  /* lote que já chegou ao peso de abate e não foi despescado continua ocupando o espaço com a biomassa final */
+  const pronto=m=>m.harvest<=now,fimV=m=>{try{return m.at(m.harvest-1)}catch(e){return {bio:0,w:0,n:0}}};
+  const at=(m,t)=>{try{if(t>=m.harvest&&pronto(m))return fimV(m).bio||0;const v=m.at(t);return v&&v.on!==false?v.bio:0}catch(e){return 0}};
   const tot=t=>G.reduce((s,m)=>s+at(m,t),0);
   const Y=T.map(t=>tot(t)/cap*100),YG=G.map(m=>{const c=capG(m);return T.map(t=>c>0?at(m,t)/c*100:0)});
   const pk=Math.max(...Y),pki=Y.indexOf(pk),nowIn=now>=de&&now<=ate,oNow=tot(now)/cap*100;
@@ -14208,31 +14214,38 @@ window.gfOcupHTML=function(models,now,live,cap,p){
     ${ticksX.map(t=>`<text x="${x(t)}" y="${H-B+16}" text-anchor="middle" class="oc-tx">${dB(t)}</text>`).join("")}
     <rect x="${L}" y="${y(Math.min(ymax,100))}" width="${W-L-R}" height="${Math.max(0,y(85)-y(Math.min(ymax,100)))}" class="oc-zw"/>
     ${ymax>100?`<rect x="${L}" y="${TP}" width="${W-L-R}" height="${y(100)-TP}" class="oc-zc"/>`:""}
-    <line x1="${L}" x2="${W-R}" y1="${y(100)}" y2="${y(100)}" class="oc-100"/><text x="${W-R-4}" y="${y(100)-4}" text-anchor="end" class="oc-tx oc-r">100% = densidade máxima</text>
-    <line x1="${L}" x2="${W-R}" y1="${y(85)}" y2="${y(85)}" class="oc-85"/><text x="${W-R-4}" y="${y(85)+12}" text-anchor="end" class="oc-tx oc-a">85% alerta</text>
+    <line x1="${L}" x2="${W-R}" y1="${y(100)}" y2="${y(100)}" class="oc-100"/><text x="${L+6}" y="${y(100)-4}" text-anchor="start" class="oc-tx oc-r">100% = densidade máxima</text>
+    <line x1="${L}" x2="${W-R}" y1="${y(85)}" y2="${y(85)}" class="oc-85"/><text x="${L+6}" y="${y(85)+12}" text-anchor="start" class="oc-tx oc-a">85% alerta</text>
     <path d="${area}" class="oc-area"/>
     ${YG.map((a,j)=>`<path d="${path(a)}" fill="none" stroke="currentColor" style="color:${G[j].color}" class="oc-g"><title>${E(G[j].name)}</title></path>`).join("")}
     <path d="${path(Y)}" class="oc-tot"/>
     ${mk}
-    ${nowIn?`<line x1="${x(now)}" x2="${x(now)}" y1="${TP}" y2="${H-B}" class="oc-now"/><circle cx="${x(now)}" cy="${y(oNow)}" r="5" class="oc-nowc"/><text x="${x(now)+(x(now)>W-150?-6:6)}" y="${TP+12}" text-anchor="${x(now)>W-150?"end":"start"}" class="oc-tx oc-nt">${live?"agora":"na data"}: ${F(oNow,1)}%</text>`:""}
+    ${nowIn?`<line x1="${x(now)}" x2="${x(now)}" y1="${TP}" y2="${H-B}" class="oc-now"/><circle cx="${x(now)}" cy="${y(oNow)}" r="5" class="oc-nowc"/><text x="${x(now)+(x(now)>W-150?-8:8)}" y="${Math.min(H-B-6,Math.max(TP+12,y(oNow)+(oNow>60?22:-10)))}" text-anchor="${x(now)>W-150?"end":"start"}" class="oc-tx oc-nt">${live?"agora":"na data"}: ${F(oNow,1)}%</text>`:""}
     ${hov}</svg>`;
   const kpi=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d||""}</small></div></div>`;
-  const rows=G.map((m,j)=>{const c=capG(m),o=t=>c>0?at(m,t)/c*100:NaN,a=YG[j],gp=Math.max(...a),gpi=a.indexOf(gp),p85=primeiro(a,85),p100=primeiro(a,100),cyc=(m.harvest-m.start)/DAY,oN=now>=m.start&&now<m.harvest?o(now):NaN;
+  const rows=G.map((m,j)=>{const c=capG(m),o=t=>c>0?at(m,t)/c*100:NaN,a=YG[j],gp=Math.max(...a),gpi=a.indexOf(gp),p85=primeiro(a,85),p100=primeiro(a,100),cyc=(m.harvest-m.start)/DAY,oN=now>=m.start?o(now):NaN;
     return `<tr><td class="l"><i class="sw" style="background:${m.color}"></i> <b>${E(m.name)}</b><small>${E(m.sp.name)} · ${F(m.g.vol,0)} m³ · máx. ${F(m.g.dm??p.DM,0)} kg/m³</small></td><td>${dBa(m.start)}</td><td>${dBa(m.harvest)}<small>${F(Math.ceil(cyc))} dias</small></td><td>${F(o(m.start+1),1)}%</td><td>${isFinite(oN)?`<b>${F(oN,1)}%</b>`:now<m.start?"<small>a povoar</small>":"<small>despescado</small>"}</td><td><b class="${o(m.harvest-1)>=100?"neg":""}">${F(o(m.harvest-1),1)}%</b><small>${F(at(m,m.harvest-1))} kg</small></td><td>${F(gp,1)}%<small>${dB(T[gpi])}</small></td><td>${p85?dB(p85):"—"}</td><td class="${p100?"neg":""}">${p100?dB(p100):"—"}</td></tr>`}).join("");
   const sem=[];for(let t=de;t<=ate;t+=7*DAY)sem.push(t);
-  const btn=(k,t)=>`<button type="button" class="chip${S.modo===k?" on":""}" data-oc="${k}">${t}</button>`;
-  return `<section class="card wide" id="oc-card"><div class="card-head"><h2>📦 Ocupação do espaço ao longo do ciclo<span>${live?"Ao vivo · ":""}biomassa ÷ capacidade (densidade máxima × volume) de ${dBa(de)} a ${dBa(ate)}, do povoamento ao peso final projetado</span></h2></div><div class="body">
+  const btn=(k,t)=>`<button type="button" class="chip${(k==="real"?real:modo===k&&!real)?" on":""}" data-oc="${k}">${t}</button>`;
+  const vivo=G.map(m=>{const c=capG(m),dec=Math.max(0,(Math.min(now,m.harvest)-m.start)/DAY),cyc=(m.harvest-m.start)/DAY,pre=now<m.start,ok=pronto(m),v=pre?{w:m.w0,bio:0,n:0}:ok?fimV(m):m.at(now),o=c>0?(ok?fimV(m).bio:v.bio)/c*100:NaN;
+    return `<div class="oc-rt${ok?" oc-rt-ok":""}"><div class="oc-rt-h"><i class="sw" style="background:${m.color}"></i><b>${E(m.name)}</b><small>${E(m.sp.name)} · povoado em ${dBa(m.start)}</small><span class="oc-rt-st">${pre?"⏳ a povoar":ok?"✅ no peso de abate — aguardando despesca":"🐟 em crescimento"}</span></div>
+     <div class="oc-rt-g"><div><small>Tempo de cultivo</small><b>${F(Math.floor(dec))} de ${F(Math.ceil(cyc))} dias</b><div class="meter"><div style="width:${Math.min(100,dec/cyc*100).toFixed(1)}%"></div></div><small>${ok?`peso final atingido em ${dBa(m.harvest)}${now-m.harvest>DAY?` (há ${F(Math.floor((now-m.harvest)/DAY))} dias)`:" (hoje)"}`:pre?`começa em ${dBa(m.start)}`:`faltam ${F(Math.ceil((m.harvest-now)/DAY))} dias · despesca em ${dBa(m.harvest)}`}</small></div>
+      <div><small>Peso médio agora</small><b>${F(v.w)} g</b><div class="meter"><div style="width:${Math.min(100,(v.w||0)/m.alvo*100).toFixed(1)}%"></div></div><small>${F((v.w||0)/m.alvo*100)}% do peso final de ${F(m.alvo)} g</small></div>
+      <div><small>Biomassa agora</small><b>${F(ok?fimV(m).bio:v.bio)} kg</b><small>${F(ok?fimV(m).n:v.n)} animais</small></div>
+      <div><small>Ocupação do espaço agora</small><b class="${o>=100?"neg":""}">${F(o,1)}%</b><div class="meter${o>=100?" hot":""}"><div style="width:${Math.min(100,o).toFixed(1)}%"></div></div><small>${F(m.g.vol>0?(ok?fimV(m).bio:v.bio)/m.g.vol:NaN,1)} de ${F(m.g.dm??p.DM,0)} kg/m³</small></div></div></div>`}).join("");
+  return `<section class="card wide" id="oc-card"><div class="card-head"><h2>📦 Ocupação do espaço ao longo do ciclo<span>${real?`⏱ Tempo real: do povoamento (${dBa(de)}) até agora — a ocupação acompanha a biomassa que já cresceu nesse intervalo`:`${live?"Ao vivo · ":""}biomassa ÷ capacidade (densidade máxima × volume) de ${dBa(de)} a ${dBa(ate)}`}</span></h2></div><div class="body">
    <div class="mk-form oc-ctl"><label class="jr-f">De<input type="date" data-ocd="de" value="${iso(de)}"></label><label class="jr-f">Até<input type="date" data-ocd="ate" value="${iso(ate)}"></label>
-     <div class="oc-bt">${btn("ciclo","Do 1º povoamento à última despesca")}${btn("hoje","De hoje até a última despesca")}${btn("30","Próximos 30 dias")}${btn("90","Próximos 90 dias")}</div></div>
+     <div class="oc-bt">${btn("real","⏱ Do povoamento até agora (tempo real)")}${btn("ciclo","Do 1º povoamento à última despesca")}${btn("hoje","De hoje até a última despesca")}${btn("30","Próximos 30 dias")}${btn("90","Próximos 90 dias")}</div></div>
+   <div class="oc-rts">${vivo}</div>
    <div class="gfh-kpis bx-kpis">${kpi(live?"Ocupação agora":"Ocupação na data",F(oNow,1)+"%",`${F(tot(now))} kg de ${F(cap)} kg · ${F(vol>0?tot(now)/vol:NaN,1)} kg/m³`,oNow>=100?"crit":oNow>=85?"warn":"ok")}${kpi("Pico no intervalo",F(pk,1)+"%",`em ${dBa(T[pki])} · ${F(tot(T[pki]))} kg`,pk>=100?"crit":pk>=85?"warn":"ok")}${kpi("Dias acima de 85%",F(acima(85)),acima(100)>0?`${F(acima(100))} dias acima de 100%`:"nunca passa de 100%",acima(100)>0?"crit":acima(85)>0?"warn":"ok")}${kpi("Menor folga",F(Math.max(0,folgaMin))+" kg",folgaMin<0?`falta espaço para ${F(-folgaMin)} kg`:"espaço livre no momento mais cheio",folgaMin<0?"crit":"")}</div>
    <div class="oc-wrap">${svg}</div>
    <div class="legend-row"><span><i class="sw oc-swt"></i>Sistema (todos os grupos)</span>${G.map(m=>`<span><i class="sw" style="background:${m.color}"></i>${E(m.name)}</span>`).join("")}<span>● povoamento · ▼ despesca</span></div>
    <div class="scroll"><table class="lot oc-t"><thead><tr><th class="l">Grupo</th><th>Povoamento</th><th>Peso final (despesca)</th><th>No povoamento</th><th>${live?"Agora":"Na data"}</th><th>Na despesca</th><th>Pico</th><th>Passa de 85%</th><th>Passa de 100%</th></tr></thead><tbody>${rows}</tbody></table></div>
    <details class="oc-sem"><summary>📅 Ocupação semana a semana (${sem.length} semanas)</summary><div class="scroll"><table class="lot"><thead><tr><th class="l">Semana</th><th>Biomassa</th><th>Ocupação</th><th>Densidade</th><th>Folga</th><th class="l">Grupos no tanque</th></tr></thead><tbody>${sem.map(t=>{const b=tot(t),o=b/cap*100;return `<tr class="${o>=100?"oc-cr":o>=85?"oc-wa":""}"><td class="l">${dBa(t)}</td><td>${F(b)} kg</td><td><b>${F(o,1)}%</b></td><td>${F(vol>0?b/vol:NaN,1)} kg/m³</td><td>${F(cap-b)} kg</td><td class="l"><small>${G.filter(m=>t>=m.start&&t<m.harvest).map(m=>E(m.name)).join(", ")||"vazio"}</small></td></tr>`}).join("")}</tbody></table></div></details>
    <p class="hint">A curva sai da mesma projeção da aba (curva de crescimento da espécie, biometrias, mortalidade e ritmo). 100% = densidade máxima de cada grupo × volume; acima de 85% planeje despesca parcial, repicagem ou transferência. Passe o dedo ou o mouse sobre o gráfico para ver cada data. O intervalo fica salvo no projeto.</p></div></section>`};
-document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.ocd;if(!k)return;const S=rd();S[k]=e.target.value;S.modo="";wr(S);try{drawBio()}catch(_){}});
+document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.ocd;if(!k)return;const S=rd(),q=x=>{const i=document.querySelector(`#oc-card [data-ocd="${x}"]`);return i&&i.value};S.de=q("de")||S.de;S.ate=q("ate")||S.ate;S[k]=e.target.value;S.modo="";wr(S);try{drawBio()}catch(_){}});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-oc]");if(!b)return;const k=b.dataset.oc,h=new Date(),hoje=new Date(h.getFullYear(),h.getMonth(),h.getDate(),12).getTime(),S={modo:k};
-  if(k==="hoje"){S.de=iso(hoje)}else if(k==="30"||k==="90"){S.de=iso(hoje);S.ate=iso(hoje+(+k)*DAY)}
+  if(k==="real"){}else if(k==="hoje"){S.de=iso(hoje)}else if(k==="30"||k==="90"){S.de=iso(hoje);S.ate=iso(hoje+(+k)*DAY)}
   wr(S);try{drawBio()}catch(_){}});
 })();
 </script>
@@ -14244,5 +14257,8 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 .oc-area{fill:rgba(15,118,110,.14)}.oc-tot{fill:none;stroke:#0f766e;stroke-width:3}.oc-g{stroke-width:1.6;stroke-dasharray:6 3;opacity:.9}
 .oc-now{stroke:#0f766e;stroke-width:1.5;stroke-dasharray:3 3}.oc-nowc{fill:#0f766e;stroke:#fff;stroke-width:2}
 .oc-swt{background:#0f766e!important}.oc-t td small{display:block;color:var(--muted)}.oc-cr td{background:rgba(220,38,38,.07)}.oc-wa td{background:rgba(234,179,8,.08)}
+.oc-rts{display:grid;gap:8px}.oc-rt{border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:10px 12px;background:var(--bg)}.oc-rt-ok{border-color:#16a34a;background:rgba(22,163,74,.06)}
+.oc-rt-h{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:14px}.oc-rt-h small{color:var(--muted)}.oc-rt-st{margin-left:auto;font-size:12.5px;font-weight:700}
+.oc-rt-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:8px}.oc-rt-g>div{display:grid;gap:3px}.oc-rt-g small{color:var(--muted);font-size:12px}.oc-rt-g b{font-size:16px}.oc-rt-g .meter{height:8px}
 .oc-sem summary{cursor:pointer;font-weight:600;font-size:14px;margin-top:6px}
 </style>
