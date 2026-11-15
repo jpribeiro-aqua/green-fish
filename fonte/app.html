@@ -10609,9 +10609,12 @@ async function lerFoto(path){if(C.fotoCache[path])return C.fotoCache[path];let d
   if(d)C.fotoCache[path]=d;return d}
 async function membros(){const s=sb(),u=meu(),eu={uid:u,nome:meuNome()+" (eu)"};if(!s)return [eu];if(!souCoord())return [eu];
   const dono=T(()=>A().campoDono(),false),{data}=await s.from("ras_docs").select("path,data").eq("col","inscricoes").limit(1000);
-  const L=(data||[]).map(r=>({uid:r.path.split("/")[1],d:r.data||{}})).filter(x=>x.uid&&x.uid!==u&&(dono||x.d.equipe===u.slice(0,8)||x.d.liberadoPor===u));
+  let L=(data||[]).map(r=>({uid:r.path.split("/")[1],d:r.data||{}})).filter(x=>x.uid&&x.uid!==u&&x.d.status!=="cancelada"&&(dono||x.d.equipe===u.slice(0,8)||x.d.liberadoPor===u));
+  /* v244: para o dono, entram também as contas que entraram no app mas ainda não fizeram a inscrição (antes elas não apareciam para receber tarefas nem para aprovar) */
+  if(dono){try{const {data:pf0}=await s.from("ras_docs").select("path,data").eq("col","perfis").limit(1000);const ja=new Set(L.map(x=>x.uid));
+    L=L.concat((pf0||[]).map(r=>({uid:r.path.split("/")[1],d:{...(r.data||{}),semInsc:true}})).filter(x=>x.uid&&x.uid!==u&&!ja.has(x.uid)))}catch(e){}}
   const ids=L.map(x=>x.uid),pf={};if(ids.length){const {data:d2}=await s.from("ras_docs").select("path,data").in("path",ids.map(i=>"perfis/"+i));(d2||[]).forEach(r=>pf[r.path.split("/")[1]]=r.data||{})}
-  return [eu].concat(L.map(x=>({uid:x.uid,nome:(pf[x.uid]&&(pf[x.uid].nome||pf[x.uid].email))||x.d.nome||x.d.email||("Colaborador "+x.uid.slice(0,6))})).sort((a,b)=>a.nome.localeCompare(b.nome,"pt")))}
+  return [eu].concat(L.map(x=>({uid:x.uid,semInsc:!!x.d.semInsc,nome:((pf[x.uid]&&(pf[x.uid].nome||pf[x.uid].email))||x.d.nome||x.d.email||("Colaborador "+x.uid.slice(0,6)))+(x.d.semInsc?" · sem inscrição":"")})).sort((a,b)=>a.nome.localeCompare(b.nome,"pt")))}
 async function carregar(){if(C.carregando)return;C.carregando=true;try{
   if(!sb()){C.members=[{uid:"local",nome:meuNome()+" (eu)"}];C.tasks=rdL();C.modo="local";C.err="";C.carregado=Date.now();return}
   if(!C.members.length||Date.now()-(C.memEm||0)>300000){try{C.members=await membros();C.memEm=Date.now()}catch(e){if(!C.members.length)C.members=[{uid:meu(),nome:meuNome()+" (eu)"}]}}
