@@ -14023,7 +14023,7 @@ const ui={aceita:null,f:{},ab:null};
 const hh=()=>new Date().toTimeString().slice(0,5);
 const CHK=[["orig","Ordem, projeto, grupo/tanque e espécie conferem com o que chegou",1],["peso","Peso conferido na balança da fábrica",1],["temp","Pescado resfriado no gelo (≤ 4 °C na chegada)",1],["doc","GTA / nota do produtor e ordem de despesca acompanham a carga",0],["jejum","Jejum antes da despesca respeitado (24–48 h)",0],["cx","Caixas/basquetas limpas e identificadas com o código da ordem",0],["sens","Aspecto do pescado aceitável (olhos brilhantes, guelras vermelhas, sem odor anormal)",0]];
 function kgNaData(l,data){const ms=msD(data);if(!isFinite(ms))return l.bF;const v=valor(l,Math.min(ms,l.h-1));return v.pre?0:v.b}
-function aceiteHTML(l){const f=ui.f[l.id]||(ui.f[l.id]={data:isoD(Math.max(Date.now(),l.h-DAY/2))});const kgD=kgNaData(l,f.data),wD=(()=>{const ms=msD(f.data);if(!isFinite(ms))return l.wF;const v=valor(l,Math.min(ms,l.h-1));return v.w})();
+function aceiteHTML(l){const f=ui.f[l.id]||(ui.f[l.id]=Object.assign({data:isoD(Math.max(Date.now(),l.h-DAY/2))},O.ult||{}));const kgD=kgNaData(l,f.data),wD=(()=>{const ms=msD(f.data);if(!isFinite(ms))return l.wF;const v=valor(l,Math.min(ms,l.h-1));return v.w})();
   const inp=(k,t,ph,ty)=>`<label class="jr-f">${t}<input data-acf="${k}" value="${E(f[k]||"")}" placeholder="${E(ph||"")}"${ty?` type="${ty}"`:""}></label>`;
   return `<div class="gfp-acf"><b>✅ Aceite da despesca — ordem para o setor de despesca e transporte</b>
    <div class="mk-form">${inp("data","Data da despesca","","date")}${inp("kg","Quantidade a despescar (kg)",F(kgD))}${inp("resp","Responsável pela captura","nome da equipe")}${inp("veic","Veículo / placa","ex.: caminhão isotérmico ABC-1D23")}${inp("mot","Motorista","")}${inp("obs","Observações","jejum, horário, gelo, caixas…")}</div>
@@ -14031,7 +14031,7 @@ function aceiteHTML(l){const f=ui.f[l.id]||(ui.f[l.id]={data:isoD(Math.max(Date.
    <div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-criar" data-id="${E(l.id)}">📨 Aceitar e enviar a ordem</button><button type="button" class="btn" data-gfp="od-nao">Cancelar</button></div></div>`}
 function criaOrdem(l){const f=ui.f[l.id]||{},data=f.data||isoD(Date.now()),kg=P(f.kg)>0?P(f.kg):Math.round(kgNaData(l,data)),ms=msD(data),v=valor(l,Math.min(isFinite(ms)?ms:l.h,l.h-1));
   const o={id:novoOD(data),lid:l.id,proj:l.proj,cli:l.cli||"",g:l.g,sp:l.sp,spn:l.spn,data,kgPrev:Math.round(kg),peso:Math.round(v.w||l.wF),alvo:l.alvo,resp:f.resp||"",veic:f.veic||"",mot:f.mot||"",obs:f.obs||"",status:"aceita",hist:[{s:"aceita",em:Date.now()}],rasc:{},em:Date.now()};
-  O.L.unshift(o);gravaO();delete ui.f[l.id];ui.aceita=null;ui.ab=o.id;return o}
+  O.ult={resp:o.resp,veic:o.veic,mot:o.mot};o.rasc={resp:o.resp,hIni:hh()};O.L.unshift(o);gravaO();delete ui.f[l.id];ui.aceita=null;ui.ab=o.id;return o}
 const passo=(o,s)=>{o.status=s;o.hist.push({s,em:Date.now()});gravaO()};
 const quandoS=(o,s)=>{const h=(o.hist||[]).filter(x=>x.s===s).pop();return h?`${dBR(h.em)} ${hm(h.em)}`:""};
 function txtOrdem(o){return `ORDEM DE DESPESCA E TRANSPORTE ${o.id}\nProjeto: ${o.proj}${o.cli?` (${o.cli})`:""}\nGrupo/tanque: ${o.g} · ${o.spn}\nData da despesca: ${dBRa(msD(o.data))}\nQuantidade: ${F(o.kgPrev)} kg · peso médio previsto ${F(o.peso)} g\nResponsável: ${o.resp||"—"} · Veículo: ${o.veic||"—"} · Motorista: ${o.mot||"—"}\n${o.obs?"Obs.: "+o.obs+"\n":""}Levar gelo (1 kg de gelo para cada 1 kg de peixe), caixas identificadas com o código ${o.id} e a GTA. Na chegada a fábrica confere peso, temperatura e origem.`}
@@ -14071,15 +14071,18 @@ function odHTML(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].i
 function acaoOD(k,id){const o=O.L.find(x=>x.id===id);if(!o)return;const r=o.rasc||(o.rasc={});ui.ab=id;
   if(k==="od-imp"){imprime(o);return}
   if(k==="od-canc"){if(!confirm(`Cancelar a ordem ${o.id}?`))return;passo(o,"cancelada");return}
-  if(k==="od-cap"){if(r.resp)o.resp=r.resp;o.hIni=r.hIni||hh();passo(o,"captura");toast(`${o.id}: captura iniciada.`);return}
-  if(k==="od-sai"){const kg=P(r.kgCap);o.kgCap=kg>0?kg:o.kgPrev;o.cx=r.cx||"";o.gelo=r.gelo||"";o.hSai=r.hSai||hh();passo(o,"transporte");toast(`${o.id}: ${F(o.kgCap)} kg saíram para a fábrica.`);return}
-  if(k==="od-che"){const kg=P(r.kgCheg);if(!(kg>0)){toast("Informe os kg pesados na balança da fábrica.");return}o.kgCheg=kg;o.tempC=r.tempC||"";o.hChe=r.hChe||hh();passo(o,"chegou");toast(`${o.id} chegou à fábrica: faça a checagem de rastreabilidade.`);return}
+  if(k==="od-cap"){if(r.resp)o.resp=r.resp;o.hIni=r.hIni||hh();const kgC=o.kgPrev;Object.assign(r,{kgCap:String(kgC),cx:String(Math.ceil(kgC/20)),gelo:String(kgC),hSai:hh()});passo(o,"captura");toast(`${o.id}: captura iniciada.`);return}
+  if(k==="od-sai"){const kg=P(r.kgCap);o.kgCap=kg>0?kg:o.kgPrev;o.cx=r.cx||"";o.gelo=r.gelo||"";o.hSai=r.hSai||hh();Object.assign(r,{kgCheg:String(o.kgCap),hChe:hh()});passo(o,"transporte");toast(`${o.id}: ${F(o.kgCap)} kg saíram para a fábrica.`);return}
+  if(k==="od-che"){const kg=P(r.kgCheg);if(!(kg>0)){toast("Informe os kg pesados na balança da fábrica.");return}o.kgCheg=kg;o.tempC=r.tempC||"";o.hChe=r.hChe||hh();
+    /* checagem: o que o próprio registro comprova já vem marcado (a equipe confere o resto) */
+    const tq0=P(o.tempC),dif=o.kgCap>0?Math.abs(o.kgCap-kg)/o.kgCap*100:0;Object.assign(r,{c_orig:true,c_peso:dif<=3,c_temp:isFinite(tq0)&&tq0<=4,c_cx:!!o.cx,c_doc:!!r.nf});passo(o,"chegou");toast(`${o.id} chegou à fábrica: faça a checagem de rastreabilidade.`);return}
   if(k==="od-rep"){const m=prompt("Motivo da reprovação da carga:","");if(m===null)return;o.motivo=m;passo(o,"reprovada");return}
   if(k==="od-ok"){const falta=CHK.filter(([c,,ob])=>ob&&!r["c_"+c]);if(falta.length){toast("Confirme os itens obrigatórios: "+falta.map(x=>x[1].split(" (")[0].toLowerCase()).join("; ")+".");return}
     const tq=P(o.tempC);if(isFinite(tq)&&tq>4&&!confirm(`O pescado chegou a ${F(tq,1)} °C (acima de 4 °C). Aprovar mesmo assim?`))return;
     o.check=Object.fromEntries(CHK.map(([c])=>[c,!!r["c_"+c]]));o.nf=r.nf||"";o.obsC=r.obsC||"";
     let mp="";try{if(window.gfRastreio&&gfRastreio.addMp)mp=gfRastreio.addMp({data:isoD(Date.now()),hora:o.hChe||hh(),forn:o.proj+(o.cli?` (${o.cli})`:""),orig:`${o.g} · ordem ${o.id}`,esp:o.spn,kg:o.kgCheg||o.kgCap||o.kgPrev,nf:o.nf,temp:o.tempC,od:o.id,obs:`Despesca ${o.id}: ${dBRa(msD(o.data))}, capturado ${F(o.kgCap||0)} kg${o.cx?` em ${o.cx} caixas`:""}, recebido ${F(o.kgCheg||0)} kg${isFinite(tq)?` a ${F(tq,1)} °C`:""}. Checagem: ${CHK.filter(([c])=>r["c_"+c]).map(x=>x[0]).join(", ")}.${o.obsC?" "+o.obsC:""}`})}catch(e){}
-    o.mp=mp;passo(o,"conferida");toast(mp?`${o.id} aprovado: lote de matéria-prima ${mp} criado na Rastreabilidade (📁 A processar).`:`${o.id} aprovado.`);return}
+    o.mp=mp;passo(o,"conferida");let foi=false;try{if(mp&&window.gfBenefLote)foi=gfBenefLote({esp:o.spn,kg:o.kgCheg||o.kgCap||o.kgPrev,id:mp,data:isoD(Date.now())})!==undefined}catch(e){}
+    toast(mp?`${o.id} aprovado: lote ${mp} criado na Rastreabilidade e enviado para todos os quadros do Beneficiamento (fluxograma, salga, secagem, derivados e defumação).`:`${o.id} aprovado.`);return}
   if(k==="od-rast"&&o.mp){try{const b=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Rastreabilidade/.test(x.textContent));if(b&&b.getAttribute("aria-selected")!=="true")b.click();window.gfRastreio&&gfRastreio.abrir&&gfRastreio.abrir(o.mp);setTimeout(()=>{const c=document.getElementById("rt-card");c&&c.scrollIntoView({behavior:"smooth",block:"start"})},150)}catch(e){}}}
 
 /* ---- quadro na aba Beneficiamento ---- */
