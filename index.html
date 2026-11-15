@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v244";
+  it.querySelector("code").textContent=msg;const ver="ras-v245";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10737,7 +10737,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v244";
+  const APP_VERSAO="ras-v245";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -11357,10 +11357,15 @@ function draw(){if(el.hidden)return;const st=T(resumo,{}),sec=PG[G.sec]&&(G.sec=
   try{body=PG[sec]()}catch(e){body=`<p class="fin-msg err">Não consegui montar este painel: ${E(e.message||e)}</p>`}
   const sy=window.scrollY;ult=Date.now();
   el.innerHTML=`<section class="card wide"><div class="card-head"><h2>🧭 AquaGestão<span>${pj?"Projeto "+E(pj.nome)+" · ":""}todos os dados das abas, correlacionados e em tempo real</span></h2><span class="ag-live" style="margin-left:auto"><b></b>ao vivo · ${new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</span></div>
-    <div class="pj-body"><nav class="ag-nav" aria-label="Painéis da AquaGestão"><button type="button" data-sec="geral" aria-pressed="${sec==="geral"}">🧭 Visão geral</button><button type="button" class="ag-prop" data-sec="prop" aria-pressed="${sec==="prop"}">🏡 Gerir propriedade</button><button type="button" class="ag-prop" data-sec="dados" aria-pressed="${sec==="dados"}">📂 Analisar dados</button>${ABAS.filter(a=>pode(a[0])).map(([k,i,n])=>`<button type="button" data-sec="${k}" aria-pressed="${sec===k}"><i style="background:${STC[(st[k]||{}).st||"off"]}"></i>${i} ${E(n.replace(" do pescado","").replace(" e projetos","").replace(" e viabilidade",""))}</button>`).join("")}</nav></div></section>
-   <section class="card wide"><div class="card-head"><h2>${sec==="geral"?"🧭 Visão geral do projeto":sec==="prop"?"🏡 Gerir propriedade":sec==="dados"?"📂 Analisar dados":ICO[sec]+" "+E(NOME[sec])}<span>${sec==="geral"?"saúde, alertas, cartões e ligações entre as abas":sec==="prop"?"viveiros e tanques do projeto, ciclos, tarefas, equipe, estoque e equipamentos":sec==="dados"?"qualquer origem · ligue ou desligue a correlação com cada aba enquanto analisa":"painel interativo · passe o dedo ou o mouse nos gráficos"}</span></h2>${sec!=="geral"&&sec!=="prop"&&sec!=="dados"?`<a href="#" class="btn" data-goto="${sec}" style="margin-left:auto;text-decoration:none">Abrir a aba</a>`:""}</div><div class="pj-body">${body}</div></section>`;
+    <div class="pj-body"><nav class="ag-nav" aria-label="Painéis da AquaGestão"><button type="button" data-sec="geral" aria-pressed="${sec==="geral"}">🧭 Visão geral</button><button type="button" class="ag-prop" data-sec="prop" aria-pressed="${sec==="prop"}">🏡 Gerir propriedade</button><button type="button" class="ag-prop" data-sec="dados" aria-pressed="${sec==="dados"}">📂 Analisar dados</button>${ABAS.filter(a=>pode(a[0])).map(([k,i,n])=>`<button type="button" data-sec="${k}" aria-pressed="${sec===k}"><i style="background:${STC[(st[k]||{}).st||"off"]}"></i>${i} ${E(n.replace(" do pescado","").replace(" e projetos","").replace(" e viabilidade",""))}</button>`).join("")}</nav></div>
+   <div class="ag-painel"><div class="card-head ag-ph"><h2>${sec==="geral"?"🧭 Visão geral do projeto":sec==="prop"?"🏡 Gerir propriedade":sec==="dados"?"📂 Analisar dados":ICO[sec]+" "+E(NOME[sec])}<span>${sec==="geral"?"saúde, alertas, cartões e ligações entre as abas":sec==="prop"?"viveiros e tanques do projeto, ciclos, tarefas, equipe, estoque e equipamentos":sec==="dados"?"qualquer origem · ligue ou desligue a correlação com cada aba enquanto analisa":"painel interativo · passe o dedo ou o mouse nos gráficos"}</span></h2>${sec!=="geral"&&sec!=="prop"&&sec!=="dados"?`<a href="#" class="btn" data-goto="${sec}" style="margin-left:auto;text-decoration:none">Abrir a aba</a>`:""}</div><div class="pj-body">${body}</div></div></section>`;
   window.scrollTo(0,sy);bind()}
-function bind(){el.querySelectorAll("[data-sec]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();G.sec=b.dataset.sec;grava();untip();draw();const t=el.querySelector(".card:nth-of-type(2)");if(t&&b.closest(".ag-tiles,.ag-alerts"))t.scrollIntoView({behavior:"smooth",block:"start"})}));
+function bind(){el.querySelectorAll(".ag-nav [data-sec]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopImmediatePropagation();const k=b.dataset.sec;G.sec=k;grava();untip();
+    /* v245: cada botão abre a função: as abas do app abrem a própria aba; Visão geral, Gerir propriedade e Analisar dados abrem o painel logo abaixo */
+    if(!["geral","prop","dados"].includes(k)&&document.getElementById("view-"+k)){try{setView(k)}catch(_){}window.scrollTo({top:0,behavior:"smooth"});return}
+    draw();setTimeout(()=>{const c=el.querySelector("section.card");if(c){if(window.gfRow&&c.dataset.gfk&&c.classList.contains("gf-row-x"))gfRow.sel("gest",c.dataset.gfk);c.classList.remove("gf-fech")}
+      setTimeout(()=>{const t=el.querySelector(".ag-painel");t&&t.scrollIntoView({behavior:"smooth",block:"start"})},120)},60)}));
+  el.querySelectorAll("[data-sec]:not(.ag-nav [data-sec])").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();G.sec=b.dataset.sec;grava();untip();draw();const t=el.querySelector(".ag-painel");if(t&&b.closest(".ag-tiles,.ag-alerts"))t.scrollIntoView({behavior:"smooth",block:"start"})}));
   el.querySelectorAll("[data-ag]").forEach(s=>s.addEventListener("change",()=>{G[s.dataset.ag]=s.value;grava();draw()}));
   el.querySelectorAll("[data-tt]").forEach(x=>{x.addEventListener("pointermove",e=>tip(e,E(x.dataset.tt).replace(/^([^:]+):/,"<b>$1</b>:")));x.addEventListener("pointerleave",untip)});
   el.querySelectorAll("[data-go]").forEach(x=>x.addEventListener("click",()=>{G.sec=x.dataset.go;grava();draw()}));
@@ -16571,3 +16576,4 @@ window.gfDiag={html,info:()=>{ler();return D.props.length?`${D.props.length} fic
 .bx-big .bx-orow small{grid-column:1/3;font:400 11.5px var(--f-body)!important;letter-spacing:0!important;text-transform:none!important;color:#dcfce7!important}
 .bx-big .bx-isreal b{color:#fff}
 </style>
+<style>.ag-painel{border-top:1px solid var(--line);margin-top:4px}.ag-painel>.ag-ph{border-bottom:1px solid var(--line)}</style>
