@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v231";
+  it.querySelector("code").textContent=msg;const ver="ras-v232";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -4246,6 +4246,7 @@ function drawBio(){
     <div class="meter big${occ>=1?" hot":""}" role="img" aria-label="Ocupação de ${fmt(occ*100,1)} %"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
     <div class="flow-foot"><span>${live?"Agora":"Na data"}: <b>${n(tot.bio,0)} kg</b> de <b>${n(cap,0)} kg</b></span><span>Folga: <b>${n(Math.max(0,cap-tot.bio),0)} kg</b></span>${alertM.length?`<span>Primeiro grupo a atingir a densidade máxima: <b>${esc(alertM.sort((a,b)=>a.dmAt-b.dmAt)[0].name)}</b>, em ${fmtD(alertM[0].dmAt)}</span>`:`<span>Nenhum grupo atinge a densidade máxima antes da despesca.</span>`}</div>
   </div></section>`;
+  try{h+=window.gfOcupHTML?gfOcupHTML(models,now,live,cap,p):""}catch(e){}
   h+=`<section class="card wide"><div class="card-head"><h2>Projeção da biomassa<span>Biomassa de cada grupo do povoamento à despesca, empilhada</span></h2></div><div class="body"><div class="chart" id="bio-chart"></div>
     <div class="legend-row">${models.filter(m=>m.ok).map(m=>`<span><i class="sw" style="background:${m.color}"></i>${esc(m.name)}</span>`).join("")}<span><i class="dash-sw"></i>Biomassa máxima</span></div></div></section>`;
   // fichas por grupo
@@ -10709,7 +10710,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v231";
+  const APP_VERSAO="ras-v232";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16112,4 +16113,81 @@ window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
 #gfp-toast[hidden]{display:none}#gfp-toast button{border:0;border-radius:8px;padding:5px 10px;background:#10b981;color:#fff;font-weight:600;cursor:pointer}#gfp-toast button[data-gfp="x"]{background:transparent;color:#a7f3d0;padding:5px 6px}
 html.gfp-tem .gs-i[data-gs-v="benef"]{position:relative}html.gfp-tem .gs-i[data-gs-v="benef"]::after{content:var(--gfp-n);position:absolute;right:8px;top:50%;transform:translateY(-50%);min-width:18px;height:18px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px}
 @media (max-width:640px){#gfp-toast{left:8px;right:8px;bottom:76px}}
+</style>
+<script>
+/* ===================== v232: ocupação do espaço pela biomassa, ao vivo, no intervalo entre o povoamento e o peso final projetado ===================== */
+(function(){
+const K="ras-multitanques-v1-ocup",DAY=864e5;
+const rd=()=>{try{return JSON.parse(localStorage.getItem(K)||"{}")||{}}catch(e){return {}}};
+const wr=v=>{try{localStorage.setItem(K,JSON.stringify(v))}catch(e){}};
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const iso=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const msD=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s||""));return m?new Date(+m[1],+m[2]-1,+m[3],12).getTime():NaN};
+const dB=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+const dBa=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"});
+window.gfOcupHTML=function(models,now,live,cap,p){
+  const G=(models||[]).filter(m=>m.ok&&m.harvest>m.start);if(!G.length||!(cap>0))return "";
+  const S=rd(),ini0=Math.min(...G.map(m=>m.start)),fim0=Math.max(...G.map(m=>m.harvest));
+  let de=msD(S.de),ate=msD(S.ate);if(!isFinite(de))de=ini0;if(!isFinite(ate))ate=fim0;if(ate<=de+DAY){de=ini0;ate=fim0}
+  const vol=G.reduce((s,m)=>s+(m.g.vol||0),0),capG=m=>(m.g.dm??p.DM)*(m.g.vol||0);
+  const dias=(ate-de)/DAY,step=Math.max(DAY/4,(ate-de)/300),T=[];for(let t=de;t<=ate;t+=step)T.push(t);if(T[T.length-1]<ate)T.push(ate);
+  const at=(m,t)=>{try{const v=m.at(t);return v&&v.on!==false?v.bio:0}catch(e){return 0}};
+  const tot=t=>G.reduce((s,m)=>s+at(m,t),0);
+  const Y=T.map(t=>tot(t)/cap*100),YG=G.map(m=>{const c=capG(m);return T.map(t=>c>0?at(m,t)/c*100:0)});
+  const pk=Math.max(...Y),pki=Y.indexOf(pk),nowIn=now>=de&&now<=ate,oNow=tot(now)/cap*100;
+  const acima=lim=>Y.filter(y=>y>=lim).length*step/DAY,primeiro=(arr,lim)=>{const i=arr.findIndex(y=>y>=lim);return i<0?null:T[i]};
+  const folgaMin=cap-Math.max(...T.map(tot));
+  // gráfico
+  const W=760,H=270,L=46,R=12,TP=14,B=40,ymax=Math.max(110,Math.ceil(Math.max(pk,...YG.map(a=>Math.max(...a)))*1.08/10)*10);
+  const x=t=>L+(t-de)/(ate-de)*(W-L-R),y=v=>TP+(1-v/ymax)*(H-TP-B);
+  const path=a=>a.map((v,i)=>(i?"L":"M")+x(T[i]).toFixed(1)+" "+y(v).toFixed(1)).join("");
+  const area=path(Y)+`L${x(T[T.length-1]).toFixed(1)} ${y(0)}L${x(T[0]).toFixed(1)} ${y(0)}Z`;
+  const ticksY=[0,25,50,75,100,ymax>125?125:null,ymax>=150?150:null].filter(v=>v!=null&&v<=ymax);
+  const nT=Math.min(8,Math.max(2,Math.round(dias/30))),ticksX=Array.from({length:nT+1},(_,i)=>de+(ate-de)*i/nT);
+  const mk=G.map((m,j)=>{const out=[];if(m.start>=de&&m.start<=ate)out.push(`<g style="color:${m.color}"><circle cx="${x(m.start).toFixed(1)}" cy="${y(0).toFixed(1)}" r="5" fill="currentColor"><title>${E(m.name)}: povoamento em ${dBa(m.start)}</title></circle></g>`);
+    const th=m.harvest-1;if(th>=de&&th<=ate){const v=capG(m)>0?at(m,th)/capG(m)*100:0;out.push(`<g style="color:${m.color}"><path d="M${x(th).toFixed(1)} ${(y(v)-9).toFixed(1)}l-5 -8h10z" fill="currentColor"><title>${E(m.name)}: despesca em ${dBa(m.harvest)} com ${F(v)}% do espaço do grupo</title></path></g>`)}return out.join("")}).join("");
+  const hov=T.filter((_,i)=>i%Math.max(1,Math.round(T.length/60))===0).map((t,i,a)=>{const w=(W-L-R)/a.length;return `<rect x="${(x(t)-w/2).toFixed(1)}" y="${TP}" width="${w.toFixed(1)}" height="${H-TP-B}" fill="transparent"><title>${dBa(t)} · sistema ${F(tot(t)/cap*100,1)}% (${F(tot(t))} kg de ${F(cap)} kg)${G.map(m=>{const c=capG(m);return c>0?`\n${m.name}: ${F(at(m,t)/c*100,1)}%`:""}).join("")}</title></rect>`}).join("");
+  const svg=`<svg class="oc-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ocupação do espaço de ${dBa(de)} a ${dBa(ate)}">
+    ${ticksY.map(v=>`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" class="oc-grid"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" class="oc-tx">${v}%</text>`).join("")}
+    ${ticksX.map(t=>`<text x="${x(t)}" y="${H-B+16}" text-anchor="middle" class="oc-tx">${dB(t)}</text>`).join("")}
+    <rect x="${L}" y="${y(Math.min(ymax,100))}" width="${W-L-R}" height="${Math.max(0,y(85)-y(Math.min(ymax,100)))}" class="oc-zw"/>
+    ${ymax>100?`<rect x="${L}" y="${TP}" width="${W-L-R}" height="${y(100)-TP}" class="oc-zc"/>`:""}
+    <line x1="${L}" x2="${W-R}" y1="${y(100)}" y2="${y(100)}" class="oc-100"/><text x="${W-R-4}" y="${y(100)-4}" text-anchor="end" class="oc-tx oc-r">100% = densidade máxima</text>
+    <line x1="${L}" x2="${W-R}" y1="${y(85)}" y2="${y(85)}" class="oc-85"/><text x="${W-R-4}" y="${y(85)+12}" text-anchor="end" class="oc-tx oc-a">85% alerta</text>
+    <path d="${area}" class="oc-area"/>
+    ${YG.map((a,j)=>`<path d="${path(a)}" fill="none" stroke="currentColor" style="color:${G[j].color}" class="oc-g"><title>${E(G[j].name)}</title></path>`).join("")}
+    <path d="${path(Y)}" class="oc-tot"/>
+    ${mk}
+    ${nowIn?`<line x1="${x(now)}" x2="${x(now)}" y1="${TP}" y2="${H-B}" class="oc-now"/><circle cx="${x(now)}" cy="${y(oNow)}" r="5" class="oc-nowc"/><text x="${x(now)+(x(now)>W-150?-6:6)}" y="${TP+12}" text-anchor="${x(now)>W-150?"end":"start"}" class="oc-tx oc-nt">${live?"agora":"na data"}: ${F(oNow,1)}%</text>`:""}
+    ${hov}</svg>`;
+  const kpi=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d||""}</small></div></div>`;
+  const rows=G.map((m,j)=>{const c=capG(m),o=t=>c>0?at(m,t)/c*100:NaN,a=YG[j],gp=Math.max(...a),gpi=a.indexOf(gp),p85=primeiro(a,85),p100=primeiro(a,100),cyc=(m.harvest-m.start)/DAY,oN=now>=m.start&&now<m.harvest?o(now):NaN;
+    return `<tr><td class="l"><i class="sw" style="background:${m.color}"></i> <b>${E(m.name)}</b><small>${E(m.sp.name)} · ${F(m.g.vol,0)} m³ · máx. ${F(m.g.dm??p.DM,0)} kg/m³</small></td><td>${dBa(m.start)}</td><td>${dBa(m.harvest)}<small>${F(Math.ceil(cyc))} dias</small></td><td>${F(o(m.start+1),1)}%</td><td>${isFinite(oN)?`<b>${F(oN,1)}%</b>`:now<m.start?"<small>a povoar</small>":"<small>despescado</small>"}</td><td><b class="${o(m.harvest-1)>=100?"neg":""}">${F(o(m.harvest-1),1)}%</b><small>${F(at(m,m.harvest-1))} kg</small></td><td>${F(gp,1)}%<small>${dB(T[gpi])}</small></td><td>${p85?dB(p85):"—"}</td><td class="${p100?"neg":""}">${p100?dB(p100):"—"}</td></tr>`}).join("");
+  const sem=[];for(let t=de;t<=ate;t+=7*DAY)sem.push(t);
+  const btn=(k,t)=>`<button type="button" class="chip${S.modo===k?" on":""}" data-oc="${k}">${t}</button>`;
+  return `<section class="card wide" id="oc-card"><div class="card-head"><h2>📦 Ocupação do espaço ao longo do ciclo<span>${live?"Ao vivo · ":""}biomassa ÷ capacidade (densidade máxima × volume) de ${dBa(de)} a ${dBa(ate)}, do povoamento ao peso final projetado</span></h2></div><div class="body">
+   <div class="mk-form oc-ctl"><label class="jr-f">De<input type="date" data-ocd="de" value="${iso(de)}"></label><label class="jr-f">Até<input type="date" data-ocd="ate" value="${iso(ate)}"></label>
+     <div class="oc-bt">${btn("ciclo","Do 1º povoamento à última despesca")}${btn("hoje","De hoje até a última despesca")}${btn("30","Próximos 30 dias")}${btn("90","Próximos 90 dias")}</div></div>
+   <div class="gfh-kpis bx-kpis">${kpi(live?"Ocupação agora":"Ocupação na data",F(oNow,1)+"%",`${F(tot(now))} kg de ${F(cap)} kg · ${F(vol>0?tot(now)/vol:NaN,1)} kg/m³`,oNow>=100?"crit":oNow>=85?"warn":"ok")}${kpi("Pico no intervalo",F(pk,1)+"%",`em ${dBa(T[pki])} · ${F(tot(T[pki]))} kg`,pk>=100?"crit":pk>=85?"warn":"ok")}${kpi("Dias acima de 85%",F(acima(85)),acima(100)>0?`${F(acima(100))} dias acima de 100%`:"nunca passa de 100%",acima(100)>0?"crit":acima(85)>0?"warn":"ok")}${kpi("Menor folga",F(Math.max(0,folgaMin))+" kg",folgaMin<0?`falta espaço para ${F(-folgaMin)} kg`:"espaço livre no momento mais cheio",folgaMin<0?"crit":"")}</div>
+   <div class="oc-wrap">${svg}</div>
+   <div class="legend-row"><span><i class="sw oc-swt"></i>Sistema (todos os grupos)</span>${G.map(m=>`<span><i class="sw" style="background:${m.color}"></i>${E(m.name)}</span>`).join("")}<span>● povoamento · ▼ despesca</span></div>
+   <div class="scroll"><table class="lot oc-t"><thead><tr><th class="l">Grupo</th><th>Povoamento</th><th>Peso final (despesca)</th><th>No povoamento</th><th>${live?"Agora":"Na data"}</th><th>Na despesca</th><th>Pico</th><th>Passa de 85%</th><th>Passa de 100%</th></tr></thead><tbody>${rows}</tbody></table></div>
+   <details class="oc-sem"><summary>📅 Ocupação semana a semana (${sem.length} semanas)</summary><div class="scroll"><table class="lot"><thead><tr><th class="l">Semana</th><th>Biomassa</th><th>Ocupação</th><th>Densidade</th><th>Folga</th><th class="l">Grupos no tanque</th></tr></thead><tbody>${sem.map(t=>{const b=tot(t),o=b/cap*100;return `<tr class="${o>=100?"oc-cr":o>=85?"oc-wa":""}"><td class="l">${dBa(t)}</td><td>${F(b)} kg</td><td><b>${F(o,1)}%</b></td><td>${F(vol>0?b/vol:NaN,1)} kg/m³</td><td>${F(cap-b)} kg</td><td class="l"><small>${G.filter(m=>t>=m.start&&t<m.harvest).map(m=>E(m.name)).join(", ")||"vazio"}</small></td></tr>`}).join("")}</tbody></table></div></details>
+   <p class="hint">A curva sai da mesma projeção da aba (curva de crescimento da espécie, biometrias, mortalidade e ritmo). 100% = densidade máxima de cada grupo × volume; acima de 85% planeje despesca parcial, repicagem ou transferência. Passe o dedo ou o mouse sobre o gráfico para ver cada data. O intervalo fica salvo no projeto.</p></div></section>`};
+document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.ocd;if(!k)return;const S=rd();S[k]=e.target.value;S.modo="";wr(S);try{drawBio()}catch(_){}});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-oc]");if(!b)return;const k=b.dataset.oc,h=new Date(),hoje=new Date(h.getFullYear(),h.getMonth(),h.getDate(),12).getTime(),S={modo:k};
+  if(k==="hoje"){S.de=iso(hoje)}else if(k==="30"||k==="90"){S.de=iso(hoje);S.ate=iso(hoje+(+k)*DAY)}
+  wr(S);try{drawBio()}catch(_){}});
+})();
+</script>
+<style>
+#oc-card .oc-ctl{align-items:end}.oc-bt{display:flex;flex-wrap:wrap;gap:6px}.oc-bt .chip.on{background:#0f766e;color:#fff;border-color:#0f766e}
+.oc-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}@media (max-width:640px){.oc-svg{min-width:640px}}.oc-svg{width:100%;height:auto;display:block}
+.oc-grid{stroke:var(--line,#e5e7eb);stroke-width:1}.oc-tx{font:11px var(--f-mono,monospace);fill:var(--muted,#6b7280)}.oc-r{fill:#b91c1c}.oc-a{fill:#a16207}.oc-nt{fill:#0f766e;font-weight:700}
+.oc-zw{fill:rgba(234,179,8,.10)}.oc-zc{fill:rgba(220,38,38,.08)}.oc-100{stroke:#dc2626;stroke-width:1.5}.oc-85{stroke:#eab308;stroke-width:1.2;stroke-dasharray:5 4}
+.oc-area{fill:rgba(15,118,110,.14)}.oc-tot{fill:none;stroke:#0f766e;stroke-width:3}.oc-g{stroke-width:1.6;stroke-dasharray:6 3;opacity:.9}
+.oc-now{stroke:#0f766e;stroke-width:1.5;stroke-dasharray:3 3}.oc-nowc{fill:#0f766e;stroke:#fff;stroke-width:2}
+.oc-swt{background:#0f766e!important}.oc-t td small{display:block;color:var(--muted)}.oc-cr td{background:rgba(220,38,38,.07)}.oc-wa td{background:rgba(234,179,8,.08)}
+.oc-sem summary{cursor:pointer;font-weight:600;font-size:14px;margin-top:6px}
 </style>
