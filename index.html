@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v234";
+  it.querySelector("code").textContent=msg;const ver="ras-v235";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -3868,13 +3868,19 @@ function lotModel(t,g,p,rit,mort){
   const d0=ok?dayOf(sp,w0):0;
   const harvest0=ok?start+(dayOf(sp,alvo)-d0)/rit*DAY:null;
   // biometria do tanque RAS: o peso medido substitui o da curva a partir da data dela
-  let cal=null;if(ok&&window.bioUltRAS){try{const b=bioUltRAS(t.id);if(b&&b.pm>0&&b.ts>=start&&b.ts<=Math.max(harvest0,start)+120*DAY){const eb=(b.ts-start)/DAY;cal={...b,eb,db:dayOf(sp,b.pm),esp:wAt(sp,d0+eb*rit)};
+  let cal=null;if(ok&&window.bioUltRAS){try{const b=bioUltRAS(t.id);if(b&&b.pm>0&&b.ts>=start&&b.ts<=Math.max(harvest0,start)+365*DAY){const eb=(b.ts-start)/DAY;cal={...b,eb,db:dayOf(sp,b.pm),esp:wAt(sp,d0+eb*rit)};
     // ritmo observado: avanço na curva entre a primeira e a última biometria do lote (mínimo 7 dias)
     const hh=(b.hist||[]).filter(x=>x.ts>=start);if(hh.length>=2){const a0=hh[0],a1=hh[hh.length-1],dd=(a1.ts-a0.ts)/DAY;if(dd>=7){const ro=(dayOf(sp,a1.pm)-dayOf(sp,a0.pm))/dd;if(isFinite(ro)&&ro>0)cal.ritObs=Math.max(.2,Math.min(1.6,ro))}}}}catch(e){}}
   const harvest=!ok?null:cal?(cal.pm>=alvo?cal.ts+DAY:cal.ts+(dayOf(sp,alvo)-cal.db)/(cal.ritObs||rit)*DAY):harvest0;
   const cap=(g.dm??p.DM)*g.vol;
+  /* v235: passou do prazo estimado e não foi despescado: a biomassa continua crescendo em tempo real
+     (ritmo das biometrias; sem ele, o ritmo que a temperatura da água do AquaNictemeral pede; sem leituras, o ritmo da aba) */
+  const eH=ok?(harvest-start)/DAY:0,atras=ok&&harvest<=Date.now();
+  let rOv=rit,rOvF="ritmo da aba";if(atras){if(cal&&cal.ritObs){rOv=cal.ritObs;rOvF="ritmo das biometrias"}else{let rw=null;try{rw=window.gfRitAgua&&gfRitAgua()}catch(e){}if(rw>0){rOv=rw;rOvF="ritmo pela água (AquaNictemeral)"}}}
+  let desp=null;try{desp=ok&&window.gfDespReal?gfDespReal(label(t),start):null}catch(e){}
+  const ddOf=(e,uc)=>{const pos=uc&&cal&&e>=cal.eb,rr=pos&&cal.ritObs?cal.ritObs:rit;return {dd:pos?cal.db+(e-cal.eb)*rr:d0+e*rit,rr}};
   const valF=(e,uc)=>{
-    const pos=uc&&cal&&e>=cal.eb,rr=pos&&cal.ritObs?cal.ritObs:rit,dd=pos?cal.db+(e-cal.eb)*rr:d0+e*rit,w=wAt(sp,dd);
+    let {dd,rr}=ddOf(e,uc);if(atras&&e>eH){rr=rOv;dd=uc&&cal&&cal.eb>=eH&&e>=cal.eb?cal.db+(e-cal.eb)*rr:ddOf(eH,uc).dd+(e-eH)*rr}const w=wAt(sp,dd);
     const gpd=(wAt(sp,dd+.5)-wAt(sp,dd-.5))*rr,n=nT*g.q*Math.pow(1-mort,e/30),fca=bandOf(sp.fca,w);
     const fr=feedRow(L.sp,w),feedF=n*gpd*fca/1000*adj,feedT=n*w/1000*fr.pv/100*rr*adj;
     return {on:true,e,w,n,bio:n*w/1000,gpd,fca,fr,feedF,feedT,feed:feedMet==="fca"?feedF:feedT,gain:n*gpd/1000,phase:bandOf(sp.phases,w)};
@@ -3883,13 +3889,14 @@ function lotModel(t,g,p,rit,mort){
   const at0=ms=>(!ok||ms<start||ms>=harvest0)?{on:false,w:0,n:0,bio:0}:valF((ms-start)/DAY,false);
   const at=ms=>{
     if(!ok||ms<start) return {on:false,pre:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
-    if(ms>=harvest) return {on:false,done:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
-    return val((ms-start)/DAY);
+    if(desp&&ms>=desp) return {on:false,done:true,desp:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
+    if(ms>=harvest&&!atras) return {on:false,done:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
+    const v=val((ms-start)/DAY);if(ms>=harvest){v.over=true;v.fonte=rOvF}return v;
   };
   // primeiro dia em que a biomassa do grupo alcança a capacidade (DM × volume do grupo)
   let dmAt=null;
   if(ok&&cap>0) for(let ms=start;ms<harvest;ms+=DAY/4){if(at(ms).bio>=cap){dmAt=ms;break}}
-  return {t,g,sp,L,start,w0,alvo,nT,nDef,ok,errs,harvest,cap,at,val,dmAt,adj,cal,at0,harvest0};
+  return {t,g,sp,L,start,w0,alvo,nT,nDef,ok,errs,harvest,cap,at,val,dmAt,adj,cal,at0,harvest0,atras,desp,rOv,rOvF};
 }
 
 /* ---------- Arraçoamento: tabela por fase e tamanho ---------- */
@@ -4227,7 +4234,7 @@ function drawBio(){
     const bad={date:m.start===null,w0:!(m.w0>0),alvo:!(m.alvo>0)||(m.w0>0&&m.alvo<=m.w0),n:!(Number.isInteger(m.nT)&&m.nT>=0)};
     Object.entries(bad).forEach(([k,b])=>{const el=row.querySelector(`[data-lk="${k}"]`);if(el)el.classList.toggle("bad",b)})});
   const st=models.map(m=>({m,s:m.at(now)}));
-  const stH=st.map(({m,s})=>({m,s:s.done&&m.ok?Object.assign({},m.val(Math.max(0,(m.harvest-m.start)/DAY-1e-6)),{gain:0}):s}));
+  const stH=st;
   const tot=stH.reduce((a,{s})=>({bio:a.bio+s.bio,n:a.n+s.n,feed:a.feed+s.feed,gain:a.gain+s.gain}),{bio:0,n:0,feed:0,gain:0});
   const cap=r.BM,occ=cap>0?tot.bio/cap:0;
   const next=models.filter(m=>m.ok&&m.harvest>now).sort((a,b)=>a.harvest-b.harvest)[0];
@@ -4263,19 +4270,19 @@ function drawBio(){
     const state=mode==="pre"
       ?`<span class="pill">Aguardando povoamento</span> em ${fmtD(m.start)} · daqui a ${f0(Math.ceil((m.start-now)/DAY))} d`
       :mode==="done"
-      ?`<span class="pill">No peso de abate</span> desde ${fmtD(m.harvest)} · ${Math.floor((now-m.harvest)/DAY)>0?"há "+f0(Math.floor((now-m.harvest)/DAY))+" d":"hoje"} · aguardando despesca`
-      :`<span class="pill">${v.phase}</span> ${f0(Math.floor(v.e))} dias de cultivo`;
+      ?`<span class="pill">Despescado</span> em ${fmtD(m.desp||m.harvest)}`
+      :v.over?`<span class="pill pill-over">⏰ Passou do prazo estimado</span> ${f0(Math.floor(v.e))} dias de cultivo · ${v.phase}`:`<span class="pill">${v.phase}</span> ${f0(Math.floor(v.e))} dias de cultivo`;
     const when=mode==="pre"?"no povoamento":mode==="done"?"na despesca":"";
     const lastRow=mode==="pre"
       ?`<dt>Despesca prevista</dt><dd>${fmtDs(m.harvest)} · ${f0(Math.ceil(cyc))} d</dd>`
       :mode==="done"
       ?`<dt>Dias de cultivo</dt><dd>${f0(Math.ceil(cyc))} d</dd>`
-      :`<dt>Despesca prevista</dt><dd>${fmtDs(m.harvest)} · ${f0(left)} d</dd>`;
+      :v.over?`<dt>Prazo estimado</dt><dd>${fmtDs(m.harvest)} · há ${f0(Math.floor((now-m.harvest)/DAY))} d</dd>`:`<dt>Despesca prevista</dt><dd>${fmtDs(m.harvest)} · ${f0(left)} d</dd>`;
     const tail=mode==="pre"
       ?`<div class="warnline">Valores do dia do povoamento. Mude a data de referência para acompanhar o lote depois disso.</div>`
       :mode==="done"
-      ?`<div class="warnline">Lote atingiu o peso de abate (${n(m.alvo,0)} g) em ${f0(Math.ceil(cyc))} dias de cultivo. Enquanto não for despescado, a biomassa continua ocupando o espaço e contando no total e na ocupação.</div>`
-      :o>=1?`<div class="note">Acima da densidade máxima. Faça uma despesca parcial ou transfira peixes.</div>`:m.dmAt!==null&&m.dmAt>now?`<div class="warnline">Atinge a densidade máxima em ${fmtD(m.dmAt)}, antes da despesca.</div>`:"";
+      ?`<div class="warnline">${m.desp?"Despesca registrada pela ordem de despesca conferida na chegada à fábrica: o espaço foi liberado.":"Lote despescado na data prevista."}</div>`
+      :v.over?`<div class="warnline">O lote passou do prazo estimado para ${n(m.alvo,0)} g e continua no tanque: a biomassa segue crescendo em tempo real pelo ${esc(v.fonte||"ritmo da aba")}${m.cal?` (última biometria ${fw(m.cal.pm)} g em ${fmtDs(m.cal.ts)})`:""}. Faça uma biometria para confirmar o peso real e registre a despesca pela ordem no Beneficiamento.${o>=1?" <b>Acima da densidade máxima: despesque ou transfira.</b>":""}</div>`:o>=1?`<div class="note">Acima da densidade máxima. Faça uma despesca parcial ou transfira peixes.</div>`:m.dmAt!==null&&m.dmAt>now?`<div class="warnline">Atinge a densidade máxima em ${fmtD(m.dmAt)}, antes da despesca.</div>`:"";
     return `<div class="gcard${mode==="on"&&o>=1?" hot":""}${mode!=="on"?" off":""}">${head}<p class="state">${state}</p>
       <dl><dt>Peso médio${when?` ${when}`:""}</dt><dd>${fw(v.w)} g</dd>
       <dt>Comprimento ${m.sp.lw.kind}</dt><dd>${fmt(lenOf(m.sp,v.w),1)} cm</dd>
@@ -10712,7 +10719,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v234";
+  const APP_VERSAO="ras-v235";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15859,8 +15866,8 @@ const ehCam=l=>/camar/i.test(l.sp+" "+l.spn);
 
 /* ---- tira da aba Biomassa (de qualquer janela do app) a curva de cada lote até a despesca ---- */
 function extrai(w){let fm=null;try{fm=w.feedModels&&w.feedModels()}catch(e){fm=null}if(!fm)return null;const now=Date.now(),hoje=Math.floor(now/DAY)*DAY,out=[];
-  for(const m of fm){try{if(!m||!m.ok||!(m.harvest>0))continue;if(m.harvest<now-30*DAY)continue;
-    const fim=m.at(m.harvest-1),l={g:String(m.name||"Grupo"),sp:String(m.L&&m.L.sp||""),spn:String(m.sp&&m.sp.name||""),st:+m.start,h:+m.harvest,alvo:+m.alvo,q:+(m.g&&m.g.q)||0,
+  for(const m of fm){try{if(!m||!m.ok||!(m.harvest>0)||m.desp)continue;if(m.harvest<now-30*DAY&&!m.atras)continue;
+    const fim=m.atras?m.at(now):m.at(m.harvest-1),l={g:String(m.name||"Grupo"),sp:String(m.L&&m.L.sp||""),spn:String(m.sp&&m.sp.name||""),st:+m.start,h:+m.harvest,alvo:+m.alvo,q:+(m.g&&m.g.q)||0,
       wF:+(fim.w||0),bF:+(fim.bio||0),nF:+(fim.n||0),t0:Math.max(+m.start,hoje),w:[],b:[]};
     if(!(l.wF>0)){const v=m.val(Math.max(0,(m.harvest-m.start)/DAY-1e-3));l.wF=+v.w||0;l.bF=+v.bio||0;l.nF=+v.n||0}
     for(let t=l.t0,i=0;t<l.h&&i<720;t+=DAY,i++){const v=m.at(t);l.w.push(Math.round((+v.w||0)*10)/10);l.b.push(Math.round((+v.bio||0)*10)/10)}
@@ -16138,8 +16145,8 @@ window.gfOcupHTML=function(models,now,live,cap,p){
   const vol=G.reduce((s,m)=>s+(m.g.vol||0),0),capG=m=>(m.g.dm??p.DM)*(m.g.vol||0);
   const dias=(ate-de)/DAY,step=Math.max(DAY/4,(ate-de)/300),T=[];for(let t=de;t<=ate;t+=step)T.push(t);if(T[T.length-1]<ate)T.push(ate);
   /* lote que já chegou ao peso de abate e não foi despescado continua ocupando o espaço com a biomassa final */
-  const pronto=m=>m.harvest<=now,fimV=m=>{try{return m.at(m.harvest-1)}catch(e){return {bio:0,w:0,n:0}}};
-  const at=(m,t)=>{try{if(t>=m.harvest&&pronto(m))return fimV(m).bio||0;const v=m.at(t);return v&&v.on!==false?v.bio:0}catch(e){return 0}};
+  const pronto=m=>m.harvest<=now&&!(m.desp&&m.desp<=now);
+  const at=(m,t)=>{try{const v=m.at(t);return v&&v.on!==false?v.bio:0}catch(e){return 0}};
   const tot=t=>G.reduce((s,m)=>s+at(m,t),0);
   const Y=T.map(t=>tot(t)/cap*100),YG=G.map(m=>{const c=capG(m);return T.map(t=>c>0?at(m,t)/c*100:0)});
   const pk=Math.max(...Y),pki=Y.indexOf(pk),nowIn=now>=de&&now<=ate,oNow=tot(now)/cap*100;
@@ -16173,12 +16180,12 @@ window.gfOcupHTML=function(models,now,live,cap,p){
     return `<tr><td class="l"><i class="sw" style="background:${m.color}"></i> <b>${E(m.name)}</b><small>${E(m.sp.name)} · ${F(m.g.vol,0)} m³ · máx. ${F(m.g.dm??p.DM,0)} kg/m³</small></td><td>${dBa(m.start)}</td><td>${dBa(m.harvest)}<small>${F(Math.ceil(cyc))} dias</small></td><td>${F(o(m.start+1),1)}%</td><td>${isFinite(oN)?`<b>${F(oN,1)}%</b>`:now<m.start?"<small>a povoar</small>":"<small>despescado</small>"}</td><td><b class="${o(m.harvest-1)>=100?"neg":""}">${F(o(m.harvest-1),1)}%</b><small>${F(at(m,m.harvest-1))} kg</small></td><td>${F(gp,1)}%<small>${dB(T[gpi])}</small></td><td>${p85?dB(p85):"—"}</td><td class="${p100?"neg":""}">${p100?dB(p100):"—"}</td></tr>`}).join("");
   const sem=[];for(let t=de;t<=ate;t+=7*DAY)sem.push(t);
   const btn=(k,t)=>`<button type="button" class="chip${(k==="real"?real:modo===k&&!real)?" on":""}" data-oc="${k}">${t}</button>`;
-  const vivo=G.map(m=>{const c=capG(m),dec=Math.max(0,(Math.min(now,m.harvest)-m.start)/DAY),cyc=(m.harvest-m.start)/DAY,pre=now<m.start,ok=pronto(m),v=pre?{w:m.w0,bio:0,n:0}:ok?fimV(m):m.at(now),o=c>0?(ok?fimV(m).bio:v.bio)/c*100:NaN;
-    return `<div class="oc-rt${ok?" oc-rt-ok":""}"><div class="oc-rt-h"><i class="sw" style="background:${m.color}"></i><b>${E(m.name)}</b><small>${E(m.sp.name)} · povoado em ${dBa(m.start)}</small><span class="oc-rt-st">${pre?"⏳ a povoar":ok?"✅ no peso de abate — aguardando despesca":"🐟 em crescimento"}</span></div>
-     <div class="oc-rt-g"><div><small>Tempo de cultivo</small><b>${F(Math.floor(dec))} de ${F(Math.ceil(cyc))} dias</b><div class="meter"><div style="width:${Math.min(100,dec/cyc*100).toFixed(1)}%"></div></div><small>${ok?`peso final atingido em ${dBa(m.harvest)}${now-m.harvest>DAY?` (há ${F(Math.floor((now-m.harvest)/DAY))} dias)`:" (hoje)"}`:pre?`começa em ${dBa(m.start)}`:`faltam ${F(Math.ceil((m.harvest-now)/DAY))} dias · despesca em ${dBa(m.harvest)}`}</small></div>
-      <div><small>Peso médio agora</small><b>${F(v.w)} g</b><div class="meter"><div style="width:${Math.min(100,(v.w||0)/m.alvo*100).toFixed(1)}%"></div></div><small>${F((v.w||0)/m.alvo*100)}% do peso final de ${F(m.alvo)} g</small></div>
-      <div><small>Biomassa agora</small><b>${F(ok?fimV(m).bio:v.bio)} kg</b><small>${F(ok?fimV(m).n:v.n)} animais</small></div>
-      <div><small>Ocupação do espaço agora</small><b class="${o>=100?"neg":""}">${F(o,1)}%</b><div class="meter${o>=100?" hot":""}"><div style="width:${Math.min(100,o).toFixed(1)}%"></div></div><small>${F(m.g.vol>0?(ok?fimV(m).bio:v.bio)/m.g.vol:NaN,1)} de ${F(m.g.dm??p.DM,0)} kg/m³</small></div></div></div>`}).join("");
+  const vivo=G.map(m=>{const c=capG(m),dec=Math.max(0,(Math.min(now,m.desp||now)-m.start)/DAY),cyc=(m.harvest-m.start)/DAY,pre=now<m.start,ok=pronto(m),v0=pre?{w:m.w0,bio:0,n:0}:m.at(now),dsp=!!v0.done,v=v0,o=c>0?v.bio/c*100:NaN;
+    return `<div class="oc-rt${ok&&!dsp?" oc-rt-ok":""}"><div class="oc-rt-h"><i class="sw" style="background:${m.color}"></i><b>${E(m.name)}</b><small>${E(m.sp.name)} · povoado em ${dBa(m.start)}</small><span class="oc-rt-st">${pre?"⏳ a povoar":dsp?"📦 despescado":ok?`⏰ passou do prazo estimado — continua crescendo (${E(m.rOvF||"ritmo da aba")})`:"🐟 em crescimento"}</span></div>
+     <div class="oc-rt-g"><div><small>Tempo de cultivo</small><b>${F(Math.floor(dec))} de ${F(Math.ceil(cyc))} dias</b><div class="meter"><div style="width:${Math.min(100,dec/cyc*100).toFixed(1)}%"></div></div><small>${dsp?`despescado em ${dBa(m.desp||m.harvest)}`:ok?`prazo estimado: ${dBa(m.harvest)}${now-m.harvest>DAY?` (há ${F(Math.floor((now-m.harvest)/DAY))} dias)`:" (hoje)"}${m.cal?` · última biometria ${F(m.cal.pm)} g em ${dBa(m.cal.ts)}`:" · sem biometria depois do prazo"}`:pre?`começa em ${dBa(m.start)}`:`faltam ${F(Math.ceil((m.harvest-now)/DAY))} dias · despesca em ${dBa(m.harvest)}`}</small></div>
+      <div><small>Peso médio agora</small><b>${dsp?"—":F(v.w)+" g"}</b><div class="meter"><div style="width:${Math.min(100,(v.w||0)/m.alvo*100).toFixed(1)}%"></div></div><small>${F((v.w||0)/m.alvo*100)}% do peso final de ${F(m.alvo)} g</small></div>
+      <div><small>Biomassa agora</small><b>${F(v.bio)} kg</b><small>${F(v.n)} animais</small></div>
+      <div><small>Ocupação do espaço agora</small><b class="${o>=100?"neg":""}">${F(o,1)}%</b><div class="meter${o>=100?" hot":""}"><div style="width:${Math.min(100,o).toFixed(1)}%"></div></div><small>${F(m.g.vol>0?v.bio/m.g.vol:NaN,1)} de ${F(m.g.dm??p.DM,0)} kg/m³</small></div></div></div>`}).join("");
   return `<section class="card wide" id="oc-card"><div class="card-head"><h2>📦 Ocupação do espaço ao longo do ciclo<span>${real?`⏱ Tempo real: do povoamento (${dBa(de)}) até agora — a ocupação acompanha a biomassa que já cresceu nesse intervalo`:`${live?"Ao vivo · ":""}biomassa ÷ capacidade (densidade máxima × volume) de ${dBa(de)} a ${dBa(ate)}`}</span></h2></div><div class="body">
    <div class="mk-form oc-ctl"><label class="jr-f">De<input type="date" data-ocd="de" value="${iso(de)}"></label><label class="jr-f">Até<input type="date" data-ocd="ate" value="${iso(ate)}"></label>
      <div class="oc-bt">${btn("real","⏱ Do povoamento até agora (tempo real)")}${btn("ciclo","Do 1º povoamento à última despesca")}${btn("hoje","De hoje até a última despesca")}${btn("30","Próximos 30 dias")}${btn("90","Próximos 90 dias")}</div></div>
@@ -16208,3 +16215,11 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 .oc-rt-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-top:8px}.oc-rt-g>div{display:grid;gap:3px}.oc-rt-g small{color:var(--muted);font-size:12px}.oc-rt-g b{font-size:16px}.oc-rt-g .meter{height:8px}
 .oc-sem summary{cursor:pointer;font-weight:600;font-size:14px;margin-top:6px}
 </style>
+<script>
+/* v235: ritmo de crescimento pela temperatura real da água (AquaNictemeral) e despesca registrada pela ordem conferida */
+window.gfRitAgua=function(){const c=window.gfRitAgua.c;if(c&&Date.now()-c.t<60000)return c.v;let v=null;try{const A=typeof bxAgua==="function"?bxAgua():null;if(A&&A.tm!=null&&!A.ex)v=BX_RIT(A.tm)/100}catch(e){}window.gfRitAgua.c={t:Date.now(),v};return v};
+window.gfDespReal=function(nome,start){try{if(!window.gfOrdens)return null;const L=gfOrdens.lista(),suf="|"+nome+"|"+start;let pk=null;try{pk=window.projAtualKey?projAtualKey():null}catch(e){}
+  const o=L.find(x=>x.status==="conferida"&&String(x.lid||"").endsWith(suf)&&(!pk||String(x.lid).startsWith(pk+"|")||String(x.lid).startsWith("aberto|")));if(!o)return null;
+  const h=(o.hist||[]).find(x=>x.s==="captura")||(o.hist||[]).find(x=>x.s==="conferida");return h?h.em:null}catch(e){return null}};
+</script>
+<style>.pill.pill-over{background:#fef3c7;color:#92400e}</style>
