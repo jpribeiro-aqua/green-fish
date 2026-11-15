@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v230";
+  it.querySelector("code").textContent=msg;const ver="ras-v231";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;try{navigator.clipboard.writeText(t);e.target.textContent="✓ Copiado"}catch(_){}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
  window.addEventListener("error",e=>{if(!e.message||/ResizeObserver loop/i.test(e.message))return;mostra(e.message+(e.filename?` (linha ${e.lineno}:${e.colno})`:"")+(e.error&&e.error.stack?"\n"+String(e.error.stack).split("\n").slice(1,4).join("\n"):""))});
@@ -8662,7 +8662,7 @@ function draw(){
        <label for="pj-nome">Nome do projeto</label><div class="inp"><input id="pj-nome" maxlength="120" placeholder="Ex.: RAS tilápia – Pinheiro" value="${esc(cur?cur.nome:(c&&c.modo===st.mode?c.nome:""))}"${dis}></div>
        <label for="pj-resp">Responsável técnico</label><div class="inp"><input id="pj-resp" maxlength="120" placeholder="Nome de quem elabora" value="${esc(cur?cur.resp||"":(st.uname||""))}"${dis}></div>
        <label for="pj-notas">Observações</label><textarea id="pj-notas" rows="3" maxlength="4000" placeholder="Cliente, objetivo, versão, cotações usadas…"${dis}>${esc(cur?cur.notas||"":"")}</textarea>
-       <div class="pj-btns"><button type="button" class="btn solid" id="pj-salvar"${dis}>${cli?"Salvar no projeto do cliente":cur?"Salvar alterações":"Salvar projeto"}</button>${cur?`<button type="button" class="btn" id="pj-novo"${dis}>Salvar como novo</button>`:""}<button type="button" class="btn" id="pj-exp-atual">Exportar .json</button>
+       <div class="pj-btns"><button type="button" class="btn solid" id="pj-salvar"${dis}>${cli?"Salvar no projeto do cliente":cur?"Salvar alterações":"Salvar projeto"}</button>${cur?`<button type="button" class="btn" id="pj-novo"${dis}>Salvar como novo</button>`:""}<button type="button" class="btn" id="pj-exp-atual">Exportar .json</button>${cur&&!cli?(cf&&cf.t==="fechar"?`<button type="button" class="btn warn" id="pj-fechar-ok">Confirmar: salvar e fechar “${esc(cur.nome)}”</button><button type="button" class="btn" data-pj="cancel">Cancelar</button>`:`<button type="button" class="btn warn" id="pj-fechar"${dis}>✕ Fechar projeto</button>`):""}
          ${cf&&cf.t==="blank"?`<button type="button" class="btn warn" id="pj-blank-ok">Confirmar: começar do zero</button><button type="button" class="btn" data-pj="cancel">Cancelar</button>`:`<button type="button" class="btn" id="pj-blank"${dis}>Novo projeto em branco</button>`}</div>
        ${logado()?`<p class="muted">Salva a fotografia de todas as abas: Local e viabilidade, Calculadora, AquaNictemeral (tanques/viveiros e leituras), Biomassa, Arraçoamento e camarão por fases.</p>`:`<p class="muted">Faça o login na aba Usuários e acesso para salvar projetos.</p>`}
      </div></section>`+
@@ -8684,6 +8684,9 @@ function bind(){
   q("#pj-salvar")&&q("#pj-salvar").addEventListener("click",()=>salvar(false));
   q("#pj-novo")&&q("#pj-novo").addEventListener("click",()=>salvar(true));
   q("#pj-exp-atual")&&q("#pj-exp-atual").addEventListener("click",()=>exportar(null));
+  /* v231: fechar o projeto aberto direto na aba Projetos (a barra do projeto fica escondida desde a v220) */
+  q("#pj-fechar")&&q("#pj-fechar").addEventListener("click",()=>{st.confirm={t:"fechar"};draw()});
+  q("#pj-fechar-ok")&&q("#pj-fechar-ok").addEventListener("click",e=>{const b=e.currentTarget;b.disabled=true;b.textContent="Salvando e fechando…";st.confirm=null;Promise.resolve(window.projFechar&&projFechar()).catch(er=>{aviso("Não foi possível fechar: "+((er&&er.message)||er),true);draw()})});
   q("#pj-blank")&&q("#pj-blank").addEventListener("click",()=>{st.confirm={t:"blank"};draw()});
   q("#pj-blank-ok")&&q("#pj-blank-ok").addEventListener("click",novoEmBranco);
   const b=q("#pj-busca");b&&b.addEventListener("input",()=>{st.filtro=b.value;const p=b.selectionStart;draw();const nb=q("#pj-busca");nb.focus();nb.setSelectionRange(p,p)});
@@ -10706,7 +10709,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v230";
+  const APP_VERSAO="ras-v231";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
