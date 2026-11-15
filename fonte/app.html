@@ -13610,7 +13610,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     if(v.id==="view-gest"&&window.gfGestHub){const G=gfGestHub.lista().map(([k,ic,t])=>({k:"gh:"+k,t:ic+" "+t,gh:k}));return G.concat(L)}return L}
   function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v);let I=itens(v,CD);if(!I.length)return;
     /* v228: no Beneficiamento a linha segue a sequência do lote (a mesma da Rastreabilidade), com setas; os demais quadros vêm depois */
-    if(vid==="benef"){const SEQ=[/Avisos da Biomassa/i,/Rastreabilidade/i,/Do lote ao produto/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i];
+    if(vid==="benef"){const SEQ=[/Avisos da Biomassa/i,/Despesca e transporte/i,/Rastreabilidade/i,/Do lote ao produto/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i];
       const pos=i=>{const j=SEQ.findIndex(r=>r.test(i.t));return j<0?99:j};I=I.map((i,j)=>Object.assign({},i,{seq:pos(i)<99,o:pos(i)*1000+j})).sort((a,b)=>a.o-b.o)}
     let sel=SEL[vid];if(sel&&sel!=="*"&&!I.some(i=>i.k===sel))sel=null;if(!sel)sel=I[0].k;
     const gest=vid==="gest",hub=gest&&window.gfGestHub?gfGestHub.caixa():null;
@@ -13854,7 +13854,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   const orig=window.drawBenef;if(typeof orig==="function"){window.drawBenef=function(){const r=orig.apply(this,arguments);try{const el=document.getElementById("view-benef");if(el&&!el.hidden){const c=monta();if(!el.contains(c)){const a=el.querySelector("#bn-int");if(a&&a.nextSibling)el.insertBefore(c,a.nextSibling);else el.appendChild(c)}}}catch(e){}return r}}
   /* o Beneficiamento redesenha a aba inteira (ex.: ao digitar num quadro dele): recoloca este quadro no lugar */
   {const vb=document.getElementById("view-benef");if(vb)new MutationObserver(()=>{if(vb.hidden||!box||vb.contains(box)||!vb.querySelector("#bn-int"))return;const a=vb.querySelector("#bn-int");if(a.nextSibling)vb.insertBefore(box,a.nextSibling);else vb.appendChild(box)}).observe(vb,{childList:true})}
-  window.gfRastreio={dados:()=>D,rastrear};
+  window.gfRastreio={dados:()=>D,rastrear,addMp:o=>{const m={id:novoId("MP",o.data),data:o.data,hora:o.hora||"",forn:o.forn,orig:o.orig||"",esp:o.esp||"",kg:o.kg,nf:o.nf||"",temp:o.temp||"",obs:o.obs||"",od:o.od||"",em:Date.now()};D.mp.push(m);grava();try{desenha()}catch(e){}return m.id},abrir:q=>{try{busca(q)}catch(e){}}};
 })();
 </script>
 <style>
@@ -13994,8 +13994,80 @@ function toast(t){let b=document.getElementById("gfp-toast");if(!b){b=document.c
   b.innerHTML=`<span>${E(t)}</span><button type="button" data-gfp="ver">Ver no Beneficiamento</button><button type="button" data-gfp="x" aria-label="Fechar">✕</button>`;b.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{b.hidden=true},20000)}
 function badge(A){const n=corr("bio_todos")?A.filter(l=>l.s.n>=2).length:0,h=document.documentElement;if(n){h.style.setProperty("--gfp-n",`"${n}"`);h.classList.add("gfp-tem")}else{h.classList.remove("gfp-tem")}}
 
+/* ---- v230: aceite da despesca → ordem para o setor de despesca e transporte → chegada na fábrica → checagem de rastreabilidade ---- */
+const OK_="greenfish-ordens-desp";
+const O=Object.assign({seq:{},L:[]},rd(OK_,{}));const gravaO=()=>wr(OK_,O);
+const OST=[["aceita","✅ Aceita"],["captura","🎣 Captura"],["transporte","🚚 Transporte"],["chegou","🏭 Chegada"],["conferida","🔎 Rastreabilidade"]];
+const OSTn=s=>s==="cancelada"?"✖ Cancelada":s==="reprovada"?"⛔ Reprovada na chegada":(OST.find(x=>x[0]===s)||["",s])[1];
+const isoD=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const msD=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s||""));return m?new Date(+m[1],+m[2]-1,+m[3],12).getTime():NaN};
+const novoOD=data=>{const d=String(data).replace(/-/g,"");O.seq[d]=(O.seq[d]||0)+1;return `OD-${d}-${String(O.seq[d]).padStart(2,"0")}`};
+const ordemDe=lid=>O.L.find(o=>o.lid===lid&&o.status!=="cancelada"&&o.status!=="reprovada");
+const ui={aceita:null,f:{},ab:null};
+const hh=()=>new Date().toTimeString().slice(0,5);
+const CHK=[["orig","Ordem, projeto, grupo/tanque e espécie conferem com o que chegou",1],["peso","Peso conferido na balança da fábrica",1],["temp","Pescado resfriado no gelo (≤ 4 °C na chegada)",1],["doc","GTA / nota do produtor e ordem de despesca acompanham a carga",0],["jejum","Jejum antes da despesca respeitado (24–48 h)",0],["cx","Caixas/basquetas limpas e identificadas com o código da ordem",0],["sens","Aspecto do pescado aceitável (olhos brilhantes, guelras vermelhas, sem odor anormal)",0]];
+function kgNaData(l,data){const ms=msD(data);if(!isFinite(ms))return l.bF;const v=valor(l,Math.min(ms,l.h-1));return v.pre?0:v.b}
+function aceiteHTML(l){const f=ui.f[l.id]||(ui.f[l.id]={data:isoD(Math.max(Date.now(),l.h-DAY/2))});const kgD=kgNaData(l,f.data),wD=(()=>{const ms=msD(f.data);if(!isFinite(ms))return l.wF;const v=valor(l,Math.min(ms,l.h-1));return v.w})();
+  const inp=(k,t,ph,ty)=>`<label class="jr-f">${t}<input data-acf="${k}" value="${E(f[k]||"")}" placeholder="${E(ph||"")}"${ty?` type="${ty}"`:""}></label>`;
+  return `<div class="gfp-acf"><b>✅ Aceite da despesca — ordem para o setor de despesca e transporte</b>
+   <div class="mk-form">${inp("data","Data da despesca","","date")}${inp("kg","Quantidade a despescar (kg)",F(kgD))}${inp("resp","Responsável pela captura","nome da equipe")}${inp("veic","Veículo / placa","ex.: caminhão isotérmico ABC-1D23")}${inp("mot","Motorista","")}${inp("obs","Observações","jejum, horário, gelo, caixas…")}</div>
+   <p class="hint">Na data escolhida a aba Biomassa prevê ≈ <b>${F(kgD)} kg</b> com ${F(wD)} g/animal${l.alvo>0?` (${F(wD/l.alvo*100)}% do peso de abate)`:""}. Deixe a quantidade em branco para usar a biomassa prevista na data.</p>
+   <div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-criar" data-id="${E(l.id)}">📨 Aceitar e enviar a ordem</button><button type="button" class="btn" data-gfp="od-nao">Cancelar</button></div></div>`}
+function criaOrdem(l){const f=ui.f[l.id]||{},data=f.data||isoD(Date.now()),kg=P(f.kg)>0?P(f.kg):Math.round(kgNaData(l,data)),ms=msD(data),v=valor(l,Math.min(isFinite(ms)?ms:l.h,l.h-1));
+  const o={id:novoOD(data),lid:l.id,proj:l.proj,cli:l.cli||"",g:l.g,sp:l.sp,spn:l.spn,data,kgPrev:Math.round(kg),peso:Math.round(v.w||l.wF),alvo:l.alvo,resp:f.resp||"",veic:f.veic||"",mot:f.mot||"",obs:f.obs||"",status:"aceita",hist:[{s:"aceita",em:Date.now()}],rasc:{},em:Date.now()};
+  O.L.unshift(o);gravaO();delete ui.f[l.id];ui.aceita=null;ui.ab=o.id;return o}
+const passo=(o,s)=>{o.status=s;o.hist.push({s,em:Date.now()});gravaO()};
+const quandoS=(o,s)=>{const h=(o.hist||[]).filter(x=>x.s===s).pop();return h?`${dBR(h.em)} ${hm(h.em)}`:""};
+function txtOrdem(o){return `ORDEM DE DESPESCA E TRANSPORTE ${o.id}\nProjeto: ${o.proj}${o.cli?` (${o.cli})`:""}\nGrupo/tanque: ${o.g} · ${o.spn}\nData da despesca: ${dBRa(msD(o.data))}\nQuantidade: ${F(o.kgPrev)} kg · peso médio previsto ${F(o.peso)} g\nResponsável: ${o.resp||"—"} · Veículo: ${o.veic||"—"} · Motorista: ${o.mot||"—"}\n${o.obs?"Obs.: "+o.obs+"\n":""}Levar gelo (1 kg de gelo para cada 1 kg de peixe), caixas identificadas com o código ${o.id} e a GTA. Na chegada a fábrica confere peso, temperatura e origem.`}
+function imprime(o){const w=window.open("","_blank");if(!w){toast("Libere as janelas do navegador para imprimir a ordem.");return}
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${E(o.id)}</title><style>body{font:14px system-ui,sans-serif;margin:16mm;color:#111}h1{font-size:20px;margin:0 0 4px}table{border-collapse:collapse;width:100%;margin:10px 0}td{border:1px solid #999;padding:6px 8px;vertical-align:top}td:first-child{width:38%;font-weight:600;background:#f3f4f6}.ass{display:flex;gap:30px;margin-top:40px}.ass div{flex:1;border-top:1px solid #333;padding-top:4px;font-size:12px;text-align:center}@media print{body{margin:10mm}}</style></head><body>
+   <h1>Ordem de despesca e transporte</h1><div style="font:700 26px monospace;letter-spacing:2px">${E(o.id)}</div>
+   <table>${[["Projeto",o.proj+(o.cli?` (${o.cli})`:"")],["Grupo / tanque",o.g],["Espécie",o.spn],["Data da despesca",dBRa(msD(o.data))],["Quantidade prevista",F(o.kgPrev)+" kg"],["Peso médio previsto",F(o.peso)+" g"],["Responsável pela captura",o.resp||""],["Veículo / placa",o.veic||""],["Motorista",o.mot||""],["Observações",o.obs||""],["Kg capturados",""],["Hora da saída",""],["Kg na chegada / temperatura",""]].map(([a,b])=>`<tr><td>${E(a)}</td><td>${E(b)}</td></tr>`).join("")}</table>
+   <p>Levar gelo (≈ 1 kg de gelo por kg de pescado), caixas identificadas com o código <b>${E(o.id)}</b> e a GTA. Na chegada a fábrica confere origem, peso e temperatura (≤ 4 °C) antes de aceitar o lote.</p>
+   <div class="ass"><div>Beneficiamento (aceite)</div><div>Despesca</div><div>Transporte</div><div>Recepção da fábrica</div></div><script>setTimeout(()=>print(),300)<\/script></body></html>`);w.document.close()}
+function odHTML(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].includes(o.status)),H=O.L.filter(o=>!A.includes(o));
+  if(!O.L.length)return `<p class="muted">Nenhuma ordem ainda. Quando o 📡 aviso da Biomassa mostrar um lote perto da despesca ou pronto, clique em <b>✅ Aceitar despesca</b>: a ordem vem para cá, para a equipe de despesca e transporte, e segue até a checagem de rastreabilidade na chegada à fábrica.</p>`;
+  const caixa=o=>{const r=o.rasc||{},i=OST.findIndex(x=>x[0]===o.status),ab=ui.ab===o.id||A.includes(o)&&A.length<=3;
+    const inp=(k,t,ph,ty)=>`<label class="jr-f">${t}<input data-odf="${k}" value="${E(r[k]??"")}" placeholder="${E(ph||"")}"${ty?` type="${ty}"`:""}${ty==="number"?' inputmode="decimal"':""}></label>`;
+    const perda=o.kgCap>0&&o.kgCheg>0?(o.kgCap-o.kgCheg)/o.kgCap*100:NaN,tempo=(()=>{const a=(o.hist||[]).find(x=>x.s==="captura"),b=(o.hist||[]).find(x=>x.s==="chegou");return a&&b?(b.em-a.em)/36e5:NaN})();
+    let acao="";
+    if(o.status==="aceita")acao=`<div class="mk-form">${inp("resp","Responsável pela captura",o.resp)}${inp("hIni","Hora do início",hh(),"time")}</div><div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-cap" data-id="${o.id}">🎣 Iniciar a captura</button></div>`;
+    else if(o.status==="captura")acao=`<div class="mk-form">${inp("kgCap","Kg capturados",F(o.kgPrev),"number")}${inp("cx","Nº de caixas","","number")}${inp("gelo","Gelo (kg)",F(o.kgPrev),"number")}${inp("hSai","Hora da saída",hh(),"time")}</div><div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-sai" data-id="${o.id}">🚚 Carga saiu para a fábrica</button></div>`;
+    else if(o.status==="transporte")acao=`<div class="mk-form">${inp("kgCheg","Kg na balança da fábrica",o.kgCap>0?F(o.kgCap):"","number")}${inp("tempC","Temperatura do pescado (°C)","ex.: 2","number")}${inp("hChe","Hora da chegada",hh(),"time")}</div><div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-che" data-id="${o.id}">🏭 Registrar a chegada</button></div>`;
+    else if(o.status==="chegou"){const tq=P(o.tempC),tok=!isFinite(tq)||tq<=4;
+      acao=`<p class="rt-dica">🔎 <b>Checagem de rastreabilidade do lote ${E(o.id)}</b> — confira antes de misturar com qualquer outro lote.</p>
+       <div class="gfp-ck">${CHK.map(([k,t,obr])=>`<label><input type="checkbox" data-odf="c_${k}"${r["c_"+k]?" checked":""}> ${E(t)}${obr?" <b>*</b>":""}</label>`).join("")}</div>
+       ${!tok?`<p class="gfp-alerta">⚠️ Chegou a ${F(tq,1)} °C: acima de 4 °C. Reponha gelo e avalie o pescado antes de aceitar.</p>`:""}${isFinite(perda)&&Math.abs(perda)>3?`<p class="gfp-alerta">⚠️ Diferença de ${F(perda,1)}% entre o capturado (${F(o.kgCap)} kg) e o recebido (${F(o.kgCheg)} kg).</p>`:""}
+       <div class="mk-form">${inp("nf","GTA / nota do produtor","")}${inp("obsC","Observações da recepção","")}</div>
+       <div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-ok" data-id="${o.id}">✅ Aprovar e criar o lote de matéria-prima</button><button type="button" class="btn warn" data-gfp="od-rep" data-id="${o.id}">⛔ Reprovar a carga</button></div><small class="muted">* obrigatórios para aprovar</small>`}
+    else if(o.status==="conferida")acao=`<p>✅ Rastreabilidade conferida: entrou na fábrica como lote de matéria-prima <b>${E(o.mp||"")}</b>${o.mp?` <button type="button" class="btn" data-gfp="od-rast" data-id="${o.id}">🔎 Rastrear o lote</button>`:""}</p>`;
+    else if(o.status==="reprovada")acao=`<p class="gfp-alerta">⛔ Carga reprovada na chegada${o.motivo?": "+E(o.motivo):""}.</p>`;
+    const ativo=!["conferida","cancelada","reprovada"].includes(o.status);
+    return `<details class="gfp-od gfp-od-${o.status}" data-odbox="${o.id}"${ab?" open":""}><summary><b class="gfp-odid">${E(o.id)}</b> ${E(o.proj)} · ${E(o.g)} · ${E(o.spn)} · ${dBR(msD(o.data))} · ${F(o.kgPrev)} kg <span class="gfp-ch">${OSTn(o.status)}</span></summary>
+      <ol class="gfp-steps">${OST.map(([s,t],j)=>`<li class="${o.status==="cancelada"||o.status==="reprovada"?(quandoS(o,s)?"ok":""):j<i?"ok":j===i?"at":""}">${t}<small>${quandoS(o,s)}</small></li>`).join("")}</ol>
+      <div class="gfp-odd">Despesca prevista em <b>${dBRa(msD(o.data))}</b> · ${F(o.kgPrev)} kg · ${F(o.peso)} g/animal · responsável ${E(o.resp||"—")} · veículo ${E(o.veic||"—")} · motorista ${E(o.mot||"—")}${o.obs?` · ${E(o.obs)}`:""}${o.kgCap>0?` · capturado ${F(o.kgCap)} kg${o.cx?` em ${E(o.cx)} caixas`:""}`:""}${o.kgCheg>0?` · recebido ${F(o.kgCheg)} kg${isFinite(P(o.tempC))?` a ${F(P(o.tempC),1)} °C`:""}`:""}${isFinite(tempo)?` · ${F(tempo,1)} h da captura à fábrica`:""}</div>
+      ${acao}
+      <div class="gfp-bt gfp-od-ex"><button type="button" class="btn" data-gfp="od-imp" data-id="${o.id}">🖨 Imprimir a ordem</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent(txtOrdem(o))}" target="_blank" rel="noopener">📲 Enviar pelo WhatsApp</a>${ativo?`<button type="button" class="btn" data-gfp="od-canc" data-id="${o.id}">✖ Cancelar a ordem</button>`:""}</div></details>`};
+  return `<div class="gfh-kpis bx-kpis"><div class="hk hk-warn"><div><span class="hk-l">Ordens em andamento</span><b>${A.length}</b><small>${F(A.reduce((s,o)=>s+o.kgPrev,0))} kg a caminho da fábrica</small></div></div><div class="hk"><div><span class="hk-l">Em captura / transporte</span><b>${A.filter(o=>o.status==="captura"||o.status==="transporte").length}</b><small>${A.filter(o=>o.status==="chegou").length} aguardando checagem</small></div></div><div class="hk hk-ok"><div><span class="hk-l">Conferidas</span><b>${O.L.filter(o=>o.status==="conferida").length}</b><small>viraram lotes de matéria-prima na Rastreabilidade</small></div></div></div>
+   ${A.map(caixa).join("")||`<p class="muted">Nenhuma ordem em andamento.</p>`}
+   ${H.length?`<details class="gfp-pj"${H.some(o=>o.id===ui.ab)?" open":""}><summary>📁 Histórico (${H.length})</summary>${H.map(caixa).join("")}</details>`:""}
+   <p class="hint">Fluxo: aceite no 📡 aviso da Biomassa → ordem para a despesca e o transporte (imprima ou envie pelo WhatsApp) → captura → transporte → chegada → checagem de rastreabilidade. Aprovada, a carga vira um lote de matéria-prima na 🏷 Rastreabilidade com a origem (projeto, grupo, ordem) e segue a sequência do beneficiamento.</p>`}
+function acaoOD(k,id){const o=O.L.find(x=>x.id===id);if(!o)return;const r=o.rasc||(o.rasc={});ui.ab=id;
+  if(k==="od-imp"){imprime(o);return}
+  if(k==="od-canc"){if(!confirm(`Cancelar a ordem ${o.id}?`))return;passo(o,"cancelada");return}
+  if(k==="od-cap"){if(r.resp)o.resp=r.resp;o.hIni=r.hIni||hh();passo(o,"captura");toast(`${o.id}: captura iniciada.`);return}
+  if(k==="od-sai"){const kg=P(r.kgCap);o.kgCap=kg>0?kg:o.kgPrev;o.cx=r.cx||"";o.gelo=r.gelo||"";o.hSai=r.hSai||hh();passo(o,"transporte");toast(`${o.id}: ${F(o.kgCap)} kg saíram para a fábrica.`);return}
+  if(k==="od-che"){const kg=P(r.kgCheg);if(!(kg>0)){toast("Informe os kg pesados na balança da fábrica.");return}o.kgCheg=kg;o.tempC=r.tempC||"";o.hChe=r.hChe||hh();passo(o,"chegou");toast(`${o.id} chegou à fábrica: faça a checagem de rastreabilidade.`);return}
+  if(k==="od-rep"){const m=prompt("Motivo da reprovação da carga:","");if(m===null)return;o.motivo=m;passo(o,"reprovada");return}
+  if(k==="od-ok"){const falta=CHK.filter(([c,,ob])=>ob&&!r["c_"+c]);if(falta.length){toast("Confirme os itens obrigatórios: "+falta.map(x=>x[1].split(" (")[0].toLowerCase()).join("; ")+".");return}
+    const tq=P(o.tempC);if(isFinite(tq)&&tq>4&&!confirm(`O pescado chegou a ${F(tq,1)} °C (acima de 4 °C). Aprovar mesmo assim?`))return;
+    o.check=Object.fromEntries(CHK.map(([c])=>[c,!!r["c_"+c]]));o.nf=r.nf||"";o.obsC=r.obsC||"";
+    let mp="";try{if(window.gfRastreio&&gfRastreio.addMp)mp=gfRastreio.addMp({data:isoD(Date.now()),hora:o.hChe||hh(),forn:o.proj+(o.cli?` (${o.cli})`:""),orig:`${o.g} · ordem ${o.id}`,esp:o.spn,kg:o.kgCheg||o.kgCap||o.kgPrev,nf:o.nf,temp:o.tempC,od:o.id,obs:`Despesca ${o.id}: ${dBRa(msD(o.data))}, capturado ${F(o.kgCap||0)} kg${o.cx?` em ${o.cx} caixas`:""}, recebido ${F(o.kgCheg||0)} kg${isFinite(tq)?` a ${F(tq,1)} °C`:""}. Checagem: ${CHK.filter(([c])=>r["c_"+c]).map(x=>x[0]).join(", ")}.${o.obsC?" "+o.obsC:""}`})}catch(e){}
+    o.mp=mp;passo(o,"conferida");toast(mp?`${o.id} aprovado: lote de matéria-prima ${mp} criado na Rastreabilidade (📁 A processar).`:`${o.id} aprovado.`);return}
+  if(k==="od-rast"&&o.mp){try{const b=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Rastreabilidade/.test(x.textContent));if(b&&b.getAttribute("aria-selected")!=="true")b.click();window.gfRastreio&&gfRastreio.abrir&&gfRastreio.abrir(o.mp);setTimeout(()=>{const c=document.getElementById("rt-card");c&&c.scrollIntoView({behavior:"smooth",block:"start"})},150)}catch(e){}}}
+
 /* ---- quadro na aba Beneficiamento ---- */
-let box=null,boxM=null,abre={proj:false};
+let box=null,boxM=null,boxO=null,abre={proj:false};
 const chip=n=>`<span class="gfp-ch gfp-${NIV[n][2]}">${NIV[n][0]} ${NIV[n][1]}</span>`;
 function htmlBenef(){const C=cfg();
   if(!corr("bio_todos"))return `<div class="note">A correlação <b>Biomassa (todos os projetos) → Beneficiamento</b> está desligada. <button type="button" class="btn solid" data-gfp="liga">🔗 Ligar a correlação</button></div>`;
@@ -14009,7 +14081,7 @@ function htmlBenef(){const C=cfg();
    <h3 class="gfp-h">🚨 Avisos em tempo real</h3>
    ${av.length?`<div class="gfp-av">${av.map(l=>`<div class="gfp-it gfp-${NIV[l.s.n][2]}"><div>${chip(l.s.n)}<b>${E(l.proj)}${l.cli?` <small>(${E(l.cli)})</small>`:""} · ${E(l.g)}</b> <small>${E(l.spn)}${l.vivo?" · ao vivo":""}</small></div>
       <div class="gfp-num">Agora: <b>${F(l.s.v.w)} g</b> (${F(l.s.pct*100)}% do peso de abate de ${F(l.alvo)} g) · biomassa <b>${F(l.s.v.b)} kg</b> → despesca <b>${dBRa(l.h)}</b> ${l.s.dias>0?`(em ${F(Math.ceil(l.s.dias))} dia${Math.ceil(l.s.dias)===1?"":"s"})`:`(${F(Math.floor(-l.s.dias))} dia(s) atrás)`} com ≈ <b>${F(l.bF)} kg</b> e ${F(l.wF)} g/animal</div>
-      <div class="gfp-bt"><button type="button" class="btn" data-gfp="usar" data-id="${E(l.id)}">🏭 Programar no Beneficiamento</button></div></div>`).join("")}</div>`:`<p class="muted">Nenhum lote em acabamento, perto da despesca ou pronto agora. Os avisos aparecem sozinhos ${F(C.dAcab)} dias antes (acabamento), ${F(C.dPerto)} dias antes (perto) e ${F(C.dPronto)} dias antes (despesca).</p>`}
+      <div class="gfp-bt">${(()=>{const o=ordemDe(l.id);return o?`<span class="gfp-ch gfp-odch">📋 ${E(o.id)} · ${OSTn(o.status)}</span><button type="button" class="btn" data-gfp="od-ver" data-id="${E(o.id)}">🚚 Abrir a ordem</button>`:l.s.n>=3?`<button type="button" class="btn solid" data-gfp="aceitar" data-id="${E(l.id)}">✅ Aceitar despesca</button>`:""})()}<button type="button" class="btn" data-gfp="usar" data-id="${E(l.id)}">🏭 Programar no Beneficiamento</button></div>${ui.aceita===l.id&&!ordemDe(l.id)?aceiteHTML(l):""}</div>`).join("")}</div>`:`<p class="muted">Nenhum lote em acabamento, perto da despesca ou pronto agora. Os avisos aparecem sozinhos ${F(C.dAcab)} dias antes (acabamento), ${F(C.dPerto)} dias antes (perto) e ${F(C.dPronto)} dias antes (despesca).</p>`}
    <h3 class="gfp-h">📅 Cronograma da fábrica — para não faltar ${A.some(ehCam)&&A.some(l=>!ehCam(l))?"peixe nem camarão":A.some(ehCam)?"camarão":"peixe"}</h3>
    <div class="mk-form gfp-cfg"><label class="jr-f">Necessidade da fábrica (kg/semana)<input data-gfpc="need" value="${E(C.need)}" inputmode="decimal" placeholder="${isFinite(R.need)&&!P(C.need)?F(R.need):"ex.: 500"}"></label><label class="jr-f">Aviso de acabamento (dias antes)<input data-gfpc="dAcab" value="${E(C.dAcab)}" inputmode="numeric"></label><label class="jr-f">Perto da despesca (dias)<input data-gfpc="dPerto" value="${E(C.dPerto)}" inputmode="numeric"></label><label class="jr-f">Despesca (dias)<input data-gfpc="dPronto" value="${E(C.dPronto)}" inputmode="numeric"></label><label class="jr-f">Semanas<select data-gfpc="sem">${[8,12,16,26,52].map(n=>`<option${+C.sem===n?" selected":""}>${n}</option>`).join("")}</select></label></div>
    <div class="scroll"><table class="lot gfp-tab"><thead><tr><th class="l">Semana</th><th class="l">Despescas previstas</th><th>Peixe</th><th>Camarão</th><th class="l gfp-barh">Total × necessidade</th><th>Saldo</th></tr></thead><tbody>${R.W.map(w=>`<tr class="${isFinite(w.saldo)?(w.saldo<-w.need*.1?"gfp-falta":w.saldo>w.need*.3?"gfp-sobra":""):""}"><td class="l"><b>${dBR(w.a)}–${dBR(w.b-DAY)}</b></td><td class="l">${w.L.length?w.L.map(l=>`<small>${E(l.proj)} · ${E(l.g)} · ${dBR(l.h)} · ${F(l.bF)} kg</small>`).join(""):"<small class=\"muted\">—</small>"}</td><td>${w.kp?F(w.kp)+" kg":"—"}</td><td>${w.kc?F(w.kc)+" kg":"—"}</td><td class="l gfp-barh"><div class="gfp-bar"><i style="width:${w.kg/mx*100}%"></i>${isFinite(w.need)?`<em style="left:${w.need/mx*100}%"></em>`:""}</div></td><td>${isFinite(w.saldo)?`<b class="${w.saldo<0?"neg":""}">${w.saldo>=0?"+":"−"}${F(Math.abs(w.saldo))} kg</b>`:"—"}</td></tr>`).join("")}</tbody></table></div>
@@ -14027,9 +14099,11 @@ function htmlMerc(){if(!corr("bio_merc"))return `<div class="note">A correlaçã
    ${prox.length?`<p class="hint" style="margin-top:6px"><b>Próximas despescas:</b> ${prox.map(l=>`${NIV[l.s.n][0]} ${E(l.proj)} · ${E(l.g)} em ${dBR(l.h)} (≈ ${F(l.bF)} kg, ${F(l.wF)} g)`).join(" · ")}</p>`:""}
    <p class="hint">Enviado sozinho pelo Beneficiamento a partir das projeções da aba Biomassa de todos os projetos (${hm(of.em)}). Filé/descascado pelos rendimentos do Beneficiamento. ${isFinite(dem)?"":"Cadastre clientes ativos no funil para comparar com a demanda."}</p>`}
 function montaCard(id,ico,t,sub){const b=document.createElement("section");b.className="card wide gfp-card";b.id=id;b.innerHTML=`<div class="card-head"><i class="n">${ico}</i><h2>${t}<span>${sub}</span></h2></div><div class="gfp-b"></div>`;
-  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();const k=e.target.dataset&&e.target.dataset.gfpc;if(!k)return;if(ev==="input"&&e.target.type!=="checkbox"&&e.target.tagName!=="SELECT"){const c=rd(CFG,{});c[k]=e.target.value;wr(CFG,c);clearTimeout(montaCard.t);montaCard.t=setTimeout(()=>{const a=document.activeElement,den=b.contains(a),id2=den&&a.dataset.gfpc,pos=den?a.selectionStart:0;desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc);if(id2){const n=b.querySelector(`[data-gfpc="${id2}"]`);if(n&&n!==a){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}},600);return}
+  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();const odf=e.target.dataset&&e.target.dataset.odf;if(odf){const bx=e.target.closest("[data-odbox]"),o=bx&&O.L.find(x=>x.id===bx.dataset.odbox);if(o){(o.rasc=o.rasc||{})[odf]=e.target.type==="checkbox"?e.target.checked:e.target.value;gravaO()}return}
+    const acf=e.target.dataset&&e.target.dataset.acf;if(acf){const f=ui.f[ui.aceita]||(ui.f[ui.aceita]={});f[acf]=e.target.value;if(acf==="data"&&ev==="change"){delete f.kg;desenha(b,htmlBenef)}return}
+    const k=e.target.dataset&&e.target.dataset.gfpc;if(!k)return;if(ev==="input"&&e.target.type!=="checkbox"&&e.target.tagName!=="SELECT"){const c=rd(CFG,{});c[k]=e.target.value;wr(CFG,c);clearTimeout(montaCard.t);montaCard.t=setTimeout(()=>{const a=document.activeElement,den=b.contains(a),id2=den&&a.dataset.gfpc,pos=den?a.selectionStart:0;desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc);if(id2){const n=b.querySelector(`[data-gfpc="${id2}"]`);if(n&&n!==a){n.focus();try{n.setSelectionRange(pos,pos)}catch(_){}}}},600);return}
     if(ev==="change"){const c=rd(CFG,{});if(k==="notif"){c.notif=e.target.checked;if(c.notif&&window.Notification&&Notification.permission==="default")Notification.requestPermission().catch(()=>{})}else c[k]=e.target.value;wr(CFG,c);desenha(b,b.id==="gfp-card"?htmlBenef:htmlMerc)}}));
-  b.addEventListener("toggle",e=>{if(e.target.classList&&e.target.classList.contains("gfp-pj"))abre.proj=e.target.open},true);
+  b.addEventListener("toggle",e=>{const t=e.target;if(t.classList&&t.classList.contains("gfp-pj")&&b.id==="gfp-card")abre.proj=t.open;if(t.dataset&&t.dataset.odbox){if(t.open)ui.ab=t.dataset.odbox;else if(ui.ab===t.dataset.odbox)ui.ab="-"}},true);
   b.addEventListener("click",clique);return b}
 function clique(e){const a=e.target.closest&&e.target.closest("[data-gfp]");if(!a)return;const k=a.dataset.gfp;
   if(k==="re"){S.cache={};wr(CK,{});wr(SEEN,{});processa(true);desenhaTudo()}
@@ -14038,18 +14112,26 @@ function clique(e){const a=e.target.closest&&e.target.closest("[data-gfp]");if(!
   else if(k==="usar"){const l=todos().find(x=>x.id===a.dataset.id);if(!l)return;try{window.gfBenefLote&&gfBenefLote({esp:l.spn,kg:Math.round(l.bF),id:"BIO-"+(l.proj+"-"+l.g).normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w]+/g,"").slice(0,18).toUpperCase(),data:new Date(l.h).toISOString().slice(0,10)})}catch(_){}
     toast(`${l.g} (${l.proj}): ${F(l.bF)} kg programados nos quadros do Beneficiamento para ${dBRa(l.h)}.`)}
   else if(k==="ver"){const t=document.getElementById("gfp-toast");if(t)t.hidden=true;try{setView("benef");setTimeout(()=>{poe();const r=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Avisos da Biomassa/.test(x.textContent));if(r&&r.getAttribute("aria-selected")!=="true")r.click();setTimeout(()=>{const c=document.getElementById("gfp-card");c&&c.scrollIntoView({behavior:"smooth",block:"start"})},120)},250)}catch(_){}}
-  else if(k==="x"){const t=document.getElementById("gfp-toast");if(t)t.hidden=true}}
+  else if(k==="x"){const t=document.getElementById("gfp-toast");if(t)t.hidden=true}
+  else if(k==="aceitar"){ui.aceita=a.dataset.id;desenha(box,htmlBenef)}
+  else if(k==="od-nao"){ui.aceita=null;desenha(box,htmlBenef)}
+  else if(k==="od-criar"){const l=todos().find(x=>x.id===a.dataset.id);if(!l)return;const o=criaOrdem(l);desenha(box,htmlBenef);poe();if(boxO)desenha(boxO,odHTML);toast(`Despesca aceita: ordem ${o.id} enviada ao setor de despesca e transporte (${F(o.kgPrev)} kg em ${dBRa(msD(o.data))}).`)}
+  else if(k==="od-ver"){ui.ab=a.dataset.id;irOD()}
+  else if(/^od-/.test(k)){acaoOD(k,a.dataset.id);if(boxO)desenha(boxO,odHTML);if(box)desenha(box,htmlBenef)}}
+function irOD(){try{setView("benef")}catch(_){}setTimeout(()=>{poe();if(boxO)desenha(boxO,odHTML);const r=[...document.querySelectorAll("#view-benef>.gf-row [data-gr]")].find(x=>/Despesca e transporte/.test(x.textContent));if(r&&r.getAttribute("aria-selected")!=="true")r.click();setTimeout(()=>{const c=document.querySelector(`#gfp-od [data-odbox="${ui.ab}"]`)||document.getElementById("gfp-od");c&&c.scrollIntoView({behavior:"smooth",block:"start"})},150)},200)}
 document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("#gfp-toast [data-gfp]");if(a)clique(e)});
 function poe(){const vb=document.getElementById("view-benef");if(vb&&!vb.hidden&&vb.querySelector("#bn-int")){if(!box)box=montaCard("gfp-card","📡","📡 Avisos da Biomassa · cronograma da fábrica","Todos os projetos processados pela aba Biomassa total em tempo real: o que está pronto, perto da despesca ou no acabamento");
-    if(!vb.contains(box)){const a=vb.querySelector("#bn-int");a.nextSibling?vb.insertBefore(box,a.nextSibling):vb.appendChild(box);desenha(box,htmlBenef)}}
+    if(!vb.contains(box)){const a=vb.querySelector("#bn-int");a.nextSibling?vb.insertBefore(box,a.nextSibling):vb.appendChild(box);desenha(box,htmlBenef)}
+    if(!boxO)boxO=montaCard("gfp-od","🚚","🚚 Despesca e transporte · ordens","Aceite da despesca, captura, transporte e checagem de rastreabilidade na chegada à fábrica");
+    if(!vb.contains(boxO)||boxO.previousElementSibling!==box){box.after(boxO);desenha(boxO,odHTML)}}
   const vm=document.getElementById("view-merc");if(vm&&!vm.hidden&&vm.querySelector(".card")){if(!boxM)boxM=montaCard("gfp-merc","📦","📦 Comanda da produção · despescas previstas","Enviada pelo Beneficiamento a partir da aba Biomassa de todos os projetos");
     if(!vm.contains(boxM)){const c=[...vm.children].find(x=>x.classList&&x.classList.contains("card"));c?vm.insertBefore(boxM,c):vm.appendChild(boxM);desenha(boxM,htmlMerc)}}}
 function desenha(b,fn){const d=b.querySelector(".gfp-b");if(!d)return;const h=fn();if(d.__h!==h){d.innerHTML=h;d.__h=h}}
-function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activeElement))desenha(box,htmlBenef)}catch(e){}try{if(boxM&&boxM.isConnected)desenha(boxM,htmlMerc)}catch(e){}}
+function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activeElement))desenha(box,htmlBenef)}catch(e){}try{if(boxO&&boxO.isConnected&&!boxO.contains(document.activeElement))desenha(boxO,odHTML)}catch(e){}try{if(boxM&&boxM.isConnected)desenha(boxM,htmlMerc)}catch(e){}}
 for(const id of ["view-benef","view-merc"]){const v=document.getElementById(id);if(v)new MutationObserver(()=>{if(!v.hidden)poe()}).observe(v,{childList:true,attributes:true,attributeFilter:["hidden"]})}
 /* ---- relógio: ao vivo a cada minuto ---- */
 function tick(){try{S.live=aoVivo()||[]}catch(e){S.live=[]}const A=todos();try{const R=semanas(A);oferta(A,R)}catch(e){}badge(A);avisos(A);poe();desenhaTudo()}
-window.gfPrev={todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
+window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()}};window.gfPrev={todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
 setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);
 setTimeout(()=>processa(false),7000);setInterval(()=>{if(!document.hidden)processa(false)},15*60000);
 window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
@@ -14069,6 +14151,15 @@ window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
 .gfp-barh{min-width:140px}.gfp-bar{position:relative;height:12px;border-radius:6px;background:var(--line,#e5e7eb);overflow:visible}.gfp-bar i{display:block;height:100%;border-radius:6px;background:#0f766e}.gfp-bar em{position:absolute;top:-3px;bottom:-3px;width:2px;background:#dc2626}
 .gfp-sug{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}.gfp-sug .gfp-crit{color:#991b1b}.gfp-sug .gfp-warn{color:#9a3412}.gfp-sug .gfp-ok{color:#166534}
 .gfp-pj summary{cursor:pointer;font-weight:600;font-size:14px}.gfp-nt{font-size:13px}
+.gfp-acf{margin-top:6px;padding:10px 12px;border:1px dashed #0f766e;border-radius:10px;background:var(--surface,#fff);display:grid;gap:8px}
+.gfp-od{border:1px solid var(--line,#e5e7eb);border-left:4px solid #0f766e;border-radius:0 10px 10px 0;padding:8px 12px;background:var(--bg);margin:0 0 8px}
+.gfp-od>summary{cursor:pointer;font-size:13.5px;line-height:1.6}.gfp-odid{font-family:var(--f-mono,monospace);letter-spacing:.5px}
+.gfp-od-conferida{border-left-color:#16a34a}.gfp-od-cancelada,.gfp-od-reprovada{border-left-color:#9ca3af;opacity:.85}.gfp-od-chegou{border-left-color:#f97316}
+.gfp-steps{list-style:none;display:flex;flex-wrap:wrap;gap:4px;padding:0;margin:8px 0}.gfp-steps li{flex:1 1 110px;font-size:12px;font-weight:600;padding:6px 8px;border-radius:8px;background:#e5e7eb;color:#4b5563}.gfp-steps li small{display:block;font-weight:400;font-size:11px}
+.gfp-steps li.ok{background:#dcfce7;color:#166534}.gfp-steps li.at{background:#0f766e;color:#fff}
+.gfp-odd{font-size:13px;margin-bottom:6px}.gfp-ck{display:grid;gap:4px;font-size:13.5px;margin:6px 0}.gfp-ck label{display:flex;gap:6px;align-items:flex-start}
+.gfp-alerta{color:#991b1b;font-size:13px;margin:4px 0}.gfp-od-ex{margin-top:6px}
+#gfp-od .gfp-b{padding:14px 18px;display:grid;gap:10px}
 #gfp-toast{position:fixed;right:16px;bottom:16px;z-index:9998;max-width:min(520px,calc(100vw - 32px));background:#064e3b;color:#ecfdf5;border-radius:12px;padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.25);display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px}
 #gfp-toast[hidden]{display:none}#gfp-toast button{border:0;border-radius:8px;padding:5px 10px;background:#10b981;color:#fff;font-weight:600;cursor:pointer}#gfp-toast button[data-gfp="x"]{background:transparent;color:#a7f3d0;padding:5px 6px}
 html.gfp-tem .gs-i[data-gs-v="benef"]{position:relative}html.gfp-tem .gs-i[data-gs-v="benef"]::after{content:var(--gfp-n);position:absolute;right:8px;top:50%;transform:translateY(-50%);min-width:18px;height:18px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;padding:0 4px}
