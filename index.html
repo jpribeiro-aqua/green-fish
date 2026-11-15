@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v235";
+  it.querySelector("code").textContent=msg;const ver="ras-v236";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10719,7 +10719,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v235";
+  const APP_VERSAO="ras-v236";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15860,7 +15860,7 @@ const P=v=>{let t=String(v??"").trim();if(t.includes(","))t=t.replace(/\./g,"").
 const dBR=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
 const dBRa=ms=>new Date(ms).toLocaleDateString("pt-BR");
 const hm=ms=>new Date(ms).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
-const cfg=()=>Object.assign({need:"",dPronto:7,dPerto:21,dAcab:45,sem:12,notif:false},rd(CFG,{}));
+const cfg=()=>Object.assign({need:"",dPronto:7,dPerto:21,dAcab:45,dPlan:180,sem:26,notif:false},rd(CFG,{}));
 const corr=id=>{try{return window.gfCorrOn?gfCorrOn(id):true}catch(e){return true}};
 const ehCam=l=>/camar/i.test(l.sp+" "+l.spn);
 
@@ -15870,7 +15870,7 @@ function extrai(w){let fm=null;try{fm=w.feedModels&&w.feedModels()}catch(e){fm=n
     const fim=m.atras?m.at(now):m.at(m.harvest-1),l={g:String(m.name||"Grupo"),sp:String(m.L&&m.L.sp||""),spn:String(m.sp&&m.sp.name||""),st:+m.start,h:+m.harvest,alvo:+m.alvo,q:+(m.g&&m.g.q)||0,
       wF:+(fim.w||0),bF:+(fim.bio||0),nF:+(fim.n||0),t0:Math.max(+m.start,hoje),w:[],b:[]};
     if(!(l.wF>0)){const v=m.val(Math.max(0,(m.harvest-m.start)/DAY-1e-3));l.wF=+v.w||0;l.bF=+v.bio||0;l.nF=+v.n||0}
-    for(let t=l.t0,i=0;t<l.h&&i<720;t+=DAY,i++){const v=m.at(t);l.w.push(Math.round((+v.w||0)*10)/10);l.b.push(Math.round((+v.bio||0)*10)/10)}
+    l.atras=!!m.atras;const lim=l.atras?now+400*DAY:l.h;for(let t=l.t0,i=0;t<lim&&i<1200;t+=DAY,i++){const v=m.at(t);l.w.push(Math.round((+v.w||0)*10)/10);l.b.push(Math.round((+v.bio||0)*10)/10)}
     out.push(l)}catch(e){}}
   return out}
 const aoVivo=()=>extrai(window);
@@ -15894,7 +15894,7 @@ async function projetos(){const L=[];try{for(const p of (window.projLista?projLi
 async function processa(forcar){if(S.fila)return;S.fila=true;try{
   const L=await projetos(),aberto=window.projAtualKey?projAtualKey():null,vivos=new Set(L.map(p=>p.k));
   for(const k of Object.keys(S.cache))if(!vivos.has(k))delete S.cache[k];
-  for(const p of L){if(p.k===aberto)continue;const c=S.cache[p.k];if(!forcar&&c&&c.em===p.em&&c.lotes&&Date.now()-(c.calc||0)<7*DAY)continue;
+  for(const p of L){if(p.k===aberto)continue;const c=S.cache[p.k];if(!forcar&&c&&c.em===p.em&&c.lotes&&Date.now()-(c.calc||0)<DAY)continue;
     while(document.hidden)await new Promise(r=>setTimeout(r,4000));
     S.rodando=p.nome;desenhaTudo();let lotes=null,erro="";
     try{const dados=window.projDadosDe?await projDadosDe(p.id,p.uid):null;if(dados)lotes=await calcProjeto(dados);else erro="sem acesso aos dados"}catch(e){erro=(e&&e.message)||"erro ao abrir"}
@@ -15904,13 +15904,16 @@ async function processa(forcar){if(S.fila)return;S.fila=true;try{
   S.ult=Date.now();S.erro=""}catch(e){S.erro=(e&&e.message)||"erro"}finally{S.fila=false;S.rodando="";wr(CK,S.cache);tick()}}
 
 /* ---- situação de cada lote agora ---- */
-function valor(l,ms){if(ms<l.st)return {pre:true,w:0,b:0};if(ms>=l.h)return {done:true,w:l.wF,b:l.bF};const x=(ms-l.t0)/DAY;if(!l.w.length||x<0)return {w:l.w[0]||0,b:l.b[0]||0};
+function valor(l,ms){if(ms<l.st)return {pre:true,w:0,b:0};if(ms>=l.h&&!l.atras)return {done:true,w:l.wF,b:l.bF};const x=(ms-l.t0)/DAY;if(!l.w.length||x<0)return {w:l.w[0]||0,b:l.b[0]||0};
   const i=Math.min(l.w.length-1,Math.floor(x)),j=Math.min(l.w.length-1,i+1),t=Math.max(0,Math.min(1,x-i));return {w:l.w[i]+(l.w[j]-l.w[i])*t,b:l.b[i]+(l.b[j]-l.b[i])*t}}
-const NIV=[["⚪","Ainda não povoado","pre"],["🟢","Engorda","eng"],["🟡","Acabamento — peso final se aproximando","acab"],["🟠","Perto da despesca","perto"],["🔴","Despesca nos próximos dias","desp"],["✅","Biomassa pronta — despescar","pronto"]];
+const NIV=[["⚪","Ainda não povoado","pre"],["🟢","Engorda","eng"],["🔵","Programar — despesca em até 6 meses","plan"],["🟡","Acabamento — peso final se aproximando","acab"],["🟠","Perto da despesca","perto"],["🔴","Despesca nos próximos dias","desp"],["✅","Biomassa pronta — despescar","pronto"]];
 function nivel(l,now,C){const v=valor(l,now),dias=(l.h-now)/DAY,pct=l.alvo>0?v.w/l.alvo:NaN;
-  if(v.pre)return {n:0,v,dias,pct};if(dias<=0)return {n:5,v,dias,pct:1};if(dias<=C.dPronto||pct>=.98)return {n:4,v,dias,pct};if(dias<=C.dPerto||pct>=.9)return {n:3,v,dias,pct};if(dias<=C.dAcab||pct>=.8)return {n:2,v,dias,pct};return {n:1,v,dias,pct}}
+  const dP=Math.max(180,+C.dPlan||180);if(v.pre)return {n:0,v,dias,pct};if(dias<=0)return {n:6,v,dias,pct};if(dias<=C.dPronto||pct>=.98)return {n:5,v,dias,pct};if(dias<=C.dPerto||pct>=.9)return {n:4,v,dias,pct};if(dias<=C.dAcab||pct>=.8)return {n:3,v,dias,pct};if(dias<=dP)return {n:2,v,dias,pct};return {n:1,v,dias,pct}}
 function todos(){const now=Date.now(),C=cfg(),A=[],aberto=window.projAtualKey?projAtualKey():null;let st={};try{st=window.projStatus?projStatus():{}}catch(e){}
-  const add=(k,nome,cli,lotes,vivo)=>(lotes||[]).forEach(l=>{const s=nivel(l,now,C);A.push({...l,pk:k,proj:nome,cli,vivo,s,id:k+"|"+l.g+"|"+l.st})});
+  const add=(k,nome,cli,lotes,vivo)=>(lotes||[]).forEach(l=>{const id=k+"|"+l.g+"|"+l.st;
+    /* despesca registrada (ordem conferida na fábrica): o lote sai dos avisos, mesmo com o projeto fechado */
+    if(!vivo&&O.L.some(o=>o.lid===id&&o.status==="conferida"))return;
+    const s=nivel(l,now,C),lv=l.atras?valor(l,now):null;A.push({...l,...(lv?{bF:lv.b,wF:lv.w}:{}),pk:k,proj:nome,cli,vivo,s,id})});
   add(aberto||"aberto",(st&&st.nome)||"Projeto aberto (abas atuais)","",S.live,true);
   for(const [k,c] of Object.entries(S.cache))if(k!==aberto)add(k,c.nome,c.cli,c.lotes,false);
   return A.sort((a,b)=>a.h-b.h)}
@@ -16035,13 +16038,13 @@ function htmlBenef(){const C=cfg();
   const mx=Math.max(1,...R.W.map(w=>Math.max(w.kg,isFinite(w.need)?w.need:0)));
   const sug=sugestoes(A,R);
   return `<div class="gfp-st">${S.rodando?`⏳ Processando na aba Biomassa: <b>${E(S.rodando)}</b>…`:`🔄 ${nP} projeto${nP===1?"":"s"} processado${nP===1?"":"s"} pela aba Biomassa total em tempo real${S.ult?` · ${hm(S.ult)}`:""}${falt?` · ${falt} com aviso`:""}`} · avisos conferidos a cada minuto <button type="button" class="chip" data-gfp="re">Reprocessar todos</button></div>
-   <div class="gfh-kpis bx-kpis">${kpi("Lotes acompanhados",F(A.length),`${eng.length} em engorda · ${A.filter(l=>l.s.n===0).length} a povoar`)}${kpi("Avisos para a fábrica",F(av.length),`${F(av.reduce((s,l)=>s+l.bF,0))} kg previstos nesses lotes`,av.some(l=>l.s.n>=4)?"crit":av.length?"warn":"ok")}${kpi("Próxima despesca",prox?dBR(prox.h):"—",prox?`${E(prox.proj)} · ${E(prox.g)} · ≈ ${F(prox.bF)} kg`:"cadastre lotes na aba Biomassa","ok")}${kpi("Necessidade da fábrica",isFinite(R.need)?F(R.need)+" kg/sem":"—",R.needSrc||"informe abaixo")}</div>
+   <div class="gfh-kpis bx-kpis">${kpi("Lotes acompanhados",F(A.length),`${eng.length} em engorda · ${A.filter(l=>l.s.n===0).length} a povoar`)}${kpi("Avisos para a fábrica",F(av.length),`${F(av.reduce((s,l)=>s+l.bF,0))} kg previstos nesses lotes`,av.some(l=>l.s.n>=5)?"crit":av.length?"warn":"ok")}${kpi("Próxima despesca",prox?dBR(prox.h):"—",prox?`${E(prox.proj)} · ${E(prox.g)} · ≈ ${F(prox.bF)} kg`:"cadastre lotes na aba Biomassa","ok")}${kpi("Necessidade da fábrica",isFinite(R.need)?F(R.need)+" kg/sem":"—",R.needSrc||"informe abaixo")}</div>
    <h3 class="gfp-h">🚨 Avisos em tempo real</h3>
    ${av.length?`<div class="gfp-av">${av.map(l=>`<div class="gfp-it gfp-${NIV[l.s.n][2]}"><div>${chip(l.s.n)}<b>${E(l.proj)}${l.cli?` <small>(${E(l.cli)})</small>`:""} · ${E(l.g)}</b> <small>${E(l.spn)}${l.vivo?" · ao vivo":""}</small></div>
-      <div class="gfp-num">Agora: <b>${F(l.s.v.w)} g</b> (${F(l.s.pct*100)}% do peso de abate de ${F(l.alvo)} g) · biomassa <b>${F(l.s.v.b)} kg</b> → despesca <b>${dBRa(l.h)}</b> ${l.s.dias>0?`(em ${F(Math.ceil(l.s.dias))} dia${Math.ceil(l.s.dias)===1?"":"s"})`:`(${F(Math.floor(-l.s.dias))} dia(s) atrás)`} com ≈ <b>${F(l.bF)} kg</b> e ${F(l.wF)} g/animal</div>
-      <div class="gfp-bt">${(()=>{const o=ordemDe(l.id);return o?`<span class="gfp-ch gfp-odch">📋 ${E(o.id)} · ${OSTn(o.status)}</span><button type="button" class="btn" data-gfp="od-ver" data-id="${E(o.id)}">🚚 Abrir a ordem</button>`:l.s.n>=3?`<button type="button" class="btn solid" data-gfp="aceitar" data-id="${E(l.id)}">✅ Aceitar despesca</button>`:""})()}<button type="button" class="btn" data-gfp="usar" data-id="${E(l.id)}">🏭 Programar no Beneficiamento</button></div>${ui.aceita===l.id&&!ordemDe(l.id)?aceiteHTML(l):""}</div>`).join("")}</div>`:`<p class="muted">Nenhum lote em acabamento, perto da despesca ou pronto agora. Os avisos aparecem sozinhos ${F(C.dAcab)} dias antes (acabamento), ${F(C.dPerto)} dias antes (perto) e ${F(C.dPronto)} dias antes (despesca).</p>`}
+      <div class="gfp-num">Agora: <b>${F(l.s.v.w)} g</b> (${F(l.s.pct*100)}% do peso de abate de ${F(l.alvo)} g) · biomassa <b>${F(l.s.v.b)} kg</b> → ${l.s.dias>0?"despesca":"prazo estimado era"} <b>${dBRa(l.h)}</b> ${l.s.dias>0?`(em ${F(Math.ceil(l.s.dias))} dia${Math.ceil(l.s.dias)===1?"":"s"})`:`(${F(Math.floor(-l.s.dias))} dia(s) atrás)`} ${l.s.dias>0?`com ≈ <b>${F(l.bF)} kg</b> e ${F(l.wF)} g/animal`:`· continua crescendo no tanque até a despesca ser registrada`}</div>
+      <div class="gfp-bt">${(()=>{const o=ordemDe(l.id);return o?`<span class="gfp-ch gfp-odch">📋 ${E(o.id)} · ${OSTn(o.status)}</span><button type="button" class="btn" data-gfp="od-ver" data-id="${E(o.id)}">🚚 Abrir a ordem</button>`:l.s.n>=4?`<button type="button" class="btn solid" data-gfp="aceitar" data-id="${E(l.id)}">✅ Aceitar despesca</button>`:""})()}<button type="button" class="btn" data-gfp="usar" data-id="${E(l.id)}">🏭 Programar no Beneficiamento</button></div>${ui.aceita===l.id&&!ordemDe(l.id)?aceiteHTML(l):""}</div>`).join("")}</div>`:`<p class="muted">Nenhum lote em acabamento, perto da despesca ou pronto agora. Os avisos aparecem sozinhos ${F(Math.max(180,+C.dPlan||180))} dias antes (programar), ${F(C.dAcab)} dias antes (acabamento), ${F(C.dPerto)} dias antes (perto) e ${F(C.dPronto)} dias antes (despesca).</p>`}
    <h3 class="gfp-h">📅 Cronograma da fábrica — para não faltar ${A.some(ehCam)&&A.some(l=>!ehCam(l))?"peixe nem camarão":A.some(ehCam)?"camarão":"peixe"}</h3>
-   <div class="mk-form gfp-cfg"><label class="jr-f">Necessidade da fábrica (kg/semana)<input data-gfpc="need" value="${E(C.need)}" inputmode="decimal" placeholder="${isFinite(R.need)&&!P(C.need)?F(R.need):"ex.: 500"}"></label><label class="jr-f">Aviso de acabamento (dias antes)<input data-gfpc="dAcab" value="${E(C.dAcab)}" inputmode="numeric"></label><label class="jr-f">Perto da despesca (dias)<input data-gfpc="dPerto" value="${E(C.dPerto)}" inputmode="numeric"></label><label class="jr-f">Despesca (dias)<input data-gfpc="dPronto" value="${E(C.dPronto)}" inputmode="numeric"></label><label class="jr-f">Semanas<select data-gfpc="sem">${[8,12,16,26,52].map(n=>`<option${+C.sem===n?" selected":""}>${n}</option>`).join("")}</select></label></div>
+   <div class="mk-form gfp-cfg"><label class="jr-f">Necessidade da fábrica (kg/semana)<input data-gfpc="need" value="${E(C.need)}" inputmode="decimal" placeholder="${isFinite(R.need)&&!P(C.need)?F(R.need):"ex.: 500"}"></label><label class="jr-f">Programar a despesca (dias antes, mín. 180)<input data-gfpc="dPlan" value="${E(C.dPlan)}" inputmode="numeric"></label><label class="jr-f">Aviso de acabamento (dias antes)<input data-gfpc="dAcab" value="${E(C.dAcab)}" inputmode="numeric"></label><label class="jr-f">Perto da despesca (dias)<input data-gfpc="dPerto" value="${E(C.dPerto)}" inputmode="numeric"></label><label class="jr-f">Despesca (dias)<input data-gfpc="dPronto" value="${E(C.dPronto)}" inputmode="numeric"></label><label class="jr-f">Semanas<select data-gfpc="sem">${[8,12,16,26,52].map(n=>`<option${+C.sem===n?" selected":""}>${n}</option>`).join("")}</select></label></div>
    <div class="scroll"><table class="lot gfp-tab"><thead><tr><th class="l">Semana</th><th class="l">Despescas previstas</th><th>Peixe</th><th>Camarão</th><th class="l gfp-barh">Total × necessidade</th><th>Saldo</th></tr></thead><tbody>${R.W.map(w=>`<tr class="${isFinite(w.saldo)?(w.saldo<-w.need*.1?"gfp-falta":w.saldo>w.need*.3?"gfp-sobra":""):""}"><td class="l"><b>${dBR(w.a)}–${dBR(w.b-DAY)}</b></td><td class="l">${w.L.length?w.L.map(l=>`<small>${E(l.proj)} · ${E(l.g)} · ${dBR(l.h)} · ${F(l.bF)} kg</small>`).join(""):"<small class=\"muted\">—</small>"}</td><td>${w.kp?F(w.kp)+" kg":"—"}</td><td>${w.kc?F(w.kc)+" kg":"—"}</td><td class="l gfp-barh"><div class="gfp-bar"><i style="width:${w.kg/mx*100}%"></i>${isFinite(w.need)?`<em style="left:${w.need/mx*100}%"></em>`:""}</div></td><td>${isFinite(w.saldo)?`<b class="${w.saldo<0?"neg":""}">${w.saldo>=0?"+":"−"}${F(Math.abs(w.saldo))} kg</b>`:"—"}</td></tr>`).join("")}</tbody></table></div>
    ${sug.length?`<ul class="gfp-sug">${sug.map(([c,t])=>`<li class="gfp-${c}">${t}</li>`).join("")}</ul>`:isFinite(R.need)?"":`<p class="hint">Informe a necessidade da fábrica (ou cadastre clientes ativos na Camada de mercado) para o app apontar as semanas em que vai faltar ou sobrar matéria-prima.</p>`}
    <p class="hint">📦 ${corr("bio_merc")?`Comanda enviada automaticamente para a <b>Camada de mercado</b> (${F(of.semanas.reduce((s,w)=>s+w.kgPeixe+w.kgCamarao,0))} kg em ${R.W.length} semanas). <button type="button" class="linkbtn" data-gfp="merc">Abrir a Camada de mercado</button>`:`Envio para a Camada de mercado desligado em 🔗 Correlações entre abas.`}</p>
