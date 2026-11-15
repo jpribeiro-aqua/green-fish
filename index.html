@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v239";
+  it.querySelector("code").textContent=msg;const ver="ras-v240";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -4088,7 +4088,7 @@ function bxLiveHTML(models,now,live,cap,p){
     <div class="bx-big"><small>${live?"🟢 Biomassa total agora · ao vivo":"Biomassa total na data simulada"}</small>
       <div class="bx-n"><b id="bx-num" data-b="${T.bio}" data-r="${T.rate}" data-t="${Date.now()}" data-live="${live?1:0}">${fmt(T.bio,3)}</b><span>kg</span></div>
       <p>${live?`Crescendo <b id="bx-sec">${fmt(Math.abs(T.rate)*1000,T.rate*1000<1?3:1)}</b> g por segundo · ${n(gain,1)} kg por dia`:`Ganho na data: ${n(gain,1)} kg/dia`} · ${f0(on.reduce((a,x)=>a+x.s.n,0))} animais em ${on.length} grupo${on.length===1?"":"s"}${cal.length?` · ${cal.length} grupo${cal.length===1?"":"s"} corrigido${cal.length===1?"":"s"} pela biometria`:""}</p>
-      <div class="meter big${occ>=1?" hot":""}" role="img" aria-label="Ocupação ${fmt(occ*100,1)}%"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
+      <div class="meter big bx-meter${occ>=1?" hot":occ>=.85?" warn":""}" role="img" aria-label="Ocupação ${fmt(occ*100,1)}%"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
       <p class="bx-occ"><b>${fmt(occ*100,1)}%</b> da biomassa máxima do sistema (${n(cap,0)} kg) · folga ${n(Math.max(0,cap-T.bio),0)} kg</p></div>
     <div class="bx-tiles">
       ${tile("🍽","Arraçoamento",`${fk(feed)}/dia`,`${fmt(pct,2)}% da biomassa · ${on.length?on.map(x=>`${esc(x.m.name)}: ${x.s.fr.fase}`).join(" · "):"sem lotes"}`,"racao")}
@@ -10719,7 +10719,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v239";
+  const APP_VERSAO="ras-v240";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16496,4 +16496,17 @@ window.gfDiag={html,info:()=>{ler();return D.props.length?`${D.props.length} fic
 .dg-cmp th small{display:block;font-weight:400;font-size:11px}.dg-up{color:#166534;font-weight:700}.dg-dn{color:#991b1b;font-weight:700}
 .dg-rec{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}.dg-rec .dg-crit{color:#991b1b}.dg-rec .dg-warn{color:#9a3412}.dg-rec .dg-n{color:var(--muted)}
 .dg-hist summary{cursor:pointer;font-weight:600}
+</style>
+<style>
+/* v240: mais contraste no quadro da biomassa ao vivo — fundo verde-escuro uniforme, número em destaque e barra colorida pela ocupação */
+.bx-big{background:linear-gradient(135deg,#052e22 0%,#0a4a36 100%)!important;color:#f0fdf4!important;box-shadow:0 8px 24px rgba(5,46,34,.35)}
+.bx-big small{color:#86efac!important;opacity:1!important}
+.bx-big .bx-n b{color:#fde047;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.bx-big .bx-n span{color:#fde047;opacity:.9}
+.bx-big p{color:#dcfce7!important;opacity:1!important}.bx-big p b{color:#fde047}
+.bx-big .bx-meter{background:rgba(0,0,0,.4)!important;border:1px solid rgba(134,239,172,.35);height:16px}
+.bx-big .bx-meter>div{background:linear-gradient(90deg,#22c55e,#4ade80)!important;box-shadow:0 0 10px rgba(74,222,128,.55)}
+.bx-big .bx-meter.warn>div{background:linear-gradient(90deg,#f59e0b,#facc15)!important;box-shadow:0 0 10px rgba(250,204,21,.55)}
+.bx-big .bx-meter.hot>div{background:linear-gradient(90deg,#dc2626,#f87171)!important;box-shadow:0 0 10px rgba(248,113,113,.6)}
+.bx-big .bx-meter~*,.bx-big .bx-meter+p{color:#f0fdf4!important}
 </style>

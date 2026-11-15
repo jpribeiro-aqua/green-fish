@@ -2143,7 +2143,7 @@ function bxLiveHTML(models,now,live,cap,p){
     <div class="bx-big"><small>${live?"🟢 Biomassa total agora · ao vivo":"Biomassa total na data simulada"}</small>
       <div class="bx-n"><b id="bx-num" data-b="${T.bio}" data-r="${T.rate}" data-t="${Date.now()}" data-live="${live?1:0}">${fmt(T.bio,3)}</b><span>kg</span></div>
       <p>${live?`Crescendo <b id="bx-sec">${fmt(Math.abs(T.rate)*1000,T.rate*1000<1?3:1)}</b> g por segundo · ${n(gain,1)} kg por dia`:`Ganho na data: ${n(gain,1)} kg/dia`} · ${f0(on.reduce((a,x)=>a+x.s.n,0))} animais em ${on.length} grupo${on.length===1?"":"s"}${cal.length?` · ${cal.length} grupo${cal.length===1?"":"s"} corrigido${cal.length===1?"":"s"} pela biometria`:""}</p>
-      <div class="meter big${occ>=1?" hot":""}" role="img" aria-label="Ocupação ${fmt(occ*100,1)}%"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
+      <div class="meter big bx-meter${occ>=1?" hot":occ>=.85?" warn":""}" role="img" aria-label="Ocupação ${fmt(occ*100,1)}%"><div style="width:${Math.min(100,occ*100).toFixed(2)}%"></div></div>
       <p class="bx-occ"><b>${fmt(occ*100,1)}%</b> da biomassa máxima do sistema (${n(cap,0)} kg) · folga ${n(Math.max(0,cap-T.bio),0)} kg</p></div>
     <div class="bx-tiles">
       ${tile("🍽","Arraçoamento",`${fk(feed)}/dia`,`${fmt(pct,2)}% da biomassa · ${on.length?on.map(x=>`${esc(x.m.name)}: ${x.s.fr.fase}`).join(" · "):"sem lotes"}`,"racao")}
@@ -14551,4 +14551,17 @@ window.gfDiag={html,info:()=>{ler();return D.props.length?`${D.props.length} fic
 .dg-cmp th small{display:block;font-weight:400;font-size:11px}.dg-up{color:#166534;font-weight:700}.dg-dn{color:#991b1b;font-weight:700}
 .dg-rec{margin:0;padding-left:18px;display:grid;gap:4px;font-size:13.5px}.dg-rec .dg-crit{color:#991b1b}.dg-rec .dg-warn{color:#9a3412}.dg-rec .dg-n{color:var(--muted)}
 .dg-hist summary{cursor:pointer;font-weight:600}
+</style>
+<style>
+/* v240: mais contraste no quadro da biomassa ao vivo — fundo verde-escuro uniforme, número em destaque e barra colorida pela ocupação */
+.bx-big{background:linear-gradient(135deg,#052e22 0%,#0a4a36 100%)!important;color:#f0fdf4!important;box-shadow:0 8px 24px rgba(5,46,34,.35)}
+.bx-big small{color:#86efac!important;opacity:1!important}
+.bx-big .bx-n b{color:#fde047;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.bx-big .bx-n span{color:#fde047;opacity:.9}
+.bx-big p{color:#dcfce7!important;opacity:1!important}.bx-big p b{color:#fde047}
+.bx-big .bx-meter{background:rgba(0,0,0,.4)!important;border:1px solid rgba(134,239,172,.35);height:16px}
+.bx-big .bx-meter>div{background:linear-gradient(90deg,#22c55e,#4ade80)!important;box-shadow:0 0 10px rgba(74,222,128,.55)}
+.bx-big .bx-meter.warn>div{background:linear-gradient(90deg,#f59e0b,#facc15)!important;box-shadow:0 0 10px rgba(250,204,21,.55)}
+.bx-big .bx-meter.hot>div{background:linear-gradient(90deg,#dc2626,#f87171)!important;box-shadow:0 0 10px rgba(248,113,113,.6)}
+.bx-big .bx-meter~*,.bx-big .bx-meter+p{color:#f0fdf4!important}
 </style>
