@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v249";
+  it.querySelector("code").textContent=msg;const ver="ras-v250";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10742,7 +10742,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v249";
+  const APP_VERSAO="ras-v250";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16732,6 +16732,8 @@ function coleta(){const ab=T(()=>VIEWS.filter(v=>abaOk(v)&&!["users","proj","dad
   if(tem("benef"))R.t.benef=T(()=>{const b=gfBenefResumo();return b?{esp:b.esp,peso:num(b.pw),rendFile:num(b.rend&&b.rend[0]),kg:num(b.kg),qualFora:(b.qual&&b.qual.falhas)||[],od:num(b.od)}:null},null);
   if(tem("repro"))R.t.repro=T(()=>{const r=reproResumo();return r?{especies:r.esp,lotes:r.lotes,obtidos:r.obtidos,plantel:r.plantel}:null},null);
   if(tem("topo"))R.t.topo=T(()=>{const r=topoResumo();return r?{nome:r.nome,ha:num(r.ha),mov:num(r.mov),custo:num(r.custo)}:null},null);
+  const INTR=[["calc","bio"],["calc","racao"],["calc","local"],["calc","aqua"],["topo","calc"],["topo","local"],["bio","racao"],["bio","aqua"],["aqua","bio"],["calc","fin"],["local","fin"],["topo","fin"],["repro","fin"],["aqua","fin"],["bio","fin"],["racao","fin"],["benef","fin"],["merc","fin"],["local","merc"],["bio","merc"],["aqua","merc"]];
+  R.lig=INTR.filter(([a,b])=>tem(a)&&tem(b)).map(([a,b])=>NOME_ABA[a]+" → "+NOME_ABA[b]);if(tem("dash")&&ab.length>1)R.lig.push("todas as abas do pacote → Painel");
   const C=window.gfCORR||[];R.corr=C.filter(x=>pode(x[0])).map(([id,de,pa,txt,val])=>({id,de,pa,txt,v:String(T(val,"—")).slice(0,120)}));
   for(const k in R.t)if(R.t[k]==null)delete R.t[k];return R}
 let ultEnvio="",envT=0;
@@ -16763,7 +16765,7 @@ function cardHTML(){const L=DC.L||[];
    ${!L.length?`<p class="hint" style="margin:0">${DC.L?"Nenhuma conta enviou dados ainda. O resumo chega quando a pessoa abre o app com o pacote dela.":"Carregando…"}</p>`:
    L.map(r=>{const nome=DC.nomes[r.uid]||("Conta "+r.uid.slice(0,6)),ks=Object.keys(r.t||{});return `<details class="gfp-pj gf-dc"${DC.aberto===r.uid?" open":""} data-gfdcu="${E(r.uid)}"><summary><b>${E(nome)}</b> <small>· ${E(r.proj||"sem projeto aberto")} · atualizado ${dH(r.em)}</small><span class="gf-dc-ab">${(r.abas||[]).map(a=>`<i>${E(NOME_ABA[a]||a)}</i>`).join("")}</span></summary>
      ${ks.map(k=>`<div class="gf-dc-t"><b>${E(NOME_ABA[k]||k)}</b>${linhasTab(k,r.t[k])}</div>`).join("")||`<p class="hint">Sem dados nas abas do pacote ainda.</p>`}
-     ${(r.corr||[]).length?`<div class="gf-dc-t"><b>🔗 Correlações do pacote</b>${r.corr.map(c=>`<div>${E(c.de)} → ${E(c.pa)}: ${E(c.v)}</div>`).join("")}</div>`:`<div class="gf-dc-t"><small>🔗 O pacote não liga abas entre si.</small></div>`}</details>`}).join("")}
+     <div class="gf-dc-t"><b>🔗 Correlações do pacote (com os dados desta conta)</b>${(r.lig||[]).length?`<div>${r.lig.map(E).join(" · ")}</div>`:""}${(r.corr||[]).map(c=>`<div>${E(c.de)} → ${E(c.pa)}: ${E(c.v)}</div>`).join("")}${!(r.lig||[]).length&&!(r.corr||[]).length?`<small>As abas deste pacote não se ligam entre si.</small>`:""}</div></details>`}).join("")}
    <p class="hint">Cada pessoa só vê as próprias abas e as correlações entre elas; o resumo correlacionado de todas as contas fica aqui, exclusivo para você.</p></div></section>`}
 async function donoCard(){const vd=document.getElementById("view-dash");let c=document.getElementById("gf-dono-corr-w");const on=dono()&&nuvem()&&vd&&!vd.hidden;
   if(!on){if(c)c.hidden=true;return}
