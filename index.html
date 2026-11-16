@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v259";
+  it.querySelector("code").textContent=msg;const ver="ras-v260";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10743,7 +10743,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v259";
+  const APP_VERSAO="ras-v260";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17408,6 +17408,235 @@ function inicia(){if(typeof setView!=="function"){setTimeout(inicia,300);return}
   if(typeof drawBio==="function"){const d1=drawBio;drawBio=function(){d1.apply(this,arguments);clearTimeout(desenhaNec.t);desenhaNec.t=setTimeout(desenhaNec,60)}}
   if(typeof drawFeedDash==="function"){const d0=drawFeedDash;drawFeedDash=function(){d0.apply(this,arguments);setTimeout(desenha,0)}}
   setInterval(()=>{desenha();desenhaNec()},60000);new MutationObserver(()=>{const b=document.getElementById("rg-box");if(b&&!b.__h){b.__h="x";setTimeout(()=>{b.__h="";desenha()},0)}}).observe(document.body,{childList:true,subtree:true});desenha()}
+inicia();
+})();
+</script>
+<script>
+/* ===================== v260: protocolo de rastreabilidade dos animais — entrada (povoamento) → movimentos no ciclo
+   (transferências, misturas, mortalidade, tratamentos com carência, biometrias, ração) → saída (despesca, venda, ordens, Beneficiamento) ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="ras-multitanques-v1-lotesani",DAY=864e5;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{return f()}catch(e){return d}};
+const P=v=>{let t=String(v??"").trim();if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const iso=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const msD=s=>{if(typeof s==="number")return s;const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||""));return m?new Date(+m[1],+m[2]-1,+m[3],12).getTime():NaN};
+const dBR=s=>{const t=msD(s);return isFinite(t)?new Date(t).toLocaleDateString("pt-BR"):"—"};
+const hoje=()=>iso(Date.now());
+let S=Object.assign({seq:{},L:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{});
+const rec=()=>{S=Object.assign({seq:{},L:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{})};
+const grava=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const KEYC="view-bio|🏷️ Protocolo e rastreabilidade dos lotes";
+const UI={sel:null,aba:"ent",msg:"",q:"",res:null,ev:"mort"};
+
+/* ---------- lotes vivos: um por grupo e data de povoamento (mesma chave das ordens de despesca) ---------- */
+const pk=()=>T(()=>window.projAtualKey?projAtualKey():"",null)||"aberto";
+function modelos(){return (T(()=>feedModels(),null)||[]).filter(m=>m&&m.start!=null&&isFinite(m.start))}
+const chaveDe=m=>pk()+"|"+m.name+"|"+m.start;
+function novoCod(data){const a=String(data||hoje()).slice(0,4);S.seq[a]=(S.seq[a]||0)+1;return `LT-${a}-${String(S.seq[a]).padStart(4,"0")}`}
+function garante(m){const k=chaveDe(m);let r=S.L[k];
+  if(!r){r=S.L[k]={k,cod:novoCod(iso(m.start)),g:m.name,start:m.start,sp:(m.sp&&m.sp.name)||"",ent:null,ev:[],sai:[],em:Date.now()};grava()}
+  r.g=m.name;r.sp=(m.sp&&m.sp.name)||r.sp;return r}
+function vivos(){const M=modelos();let mud=false;const out=M.map(m=>{const n0=Object.keys(S.L).length;const r=garante(m);if(Object.keys(S.L).length!==n0)mud=true;return {m,r}});if(mud)grava();return out}
+const porCod=c=>Object.values(S.L).find(r=>r.cod.toLowerCase()===String(c||"").trim().toLowerCase());
+const modeloDe=r=>modelos().find(m=>chaveDe(m)===r.k)||null;
+const ordensDe=r=>T(()=>gfOrdens.lista().filter(o=>String(o.lid||"").endsWith("|"+r.g+"|"+r.start)),[])||[];
+const ORD_SAIU=["encerrada","transporte","chegou","conferida"];
+
+/* ---------- protocolo de entrada: documentos e inspeção na chegada ---------- */
+function checaEnt(e){const I=[];const ok=(c,t)=>I.push([c,t]);if(!e)return {st:"pend",I:[[0,"Entrada ainda não protocolada."]]};
+  ok(e.gta?1:0,e.gta?`GTA nº ${e.gta}${e.gtaUf?" ("+e.gtaUf+")":""}`:"Sem GTA (Guia de Trânsito Animal) — exigida para o trânsito de animais vivos");
+  ok(e.nf?1:0,e.nf?`Nota fiscal nº ${e.nf}${e.chave?" · chave "+(dvChave(e.chave)?"✓ válida":"⚠️ inválida"):""}`:"Sem nota fiscal de compra");
+  if(e.chave&&!dvChave(e.chave))I[I.length-1][0]=0;
+  ok(e.atest?1:0,e.atest?`Atestado sanitário nº ${e.atest}${e.lab?" · "+e.lab:""}`:"Sem atestado sanitário / laudo da origem");
+  /* quarentena e exames de laboratório credenciado, feitos ANTES da entrada */
+  const ch=msD(e.data);
+  if(e.qLocal||e.qIni||e.qFim){const di=msD(e.qIni),df=msD(e.qFim),dd=isFinite(di)&&isFinite(df)?Math.round((df-di)/DAY):NaN;ok(!isFinite(dd)?0:dd>=QMIN?(isFinite(ch)&&df>ch?0:1):0,`Quarentena${e.qLocal?" em "+e.qLocal:""}: ${isFinite(dd)?F(dd)+" dias ("+dBR(e.qIni)+" a "+dBR(e.qFim)+")":"datas incompletas"}${isFinite(dd)&&dd<QMIN?` — menos que ${QMIN} dias`:""}${isFinite(ch)&&isFinite(df)&&df>ch?" — terminou depois da entrada":""}${e.qDoc?" · documento "+e.qDoc:""}`)}
+  else ok(0,"Sem registro da quarentena dos animais antes da entrada");
+  const X=(e.exames||[]).filter(x=>x&&(x.tipo||x.agente||x.laudo||x.lab));
+  if(!X.length)ok(0,"Sem exames de laboratório credenciado (PCR e outros) antes da entrada");
+  for(const x of X){const res=(x.res||"pendente").toLowerCase(),dr=msD(x.dRes),depois=isFinite(ch)&&isFinite(dr)&&dr>ch;
+    ok(res==="positivo"?-1:res==="negativo"&&!depois&&x.lab&&x.laudo?1:0,`${x.tipo||"Exame"}${x.agente?" · "+x.agente:""}: ${res==="positivo"?"POSITIVO — não deixe o lote entrar; isole e comunique o serviço veterinário oficial":res==="negativo"?"negativo":"resultado pendente"}${x.lab?" · "+x.lab:" · laboratório não informado"}${x.cred?" (credenciamento "+x.cred+")":x.lab?" · sem nº de credenciamento":""}${x.laudo?" · laudo "+x.laudo:" · sem nº do laudo"}${isFinite(dr)?" · resultado em "+dBR(x.dRes):""}${depois?" — o resultado saiu depois da entrada: o exame deve ser feito antes":""}`)}
+  ok(e.orig?1:0,e.orig?`Origem: ${e.orig}${e.reg?" · registro "+e.reg:""}${e.mun?" · "+e.mun:""}`:"Origem (fornecedor / alevinocultura) não informada");
+  const q=P(e.qtd),mo=P(e.mortos);if(q>0&&mo>=0){const p=mo/q*100;ok(p<=2?1:p<=5?0:-1,`Mortalidade no transporte: ${F(mo)} de ${F(q)} (${F(p,1)} %)${p>5?" — acima de 5 %: avalie recusar ou acionar o fornecedor":p>2?" — acima de 2 %":""}`)}
+  const tT=P(e.tTr),tK=P(e.tTq);if(isFinite(tT)&&isFinite(tK)){const d=Math.abs(tT-tK);ok(d<=2?1:d<=4?0:-1,`Temperatura: transporte ${F(tT,1)} °C × tanque ${F(tK,1)} °C (diferença ${F(d,1)} °C)${d>2?" — aclimate devagar":""}`)}
+  const od=P(e.od);if(isFinite(od))ok(od>=5?1:od>=4?0:-1,`Oxigênio na água do transporte: ${F(od,1)} mg/L`);
+  const ph=P(e.ph);if(isFinite(ph))ok(ph>=6.5&&ph<=8.5?1:0,`pH: ${F(ph,1)}`);
+  const ac=P(e.acl);if(isFinite(ac))ok(ac>=20?1:0,`Aclimatação: ${F(ac)} min${ac<20?" — recomendado 20 min ou mais":""}`);
+  const pa=P(e.pAm),pd=P(e.peso);if(pa>0&&pd>0){const d=(pa-pd)/pd*100;ok(Math.abs(d)<=20?1:0,`Amostra: ${F(pa,pa<10?2:1)} g por animal × ${F(pd,pd<10?2:1)} g declarados (${d>0?"+":""}${F(d)} %)`)}
+  if(e.comp)ok(e.comp==="normal"?1:0,`Comportamento na chegada: ${e.comp}`);
+  const st=I.some(x=>x[0]<0)?"rep":I.some(x=>x[0]===0)?"res":"ok";return {st,I}}
+function dvChave(c){c=String(c||"").replace(/\D/g,"");if(c.length!==44)return false;let s=0,p=2;for(let i=42;i>=0;i--){s+=(+c[i])*p;p=p===9?2:p+1}const r=s%11,d=r<2?0:11-r;return d===+c[43]}
+const QMIN=15;
+const EXT=["PCR","RT-PCR / qPCR","Bacteriológico","Parasitológico","Histopatológico","Virológico","Outro"];
+const AGT=["TiLV (vírus da tilápia lacustre)","Streptococcus agalactiae","Streptococcus iniae","Francisella orientalis","Aeromonas hydrophila","Flavobacterium columnare","Edwardsiella tarda","ISKNV (megalocitivírus)","Ichthyophthirius multifiliis","WSSV (mancha branca)","IHHNV","IMNV (mionecrose infecciosa)","AHPND / Vibrio parahaemolyticus","EHP (Enterocytozoon hepatopenaei)"];
+const STE={ok:["✅","Entrada aprovada"],res:["⚠️","Entrada com ressalvas"],rep:["⛔","Entrada com problema grave"],pend:["📝","Entrada a protocolar"]};
+
+/* ---------- carência de medicamentos ---------- */
+const libera=ev=>ev.t==="trat"&&P(ev.car)>0?msD(ev.data)+P(ev.car)*DAY:null;
+const carencia=(r,ms)=>(r.ev||[]).filter(e=>e.t==="trat").map(e=>({e,lib:libera(e)})).filter(x=>x.lib&&x.lib>(ms??Date.now()));
+window.gfLoteCarencia=(g,start,ms)=>{rec();const r=Object.values(S.L).find(x=>x.g===g&&String(x.start)===String(start));return r?carencia(r,ms).map(x=>({produto:x.e.prod,libera:iso(x.lib)})):[]};
+
+/* ---------- saldo de animais ---------- */
+function saldo(r){const e=r.ent||{};const ini=(P(e.qtd)||0)-(P(e.mortos)||0);let s=ini;const L=[["Recebidos vivos na entrada",ini]];
+  for(const v of r.ev||[]){if(v.t==="mort"){s-=P(v.qtd)||0;L.push([`Mortalidade ${dBR(v.data)}`,-(P(v.qtd)||0)])}if(v.t==="transf"){s-=P(v.qtd)||0;L.push([`Transferidos para ${v.para} ${dBR(v.data)}`,-(P(v.qtd)||0)])}if(v.t==="recebe"){s+=P(v.qtd)||0;L.push([`Recebidos de ${v.de} ${dBR(v.data)}`,+(P(v.qtd)||0)])}}
+  for(const x of r.sai||[]){s-=P(x.qtd)||0;L.push([`Saída ${x.tipo} ${dBR(x.data)}`,-(P(x.qtd)||0)])}
+  for(const o of ordensDe(r).filter(o=>ORD_SAIU.includes(o.status))){const n=P(o.nAnim)||0;s-=n;L.push([`Ordem ${o.id} (${o.status}) ${dBR(o.data)}`,-n])}
+  return {s,L,ini}}
+
+/* ---------- rastrear: para trás e para frente ---------- */
+function rastro(r){const out={tras:[],frente:[],mp:[],cli:new Set(),pa:[],cx:[]};
+  if(r.ent)out.tras.push(`🚚 Origem: <b>${E(r.ent.orig||"—")}</b>${r.ent.reg?` · registro ${E(r.ent.reg)}`:""}${r.ent.mun?` · ${E(r.ent.mun)}`:""} · chegada ${dBR(r.ent.data)}${r.ent.gta?` · GTA ${E(r.ent.gta)}`:""}${r.ent.nf?` · NF ${E(r.ent.nf)}`:""}${r.ent.atest?` · atestado ${E(r.ent.atest)}`:""}${r.ent.linh?` · linhagem ${E(r.ent.linh)}`:""}`);
+  if(r.ent&&(r.ent.qIni||r.ent.qLocal))out.tras.push(`🛡 Quarentena${r.ent.qLocal?" em "+E(r.ent.qLocal):""}: ${dBR(r.ent.qIni)} a ${dBR(r.ent.qFim)}${r.ent.qDoc?" · "+E(r.ent.qDoc):""}`);
+  for(const x of (r.ent&&r.ent.exames)||[])out.tras.push(`🧪 ${E(x.tipo||"Exame")}${x.agente?" · "+E(x.agente):""}: <b>${E(x.res||"pendente")}</b>${x.lab?" · "+E(x.lab):""}${x.cred?" ("+E(x.cred)+")":""}${x.laudo?" · laudo "+E(x.laudo):""}${x.dRes?" · "+dBR(x.dRes):""}`);
+  for(const v of r.ev||[])if(v.t==="recebe"){const o=porCod(v.de);out.tras.push(`🔀 Recebeu ${F(P(v.qtd))} animais do lote <a href="#" data-lt-ir="${E(v.de)}"><b>${E(v.de)}</b></a>${o?` (${E(o.g)}${o.ent&&o.ent.orig?", origem "+E(o.ent.orig):""})`:""} em ${dBR(v.data)}`)}
+  const rac=T(()=>window.gfRacaoTraceTxt?gfRacaoTraceTxt(r.g):"","");if(rac)out.tras.push(`🧾 ${E(rac.replace(/^\s*·\s*/,""))}`);
+  for(const v of r.ev||[])if(v.t==="trat")out.tras.push(`💊 ${E(v.prod)}${v.pa?` (${E(v.pa)})`:""} em ${dBR(v.data)}${v.dose?` · ${E(v.dose)}`:""}${v.resp?` · resp. ${E(v.resp)}`:""}${libera(v)?` · carência até ${dBR(libera(v))}`:""}`);
+  for(const v of r.ev||[])if(v.t==="transf"){const d=Object.values(S.L).find(x=>x.ev.some(e=>e.t==="recebe"&&e.ref===v.id));out.frente.push(`🔀 ${F(P(v.qtd))} animais para ${d?`o lote <a href="#" data-lt-ir="${E(d.cod)}"><b>${E(d.cod)}</b></a> (${E(v.para)})`:E(v.para)} em ${dBR(v.data)}`)}
+  for(const x of r.sai||[])out.frente.push(`📤 ${E(x.tipo)} · ${F(P(x.qtd))} animais${P(x.kg)>0?` · ${F(P(x.kg))} kg`:""} · ${dBR(x.data)} → <b>${E(x.dest||"—")}</b>${x.gta?` · GTA ${E(x.gta)}`:""}${x.nf?` · NF ${E(x.nf)}`:""}`);
+  const D=T(()=>gfRastreio.dados(),null);
+  for(const o of ordensDe(r)){out.frente.push(`🚛 Ordem de despesca <b>${E(o.id)}</b> · ${E(o.status)} · ${dBR(o.data)} · ${F(o.kgPrev)} kg${o.nAnim?` · ≈ ${F(o.nAnim)} animais`:""}`);
+    if(D)for(const mp of D.mp.filter(x=>x.od===o.id)){out.mp.push(mp);const q=T(()=>gfRastreio.rastrear(mp.id),null);if(q&&!q.nada){(q.pa||[]).forEach(id=>{const p=D.pr.find(x=>x.id===id);if(p&&!out.pa.find(z=>z.id===id))out.pa.push(p)});(q.cx||[]).forEach(c=>out.cx.includes(c)||out.cx.push(c));(q.pd||[]).forEach(id=>{const p=D.pd.find(x=>x.id===id);if(p&&p.cli)out.cli.add(p.cli)})}}}
+  for(const mp of out.mp)out.frente.push(`🏭 Beneficiamento: matéria-prima <b>${E(mp.id)}</b> · ${F(mp.kg,1)} kg · ${dBR(mp.data)}`);
+  for(const p of out.pa)out.frente.push(`📦 Produto <b>${E(p.id)}</b> · ${E(p.prod)} · ${F(p.kg,1)} kg${p.val?` · validade ${dBR(p.val)}`:""}`);
+  if(out.cx.length)out.frente.push(`🏷 ${out.cx.length} caixa(s) etiquetada(s)`);if(out.cli.size)out.frente.push(`🛒 Clientes: <b>${[...out.cli].map(E).join(", ")}</b>`);
+  return out}
+function busca(q){rec();q=String(q||"").trim();if(!q)return null;const Q=q.toLowerCase();
+  let r=porCod(q)||Object.values(S.L).find(x=>x.ent&&[x.ent.gta,x.ent.nf,x.ent.chave,x.ent.atest,...(x.ent.exames||[]).map(z=>z.laudo)].some(v=>v&&String(v).toLowerCase()===Q))||Object.values(S.L).find(x=>(x.sai||[]).some(s=>[s.gta,s.nf].some(v=>v&&String(v).toLowerCase()===Q)));
+  if(!r){const o=T(()=>gfOrdens.lista().find(o=>String(o.id).toLowerCase()===Q),null);if(o)r=Object.values(S.L).find(x=>String(o.lid||"").endsWith("|"+x.g+"|"+x.start))}
+  if(!r){const D=T(()=>gfRastreio.dados(),null);if(D){const t=T(()=>gfRastreio.rastrear(q),null);if(t&&!t.nada){const ods=new Set(t.mp.map(id=>(D.mp.find(m=>m.id===id)||{}).od).filter(Boolean));const os=T(()=>gfOrdens.lista().filter(o=>ods.has(o.id)),[]);for(const o of os){r=Object.values(S.L).find(x=>String(o.lid||"").endsWith("|"+x.g+"|"+x.start));if(r)break}}}}
+  if(!r){const L=Object.values(S.L).filter(x=>(x.ent&&(x.ent.orig||"").toLowerCase().includes(Q))||x.g.toLowerCase()===Q);if(L.length)return {lista:L,q}}
+  return r?{r,q}:{nada:true,q}}
+
+/* ---------- etiqueta com QR code ---------- */
+let qrLib=null;function qrCarrega(){if(window.qrcode)return Promise.resolve(window.qrcode);if(qrLib)return qrLib;qrLib=new Promise(ok=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js";s.onload=()=>ok(window.qrcode||null);s.onerror=()=>{qrLib=null;ok(null)};document.head.appendChild(s);setTimeout(()=>ok(window.qrcode||null),8000)});return qrLib}
+const urlLote=c=>{const b=location.origin+location.pathname;return `${b}#lote=${encodeURIComponent(c)}`};
+async function etiqueta(r){const lib=await qrCarrega();let svg="";if(lib){try{const q=lib(0,"M");q.addData(urlLote(r.cod));q.make();svg=q.createSvgTag({cellSize:4,margin:2,scalable:true})}catch(e){}}
+  const e=r.ent||{},m=modeloDe(r);const ov=document.createElement("div");ov.id="lt-print";
+  const um=`<div class="lt-et">${svg?`<div class="lt-qr">${svg}</div>`:`<div class="lt-qr lt-semqr">QR indisponível sem internet</div>`}<div><b class="lt-c">${E(r.cod)}</b><div>${E(r.sp)} · ${E(r.g)}</div><div>Povoamento ${dBR(r.start)}${e.qtd?` · ${F(P(e.qtd))} animais`:""}</div>${e.orig?`<div>Origem: ${E(e.orig)}</div>`:""}${e.gta?`<div>GTA ${E(e.gta)}</div>`:""}<small>Escaneie para abrir a ficha do lote no Green Fish</small></div></div>`;
+  ov.innerHTML=`<div class="lt-pbox"><div class="lt-pbar"><b>🏷️ Etiqueta do lote ${E(r.cod)}</b><span><label>Cópias <select id="lt-nc">${[1,2,4,6,8].map(n=>`<option>${n}</option>`).join("")}</select></label> <button type="button" class="btn solid" data-ltp="imp">🖨 Imprimir</button> <button type="button" class="btn" data-ltp="x">Fechar</button></span></div><div class="lt-folha">${um}</div></div>`;
+  document.body.appendChild(ov);const fo=ov.querySelector(".lt-folha");
+  ov.addEventListener("change",ev=>{if(ev.target.id==="lt-nc")fo.innerHTML=um.repeat(+ev.target.value)});
+  ov.addEventListener("click",ev=>{const b=ev.target.closest("[data-ltp]");if(ev.target===ov||(b&&b.dataset.ltp==="x"))ov.remove();else if(b&&b.dataset.ltp==="imp"){document.documentElement.classList.add("lt-imprime");setTimeout(()=>{try{window.print()}catch(_){}setTimeout(()=>document.documentElement.classList.remove("lt-imprime"),500)},50)}})}
+
+/* ---------- desenho ---------- */
+const inp=(k,l,v,ph,tp,w)=>`<label class="jr-f"${w?` style="min-width:${w}"`:""}>${l}<input data-lt="${k}" value="${E(v??"")}"${ph?` placeholder="${E(ph)}"`:""}${tp?` type="${tp}"`:""}${tp==="num"?' inputmode="decimal"':""}></label>`;
+const sel=(k,l,v,ops)=>`<label class="jr-f">${l}<select data-lt="${k}">${ops.map(o=>{const [a,b]=Array.isArray(o)?o:[o,o];return `<option value="${E(a)}"${String(v??"")===String(a)?" selected":""}>${E(b)}</option>`}).join("")}</select></label>`;
+function entHTML(r,m){const e=UI.fe||(UI.fe=Object.assign({data:iso(r.start),qtd:m?String(Math.round(m.nT*(P(m.t.q)||1))):"",peso:m?String(m.w0).replace(".",","):"",fase:"alevino",comp:"normal"},r.ent||{}));const c=checaEnt(r.ent);
+  return `${r.ent?`<div class="rg-chk rg-${c.st==="ok"?"aprovado":c.st==="rep"?"reprovado":"ressalva"}"><b>${STE[c.st][0]} ${STE[c.st][1]}</b> · protocolada em ${new Date(r.ent.em).toLocaleString("pt-BR")}${r.ent.resp?` por ${E(r.ent.resp)}`:""}${c.I.map(([o,t])=>`<div>${o>0?"✓":o<0?"⛔":"⚠️"} ${E(t)}</div>`).join("")}</div>`:`<p class="hint" style="margin:0 0 6px">📝 Preencha na chegada dos animais. Os campos vêm da aba Biomassa (data, quantidade e peso inicial); confira com os documentos.</p>`}
+   <h4 class="lt-h">1. Origem e documentos</h4><div class="mk-form">${inp("data","Data da chegada",e.data,"","date")}${inp("hora","Hora",e.hora,"","time")}${inp("orig","Fornecedor / alevinocultura",e.orig,"ex.: Piscicultura Boa Água")}${inp("reg","Registro da origem",e.reg,"RGP, licença ou registro estadual")}${inp("mun","Município / UF da origem",e.mun,"ex.: Pinheiro – MA")}
+    ${inp("gta","GTA nº",e.gta,"Guia de Trânsito Animal")}${inp("gtaUf","UF da GTA",e.gtaUf,"MA")}${inp("nf","Nota fiscal nº",e.nf)}${inp("chave","Chave de acesso da NF (44 dígitos)",e.chave,"opcional","", "260px")}${inp("atest","Atestado sanitário / laudo nº",e.atest)}${inp("lab","Laboratório / veterinário",e.lab)}</div>
+   <h4 class="lt-h">2. Quarentena e exames antes da entrada <small class="muted">· laboratórios credenciados (PCR e outros)</small></h4>
+   <div class="mk-form">${inp("qLocal","Local da quarentena",e.qLocal,"na origem ou em tanque isolado")}${inp("qIni","Início da quarentena",e.qIni,"","date")}${inp("qFim","Fim da quarentena",e.qFim,"","date")}${inp("qDoc","Documento / termo da quarentena",e.qDoc)}</div>
+   <div class="scroll"><table class="lot rg-itens lt-ex"><thead><tr><th class="l">Exame</th><th class="l">Agente / doença pesquisada</th><th class="l">Laboratório credenciado</th><th class="l">Credenciamento nº</th><th class="l">Laudo nº</th><th>Coleta</th><th>Resultado em</th><th>Resultado</th><th></th></tr></thead><tbody>${(e.exames&&e.exames.length?e.exames:[{}]).map((x,i)=>`<tr>
+    <td><select data-ltx="${i}.tipo">${["",...EXT].map(o=>`<option${(x.tipo||"")===o?" selected":""}>${E(o)}</option>`).join("")}</select></td><td><input data-ltx="${i}.agente" list="lt-agt" value="${E(x.agente||"")}" placeholder="ex.: TiLV"></td><td><input data-ltx="${i}.lab" value="${E(x.lab||"")}" placeholder="nome do laboratório"></td><td><input data-ltx="${i}.cred" value="${E(x.cred||"")}" placeholder="MAPA / rede oficial"></td><td><input data-ltx="${i}.laudo" value="${E(x.laudo||"")}"></td><td><input type="date" data-ltx="${i}.dCol" value="${E(x.dCol||"")}"></td><td><input type="date" data-ltx="${i}.dRes" value="${E(x.dRes||"")}"></td><td><select data-ltx="${i}.res">${["pendente","negativo","positivo"].map(o=>`<option${(x.res||"pendente")===o?" selected":""}>${o}</option>`).join("")}</select></td><td><button type="button" class="pr-mini" data-lta="ex-del" data-i="${i}" title="Tirar este exame">✕</button></td></tr>`).join("")}</tbody></table></div>
+   <datalist id="lt-agt">${AGT.map(a=>`<option value="${E(a)}">`).join("")}</datalist>
+   <div class="gfp-bt"><button type="button" class="pr-mini" data-lta="ex-add">＋ Outro exame</button><button type="button" class="pr-mini" data-lta="ex-sug">🧪 Sugerir exames para ${E(r.sp||"a espécie")}</button></div>
+   <p class="hint" style="margin:2px 0 0">Os exames e a quarentena devem estar concluídos <b>antes</b> de os animais entrarem na propriedade. Resultado positivo bloqueia a entrada (⛔); exame pendente, sem laudo ou sem laboratório deixa a entrada com ressalva (⚠️).</p>
+   <h4 class="lt-h">3. Animais</h4><div class="mk-form">${sel("fase","Fase",e.fase,[["pos-larva","Pós-larva"],["alevino","Alevino"],["juvenil","Juvenil"],["adulto","Adulto / reprodutor"]])}${inp("linh","Linhagem",e.linh,"ex.: GIFT, revertida")}${inp("qtd","Quantidade recebida",e.qtd,"","num")}${inp("peso","Peso médio declarado (g)",e.peso,"","num")}${inp("mortos","Mortos na chegada",e.mortos,"0","num")}</div>
+   <h4 class="lt-h">4. Inspeção na chegada</h4><div class="mk-form">${inp("tTr","Temperatura da água do transporte (°C)",e.tTr,"","num")}${inp("tTq","Temperatura do tanque (°C)",e.tTq,"","num")}${inp("od","Oxigênio no transporte (mg/L)",e.od,"","num")}${inp("ph","pH",e.ph,"","num")}${inp("acl","Aclimatação (min)",e.acl,"","num")}${inp("pAm","Peso médio da amostra (g)",e.pAm,"","num")}${inp("nAm","Animais na amostra",e.nAm,"","num")}${sel("comp","Comportamento",e.comp,["normal","agitado","letárgico","com lesões"])}${inp("resp","Responsável pelo recebimento",e.resp)}${inp("obs","Observações",e.obs,"","", "260px")}</div>
+   <div class="gfp-bt"><button type="button" class="btn solid" data-lta="ent-ok">✅ ${r.ent?"Atualizar o protocolo de entrada":"Protocolar a entrada do lote"}</button>${r.ent?`<button type="button" class="btn" data-lta="ent-bio">↺ Levar quantidade e peso para a Biomassa</button>`:""}</div>`}
+const EVT={mort:"💀 Mortalidade",trat:"💊 Tratamento / medicamento",transf:"🔀 Transferência para outro grupo",obs:"📝 Ocorrência"};
+function movHTML(r,m){const f=UI.fm||(UI.fm={data:hoje()});const G=modelos().filter(x=>chaveDe(x)!==r.k).map(x=>x.name);
+  const campos=UI.ev==="mort"?inp("qtd","Animais mortos",f.qtd,"","num")+sel("causa","Causa provável",f.causa||"",["","manejo","oxigênio baixo","doença","predador","transporte","desconhecida"])
+   :UI.ev==="trat"?inp("prod","Produto",f.prod,"nome comercial")+inp("pa","Princípio ativo",f.pa)+inp("dose","Dose e via",f.dose,"ex.: 2 g/kg de ração, 5 dias")+inp("car","Carência (dias)",f.car,"dias até poder abater","num")+inp("rec","Receita / veterinário",f.rec)+inp("resp","Responsável",f.resp)
+   :UI.ev==="transf"?sel("para","Para o grupo",f.para||G[0]||"",G.length?G:[["","(nenhum outro grupo)"]])+inp("qtd","Animais",f.qtd,"","num")+inp("pm","Peso médio (g)",f.pm,"","num")
+   :inp("txt","Ocorrência",f.txt,"ex.: troca de rede, fuga, vistoria","", "320px");
+  const bio=T(()=>{const b=window.bioUltRAS&&m?bioUltRAS(m.t.id):null;return b&&b.hist?b.hist.filter(x=>x.ts>=r.start):[]},[]);
+  const L=[...(r.ev||[]).map(v=>({ms:msD(v.data),h:evTxt(v),id:v.id})),...bio.map(b=>({ms:b.ts,h:`📏 Biometria: ${F(b.pm,b.pm<10?2:1)} g por animal`}))].sort((a,b)=>b.ms-a.ms);
+  const car=carencia(r);
+  return `${car.length?`<div class="rg-chk rg-reprovado"><b>⛔ Em carência</b>${car.map(x=>`<div>${E(x.e.prod)}: não abater nem vender antes de ${dBR(x.lib)}</div>`).join("")}</div>`:""}
+   <div class="mk-modos" style="margin:4px 0 6px">${Object.entries(EVT).map(([k,t])=>`<button type="button" class="chip${UI.ev===k?" on":""}" data-lta="ev" data-k="${k}">${t}</button>`).join("")}</div>
+   <div class="mk-form">${inp("data","Data",f.data,"","date")}${campos}</div><div class="gfp-bt"><button type="button" class="btn solid" data-lta="ev-ok">＋ Registrar</button></div>
+   <h4 class="lt-h">Histórico do lote</h4>${L.length?`<div class="lt-tl">${L.map(x=>`<div><span>${dBR(x.ms)}</span><span>${x.h}</span>${x.id?`<button type="button" class="pr-mini" data-lta="ev-del" data-id="${E(x.id)}" title="Apagar este registro">✕</button>`:"<span></span>"}</div>`).join("")}</div>`:`<p class="muted">Nada registrado ainda. Biometrias da aba Biomassa entram aqui sozinhas.</p>`}`}
+function evTxt(v){return v.t==="mort"?`💀 ${F(P(v.qtd))} morto(s)${v.causa?` · ${E(v.causa)}`:""}`:v.t==="trat"?`💊 ${E(v.prod)}${v.pa?` (${E(v.pa)})`:""}${v.dose?` · ${E(v.dose)}`:""}${libera(v)?` · carência até <b>${dBR(libera(v))}</b>`:""}${v.rec?` · receita ${E(v.rec)}`:""}`
+  :v.t==="transf"?`🔀 ${F(P(v.qtd))} animais para ${E(v.para)}${v.pm?` · ${E(v.pm)} g`:""}`:v.t==="recebe"?`🔀 Recebeu ${F(P(v.qtd))} animais do lote <a href="#" data-lt-ir="${E(v.de)}">${E(v.de)}</a> (${E(v.deNome||"")}) — lote misturado`:`📝 ${E(v.txt)}`}
+function saiHTML(r,m){const f=UI.fs||(UI.fs={data:hoje(),tipo:"Despesca total"});const sd=saldo(r),car=carencia(r,msD(f.data)),O=ordensDe(r),nM=m?T(()=>m.at(Date.now()).n,NaN):NaN;
+  return `<div class="lt-kp"><div><small>Saldo pelo protocolo</small><b>${F(sd.s)}</b><small>animais</small></div>${isFinite(nM)&&nM>0?`<div><small>Estimado pela Biomassa</small><b>${F(nM)}</b><small>com a mortalidade da aba</small></div>`:""}<div><small>Ordens de despesca</small><b>${O.length}</b><small>${O.filter(o=>ORD_SAIU.includes(o.status)).length} já saíram</small></div></div>
+   ${car.length?`<div class="rg-chk rg-reprovado"><b>⛔ Carência de medicamento na data escolhida</b>${car.map(x=>`<div>${E(x.e.prod)}: liberado só a partir de ${dBR(x.lib)}</div>`).join("")}</div>`:""}
+   ${O.length?`<div class="lt-tl">${O.map(o=>`<div><span>${dBR(o.data)}</span><span>🚛 Ordem <b>${E(o.id)}</b> · ${E(o.status)} · ${F(o.kgPrev)} kg${o.nAnim?` · ≈ ${F(o.nAnim)} animais`:""}${carencia(r,msD(o.data)).length?` · <b class="bad">⛔ dentro da carência</b>`:""}</span><span></span></div>`).join("")}</div>`:""}
+   <h4 class="lt-h">Registrar uma saída</h4><div class="mk-form">${inp("data","Data",f.data,"","date")}${sel("tipo","Tipo",f.tipo,["Despesca total","Despesca parcial","Venda de animais vivos","Transferência para outra propriedade","Descarte / sacrifício sanitário"])}${inp("qtd","Animais",f.qtd,"","num")}${inp("kg","Peso total (kg)",f.kg,"","num")}${inp("dest","Destino / comprador",f.dest,"frigorífico, cliente, propriedade")}${inp("gta","GTA de saída nº",f.gta)}${inp("nf","Nota fiscal nº",f.nf)}</div>
+   <div class="gfp-bt"><button type="button" class="btn solid" data-lta="sai-ok">📤 Registrar a saída</button></div>
+   ${(r.sai||[]).length?`<div class="lt-tl">${r.sai.map(x=>`<div><span>${dBR(x.data)}</span><span>📤 ${E(x.tipo)} · ${F(P(x.qtd))} animais${P(x.kg)>0?` · ${F(P(x.kg))} kg`:""} → ${E(x.dest||"—")}${x.gta?` · GTA ${E(x.gta)}`:""}${x.nf?` · NF ${E(x.nf)}`:""}</span><button type="button" class="pr-mini" data-lta="sai-del" data-id="${E(x.id)}">✕</button></div>`).join("")}</div>`:""}
+   <details class="gfp-pj"><summary>Conta do saldo</summary><table class="lot"><tbody>${sd.L.map(([t,v])=>`<tr><td class="l">${E(t)}</td><td>${v>0?"+":""}${F(v)}</td></tr>`).join("")}<tr><td class="l"><b>Saldo</b></td><td><b>${F(sd.s)}</b></td></tr></tbody></table></details>`}
+function rasHTML(r){const x=rastro(r);return `<div class="rt-flu lt-flu"><div class="rt-col"><h4>⬅️ Para trás: de onde veio</h4>${x.tras.length?x.tras.map(t=>`<div class="rt-it">${t}</div>`).join(""):`<p class="muted">Protocole a entrada para ter a origem.</p>`}</div><div class="rt-col"><h4>➡️ Para frente: para onde foi</h4>${x.frente.length?x.frente.map(t=>`<div class="rt-it">${t}</div>`).join(""):`<p class="muted">Ainda não saiu nada deste lote.</p>`}</div></div>`}
+function html(){rec();const V=vivos(),hist=Object.values(S.L).filter(r=>!V.some(v=>v.r.k===r.k)&&r.k.startsWith(pk()+"|"));
+  if(!V.length&&!hist.length)return `<p class="hint" style="margin:0">Cadastre o povoamento dos grupos na tabela “Lotes nos tanques” (acima) para abrir o protocolo de cada lote.</p>`;
+  if(!UI.sel||!S.L[UI.sel])UI.sel=(V[0]&&V[0].r.k)||(hist[0]&&hist[0].k);const r=S.L[UI.sel],m=modeloDe(r),c=checaEnt(r.ent),car=carencia(r);
+  const res=UI.res;
+  return `<div class="lt-busca"><input data-lt-q value="${E(UI.q)}" placeholder="Rastrear: código do lote (LT-…), GTA, nota fiscal, laudo, ordem (OD-…), caixa ou lote do Beneficiamento"><button type="button" class="btn" data-lta="busca">🔎 Rastrear</button></div>
+   ${res?res.nada?`<p class="hint">Nada encontrado para “${E(res.q)}”.</p>`:res.lista?`<p class="hint">Lotes de “${E(res.q)}”: ${res.lista.map(x=>`<a href="#" data-lt-ir="${E(x.cod)}">${E(x.cod)}</a> (${E(x.g)})`).join(" · ")}</p>`:"":""}
+   ${UI.msg?`<p class="hint" style="margin:4px 0">${UI.msg}</p>`:""}
+   <div class="lt-lotes">${V.map(({m,r:x})=>{const cc=checaEnt(x.ent);return `<button type="button" class="lt-lote${x.k===UI.sel?" on":""}" data-lta="sel" data-k="${E(x.k)}"><b>${E(x.cod)}</b><span>🐟 ${E(x.g)} · ${E(x.sp)}</span><small>${STE[cc.st][0]} ${STE[cc.st][1]}${carencia(x).length?" · ⛔ carência":""}</small></button>`}).join("")}${hist.length?`<select data-lt-hist aria-label="Lotes encerrados"><option value="">📁 Lotes anteriores (${hist.length})</option>${hist.map(x=>`<option value="${E(x.k)}"${x.k===UI.sel?" selected":""}>${E(x.cod)} · ${E(x.g)} · ${dBR(x.start)}</option>`).join("")}</select>`:""}</div>
+   <div class="lt-cab"><div><b class="lt-c">${E(r.cod)}</b> · 🐟 ${E(r.g)} · ${E(r.sp)} · povoado em ${dBR(r.start)}${m?"":` · <small class="muted">lote encerrado</small>`}${(r.ev||[]).some(v=>v.t==="recebe")?` · <span class="lt-tag">🔀 lote misturado</span>`:""}</div><button type="button" class="btn" data-lta="etq">🏷️ Etiqueta com QR</button></div>
+   <div class="mk-modos" style="margin:8px 0">${[["ent","📥 Entrada"],["mov","🔁 Movimentos e tratamentos"],["sai","📤 Saída"],["ras","🔎 Rastreabilidade"]].map(([k,t])=>`<button type="button" class="chip${UI.aba===k?" on":""}" data-lta="aba" data-k="${k}">${t}${k==="ent"?" "+STE[c.st][0]:k==="mov"&&car.length?" ⛔":""}</button>`).join("")}</div>
+   ${UI.aba==="mov"?movHTML(r,m):UI.aba==="sai"?saiHTML(r,m):UI.aba==="ras"?rasHTML(r):entHTML(r,m)}`}
+function card(){const v=document.getElementById("view-bio");if(!v)return null;let c=document.getElementById("lt-card");
+  if(!c){c=document.createElement("section");c.className="card wide";c.id="lt-card";c.innerHTML=`<div class="card-head"><h2>🏷️ Protocolo e rastreabilidade dos lotes<span>Entrada, movimentos, tratamentos e saída de cada lote de animais, com código e etiqueta QR</span></h2></div><div class="body" id="lt-body"></div>`}
+  if(!v.contains(c)){const a=v.querySelector("#plan-card");if(a)v.insertBefore(c,a);else v.appendChild(c)}return c}
+function desenha(forca){const c=card();if(!c||document.getElementById("view-bio").hidden)return;const b=document.getElementById("lt-body"),a=document.activeElement;if(!forca&&b.contains(a)&&/INPUT|SELECT|TEXTAREA/.test(a.tagName))return;const h=T(html,"<p class='hint'>Não foi possível montar o protocolo.</p>");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
+const refaz=()=>{const a=document.activeElement;if(a&&a.closest&&a.closest("#lt-card"))try{a.blur()}catch(_){}desenha(true)};
+
+/* ---------- ações ---------- */
+function abreLote(cod){rec();const r=porCod(cod);if(!r)return false;UI.sel=r.k;UI.aba="ras";UI.fe=UI.fm=UI.fs=null;try{const c0=card();gfRow.sel("bio",(c0&&c0.dataset.gfk)||KEYC)}catch(e){try{setView("bio")}catch(_){}}setTimeout(()=>{refaz();const c=document.getElementById("lt-card");if(c)try{c.scrollIntoView({block:"start"})}catch(_){}},200);return true}
+window.gfLote={abrir:abreLote,dados:()=>{rec();return S},busca,rastro:c=>{rec();const r=porCod(c);return r?rastro(r):null},checa:checaEnt};
+function exSet(t){const [i,k]=t.dataset.ltx.split(".");const X=UI.fe.exames=(UI.fe.exames&&UI.fe.exames.length?UI.fe.exames:[{}]).map(x=>Object.assign({},x));X[+i]=Object.assign(X[+i]||{},{[k]:t.value})}
+const SUGX={"Tilápia":[["RT-PCR / qPCR","TiLV (vírus da tilápia lacustre)"],["PCR","Streptococcus agalactiae"],["PCR","Francisella orientalis"],["Parasitológico","Ichthyophthirius multifiliis"]],"Tambaqui":[["Bacteriológico","Aeromonas hydrophila"],["Bacteriológico","Flavobacterium columnare"],["Parasitológico","Ichthyophthirius multifiliis"]],"Camarão":[["PCR","WSSV (mancha branca)"],["PCR","IHHNV"],["RT-PCR / qPCR","IMNV (mionecrose infecciosa)"],["PCR","AHPND / Vibrio parahaemolyticus"],["PCR","EHP (Enterocytozoon hepatopenaei)"]]};
+const form=sel=>{const o={};document.querySelectorAll(`#lt-body [data-lt]`).forEach(i=>o[i.dataset.lt]=i.value.trim());return o};
+document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#lt-card"))return;if(t.dataset.ltQ!=null){UI.q=t.value;return}if(t.dataset.ltx&&UI.fe){exSet(t);return}const k=t.dataset.lt;if(!k)return;const F0=UI.aba==="ent"?UI.fe:UI.aba==="mov"?UI.fm:UI.fs;if(F0)F0[k]=t.value},true);
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#lt-card"))return;
+  if(t.dataset.ltx&&UI.fe){exSet(t);if(t.tagName==="SELECT")refaz();return}
+  if(t.dataset.ltHist!=null){if(t.value){UI.sel=t.value;UI.fe=UI.fm=UI.fs=null}refaz();return}
+  const k=t.dataset.lt;if(!k)return;const F0=UI.aba==="ent"?UI.fe:UI.aba==="mov"?UI.fm:UI.fs;if(F0)F0[k]=t.value;if(t.tagName==="SELECT"||k==="data")refaz()},true);
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.dataset&&e.target.dataset.ltQ!=null){e.preventDefault();UI.q=e.target.value;UI.res=busca(UI.q);if(UI.res&&UI.res.r){UI.sel=UI.res.r.k;UI.aba="ras";UI.res=null;UI.fe=UI.fm=UI.fs=null}refaz()}},true);
+document.addEventListener("click",e=>{const ir=e.target.closest&&e.target.closest("[data-lt-ir]");if(ir){e.preventDefault();abreLote(ir.dataset.ltIr);return}
+  const a=e.target.closest&&e.target.closest("#lt-card [data-lta]");if(!a)return;rec();const k=a.dataset.lta,r=S.L[UI.sel];UI.msg="";
+  if(k==="sel"){UI.sel=a.dataset.k;UI.fe=UI.fm=UI.fs=null;UI.res=null;refaz();return}
+  if(k==="aba"){UI.aba=a.dataset.k;refaz();return}
+  if(k==="busca"){const q=(document.querySelector("#lt-body [data-lt-q]")||{}).value||UI.q;UI.q=q;UI.res=busca(q);if(UI.res&&UI.res.r){UI.sel=UI.res.r.k;UI.aba="ras";UI.res=null;UI.fe=UI.fm=UI.fs=null}refaz();return}
+  if(!r)return;
+  if(k==="etq"){etiqueta(r);return}
+  if(k==="ex-add"||k==="ex-del"||k==="ex-sug"){const fe=UI.fe||(UI.fe=Object.assign({},r.ent||{}));let X=(fe.exames||[]).map(x=>Object.assign({},x));if(!X.length)X=[{}];
+    if(k==="ex-add")X.push({});else if(k==="ex-del"){X.splice(+a.dataset.i,1);if(!X.length)X=[{}]}
+    else{const key=Object.keys(SUGX).find(s=>String(r.sp||"").toLowerCase().includes(s.toLowerCase().slice(0,5)))||"Tilápia";X=X.filter(x=>x.tipo||x.agente||x.lab||x.laudo);for(const [tp,ag] of SUGX[key])if(!X.some(x=>x.agente===ag))X.push({tipo:tp,agente:ag,res:"pendente"});UI.msg=`🧪 Exames sugeridos para ${E(key)}. Confirme com o veterinário responsável e o serviço oficial do estado.`}
+    fe.exames=X;refaz();return}
+  if(k==="ent-ok"){const o=Object.assign({},UI.fe||{},form());if(!o.orig&&!o.gta&&!o.nf){UI.msg="⚠️ Informe pelo menos a origem, a GTA ou a nota fiscal.";refaz();return}if(o.chave)o.chave=o.chave.replace(/\D/g,"");o.exames=((UI.fe&&UI.fe.exames)||[]).filter(x=>x&&(x.tipo||x.agente||x.lab||x.laudo));
+    r.ent=Object.assign(o,{em:Date.now()});grava();UI.fe=null;const c=checaEnt(r.ent);UI.msg=`${STE[c.st][0]} Entrada do lote <b>${E(r.cod)}</b> protocolada: ${STE[c.st][1].toLowerCase()}. Imprima a etiqueta com QR e cole no tanque.`;refaz();return}
+  if(k==="ent-bio"){const m=modeloDe(r),e2=r.ent;if(!m||!e2)return;const q=Math.max(1,Math.round(P(m.t.q)||1)),vivos2=(P(e2.qtd)||0)-(P(e2.mortos)||0),pm=P(e2.pAm)>0?P(e2.pAm):P(e2.peso);
+    try{m.t.lot.n=String(Math.round(vivos2/q));if(pm>0)m.t.lot.w0=String(pm).replace(".",",");if(e2.data)m.t.lot.date=e2.data;save();render()}catch(_){}
+    UI.msg=`↺ Biomassa atualizada: ${F(Math.round(vivos2/q))} animais por tanque${pm>0?`, peso inicial ${F(pm,pm<10?2:1)} g`:""}.`;setTimeout(refaz,300);return}
+  if(k==="ev"){UI.ev=a.dataset.k;refaz();return}
+  if(k==="ev-ok"){const f=Object.assign({},UI.fm||{},form()),ev={id:"E"+Date.now().toString(36),t:UI.ev,data:f.data||hoje(),em:Date.now()};
+    if(UI.ev==="mort"){if(!(P(f.qtd)>0)){UI.msg="⚠️ Informe quantos animais morreram.";refaz();return}Object.assign(ev,{qtd:f.qtd,causa:f.causa||""})}
+    else if(UI.ev==="trat"){if(!f.prod){UI.msg="⚠️ Informe o produto.";refaz();return}Object.assign(ev,{prod:f.prod,pa:f.pa||"",dose:f.dose||"",car:f.car||"",rec:f.rec||"",resp:f.resp||""})}
+    else if(UI.ev==="transf"){if(!f.para||!(P(f.qtd)>0)){UI.msg="⚠️ Escolha o grupo de destino e a quantidade.";refaz();return}Object.assign(ev,{para:f.para,qtd:f.qtd,pm:f.pm||""});
+      const md=modelos().find(x=>x.name===f.para);if(md){const d=garante(md);d.ev.push({id:"E"+(Date.now()+1).toString(36),t:"recebe",data:ev.data,qtd:f.qtd,de:r.cod,deNome:r.g,ref:ev.id,em:Date.now()})}}
+    else{if(!f.txt){UI.msg="⚠️ Descreva a ocorrência.";refaz();return}ev.txt=f.txt}
+    r.ev.push(ev);grava();UI.fm={data:f.data};UI.msg=`✓ ${EVT[UI.ev].slice(2)} registrada no lote ${E(r.cod)}.${UI.ev==="trat"&&libera(ev)?` ⛔ Não abater nem vender antes de ${dBR(libera(ev))}.`:""}`;refaz();return}
+  if(k==="ev-del"){const id=a.dataset.id;if(!confirm("Apagar este registro do histórico do lote?"))return;r.ev=r.ev.filter(v=>v.id!==id);for(const x of Object.values(S.L))x.ev=x.ev.filter(v=>v.ref!==id);grava();refaz();return}
+  if(k==="sai-ok"){const f=Object.assign({},UI.fs||{},form());if(!(P(f.qtd)>0)&&!(P(f.kg)>0)){UI.msg="⚠️ Informe os animais ou o peso que saíram.";refaz();return}
+    const car=carencia(r,msD(f.data));if(car.length&&!confirm(`Este lote está em carência de ${car.map(x=>x.e.prod).join(", ")} até ${dBR(Math.max(...car.map(x=>x.lib)))}. Registrar a saída mesmo assim?`))return;
+    r.sai.push({id:"S"+Date.now().toString(36),data:f.data||hoje(),tipo:f.tipo||"Despesca total",qtd:f.qtd||"",kg:f.kg||"",dest:f.dest||"",gta:f.gta||"",nf:f.nf||"",carencia:car.length?car.map(x=>x.e.prod).join(", "):"",em:Date.now()});grava();UI.fs=null;UI.msg=`📤 Saída registrada no lote ${E(r.cod)}.`;refaz();return}
+  if(k==="sai-del"){if(!confirm("Apagar esta saída?"))return;r.sai=r.sai.filter(x=>x.id!==a.dataset.id);grava();refaz();return}},true);
+
+/* ordem de despesca: aviso de carência na hora do aceite */
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('[data-gfp="od-criar"]');if(!b)return;rec();const id=b.dataset.id||"";const r=Object.values(S.L).find(x=>id.endsWith("|"+x.g+"|"+x.start));if(!r)return;
+  const di=(document.querySelector('[data-acf="data"]')||{}).value,car=carencia(r,di?msD(di):Date.now());
+  if(car.length&&!confirm(`⛔ Lote ${r.cod} em carência de ${car.map(x=>x.e.prod).join(", ")} até ${dBR(Math.max(...car.map(x=>x.lib)))}. Enviar a ordem de despesca mesmo assim?`)){e.stopImmediatePropagation();e.preventDefault()}},true);
+
+/* QR lido pela câmera do celular: abre o lote */
+function hash(){const m=/#lote=([^&]+)/.exec(location.hash||"");if(!m)return;const c=decodeURIComponent(m[1]);let n=0;const t=setInterval(()=>{if(abreLote(c)||++n>20){clearInterval(t);try{history.replaceState(null,"",location.pathname+location.search)}catch(_){}}},700)}
+window.addEventListener("hashchange",hash);
+
+function inicia(){if(typeof setView!=="function"||!document.getElementById("view-bio")){setTimeout(inicia,300);return}
+  const st=document.createElement("style");st.textContent=`#lt-card .body{display:grid;gap:6px}.lt-busca{display:flex;gap:6px;flex-wrap:wrap}.lt-busca input{flex:1;min-width:220px;padding:7px 10px}.lt-lotes{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}.lt-lote{display:grid;gap:2px;text-align:left;padding:8px 12px;border:1px solid var(--line,#e5e7eb);border-radius:12px;background:#fff;cursor:pointer;font:inherit;min-width:180px}.lt-lote.on{border-color:#059669;box-shadow:0 0 0 2px #a7f3d0;background:#f0fdf4}.lt-lote small{color:var(--muted,#64748b)}.lt-c{font-family:ui-monospace,Menlo,monospace;letter-spacing:.5px}.lt-cab{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;background:#f8fafc;border-radius:10px}.lt-tag{background:#fef3c7;color:#92400e;border-radius:8px;padding:1px 6px;font-size:12px}.lt-h{margin:10px 0 2px;font-size:14px}.lt-tl{display:grid;gap:2px;font-size:13.5px}.lt-tl>div{display:grid;grid-template-columns:92px 1fr auto;gap:8px;align-items:center;border-bottom:1px dashed var(--line,#e5e7eb);padding:3px 0}.lt-tl b.bad,#lt-card .bad{color:#b91c1c}.lt-kp{display:flex;flex-wrap:wrap;gap:8px}.lt-kp>div{display:grid;padding:8px 12px;border:1px solid var(--line,#e5e7eb);border-radius:10px;min-width:150px}.lt-kp b{font-size:20px}.lt-kp small{color:var(--muted,#64748b)}.lt-flu{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:700px){.lt-flu{grid-template-columns:1fr}}.lt-flu .rt-it{font-size:13.5px;padding:6px 8px;border-left:3px solid #10b981;background:#f8fafc;border-radius:0 8px 8px 0;margin:4px 0}
+#lt-print{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10050;display:grid;place-items:center;padding:12px}.lt-pbox{background:#fff;border-radius:14px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:12px}.lt-pbar{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:10px}.lt-folha{display:flex;flex-wrap:wrap;gap:10px}.lt-et{display:flex;gap:10px;align-items:center;border:1.5px dashed #334155;border-radius:8px;padding:8px 10px;width:330px;font-size:12.5px;color:#0f172a;background:#fff;break-inside:avoid}.lt-et .lt-c{font-size:17px}.lt-qr{width:110px;height:110px;flex:none}.lt-qr svg{width:100%;height:100%}.lt-semqr{display:grid;place-items:center;text-align:center;border:1px solid #cbd5e1;font-size:11px;color:#64748b}
+@media print{html.lt-imprime body>*:not(#lt-print){display:none!important}html.lt-imprime #lt-print{position:static;background:none;padding:0}html.lt-imprime .lt-pbar{display:none}html.lt-imprime .lt-pbox{max-height:none;box-shadow:none;padding:0}}`;document.head.appendChild(st);
+  const o=setView;setView=function(v){o(v);if(v==="bio")setTimeout(()=>desenha(),150)};
+  if(typeof drawBio==="function"){const d=drawBio;drawBio=function(){d.apply(this,arguments);clearTimeout(desenha.t);desenha.t=setTimeout(()=>desenha(),80)}}
+  setInterval(()=>{if(!document.hidden)desenha()},60000);setTimeout(()=>desenha(),1500);hash()}
 inicia();
 })();
 </script>
