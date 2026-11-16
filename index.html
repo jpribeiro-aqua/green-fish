@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v250";
+  it.querySelector("code").textContent=msg;const ver="ras-v251";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10742,7 +10742,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v250";
+  const APP_VERSAO="ras-v251";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15556,12 +15556,12 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
     document.addEventListener("keydown",e=>{if(e.key==="Escape")fecha()});
     const tabs=()=>[...nav.querySelectorAll(".tab[data-view]")],vis=t=>!t.hidden&&t.style.display!=="none"&&!t.classList.contains("hidden");
     function desenha(){try{H.classList.toggle("gf-nao-dono",!!(window.Auth&&Auth.ok&&Auth.ok()&&!(Auth.dono&&Auth.dono())))}catch(e){}const st0=side.scrollTop,T=tabs(),at=(T.find(t=>t.getAttribute("aria-selected")==="true")||{}).dataset||{},cur=at.view;
-      const usadas=new Set([T.find(t=>t.dataset.view==="proj")].filter(Boolean)),grupos=GR.map(g=>[g[0],g[1],g[2].map(v=>T.find(t=>t.dataset.view===v)).filter(t=>t&&vis(t))]);grupos.forEach(g=>g[2].forEach(t=>usadas.add(t)));
+      const usadas=new Set([T.find(t=>t.dataset.view==="proj")].filter(Boolean)),grupos=((window.gfPacoteGR&&gfPacoteGR())||GR).map(g=>[g[0],g[1],g[2].map(v=>T.find(t=>t.dataset.view===v)).filter(t=>t&&vis(t))]);grupos.forEach(g=>g[2].forEach(t=>usadas.add(t)));
       const resto=T.filter(t=>!usadas.has(t)&&vis(t));if(resto.length)grupos.push(["📦","Outras",resto]);
       if(!ab)ab=grupos.map(g=>g[1]);
       const nome=t=>t.textContent.trim();
       desenha.cur=cur;const __h=`<div class="gs-top"><b>🐟 Green Fish</b><button type="button" class="gs-min" title="${mini?"Abrir o menu":"Recolher o menu"}" aria-label="${mini?"Abrir o menu":"Recolher o menu"}">${mini?"▸":"◂"}</button></div><div class="gs-nt">ABAS DO APP</div>`+
-        grupos.filter(g=>g[2].length).map(g=>{const temCur=g[2].some(t=>t.dataset.view===cur);if(temCur&&desenha.cur!==cur&&!ab.includes(g[1])){ab.push(g[1]);ls("gf-side-ab",ab)}const open=mini||ab.includes(g[1]);
+        grupos.filter(g=>g[2].length).map(g=>{const temCur=g[2].some(t=>t.dataset.view===cur);if(temCur&&desenha.cur!==cur&&!ab.includes(g[1])){ab.push(g[1]);ls("gf-side-ab",ab)}const open=mini||ab.includes(g[1])||/^Pacote /.test(g[1]);
           return `<button type="button" class="gs-g" data-gs-g="${g[1]}" aria-expanded="${open}" title="${g[1]}"><span class="gs-e">${g[0]}</span><span class="gs-l">${g[1]}</span><i>${open?"▾":"▸"}</i></button><div class="gs-sub"${open?"":" hidden"}>`+
             g[2].map(t=>`<button type="button" class="gs-i" data-gs-v="${t.dataset.view}"${t.dataset.view===cur?' aria-current="page"':""} title="${nome(t).replace(/"/g,"&quot;")}"><span class="gs-e">${ICO[t.dataset.view]||"•"}</span><span class="gs-l">${nome(t)}</span></button>`+(t.dataset.view==="gest"&&window.gfGestHub?(()=>{const sk=window.gfRow&&gfRow.atual("gest");return `<div class="gs-sub2">${gfGestHub.lista().map(([k,ic,tt])=>`<button type="button" class="gs-k" data-gs-k="${k}" aria-current="${cur==="gest"&&sk==="gh:"+k}" title="${tt}"><span class="gs-e">${ic}</span><span class="gs-l">${tt}</span></button>`).join("")}</div>`})():"")).join("")+`</div>`}).join("")+
         `<div class="gs-pe">${(()=>{const ch=document.getElementById("proj-chip"),ct=ch?ch.textContent.trim():"",n=ct.split(" · ")[0].replace(/\s*\(cliente.*$/,"").trim(),falta=!ct||/não salvo/i.test(n)||!!document.querySelector(".pj-trava");
@@ -16776,5 +16776,135 @@ async function donoCard(){const vd=document.getElementById("view-dash");let c=do
 window.gfDonoCorr=donoCard;
 
 liga();
+})();
+</script>
+<script>
+/* ===================== v251: pacotes de abas — o dono monta conjuntos de abas (com ordem e com as partes liberadas de cada aba)
+   e aplica a um administrador e à equipe dele (ex.: produtores). Quem tem pacote vê só essas abas, nessa ordem. ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const Au=()=>window.Auth||{},T=(f,d)=>{try{return f()}catch(e){return d}};
+const sb=()=>T(()=>Au().campoSb&&Au().campoSb(),null),uid=()=>T(()=>Au().campoUid()||"",""),dono=()=>T(()=>!!Au().campoDono(),false),adm=()=>T(()=>!!Au().campoAdm(),false);
+const LK="greenfish-pacote-meu";
+const ABAS_PK=[["diag","📋","Cadastro e diagnóstico da propriedade"],["calc","🧮","Calculadora"],["local","📍","Local e viabilidade"],["topo","📐","Levantamentos e projetos"],["aqua","📈","AquaNictemeral"],["bio","⚖️","Biomassa total em tempo real"],["racao","🍽","Arraçoamento"],["repro","🧬","Reprodução"],["dados","📊","Análise de dados"],["gest","🏛","AquaGestão"],["merc","🛒","Camada de mercado"],["benef","🏭","Beneficiamento"],["fin","💰","Financeiro"],["dash","📊","Painel"]];
+const NOMEA=k=>(ABAS_PK.find(a=>a[0]===k)||[k,"",k]);
+/* partes de cada aba que o dono pode liberar ou não (por enquanto, a AquaGestão; outras abas entram aqui) */
+function partesDe(aba){if(aba!=="gest")return [];const L=[["geral","🧭 Visão geral (resumo e alertas)"],["prop","🏡 Gerir propriedade (viveiros, ciclos, tarefas e estoque)"],["dados","📂 Analisar dados"],["paineis","📊 Painéis das abas do pacote"]];
+  T(()=>gfGestHub.lista(),[]).forEach(([k,ic,t])=>L.push(["gh:"+k,`${ic} ${t}`]));return L}
+const PADRAO={id:"produtores",nome:"Produtores",abas:["diag","bio","aqua","gest","dash"],partes:{},desc:"Pacote para o administrador gerenciar um grupo de membros produtores"};
+
+/* ---------- pacote desta conta ---------- */
+let MEU=rd(LK,null);                       // {pac, cod} | null
+const pac=()=>MEU&&MEU.pac||null;
+const reais=p=>{const a=p.abas.filter(x=>x!=="diag");if(p.abas.includes("diag")&&!a.includes("gest"))a.push("gest");return a};
+function parteOk(aba,parte){const p=pac();if(!p)return true;if(aba==="gest"&&!p.abas.includes("gest"))return parte==="gh:diag";const L=p.partes&&p.partes[aba];return !Array.isArray(L)||L.includes(parte)}
+window.gfParteOk=parteOk;window.gfPacoteMeu=()=>pac();
+async function carregaMeu(){const s=sb(),u=uid();if(!s||!u||dono()){if(MEU){MEU=null;wr(LK,null);aplica(true)}return}
+  try{const {data}=await s.from("ras_docs").select("data").eq("path","config/pacotes").maybeSingle();const C=(data&&data.data)||{};
+    let cod="";if(adm())cod=u.slice(0,8);else{const {data:i}=await s.from("ras_docs").select("data").eq("path","inscricoes/"+u).maybeSingle();cod=(i&&i.data&&i.data.equipe)||""}
+    const id=(C.pessoas||{})[u]||(cod&&(C.equipes||{})[cod])||"",p=(C.L||[]).find(x=>x.id===id)||null;
+    const novo=p?{pac:p,cod}:null;if(JSON.stringify(novo)!==JSON.stringify(MEU)){MEU=novo;wr(LK,MEU);aplica(true);setTimeout(diagMenu,300)}}catch(e){}}
+
+/* ---------- o que muda para quem tem pacote ---------- */
+let origPerm=null;
+function embrulhaPerm(){if(!window.abaPermitida||window.abaPermitida.__pk)return;origPerm=window.abaPermitida;
+  const f=v=>{if(!origPerm(v))return false;const p=pac();if(!p||v==="users"||v==="proj")return true;return reais(p).includes(v)};f.__pk=1;window.abaPermitida=f}
+function css(){const p=pac();let c="";if(p&&(p.abas.includes("gest")||p.abas.includes("diag"))){
+    const top=[["geral",'[data-sec="geral"]'],["prop",'[data-sec="prop"]'],["dados",'[data-sec="dados"]'],["paineis",'button[data-sec]:not([data-sec="geral"]):not([data-sec="prop"]):not([data-sec="dados"])']];
+    top.forEach(([k,s])=>{if(!parteOk("gest",k))c+=`#view-gest .ag-nav ${s}{display:none!important}`});
+    if(!parteOk("gest","geral")&&!parteOk("gest","prop")&&!parteOk("gest","dados")&&!parteOk("gest","paineis"))c+=`#view-gest{display:none!important}`;
+    T(()=>gfGestHub.lista(),[]).forEach(([k])=>{if(!parteOk("gest","gh:"+k))c+=`#gest-hub [data-gh-sec="${k}"],#gest-hub .gh-p[data-k="${k}"],#gest-hub .gh-p[data-k^="${k}/"],[data-gr="gh:${k}"],#gf-side [data-gs-k="${k}"]{display:none!important}`})}
+  if(p&&!reais(p).includes("dados")&&!parteOk("gest","dados"))c+=`[data-dgo]{display:none!important}`;
+  let st=document.getElementById("gf-pk-css");if(!st){st=document.createElement("style");st.id="gf-pk-css";document.head.appendChild(st)}if(st.textContent!==c)st.textContent=c}
+function aplica(forca){embrulhaPerm();css();const p=pac();
+  document.querySelectorAll("nav.tabs .tab[data-view]").forEach(t=>{const v=t.dataset.view,ok=window.abaPermitida?abaPermitida(v):true;if(p&&!ok&&!t.hidden){t.hidden=true}else if(p&&ok&&t.hidden&&T(()=>origPerm(v),true)){t.hidden=false}});
+  if(forca){try{const t=document.querySelector('.tab[aria-selected="true"]');if(t&&t.hidden){const pr=reais(p||{abas:[]})[0];if(p&&p.abas[0]==="diag")abreDiag();else if(pr)setView(pr)}}catch(e){}
+    try{window.gfSideDesenha&&gfSideDesenha()}catch(e){}setTimeout(diagMenu,50)}
+  /* volta para uma parte liberada se a aberta estiver bloqueada */
+  try{const b=document.querySelector('#view-gest .ag-nav button[aria-pressed="true"]');if(p&&b&&getComputedStyle(b).display==="none"){const o=[...document.querySelectorAll("#view-gest .ag-nav button[data-sec]")].find(x=>getComputedStyle(x).display!=="none");if(o)o.click()}}catch(e){}}
+function abreDiag(){try{setView("gest")}catch(e){}setTimeout(()=>{try{window.gfGestHub&&gfGestHub.abrir("diag")}catch(e){}try{window.gfRow&&gfRow.sel("gest","gh:diag")}catch(e){}},150)}
+window.gfAbreDiag=abreDiag;
+/* menu lateral: um grupo só com as abas do pacote, na ordem do pacote (o 📋 Cadastro e diagnóstico pode vir primeiro) */
+window.gfPacoteGR=()=>{const p=pac();if(!p)return null;return [["📦","Pacote "+p.nome,p.abas.filter(a=>a!=="diag")]]};
+window.gfPacoteDiag=()=>{const p=pac();return !!(p&&p.abas[0]==="diag")};
+window.gfPacoteDiagPos=()=>{const p=pac();return p?p.abas.indexOf("diag"):-1};
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#gf-side [data-gs-k]");if(!b)return;const t=document.querySelector('.tab[aria-selected="true"]');if(!t||t.dataset.view!=="gest"){try{setView("gest")}catch(_){}}},true);
+
+/* ---------- editor do dono (aba Usuários e acesso) ---------- */
+const ED={C:null,sel:"",msg:"",err:false,adm:null,nomes:{},ocup:false};
+async function lerC(){const s=sb();const {data,error}=await s.from("ras_docs").select("data").eq("path","config/pacotes").maybeSingle();if(error)throw error;const C=(data&&data.data)||{};C.L=Array.isArray(C.L)?C.L:[];C.equipes=C.equipes||{};C.pessoas=C.pessoas||{};return C}
+async function gravaC(C){const s=sb();C.em=Date.now();const {error}=await s.from("ras_docs").upsert({path:"config/pacotes",col:"config",data:C,updated_at:new Date().toISOString()});if(error)throw error;ED.C=C}
+async function carregaEd(){const s=sb();if(!s||!dono())return;try{let C=await lerC();if(!C.L.length){C.L=[JSON.parse(JSON.stringify(PADRAO))];await gravaC(C);ED.msg="📦 Pacote “Produtores” criado: Cadastro e diagnóstico → Biomassa → AquaNictemeral → AquaGestão → Painel."}ED.C=C;if(!ED.sel||!C.L.some(p=>p.id===ED.sel))ED.sel=C.L[0].id}catch(e){ED.msg="⚠️ Não consegui ler os pacotes: "+((e&&e.message)||e);ED.err=true}
+  try{const {data}=await s.rpc("ras_listar_admins");ED.adm=(data||[]).filter(a=>!a.dono).map(a=>a.user_id);const ids=ED.adm.filter(i=>!ED.nomes[i]);if(ids.length){const {data:pf}=await s.from("ras_docs").select("path,data").in("path",ids.map(i=>"perfis/"+i));(pf||[]).forEach(r=>ED.nomes[r.path.slice(7)]=(r.data&&(r.data.nome||r.data.email))||"")}}catch(e){ED.adm=ED.adm||[]}}
+const nomeAdm=u=>ED.nomes[u]||("Administrador "+u.slice(0,6));
+function edHTML(){const C=ED.C;if(!C)return `<section class="card wide" id="gf-pk"><div class="card-head"><h2>📦 Pacotes de abas</h2></div><div class="body"><p class="hint">Carregando…</p></div></section>`;
+  const p=C.L.find(x=>x.id===ED.sel)||C.L[0],fora=ABAS_PK.filter(a=>!p.abas.includes(a[0])),usam=Object.entries(C.equipes).filter(([c,id])=>id===p.id).map(([c])=>c);
+  const ptsG=(p.abas.includes("gest"))?partesDe("gest"):[],selG=p.partes&&Array.isArray(p.partes.gest)?p.partes.gest:null;
+  return `<section class="card wide" id="gf-pk"><div class="card-head"><h2>📦 Pacotes de abas<span>Só você vê · monte o conjunto de abas, a ordem e as partes liberadas, e aplique a um administrador e à equipe dele</span></h2></div><div class="body">
+   ${ED.msg?`<p class="${ED.err?"gfp-alerta":"hint"}" style="margin:0 0 8px">${E(ED.msg)}</p>`:""}
+   <div class="mk-modos" style="margin-bottom:8px">${C.L.map(x=>`<button type="button" class="chip${x.id===p.id?" on":""}" data-pk="sel" data-id="${E(x.id)}">📦 ${E(x.nome)}</button>`).join("")}<button type="button" class="chip" data-pk="novo">＋ Novo pacote</button></div>
+   <div class="mk-form"><label class="jr-f">Nome do pacote<input data-pkf="nome" value="${E(p.nome)}"></label><label class="jr-f" style="flex:2">Para que serve<input data-pkf="desc" value="${E(p.desc||"")}" placeholder="ex.: produtores do grupo do administrador"></label></div>
+   <h3 style="margin:10px 0 4px;font-size:14px">Abas, na ordem em que aparecem no menu</h3>
+   <ol class="gf-pk-l">${p.abas.map((a,i)=>{const n=NOMEA(a);return `<li><span>${n[1]} ${E(n[2])}${a==="diag"?" <small>(abre direto a ficha na AquaGestão)</small>":""}</span><span><button type="button" class="pr-mini" data-pk="sobe" data-i="${i}"${i?"":" disabled"} aria-label="Subir">↑</button><button type="button" class="pr-mini" data-pk="desce" data-i="${i}"${i<p.abas.length-1?"":" disabled"} aria-label="Descer">↓</button><button type="button" class="pr-mini" data-pk="tira" data-i="${i}" aria-label="Tirar do pacote">✕</button></span></li>`}).join("")}</ol>
+   ${fora.length?`<div class="mk-form"><label class="jr-f">Acrescentar aba<select data-pkf="add"><option value="">escolha…</option>${fora.map(a=>`<option value="${a[0]}">${a[1]} ${E(a[2])}</option>`).join("")}</select></label></div>`:""}
+   ${ptsG.length?`<h3 style="margin:12px 0 4px;font-size:14px">🏛 AquaGestão · partes liberadas neste pacote</h3><div class="gf-pk-p">${ptsG.map(([k,t])=>`<label><input type="checkbox" data-pkp="gest" value="${E(k)}"${!selG||selG.includes(k)?" checked":""}> ${E(t)}</label>`).join("")}</div><p class="hint" style="margin:2px 0 0">Tudo marcado = AquaGestão inteira. Desmarque o que não deve aparecer para quem tem este pacote.</p>`:""}
+   <div class="gfp-bt" style="margin-top:10px"><button type="button" class="btn solid" data-pk="salva">💾 Salvar o pacote</button>${C.L.length>1?`<button type="button" class="btn" data-pk="apaga">🗑 Excluir este pacote</button>`:""}</div>
+   <h3 style="margin:14px 0 4px;font-size:14px">Aplicar a um administrador e à equipe dele</h3>
+   ${(ED.adm||[]).length?`<div class="mk-form"><label class="jr-f">Administrador<select data-pkf="alvo">${ED.adm.map(u=>`<option value="${E(u)}">${E(nomeAdm(u))}${C.equipes[u.slice(0,8)]?` · usa “${E((C.L.find(x=>x.id===C.equipes[u.slice(0,8)])||{}).nome||"?")}”`:""}</option>`).join("")}</select></label><button type="button" class="btn solid" data-pk="aplica">📦 Aplicar “${E(p.nome)}”</button><button type="button" class="btn" data-pk="remove">Tirar o pacote</button></div>`:`<p class="hint">Nenhum administrador cadastrado ainda. Escolha um administrador na lista de usuários e depois aplique o pacote aqui.</p>`}
+   <p class="hint">${usam.length?`Em uso por: ${usam.map(c=>E(nomeAdm((ED.adm||[]).find(u=>u.slice(0,8)===c)||c))).join(", ")}. `:""}Aplicar libera estas abas para o administrador e para os membros da equipe dele (os produtores), na ordem do pacote. O administrador só consegue repassar à equipe as abas do pacote. Cada um vê só os próprios dados, e o resumo correlacionado de cada conta chega para você no 📊 Painel.</p></div></section>`}
+function desenhaEd(){const w=document.getElementById("gf-pk-w");if(w&&!w.hidden){const a=document.activeElement,f=a&&w.contains(a)&&a.dataset&&a.dataset.pkf;w.innerHTML=edHTML();if(f){const n=w.querySelector(`[data-pkf="${f}"]`);if(n&&n.tagName==="INPUT"){n.focus();n.setSelectionRange(n.value.length,n.value.length)}}}}
+async function edCard(){const vu=document.getElementById("view-users");let w=document.getElementById("gf-pk-w");const on=dono()&&!!sb()&&vu&&!vu.hidden;
+  if(!on){if(w)w.hidden=true;return}
+  if(!w){w=document.createElement("div");w.id="gf-pk-w";vu.parentNode.insertBefore(w,vu);liga(w)}
+  w.hidden=false;if(!ED.C){w.innerHTML=edHTML();await carregaEd()}desenhaEd()}
+const cur=()=>ED.C&&(ED.C.L.find(x=>x.id===ED.sel)||ED.C.L[0]);
+async function fazer(f,ok){if(ED.ocup)return;ED.ocup=true;ED.err=false;try{await f();if(ok)ED.msg=ok}catch(e){ED.err=true;ED.msg="⚠️ "+((e&&e.message)||e)}finally{ED.ocup=false;desenhaEd()}}
+async function aplicaEquipe(admU,p){const s=sb(),cod=admU.slice(0,8),abas=p?reais(p):null;
+  const C=await lerC();if(p)C.equipes[cod]=p.id;else delete C.equipes[cod];C.L=ED.C.L;await gravaC(C);
+  const {data:eq}=await s.from("ras_docs").select("data").eq("path","config/equipes").maybeSingle();const EQ=(eq&&eq.data)||{};EQ.abas=EQ.abas||{};if(abas)EQ.abas[cod]=abas;else delete EQ.abas[cod];EQ.em=Date.now();
+  {const {error}=await s.from("ras_docs").upsert({path:"config/equipes",col:"config",data:EQ,updated_at:new Date().toISOString()});if(error)throw error}
+  const {data:ac}=await s.from("ras_docs").select("data").eq("path","acessos/"+admU).maybeSingle();const A2={...((ac&&ac.data)||{}),emAbasAdmin:Date.now()};if(abas)A2.abasAdmin=abas;else delete A2.abasAdmin;
+  {const {error}=await s.from("ras_docs").upsert({path:"acessos/"+admU,col:"acessos",data:A2,updated_at:new Date().toISOString()});if(error)throw error}
+  const {data:ins}=await s.from("ras_docs").select("path,data").eq("col","inscricoes").limit(2000);const M=(ins||[]).filter(r=>r.data&&r.data.equipe===cod&&r.data.status!=="cancelada").map(r=>r.path.split("/")[1]);let n=0;
+  for(const m of M){try{const {error}=await s.rpc("ras_adm_abas",{alvo:m,abas});if(!error)n++}catch(e){}}return n}
+function liga(w){
+  w.addEventListener("click",e=>{const b=e.target.closest("[data-pk]");if(!b)return;const k=b.dataset.pk,p=cur();ED.msg="";
+    if(k==="sel"){ED.sel=b.dataset.id;desenhaEd();return}
+    if(k==="novo"){const id="pk"+Date.now().toString(36);ED.C.L.push({id,nome:"Novo pacote",abas:["bio","dash"],partes:{},desc:""});ED.sel=id;ED.msg="Monte o pacote e clique em Salvar.";desenhaEd();return}
+    if(!p)return;
+    if(k==="sobe"||k==="desce"){const i=+b.dataset.i,j=k==="sobe"?i-1:i+1;[p.abas[i],p.abas[j]]=[p.abas[j],p.abas[i]];desenhaEd();return}
+    if(k==="tira"){p.abas.splice(+b.dataset.i,1);desenhaEd();return}
+    if(k==="salva"){if(!p.abas.length){ED.msg="⚠️ O pacote precisa de pelo menos uma aba.";ED.err=true;desenhaEd();return}fazer(async()=>{const C=await lerC();C.L=ED.C.L;await gravaC(C)},`✓ Pacote “${p.nome}” salvo. Quem já usa este pacote recebe a mudança ao abrir o app (para mudar as abas liberadas, aplique de novo).`);return}
+    if(k==="apaga"){if(Object.values(ED.C.equipes).includes(p.id)){ED.msg="⚠️ Tire o pacote das equipes que o usam antes de excluir.";ED.err=true;desenhaEd();return}fazer(async()=>{const C=await lerC();C.L=ED.C.L.filter(x=>x.id!==p.id);await gravaC(C);ED.sel=C.L[0]&&C.L[0].id},"Pacote excluído.");return}
+    const alvo=(w.querySelector('[data-pkf="alvo"]')||{}).value;if(!alvo)return;
+    if(k==="aplica")fazer(async()=>{const n=await aplicaEquipe(alvo,p);ED.msg=`✓ “${p.nome}” aplicado a ${nomeAdm(alvo)} e a ${n} membro(s) da equipe: ${p.abas.map(a=>NOMEA(a)[2]).join(" → ")}.`});
+    if(k==="remove")fazer(async()=>{const n=await aplicaEquipe(alvo,null);ED.msg=`Pacote retirado de ${nomeAdm(alvo)} e de ${n} membro(s): voltam às abas padrão da equipe.`})});
+  w.addEventListener("input",e=>{const t=e.target,p=cur();if(!p||!t.dataset)return;if(t.dataset.pkf==="nome")p.nome=t.value;if(t.dataset.pkf==="desc")p.desc=t.value});
+  w.addEventListener("change",e=>{const t=e.target,p=cur();if(!p||!t.dataset)return;
+    if(t.dataset.pkf==="add"&&t.value){p.abas.push(t.value);desenhaEd();return}
+    if(t.dataset.pkp){const aba=t.dataset.pkp,todos=partesDe(aba).map(x=>x[0]),mar=[...w.querySelectorAll(`[data-pkp="${aba}"]:checked`)].map(x=>x.value);p.partes=p.partes||{};if(mar.length===todos.length)delete p.partes[aba];else p.partes[aba]=mar}})}
+
+/* 📋 Cadastro e diagnóstico como item próprio do menu, na posição do pacote */
+function diagMenu(){const side=document.getElementById("gf-side"),p=pac();if(!side)return;const pos=p?p.abas.indexOf("diag"):-1;
+  const g=[...side.querySelectorAll(".gs-g")].find(b=>/^Pacote /.test(b.dataset.gsG||""));const sub=g&&g.nextElementSibling;
+  side.classList.toggle("gf-pk-diag",pos>=0);
+  if(!sub||pos<0){const x=side.querySelector(".gf-pk-dg");if(x)x.remove();return}
+  let b=sub.querySelector(".gf-pk-dg");if(!b){b=document.createElement("button");b.type="button";b.className="gs-i gf-pk-dg";b.title="Cadastro e diagnóstico da propriedade";b.innerHTML='<span class="gs-e">📋</span><span class="gs-l">Cadastro e diagnóstico da propriedade</span>';b.onclick=()=>{abreDiag();document.documentElement.classList.remove("gf-side-open")}}
+  const its=[...sub.children].filter(x=>x.classList.contains("gs-i")&&!x.classList.contains("gf-pk-dg")),ref=its[pos]||null;
+  if(b.parentNode!==sub||b.nextElementSibling!==(ref&&ref.previousElementSibling===b?ref:b.nextElementSibling)){}
+  if(ref){if(b.nextElementSibling!==ref)sub.insertBefore(b,ref)}else if(b.parentNode!==sub||b!==sub.lastElementChild)sub.appendChild(b);
+  const t=document.querySelector('.tab[aria-selected="true"]'),on=t&&t.dataset.view==="gest"&&T(()=>gfRow.atual("gest"),"")==="gh:diag";
+  if(on){b.setAttribute("aria-current","page");sub.querySelectorAll('.gs-i[data-gs-v="gest"]').forEach(x=>x.removeAttribute("aria-current"))}else b.removeAttribute("aria-current")}
+function vigiaMenu(){const side=document.getElementById("gf-side");if(!side){setTimeout(vigiaMenu,500);return}let ag=0;new MutationObserver(()=>{if(ag)return;ag=1;requestAnimationFrame(()=>{ag=0;diagMenu()})}).observe(side,{childList:true,subtree:true});diagMenu()}
+
+/* ---------- ligação ---------- */
+function inicia(){if(typeof setView!=="function"||!window.abaPermitida){setTimeout(inicia,300);return}
+  const st=document.createElement("style");st.textContent=`.gf-pk-l{margin:0;padding-left:22px;display:grid;gap:4px}.gf-pk-l li{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:4px 8px;border:1px solid var(--line,#ddd);border-radius:8px}.gf-pk-l li>span:last-child{display:flex;gap:4px}.gf-pk-p{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 12px;font-size:13px}#gf-pk-w{margin-bottom:12px}#gf-side.gf-pk-diag .gs-sub2 [data-gs-k="diag"]{display:none}`;document.head.appendChild(st);
+  const o=setView;setView=function(v){o(v);try{edCard()}catch(e){}try{aplica(false)}catch(e){}setTimeout(diagMenu,200)};
+  embrulhaPerm();aplica(true);vigiaMenu();let papel="";
+  setInterval(()=>{const p=!!sb()+"|"+dono()+"|"+uid();if(p!==papel){papel=p;carregaMeu();edCard()}aplica(false)},2000);setInterval(carregaMeu,300000)}
+inicia();
 })();
 </script>
