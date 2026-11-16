@@ -14045,7 +14045,75 @@ function badge(A){const n=corr("bio_todos")?A.filter(l=>l.s.n>=2).length:0,h=doc
 
 /* ---- v230: aceite da despesca → ordem para o setor de despesca e transporte → chegada na fábrica → checagem de rastreabilidade ---- */
 const OK_="greenfish-ordens-desp";
-const O=Object.assign({seq:{},L:[]},rd(OK_,{}));const gravaO=()=>wr(OK_,O);
+const O=Object.assign({seq:{},L:[]},rd(OK_,{}));const gravaO=()=>{wr(OK_,O);NV.agenda()};
+/* v248: ordens na nuvem. Cada responsável grava as próprias ordens; colaboradores aprovados só leem as de quem coordena a equipe (regra no servidor: ordesp_v248.sql).
+   Sem conta, continua tudo só no aparelho, como antes. Sem internet, as mudanças esperam e sobem sozinhas. */
+const NV=(()=>{const HK="greenfish-ordens-nv",Au=()=>window.Auth||{};
+  const N={h:rd(HK,{}),st:"",err:"",em:0,live:false,ch:null,uid:"",t:null,pend:0,ini:false};
+  const sb=()=>{try{return Au().campoSb&&Au().campoSb()}catch(e){return null}};
+  const uid=()=>{try{return (Au().campoUid&&Au().campoUid())||""}catch(e){return ""}};
+  /* v248: cada responsável (dono do app ou administrador de equipe) grava as próprias ordens em ordesp/<uid dele>/…;
+     o colaborador aprovado lê, sem alterar, as ordens de quem coordena a equipe dele (resolvido no servidor: ras_ordesp_lider) */
+  async function lider(){const s=sb(),u=uid();if(!s||!u){N.ns=null;N.nsU="";return}if(N.nsU===u&&N.ns!==undefined&&Date.now()-(N.nsEm||0)<600000)return;
+    try{const {data,error}=await s.rpc("ras_ordesp_lider");if(error)throw error;N.ns=data||null;N.nsU=u;N.nsEm=Date.now();N.semRegra=false}
+    catch(e){if(!rede(e)){N.ns=null;N.nsU=u;N.nsEm=Date.now();N.semRegra=true}}}
+  const nuvem=()=>!!sb()&&!!N.ns&&N.nsU===uid();
+  const dono=()=>nuvem()&&N.ns===uid();
+  const so=()=>nuvem()&&N.ns!==uid();
+  const col=()=>"ordesp/"+N.ns;
+  const hs=o=>{const c=Object.assign({},o);delete c.upd;return JSON.stringify(c)};
+  const cfg=()=>{const c={};for(const k in O)if(k!=="L")c[k]=O[k];return c};
+  const rls=e=>/row-level|permission|42501|security|policy/i.test((e&&(e.message||e.code))||"");
+  const rede=e=>!navigator.onLine||/fetch|network|Failed to|offline/i.test((e&&e.message)||"");
+  const pendentes=()=>{let n=O.L.filter(o=>N.h[o.id]!==hs(o)).length;if(N.h._cfg!==JSON.stringify(cfg()))n++;return n};
+  async function push(){const s=sb();if(!s||!dono())return;N.pend=pendentes();if(!N.pend||!navigator.onLine)return;
+    const rows=[],ok={},cc=col();const now=new Date().toISOString();
+    for(const o of O.L){const h=hs(o);if(N.h[o.id]===h)continue;o.upd=Date.now();rows.push({path:cc+"/"+o.id,col:cc,data:o,updated_at:now});ok[o.id]=h}
+    const c=cfg(),hc=JSON.stringify(c);if(N.h._cfg!==hc){rows.push({path:cc+"/_cfg",col:cc,data:c,updated_at:now});ok._cfg=hc}
+    if(!rows.length)return;wr(OK_,O);
+    try{const {error}=await s.from("ras_docs").upsert(rows);if(error)throw error;Object.assign(N.h,ok);wr(HK,N.h);N.err="";N.em=Date.now()}
+    catch(e){N.err=rls(e)?"O servidor ainda não tem a regra das ordens na nuvem: o dono precisa aplicar o arquivo ordesp_v248.sql no Supabase (SQL Editor → Run).":rede(e)?"":"Não consegui enviar as ordens: "+((e&&e.message)||e)}
+    N.pend=pendentes()}
+  async function pull(){const s=sb();if(!nuvem()||!navigator.onLine)return;const cc=col();
+    try{const {data,error}=await s.from("ras_docs").select("path,data").eq("col",cc).limit(5000);if(error)throw error;
+      let mudou=false;const R=(data||[]).filter(r=>r.data);const cf=R.find(r=>r.path===cc+"/_cfg"),L=R.filter(r=>r.path!==cc+"/_cfg").map(r=>r.data).filter(o=>o&&o.id);
+      if(so()){
+        if(!rd(OK_+"-local-bak",null)&&O.L.length&&!O.L.some(o=>o.upd))wr(OK_+"-local-bak",{em:Date.now(),O:JSON.parse(JSON.stringify(O))});
+        const novo=JSON.stringify(L.sort((a,b)=>String(b.id).localeCompare(String(a.id))));if(novo!==JSON.stringify(O.L)){O.L=JSON.parse(novo);mudou=true}
+        if(cf){for(const k of Object.keys(cf.data))if(JSON.stringify(O[k])!==JSON.stringify(cf.data[k])){O[k]=cf.data[k];mudou=true}}}
+      else{
+        for(const r of L){const i=O.L.findIndex(o=>o.id===r.id);
+          if(i<0){O.L.push(r);N.h[r.id]=hs(r);mudou=true}
+          else if((r.upd||0)>(O.L[i].upd||0)&&hs(r)!==hs(O.L[i])){O.L[i]=r;N.h[r.id]=hs(r);mudou=true}
+          else if(hs(r)===hs(O.L[i]))N.h[r.id]=hs(r)}
+        if(mudou)O.L.sort((a,b)=>String(b.id).localeCompare(String(a.id)));
+        if(cf){const c=cf.data||{};O.seq=O.seq||{};for(const d in c.seq||{})if((c.seq[d]||0)>(O.seq[d]||0)){O.seq[d]=c.seq[d];mudou=true}
+          for(const k of ["fab","ult","geo"])if(O[k]==null&&c[k]!=null){O[k]=c[k];mudou=true}
+          if(JSON.stringify(cfg())===JSON.stringify(c))N.h._cfg=JSON.stringify(c)}
+        wr(HK,N.h)}
+      if(mudou){wr(OK_,O);try{desenhaTudo()}catch(e){}}
+      N.err=N.err&&/regra/.test(N.err)&&!dono()?"":N.err;N.em=Date.now();N.pend=pendentes()}
+    catch(e){if(!rede(e))N.err=rls(e)?"Sua conta ainda não tem acesso às ordens na nuvem (o dono precisa aplicar o arquivo ordesp_v248.sql e aprovar seu acesso).":"Não consegui ler as ordens da nuvem: "+((e&&e.message)||e)}}
+  async function ciclo(){if(N.rodando)return;N.rodando=true;try{await lider();assina();await push();await pull();await push()}finally{N.rodando=false;try{if(boxO&&boxO.isConnected&&!boxO.contains(document.activeElement))desenha(boxO,odHTML)}catch(e){}}}
+  function assina(){const s=sb(),u=uid();if(!nuvem()||!s.channel||N.uid===u+"|"+N.ns&&N.ch)return;try{if(N.ch)s.removeChannel(N.ch)}catch(e){}N.uid=u+"|"+N.ns;N.live=false;
+    try{N.ch=s.channel("ordesp-"+u).on("postgres_changes",{event:"*",schema:"public",table:"ras_docs",filter:"col=eq."+col()},()=>{clearTimeout(N.rt);N.rt=setTimeout(ciclo,600)}).subscribe(st=>{N.live=st==="SUBSCRIBED"})}catch(e){N.ch=null}}
+  function inicia(){if(N.ini)return;N.ini=true;
+    const tenta=()=>{if(sb()){ciclo()}else if(N.ch){try{N.ch.unsubscribe&&N.ch.unsubscribe()}catch(e){}N.ch=null;N.uid="";N.live=false}};
+    setTimeout(tenta,1500);setInterval(()=>{if(!document.hidden)tenta()},45000);
+    window.addEventListener("online",tenta);document.addEventListener("visibilitychange",()=>{if(!document.hidden)tenta()});
+    try{const st=document.createElement("style");st.textContent=`.gfp-nv{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:7px 10px;border-radius:10px;margin:0 0 10px;font-size:13px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}.gfp-nv.l{background:#f1f5f9;border-color:#cbd5e1;color:#334155}.gfp-nv.r{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}.gfp-nv.e{background:#fef2f2;border-color:#fecaca;color:#991b1b}.gfp-nv button{margin-left:auto}.gfp-so input,.gfp-so select,.gfp-so textarea{pointer-events:none;opacity:.65}#gfp-od.gfp-so .mk-form,#gfp-od.gfp-so .gfp-bt:not(.gfp-od-ex),.gfp-so [data-gfp="aceitar"],.gfp-so [data-gfp="od-canc"]{display:none!important}`;document.head.appendChild(st)}catch(e){}}
+  N.agenda=()=>{if(!sb()||!dono())return;clearTimeout(N.t);N.t=setTimeout(ciclo,1200)};
+  N.so=so;N.ciclo=ciclo;N.inicia=inicia;N.pendentes=pendentes;
+  N.banner=()=>{try{if(boxO)boxO.classList.toggle("gfp-so",so());if(box)box.classList.toggle("gfp-so",so())}catch(e){}
+    const hm2=t=>new Date(t).toTimeString().slice(0,5),p=sb()&&dono()?pendentes():0;
+    if(!sb())return `<div class="gfp-nv l"><span>📱 <b>Só neste aparelho.</b> Entre na sua conta para guardar as ordens na nuvem e a equipe acompanhar.</span></div>`;
+    if(N.semRegra)return `<div class="gfp-nv e"><span>⚠️ <b>Ordens ainda só neste aparelho.</b> O servidor ainda não tem a regra das ordens na nuvem: o dono do app precisa aplicar o arquivo ordesp_v248.sql no Supabase (SQL Editor → Run).</span><button type="button" class="btn" data-gfp="nv-sync">Tentar de novo</button></div>`;
+    if(!nuvem())return `<div class="gfp-nv l"><span>📱 <b>Só neste aparelho.</b> ${N.nsU===uid()?"Seu acesso ainda não foi liberado; quando for, você passa a ver as ordens da sua equipe ao vivo.":"Conectando à nuvem…"}</span></div>`;
+    if(N.err)return `<div class="gfp-nv e"><span>⚠️ ${E(N.err)}</span><button type="button" class="btn" data-gfp="nv-sync">Tentar de novo</button></div>`;
+    if(so())return `<div class="gfp-nv r"><span>👁 <b>Somente leitura.</b> Você acompanha as ordens ao vivo; só quem coordena a equipe aceita a despesca, avança as etapas e faz a conferência final.${N.em?` · atualizado às ${hm2(N.em)}`:" · carregando…"}</span></div>`;
+    return `<div class="gfp-nv"><span>☁️ <b>Ordens na nuvem</b>${N.live?" · ao vivo":""}${p?` · ${p} alteraç${p>1?"ões":"ão"} esperando ${navigator.onLine?"envio":"internet"}`:N.em?` · sincronizado às ${hm2(N.em)}`:" · conectando…"}. Sua equipe aprovada acompanha em modo leitura.</span><button type="button" class="btn" data-gfp="nv-sync">↻ Sincronizar</button></div>`};
+  return N})();
+NV.inicia();
 const OST=[["aceita","✅ Aceita"],["captura","🎣 Captura"],["encerrada","🏁 Encerrada"],["transporte","🚚 Transporte"],["chegou","🏭 Chegada"],["conferida","🔎 Rastreabilidade"]];
 const OSTn=s=>s==="cancelada"?"✖ Cancelada":s==="reprovada"?"⛔ Reprovada na chegada":(OST.find(x=>x[0]===s)||["",s])[1];
 const isoD=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
@@ -14171,7 +14239,8 @@ function cmpHTML(o){const e0=o.est0||o.agora,ef=o.estFim,L=[];if(e0)L.push(["Est
   if(o.kgCap>0)L.push(["Capturado pela equipe",o.kgCap,o.nCap>0?o.kgCap/o.nCap*1000:NaN,o.nCap||NaN,o.hFim||""]);if(o.kgCheg>0)L.push(["Recebido na balança da fábrica",o.kgCheg,o.nCap>0?o.kgCheg/o.nCap*1000:NaN,o.nCap||NaN,o.hChe||""]);
   if(L.length<2)return "";const ref=(ef||e0||{}).kg,d=v=>ref>0&&isFinite(v)?(v-ref)/ref*100:NaN;
   return `<div class="gfp-cmp"><b>📊 Estimado × real</b><div class="scroll"><table class="lot"><thead><tr><th class="l">Momento</th><th>Biomassa</th><th>Peso médio</th><th>Animais</th><th>Diferença da estimativa</th></tr></thead><tbody>${L.map((x,i)=>`<tr><td class="l">${x[0]}<small>${E(x[4])}</small></td><td><b>${F(x[1])} kg</b></td><td>${isFinite(x[2])?F(x[2])+" g":"—"}</td><td>${isFinite(x[3])?F(x[3]):"—"}</td><td class="${Math.abs(d(x[1]))>10?"neg":""}">${i>=(ef?2:1)&&isFinite(d(x[1]))?(d(x[1])>=0?"+":"")+F(d(x[1]),1)+"%":"—"}</td></tr>`).join("")}</tbody></table></div>${o.kgCap>0&&ref>0?`<small>${Math.abs(d(o.kgCap))<=5?"✓ A estimativa acertou com até 5% de diferença.":Math.abs(d(o.kgCap))<=10?"A estimativa ficou entre 5% e 10% do real: faça biometrias mais frequentes.":"⚠️ A estimativa errou mais de 10%: confira as biometrias, a mortalidade e o número de animais do lote."}</small>`:""}</div>`}
-function odHTML(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].includes(o.status)),H=O.L.filter(o=>!A.includes(o));
+function odHTML(){return NV.banner()+odHTML0()}
+function odHTML0(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].includes(o.status)),H=O.L.filter(o=>!A.includes(o));
   if(!O.L.length)return `<p class="muted">Nenhuma ordem ainda. Quando o 📡 aviso da Biomassa mostrar um lote perto da despesca ou pronto, clique em <b>✅ Aceitar despesca</b>: a ordem vem para cá, para a equipe de despesca e transporte, e segue até a checagem de rastreabilidade na chegada à fábrica.</p>`;
   const caixa=o=>{estViva(o);const r=o.rasc||{},i=OST.findIndex(x=>x[0]===o.status),ab=ui.ab===o.id||A.includes(o)&&A.length<=3;
     const inp=(k,t,ph,ty)=>`<label class="jr-f">${t}<input data-odf="${k}" value="${E(r[k]??"")}" placeholder="${E(ph||"")}"${ty?` type="${ty}"`:""}${ty==="number"?' inputmode="decimal"':""}></label>`;
@@ -14260,7 +14329,7 @@ function htmlMerc(){if(!corr("bio_merc"))return `<div class="note">A correlaçã
    ${prox.length?`<p class="hint" style="margin-top:6px"><b>Próximas despescas:</b> ${prox.map(l=>`${NIV[l.s.n][0]} ${E(l.proj)} · ${E(l.g)} em ${dBR(l.h)} (≈ ${F(l.bF)} kg, ${F(l.wF)} g)`).join(" · ")}</p>`:""}
    <p class="hint">Enviado sozinho pelo Beneficiamento a partir das projeções da aba Biomassa de todos os projetos (${hm(of.em)}). Filé/descascado pelos rendimentos do Beneficiamento. ${isFinite(dem)?"":"Cadastre clientes ativos no funil para comparar com a demanda."}</p>`}
 function montaCard(id,ico,t,sub){const b=document.createElement("section");b.className="card wide gfp-card";b.id=id;b.innerHTML=`<div class="card-head"><i class="n">${ico}</i><h2>${t}<span>${sub}</span></h2></div><div class="gfp-b"></div>`;
-  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();const fbk=e.target.dataset&&e.target.dataset.fab;if(fbk){O.fab=O.fab||{};O.fab[fbk]=fbk==="nome"?e.target.value:P(e.target.value);O.fab.fonte="informado aqui";gravaO();if(ev==="change")desenha(b,odHTML);return}
+  ["input","change","keydown"].forEach(ev=>b.addEventListener(ev,e=>{e.stopPropagation();if(NV.so()&&e.target.dataset&&(e.target.dataset.fab||e.target.dataset.odf||e.target.dataset.acf)){if(ev==="change"){toast("Somente leitura: só quem coordena a equipe altera as ordens.");desenha(b,b.id==="gfp-od"?odHTML:htmlBenef)}return}const fbk=e.target.dataset&&e.target.dataset.fab;if(fbk){O.fab=O.fab||{};O.fab[fbk]=fbk==="nome"?e.target.value:P(e.target.value);O.fab.fonte="informado aqui";gravaO();if(ev==="change")desenha(b,odHTML);return}
     if(e.target.dataset&&/^d_/.test(e.target.dataset.odf||"")&&ev==="change"){const bx=e.target.closest("[data-odbox]"),o=bx&&O.L.find(x=>x.id===bx.dataset.odbox);if(o){(o.rasc=o.rasc||{})[e.target.dataset.odf]=e.target.checked;gravaO();ui.ab=o.id;desenha(b,odHTML)}return}
     const odf=e.target.dataset&&e.target.dataset.odf;if(odf){const bx=e.target.closest("[data-odbox]"),o=bx&&O.L.find(x=>x.id===bx.dataset.odbox);if(o){(o.rasc=o.rasc||{})[odf]=e.target.type==="checkbox"?e.target.checked:e.target.value;gravaO()}return}
     const acf=e.target.dataset&&e.target.dataset.acf;if(acf){const f=ui.f[ui.aceita]||(ui.f[ui.aceita]={});f[acf]=e.target.value;if(acf==="data"&&ev==="change"){delete f.kg;desenha(b,htmlBenef)}return}
@@ -14269,6 +14338,8 @@ function montaCard(id,ico,t,sub){const b=document.createElement("section");b.cla
   b.addEventListener("toggle",e=>{const t=e.target;if(t.classList&&t.classList.contains("gfp-pj")&&b.id==="gfp-card")abre.proj=t.open;if(t.dataset&&t.dataset.odbox){if(t.open)ui.ab=t.dataset.odbox;else if(ui.ab===t.dataset.odbox)ui.ab="-"}},true);
   b.addEventListener("click",clique);return b}
 function clique(e){const a=e.target.closest&&e.target.closest("[data-gfp]");if(!a)return;const k=a.dataset.gfp;
+  if(k==="nv-sync"){NV.err="";NV.ciclo();toast("Sincronizando as ordens com a nuvem…");return}
+  if(NV.so()&&(["aceitar","od-criar","fab-gps","fab-mapa","geo-gps","geo-mapa"].includes(k)||(/^od-/.test(k)&&!["od-imp","od-mapa","od-merc-mapa","od-ver","od-nao","od-rast"].includes(k)))){toast("Somente leitura: só quem coordena a equipe aceita a despesca e altera as ordens.");return}
   if(k==="re"){S.cache={};wr(CK,{});wr(SEEN,{});processa(true);desenhaTudo()}
   else if(k==="liga"){try{const c=JSON.parse(localStorage.getItem("greenfish-corr")||"{}");c.bio_todos=true;c.bio_merc=true;localStorage.setItem("greenfish-corr",JSON.stringify(c))}catch(_){}desenhaTudo();try{window.drawBenef&&drawBenef()}catch(_){}}
   else if(k==="merc"){try{setView("merc")}catch(_){}}
