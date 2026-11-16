@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v248";
+  it.querySelector("code").textContent=msg;const ver="ras-v249";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -5618,7 +5618,7 @@ function corrHTML(onde){if(window.gfCorrPainel)return gfCorrPainel(onde,CORR);co
    <div class="mk-modos" style="margin-bottom:8px"><button type="button" class="chip" data-gfcorr="todas">Ligar todas</button><button type="button" class="chip" data-gfcorr="nenhuma">Desligar todas</button></div>
    <div class="scroll"><table class="lot gf-corr"><thead><tr><th>Usar</th><th class="l">De → Para</th><th class="l">Evidência</th><th class="l">Valor agora</th></tr></thead><tbody>${CORR.map(([id,de,pa,txt,val])=>{let v="—";try{v=val()}catch(e){}return `<tr class="${c[id]===false?"off":""}"><td><input type="checkbox" data-gfcorrid="${id}"${c[id]===false?"":" checked"} aria-label="${esc(txt)}"></td><td class="l"><b>${esc(de)}</b> → ${esc(pa)}</td><td class="l">${esc(txt)}</td><td class="l"><small>${esc(v)}</small></td></tr>`}).join("")}</tbody></table></div>
    <p class="hint">Desligada, a evidência deixa de passar de uma aba para a outra (o app usa só o que você digitar ali). As escolhas valem para as duas abas e ficam salvas neste aparelho.</p></div></section>`}
-window.gfCorrHTML=corrHTML;window.gfRendFileDe=k=>rendFile(k);window.gfEspDe=espDe;
+window.gfCorrHTML=corrHTML;window.gfCORR=CORR;window.gfRendFileDe=k=>rendFile(k);window.gfEspDe=espDe;
 const corrRedraw=()=>{try{draw()}catch(e){}try{window.drawMerc&&drawMerc()}catch(e){}try{window.focoRefresh&&focoRefresh()}catch(e){}};
 document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.dataset.gfcorrid)return;const c=corrGet();c[t.dataset.gfcorrid]=t.checked;localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-gfcorr]");if(!b)return;const c={};CORR.forEach(x=>c[x[0]]=b.dataset.gfcorr==="todas");localStorage.setItem(CK,JSON.stringify(c));corrRedraw()});
@@ -10742,7 +10742,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v248";
+  const APP_VERSAO="ras-v249";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16245,7 +16245,7 @@ function acaoOD(k,id){const o=O.L.find(x=>x.id===id);if(!o)return;const r=o.rasc
 let box=null,boxM=null,boxO=null,abre={proj:false};
 const chip=n=>`<span class="gfp-ch gfp-${NIV[n][2]}">${NIV[n][0]} ${NIV[n][1]}</span>`;
 function htmlBenef(){const C=cfg();
-  if(!corr("bio_todos"))return window.gfCorrSo&&gfCorrSo()?`<div class="note">🔒 Os avisos que cruzam a <b>Biomassa de todos os projetos</b> com o Beneficiamento são exclusivos do dono do app (não liberados para você).</div>`:`<div class="note">A correlação <b>Biomassa (todos os projetos) → Beneficiamento</b> está desligada. <button type="button" class="btn solid" data-gfp="liga">🔗 Ligar a correlação</button></div>`;
+  if(!corr("bio_todos"))return window.gfCorrSo&&gfCorrSo()?`<div class="note">🔒 Os avisos que cruzam a <b>Biomassa de todos os projetos</b> com o Beneficiamento só aparecem quando as abas Biomassa e Beneficiamento estão no seu pacote.</div>`:`<div class="note">A correlação <b>Biomassa (todos os projetos) → Beneficiamento</b> está desligada. <button type="button" class="btn solid" data-gfp="liga">🔗 Ligar a correlação</button></div>`;
   const A=todos(),R=semanas(A),of=oferta(A,R),av=A.filter(l=>l.s.n>=2),eng=A.filter(l=>l.s.n===1),prox=A.find(l=>l.s.n>=1&&l.h>=Date.now()-30*DAY);
   const nP=Object.keys(S.cache).length+1,falt=Object.values(S.cache).filter(c=>c.erro).length;
   const kpi=(t,v,d,c)=>`<div class="hk hk-${c||"n"}"><div><span class="hk-l">${t}</span><b>${v}</b><small>${d||""}</small></div></div>`;
@@ -16267,7 +16267,7 @@ function htmlBenef(){const C=cfg();
      ${Object.entries(S.cache).map(([k,c])=>`<tr><td class="l"><b>${E(c.nome)}</b>${c.cli?`<small>${E(c.cli)}</small>`:""}</td><td class="l">${c.erro?`⚠️ ${E(c.erro)}`:`✓ ${dBR(c.calc)} ${hm(c.calc)}`}</td><td>${(c.lotes||[]).length}</td></tr>`).join("")}</tbody></table></div>
      <p class="hint">Cada projeto salvo é aberto escondido, com os dados dele, e passa pela aba Biomassa total em tempo real (curva de crescimento, biometrias, mortalidade e peso de despesca de cada grupo). O projeto aberto é lido ao vivo. Projetos alterados são processados de novo sozinhos.</p></details>
    <div class="gfp-nt"><label><input type="checkbox" data-gfpc="notif"${C.notif?" checked":""}> 🔔 Avisar também com notificação do celular (enquanto o app estiver aberto)</label></div>`}
-function htmlMerc(){if(!corr("bio_merc"))return `<div class="note">${window.gfCorrSo&&gfCorrSo()?"🔒 A comanda que cruza a <b>Biomassa</b> com a <b>Camada de mercado</b> é exclusiva do dono do app (não liberada para você).":"A correlação <b>Biomassa → Camada de mercado</b> está desligada em 🔗 Correlações entre abas."}</div>`;
+function htmlMerc(){if(!corr("bio_merc"))return `<div class="note">${window.gfCorrSo&&gfCorrSo()?"🔒 A comanda que cruza a <b>Biomassa</b> com a <b>Camada de mercado</b> só aparece quando as abas Biomassa e Camada de mercado estão no seu pacote.":"A correlação <b>Biomassa → Camada de mercado</b> está desligada em 🔗 Correlações entre abas."}</div>`;
   const A=todos(),R=semanas(A),of=oferta(A,R),M=(()=>{try{return window.gfMercResumo&&gfMercResumo()}catch(e){return null}})(),dem=M&&M.volAt>0?M.volAt:NaN;
   const prox=A.filter(l=>l.s.n>=1).slice(0,8);
   return `<div class="scroll"><table class="lot gfp-tab"><thead><tr><th class="l">Semana</th><th>Peixe inteiro</th><th>Camarão</th><th>Filé / descascado</th><th>Clientes ativos</th><th>Saldo para vender</th></tr></thead><tbody>${of.semanas.map(w=>{const t=w.kgPeixe+w.kgCamarao,s=isFinite(dem)?t-dem:NaN;return `<tr><td class="l"><b>${dBR(w.ini)}</b></td><td>${w.kgPeixe?F(w.kgPeixe)+" kg":"—"}</td><td>${w.kgCamarao?F(w.kgCamarao)+" kg":"—"}</td><td>${w.kgProduto?F(w.kgProduto)+" kg":"—"}</td><td>${isFinite(dem)?F(dem)+" kg":"—"}</td><td>${isFinite(s)?`<b class="${s<0?"neg":""}">${s>=0?"+":"−"}${F(Math.abs(s))} kg</b>`:"—"}</td></tr>`}).join("")}</tbody></table></div>
@@ -16662,41 +16662,33 @@ window.gfDiag={html,info:()=>{ler();return D.props.length?`${D.props.length} fic
 .bx-big .bx-isreal{border-left-color:#fde047}
 </style>
 <script>
-/* ===================== v249: correlações automáticas entre todas as abas, buscadas na hora em que cada aba abre;
-   a visão correlacionada é exclusiva do dono do app — administradores e equipes só veem o que o dono liberar ===================== */
+/* ===================== v249/v250: correlações automáticas entre as abas, buscadas na hora em que cada aba abre.
+   Dono do app: vê tudo cruzado. Clientes, administradores e equipes: só as correlações entre as abas do pacote deles
+   (as abas liberadas), sempre com os dados da própria conta — e esses dados correlacionados sobem para o dono acompanhar. ===================== */
 (function(){
 if(window.__gfPrevIframe)return;
-const LK="greenfish-corr-lib",E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const Au=()=>window.Auth||{},T=(f,d)=>{try{return f()}catch(e){return d}};
 const sb=()=>T(()=>Au().campoSb&&Au().campoSb(),null);
+const uid=()=>T(()=>Au().campoUid()||"",""); 
 const nuvem=()=>!!sb();                                   // logado numa conta do app
 const dono=()=>T(()=>!!Au().campoDono(),false);
-const adm=()=>T(()=>!!Au().campoAdm(),false);
-const restrito=()=>nuvem()&&!dono();                      // administrador ou membro de equipe
-let LIB=rd(LK,{lib:{}}).lib||{};                          // id da correlação → "dono" | "adm" | "todos"
-const NIV=[["dono","🔒 Só eu (dono)"],["adm","👔 + administradores"],["todos","👥 + administradores e equipes"]];
-
-/* quem vê cada correlação: o dono vê todas, sempre ligadas; os outros, só as liberadas */
-function pode(id){if(!restrito())return true;const n=LIB[id]||"dono";return n==="todos"||(n==="adm"&&adm())}
+const restrito=()=>nuvem()&&!dono();                      // cliente, administrador ou membro de equipe
+const abaOk=v=>T(()=>!window.abaPermitida||abaPermitida(v),true);
+/* cada correlação liga duas abas: o pacote da pessoa precisa ter as duas */
+const ABAS_CORR={bio_peso:["bio","benef"],bio_lote:["bio","benef"],local_preco:["local","benef"],aqua_qual:["aqua","benef"],merc_prod:["merc","benef"],merc_frete:["merc","benef"],
+  benef_rend:["benef","merc"],benef_prod:["benef","merc"],benef_qual:["benef","merc"],bio_todos:["bio","benef"],bio_merc:["bio","merc"]};
+function pode(id){if(!restrito())return true;const a=ABAS_CORR[id];return !!a&&a.every(abaOk)}
 window.gfCorrAuto=pode;window.gfCorrSo=restrito;window.gfCorrDono=()=>!restrito();
-async function carregaLib(){const s=sb();if(!s)return;try{const {data,error}=await s.from("ras_docs").select("data").eq("path","config/correl").maybeSingle();if(error)throw error;
-  const n=(data&&data.data&&data.data.lib)||{};if(JSON.stringify(n)!==JSON.stringify(LIB)){LIB=n;wr(LK,{lib:LIB,em:Date.now()});redesenha()}}catch(e){}}
-async function salvaLib(id,v){const s=sb();if(!s||!dono())return;const novo={...LIB,[id]:v};if(v==="dono")delete novo[id];
-  try{const {error}=await s.from("ras_docs").upsert({path:"config/correl",col:"config",data:{lib:novo,em:Date.now()},updated_at:new Date().toISOString()});if(error)throw error;LIB=novo;wr(LK,{lib:LIB,em:Date.now()});msg="✓ Liberação salva: vale para todos os aparelhos da equipe."}
-  catch(e){msg="⚠️ Não consegui salvar a liberação: "+((e&&e.message)||e)}redesenha()}
-let msg="";
+const NOME_ABA={calc:"Calculadora",local:"Local e viabilidade",topo:"Levantamento",aqua:"AquaNictemeral",bio:"Biomassa",racao:"Arraçoamento",repro:"Reprodução",merc:"Camada de mercado",benef:"Beneficiamento",fin:"Financeiro",gest:"AquaGestão",dash:"Painel"};
 
 /* painel 🔗 das abas Beneficiamento e Camada de mercado */
-window.gfCorrPainel=(onde,CORR)=>{const vis=CORR.filter(x=>pode(x[0]));
-  if(restrito()&&!vis.length)return `<section class="card wide" id="gf-corr-${onde}"><div class="card-head"><h2>🔗 Correlações entre abas<span>Exclusivas do dono do app</span></h2></div><div class="body"><p class="hint" style="margin:0">🔒 A visão que cruza e processa os dados de todas as abas é do dono do app. Você vê os dados das abas que ele liberou para você; quando ele liberar alguma correlação, ela aparece aqui e passa a funcionar sozinha.</p></div></section>`;
-  const ed=nuvem()&&dono();
-  return `<section class="card wide" id="gf-corr-${onde}"><div class="card-head"><h2>🔗 Correlações entre abas<span>${restrito()?`${vis.length} liberada${vis.length>1?"s":""} pelo dono do app`:`Automáticas: as ${CORR.length} ligadas o tempo todo e buscadas na hora em que cada aba abre`}</span></h2></div><div class="body">
-   ${msg?`<p class="hint" style="margin:0 0 6px">${E(msg)}</p>`:""}
-   <div class="scroll"><table class="lot gf-corr"><thead><tr><th class="l">De → Para</th><th class="l">Evidência</th><th class="l">Valor agora</th>${ed?`<th class="l">Quem vê</th>`:""}</tr></thead><tbody>${vis.map(([id,de,pa,txt,val])=>{let v="—";try{v=val()}catch(e){}
-     return `<tr><td class="l"><b>${E(de)}</b> → ${E(pa)}</td><td class="l">${E(txt)}</td><td class="l">${E(v)}</td>${ed?`<td class="l"><select data-gfcorrlib="${id}" aria-label="Quem vê esta correlação">${NIV.map(([k,t])=>`<option value="${k}"${(LIB[id]||"dono")===k?" selected":""}>${t}</option>`).join("")}</select></td>`:""}</tr>`}).join("")}</tbody></table></div>
-   <p class="hint">${restrito()?"Estas correlações foram liberadas pelo dono do app e funcionam sozinhas com os dados das suas abas.":`🔗 Não precisa ligar nada: ao abrir uma aba, o app busca na hora os dados das abas de que ela depende, processa e mostra.${ed?" 🔒 A visão correlacionada é só sua; em <b>Quem vê</b> você decide se administradores e equipes também recebem cada correlação.":""}`}</p></div></section>`};
-document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.dataset.gfcorrlib)return;e.stopPropagation();salvaLib(t.dataset.gfcorrlib,t.value)},true);
+window.gfCorrPainel=(onde,CORR)=>{window.gfCORR=CORR;const vis=CORR.filter(x=>pode(x[0]));
+  if(restrito()&&!vis.length)return `<section class="card wide" id="gf-corr-${onde}"><div class="card-head"><h2>🔗 Correlações entre abas<span>Conforme o seu pacote</span></h2></div><div class="body"><p class="hint" style="margin:0">🔒 As correlações aparecem sozinhas entre as abas do seu pacote, sempre com os seus dados. Nenhuma das correlações deste quadro liga duas abas do seu pacote.</p></div></section>`;
+  return `<section class="card wide" id="gf-corr-${onde}"><div class="card-head"><h2>🔗 Correlações entre abas<span>${restrito()?`${vis.length} entre as abas do seu pacote · automáticas, com os seus dados`:`Automáticas: as ${CORR.length} ligadas o tempo todo e buscadas na hora em que cada aba abre`}</span></h2></div><div class="body">
+   <div class="scroll"><table class="lot gf-corr"><thead><tr><th class="l">De → Para</th><th class="l">Evidência</th><th class="l">Valor agora</th></tr></thead><tbody>${vis.map(([id,de,pa,txt,val])=>{let v="—";try{v=val()}catch(e){}
+     return `<tr><td class="l"><b>${E(de)}</b> → ${E(pa)}</td><td class="l">${E(txt)}</td><td class="l">${E(v)}</td></tr>`}).join("")}</tbody></table></div>
+   <p class="hint">${restrito()?"🔗 Só entram as correlações entre as abas do seu pacote, calculadas com os seus dados. Um resumo delas fica disponível para o dono do app acompanhar.":"🔗 Não precisa ligar nada: ao abrir uma aba, o app busca na hora os dados das abas de que ela depende, processa e mostra. 🔒 Clientes e equipes só recebem as correlações entre as abas do pacote deles, com os próprios dados; o resumo de cada um aparece para você no 📊 Painel."}</p></div></section>`};
 
 /* busca na hora: cada aba, ao abrir, atualiza as abas de que depende antes de mostrar */
 const NOME={calc:"Calculadora",local:"Local e viabilidade",topo:"Levantamento",aqua:"AquaNictemeral",bio:"Biomassa",racao:"Arraçoamento",repro:"Reprodução",merc:"Camada de mercado",benef:"Beneficiamento",fin:"Financeiro",gest:"AquaGestão",dash:"Painel"};
@@ -16712,22 +16704,75 @@ function barra(){let b=document.getElementById("gf-busca");const fb=document.get
   if(!ST.itens.length){if(b)b.hidden=true;return}
   if(!b){b=document.createElement("div");b.id="gf-busca";b.setAttribute("role","status");if(fb&&fb.parentNode)fb.parentNode.insertBefore(b,fb.nextSibling);else return}
   b.hidden=false;b.innerHTML=ST.rodando?`🔗 Buscando as correlações de <b>${E(NOME[ST.v]||ST.v)}</b>: ${ST.itens.map(x=>E(NOME[x.de])).join(" · ")}…`
-    :`🔗 Correlações de <b>${E(NOME[ST.v]||ST.v)}</b> buscadas às ${new Date(ST.em).toTimeString().slice(0,8)}: ${ST.itens.map(x=>`${E(NOME[x.de])} <small>(${E(x.r)})</small>`).join(" · ")}${restrito()?` <small>· só as liberadas pelo dono</small>`:""}`}
+    :`🔗 Correlações de <b>${E(NOME[ST.v]||ST.v)}</b> buscadas às ${new Date(ST.em).toTimeString().slice(0,8)}: ${ST.itens.map(x=>`${E(NOME[x.de])} <small>(${E(x.r)})</small>`).join(" · ")}${restrito()?` <small>· só entre as abas do seu pacote</small>`:""}`}
 async function busca(v){const D=DEP[v];ST.v=v;if(!D){ST.itens=[];barra();return}
   const pa=T(()=>window.abaPermitida||null,null);
   const itens=Object.entries(D).filter(([de,id])=>(id?pode(id):!restrito()||!pa||pa(de))).map(([de])=>({de,r:""}));
   ST.itens=itens;if(!itens.length){barra();return}const meu=++ST.seq;ST.rodando=true;barra();
   for(const x of itens){const f=BUSCA[x.de];x.r=f?await Promise.race([f(),new Promise(r=>setTimeout(()=>r("atualizando em segundo plano"),8000))]):"atualizada"}
-  if(meu!==ST.seq)return;ST.rodando=false;ST.em=Date.now();barra();
+  if(meu!==ST.seq)return;ST.rodando=false;ST.em=Date.now();barra();envia(false);if(v==="dash")donoCard();
   const vw=document.getElementById("view-"+v),cur=document.querySelector('.tab[aria-selected="true"]');
   if(cur&&cur.dataset.view!==v)return;if(vw&&vw.contains(document.activeElement)&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;
   try{const fn=window[DRAW[v]];if(typeof fn==="function"){if(v==="bio"&&window.drawBioEditor)drawBioEditor();fn()}}catch(e){}}
 function redesenha(){try{const t=document.querySelector('.tab[aria-selected="true"]'),v=t&&t.dataset.view;if(v==="benef"&&window.drawBenef)drawBenef();if(v==="merc"&&window.drawMerc)drawMerc();window.focoRefresh&&focoRefresh()}catch(e){}}
 function liga(){if(typeof setView!=="function"){setTimeout(liga,300);return}
-  const orig=setView;setView=function(v){orig(v);const t=document.querySelector('.tab[aria-selected="true"]');clearTimeout(liga.t);liga.t=setTimeout(()=>busca(t?t.dataset.view:v),120)};
-  const st=document.createElement("style");st.textContent=`#gf-busca{margin:0 0 10px;padding:6px 10px;border-radius:10px;font-size:12.5px;background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}#gf-busca small{opacity:.75}`;document.head.appendChild(st);
-  let papel="";setInterval(()=>{const p=nuvem()+"|"+dono()+"|"+adm();if(p!==papel){papel=p;carregaLib();redesenha()}},2000);setInterval(carregaLib,300000);
+  const orig=setView;setView=function(v){orig(v);try{donoCard()}catch(e){}const t=document.querySelector('.tab[aria-selected="true"]');clearTimeout(liga.t);liga.t=setTimeout(()=>busca(t?t.dataset.view:v),120)};
+  const st=document.createElement("style");st.textContent=`#gf-busca{margin:0 0 10px;padding:6px 10px;border-radius:10px;font-size:12.5px;background:#f0fdf4;border:1px solid #bbf7d0;color:#14532d}#gf-busca small{opacity:.75}#gf-dono-corr .gf-dc summary{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}#gf-dono-corr .gf-dc-ab{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}#gf-dono-corr .gf-dc-ab i{font-style:normal;font-size:11px;padding:1px 7px;border-radius:999px;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46}#gf-dono-corr .gf-dc-t{padding:6px 0 6px 10px;border-left:3px solid #a7f3d0;margin:6px 0;font-size:13px}#gf-dono-corr .gf-dc-t>b{display:block;margin-bottom:2px}`;document.head.appendChild(st);
+  let papel="";setInterval(()=>{const p=nuvem()+"|"+dono()+"|"+uid();if(p!==papel){papel=p;redesenha();envia(true);donoCard()}},2000);setInterval(()=>envia(false),600000);
   setTimeout(()=>{const t=document.querySelector('.tab[aria-selected="true"]');if(t)busca(t.dataset.view)},2500)}
+/* ---- v250: o resumo correlacionado de cada conta sobe para o dono (data/users/<uid>/corr/resumo; só a própria pessoa e o dono leem) ---- */
+const num=x=>typeof x==="number"&&isFinite(x)?Math.round(x*100)/100:null;
+function coleta(){const ab=T(()=>VIEWS.filter(v=>abaOk(v)&&!["users","proj","dados"].includes(v)),[]),R={em:Date.now(),abas:ab,proj:T(()=>{const p=projAtual();return p?p.nome:""},""),t:{}};
+  const tem=a=>ab.includes(a);
+  if(tem("bio")||tem("calc")){R.t.bio=T(()=>{const L=window.gfPrev?gfPrev.todos():[],now=Date.now();let kg=0,pr=0,prox=null;for(const l of L){const x=gfPrev.valor(l,now);if(!x.pre)kg+=x.b||0;if(l.s&&l.s.n>=2)pr++;if(!prox||l.h<prox.h)prox={g:l.g,proj:l.proj,h:l.h,kg:num(l.bF)}}
+    const B=T(()=>bioDashResumo().slice(0,12).map(b=>({u:b.nome,pm:num(b.pm),cv:num(b.cv),gpd:num(b.gpd),data:b.data})),[]);return {lotes:L.length,kgAgora:num(kg),perto:pr,prox,biometrias:B}},null)}
+  if(tem("aqua"))R.t.aqua=T(()=>{const A=bxAgua();return A?{odMin:num(A.od&&A.od.odMin),odMed:num(A.od&&A.od.odMed),temp:num(A.tm)}:null},null);
+  if(tem("fin"))R.t.fin=T(()=>{const f=gfFinResumo();if(!f)return null;const o=f.o||{},re=f.real||{};return {lucro:num(o.LO),margem:num(o.IL),cKg:num(o.cKg),pV:num(o.pV),inv:num(o.invTot),retorno:num(o.PRC),vpl:num(o.VPL),tir:num(o.TIR),real:re.n?{saldo:num(re.saldo),rec:num(re.rec),des:num(re.des),n:re.n}:null}},null);
+  if(tem("merc"))R.t.merc=T(()=>{const m=gfMercResumo();return m?{mun:m.mun,clientes:m.nCli,ativos:m.ativos,volSem:num(m.volAt),recSem:num(m.recAt),funil:m.funil,frete:num(m.frete),nicho:m.top&&m.top.n||""}:null},null);
+  if(tem("benef"))R.t.benef=T(()=>{const b=gfBenefResumo();return b?{esp:b.esp,peso:num(b.pw),rendFile:num(b.rend&&b.rend[0]),kg:num(b.kg),qualFora:(b.qual&&b.qual.falhas)||[],od:num(b.od)}:null},null);
+  if(tem("repro"))R.t.repro=T(()=>{const r=reproResumo();return r?{especies:r.esp,lotes:r.lotes,obtidos:r.obtidos,plantel:r.plantel}:null},null);
+  if(tem("topo"))R.t.topo=T(()=>{const r=topoResumo();return r?{nome:r.nome,ha:num(r.ha),mov:num(r.mov),custo:num(r.custo)}:null},null);
+  const C=window.gfCORR||[];R.corr=C.filter(x=>pode(x[0])).map(([id,de,pa,txt,val])=>({id,de,pa,txt,v:String(T(val,"—")).slice(0,120)}));
+  for(const k in R.t)if(R.t[k]==null)delete R.t[k];return R}
+let ultEnvio="",envT=0;
+async function envia(forca){const s=sb(),u=uid();if(!s||!u||!restrito()||!navigator.onLine)return;const falta=15000-(Date.now()-envT);if(!forca&&falta>0){clearTimeout(envia.t);envia.t=setTimeout(()=>envia(false),falta+200);return}envT=Date.now();
+  const R=coleta(),h=JSON.stringify({...R,em:0});if(h===ultEnvio&&!forca)return;
+  try{const p="data/users/"+u+"/corr/resumo";const {error}=await s.from("ras_docs").upsert({path:p,col:p.slice(0,p.lastIndexOf("/")),data:R,updated_at:new Date().toISOString()});if(!error)ultEnvio=h}catch(e){}}
+
+/* ---- v250: no 📊 Painel, só o dono vê os dados correlacionados de cada cliente/equipe ---- */
+const DC={L:null,em:0,nomes:{},carregando:false,aberto:""};
+async function carregaDono(){const s=sb();if(!s||!dono()||DC.carregando)return;DC.carregando=true;
+  try{const {data,error}=await s.from("ras_docs").select("path,data,updated_at").like("col","data/users/%/corr").limit(1000);if(error)throw error;
+    DC.L=(data||[]).filter(r=>r.data&&/\/corr\/resumo$/.test(r.path)).map(r=>({uid:r.path.split("/")[2],...r.data})).sort((a,b)=>(b.em||0)-(a.em||0));
+    const ids=DC.L.map(x=>x.uid).filter(i=>!DC.nomes[i]);if(ids.length){const {data:pf}=await s.from("ras_docs").select("path,data").in("path",ids.map(i=>"perfis/"+i));(pf||[]).forEach(r=>{DC.nomes[r.path.slice(7)]=(r.data&&(r.data.nome||r.data.email))||""})}
+    DC.em=Date.now();DC.err=""}catch(e){DC.err=(e&&e.message)||String(e)}finally{DC.carregando=false}}
+const fN=(x,d=0)=>x==null||!isFinite(x)?"—":Number(x).toLocaleString("pt-BR",{maximumFractionDigits:d});
+const dH=t=>t?new Date(t).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}):"—";
+function linhasTab(k,t){if(!t)return "";const L=[];
+  if(k==="bio")L.push(`${fN(t.lotes)} lote(s) · <b>${fN(t.kgAgora)} kg</b> agora${t.perto?` · ${t.perto} perto da despesca`:""}${t.prox?` · próxima: ${E(t.prox.g)} (${E(t.prox.proj)}) em ${new Date(t.prox.h).toLocaleDateString("pt-BR")}`:""}`,...(t.biometrias||[]).slice(0,4).map(b=>`${E(b.u)}: ${fN(b.pm,1)} g${b.cv!=null?` · CV ${fN(b.cv,0)}%`:""}${b.gpd!=null?` · ${fN(b.gpd,2)} g/dia`:""}`));
+  if(k==="aqua")L.push(`OD mínimo <b>${fN(t.odMin,1)} mg/L</b>${t.odMed!=null?` · médio ${fN(t.odMed,1)}`:""}${t.temp!=null?` · ${fN(t.temp,1)} °C`:""}`);
+  if(k==="fin"){const R$=x=>x==null?"—":"R$ "+fN(x,0),pc=x=>x==null?"—":fN(x,1)+"%";L.push(`Lucro previsto <b>${R$(t.lucro)}/ano</b> · margem ${pc(t.margem)} · custo ${t.cKg==null?"—":"R$ "+fN(t.cKg,2)}/kg × venda ${t.pV==null?"—":"R$ "+fN(t.pV,2)}/kg`,`Investimento ${R$(t.inv)}${t.retorno!=null?` · retorno em ${fN(t.retorno,1)} anos`:""} · VPL ${R$(t.vpl)} · TIR ${pc(t.tir)}`,t.real?`Realizado: saldo ${R$(t.real.saldo)} (${R$(t.real.rec)} entradas · ${R$(t.real.des)} saídas)`:"Realizado: sem lançamentos")}
+  if(k==="merc")L.push(`${fN(t.ativos)} cliente(s) ativo(s) · ${fN(t.volSem,0)} kg/semana · R$ ${fN(t.recSem,0)}/semana · funil ${fN(t.funil)}${t.frete!=null?` · frete R$ ${fN(t.frete,2)}/kg`:""}${t.mun?` · ${E(t.mun)}`:""}`);
+  if(k==="benef")L.push(`${E(t.esp||"")} · filé ${fN(t.rendFile,1)}% · ${fN(t.kg,0)} kg${(t.qualFora||[]).length?` · ⚠️ fora: ${E(t.qualFora.join(", "))}`:""}`);
+  if(k==="repro")L.push(`${fN(t.especies)} espécie(s) · ${fN(t.lotes)} lote(s) · ${fN(t.obtidos)} formas jovens · plantel ${fN(t.plantel)}`);
+  if(k==="topo")L.push(`${E(t.nome||"")} · ${fN(t.ha,2)} ha · ${fN(t.mov,0)} m³ de terra · R$ ${fN(t.custo,0)}`);
+  return L.filter(Boolean).map(x=>`<div>${x}</div>`).join("")}
+function cardHTML(){const L=DC.L||[];
+  return `<section class="card wide" id="gf-dono-corr"><div class="card-head"><h2>👥 Dados correlacionados das contas<span>Só você vê · cada conta processa as abas do próprio pacote e envia o resumo para cá${DC.em?` · lido às ${new Date(DC.em).toTimeString().slice(0,5)}`:""}</span></h2><button type="button" class="btn" data-gfdc="re">↻ Atualizar</button></div><div class="body">
+   ${DC.err?`<p class="gfp-alerta">⚠️ ${E(DC.err)}</p>`:""}
+   ${!L.length?`<p class="hint" style="margin:0">${DC.L?"Nenhuma conta enviou dados ainda. O resumo chega quando a pessoa abre o app com o pacote dela.":"Carregando…"}</p>`:
+   L.map(r=>{const nome=DC.nomes[r.uid]||("Conta "+r.uid.slice(0,6)),ks=Object.keys(r.t||{});return `<details class="gfp-pj gf-dc"${DC.aberto===r.uid?" open":""} data-gfdcu="${E(r.uid)}"><summary><b>${E(nome)}</b> <small>· ${E(r.proj||"sem projeto aberto")} · atualizado ${dH(r.em)}</small><span class="gf-dc-ab">${(r.abas||[]).map(a=>`<i>${E(NOME_ABA[a]||a)}</i>`).join("")}</span></summary>
+     ${ks.map(k=>`<div class="gf-dc-t"><b>${E(NOME_ABA[k]||k)}</b>${linhasTab(k,r.t[k])}</div>`).join("")||`<p class="hint">Sem dados nas abas do pacote ainda.</p>`}
+     ${(r.corr||[]).length?`<div class="gf-dc-t"><b>🔗 Correlações do pacote</b>${r.corr.map(c=>`<div>${E(c.de)} → ${E(c.pa)}: ${E(c.v)}</div>`).join("")}</div>`:`<div class="gf-dc-t"><small>🔗 O pacote não liga abas entre si.</small></div>`}</details>`}).join("")}
+   <p class="hint">Cada pessoa só vê as próprias abas e as correlações entre elas; o resumo correlacionado de todas as contas fica aqui, exclusivo para você.</p></div></section>`}
+async function donoCard(){const vd=document.getElementById("view-dash");let c=document.getElementById("gf-dono-corr-w");const on=dono()&&nuvem()&&vd&&!vd.hidden;
+  if(!on){if(c)c.hidden=true;return}
+  if(!c){c=document.createElement("div");c.id="gf-dono-corr-w";vd.parentNode.insertBefore(c,vd);
+    c.addEventListener("click",e=>{const b=e.target.closest("[data-gfdc]");if(b){DC.em=0;donoCard()}});
+    c.addEventListener("toggle",e=>{const d=e.target;if(d.dataset&&d.dataset.gfdcu){if(d.open)DC.aberto=d.dataset.gfdcu;else if(DC.aberto===d.dataset.gfdcu)DC.aberto=""}},true)}
+  c.hidden=false;if(!DC.L)c.innerHTML=cardHTML();if(Date.now()-DC.em>60000)await carregaDono();c.innerHTML=cardHTML()}
+window.gfDonoCorr=donoCard;
+
 liga();
 })();
 </script>
