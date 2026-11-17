@@ -15754,10 +15754,10 @@ const DMREF={tilapia:{ras:32,bft:25,viv:1.5,rede:80},tambaqui:{ras:25,bft:15,viv
 const dmCalc=sp=>{const v=P((document.getElementById("DM_"+sp)||{}).value);return v>0?v:null};
 const dmBase=(sp,sis)=>sis==="ras"&&dmCalc(sp)?dmCalc(sp):(DMREF[sp]||DMREF.tilapia)[sis]||0;
 /* peixe pequeno não suporta a densidade do adulto: fração da DM pela fase (alevinagem 50 %, recria 80 %, engorda 100 %) */
-const fFase=(sp,w)=>sp==="camarao"?(w<1?.5:w<5?.8:1):(w<30?.5:w<150?.8:1);
+const fFase=(sp,w)=>{const a=sp==="camarao"?.05:1,b=sp==="camarao"?5:150;return .5+.5*Math.max(0,Math.min(1,Math.log(Math.max(w,1e-6)/a)/Math.log(b/a)))};
 const nomeFase=(sp,w)=>T(()=>{const S=SPECIES[sp];return S.phases.find(b=>w<=b[0])[1]},"");
 
-let C=Object.assign({sp:"",sis:"ras",V1:"32",w0:"0,5",modo:"dias",dias:"",n0:"",ini:iso(Date.now()),reuso:true,esc:false,mort:"",fases:null,dm:{},vt:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{});
+let C=Object.assign({tipo:"prog",vols:"32, 64, 100, 200, 300",qdef:"final",dmp:{},sp:"",sis:"ras",V1:"32",w0:"0,5",modo:"dias",dias:"",n0:"",ini:iso(Date.now()),reuso:true,esc:false,mort:"",fases:null,dm:{},vt:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{});
 const grava=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}};
 function spPadrao(){const t=T(()=>tanks.find(x=>x.lot&&x.lot.sp),null);return t?t.lot.sp:"tilapia"}
 function padroes(){const sp=C.sp||spPadrao(),S=SPECIES[sp]||SPECIES.tilapia,w0=P(C.w0)>0?P(C.w0):0.5;
@@ -15791,6 +15791,50 @@ function calcula(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort
   const totV=C.esc?R.reduce((a,f)=>a+(f.i===0?f.V:f.novos*f.vt),0):volExist,ult=R[R.length-1],ciclo=Math.round((ult.ate-ini)/DAY);
   return {sp,S,sis,rit,mort,V1,N0,R,totV,ciclo,ult,lotesAno:C.esc?365/t1:365/ciclo,t1}}
 
+/* ---------- v265: volumes progressivos — um tanque por etapa (ex.: 32 → 64 → 100 → 200 → 300 m³); o lote muda de tanque quando enche ---------- */
+const listaV=()=>String(C.vols||"").split(/[;,\s]+/).map(P).filter(v=>v>0);
+function calcProg(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort):T(()=>bioParams().mort*100,1.5))/100,sv=d=>Math.pow(1-mort,d/30);
+  const Vs=listaV();if(Vs.length<2)return {erro:"Informe pelo menos dois volumes em sequência, separados por vírgula (ex.: 32, 64, 100, 200, 300)."};
+  const base=dmBase(sp,C.sis);if(!(base>0))return {erro:`${SIS[C.sis]} não é indicado para ${S.name.toLowerCase()} neste planejamento.`};
+  const dmK=(k,w)=>{const o=P((C.dmp||{})[k]);return o>0?o:+(base*fFase(sp,w)).toFixed(1)};
+  const d0=dayOf(S,w0),ini=msD(C.ini)||Date.now(),wD=d=>wAt(S,d0+d*rit),dAlvo=Math.max(2,Math.round((dayOf(S,S.alvo)-d0)/rit)),L=Vs.length-1;
+  let N0,orig;
+  if(C.qdef==="t1"){if(C.modo==="n"&&P(C.n0)>0){N0=Math.round(P(C.n0));orig="informada"}else{const t1=P(C.dias)>0?Math.round(P(C.dias)):D.dias,w1=wD(t1),N1=Math.floor(dmK(0,w1)*Vs[0]*1000/w1);N0=Math.ceil(N1/sv(t1));orig=`tanque 1 cheio em ${t1} dias`}}
+  else{const wF0=wD(dAlvo),Nf=Math.floor(dmK(L,wF0)*Vs[L]*1000/wF0);N0=Math.ceil(Nf/sv(dAlvo));orig=`tanque final de ${F(Vs[L])} m³ cheio na despesca`}
+  const B0=N0*w0/1000;if(B0>dmK(0,w0)*Vs[0])return {erro:`${F(N0)} alevinos já passam da capacidade do tanque 1 de ${F(Vs[0])} m³ no povoamento: aumente o primeiro volume ou diminua a quantidade.`};
+  const R=[];let k=0,cur={k:0,de:0,wi:w0,Ni:N0,Bi:B0},falta=null;
+  for(let d=1;d<=dAlvo;d++){const w=wD(d),N=N0*sv(d),B=N*w/1000,w2=wD(d+1),B2=N0*sv(d+1)*w2/1000;
+    while(k<L&&(B>=dmK(k,w)*Vs[k]*0.999||B2>dmK(k,w2)*Vs[k])){R.push({...cur,V:Vs[k],ate:d,wf:w,Nf:N,Bf:B,dm:dmK(k,w)});k++;cur={k,de:d,wi:w,Ni:N,Bi:B}}
+    if(k===L&&!falta&&B>dmK(L,w)*Vs[L]*1.01)falta={d,w,B}}
+  const wF=wD(dAlvo),NF=N0*sv(dAlvo);R.push({...cur,V:Vs[k],ate:dAlvo,wf:wF,Nf:NF,Bf:NF*wF/1000,dm:dmK(k,wF),fim:true});
+  R.forEach(f=>{f.dias=f.ate-f.de;f.dtDe=ini+f.de*DAY;f.dtAte=ini+f.ate*DAY;f.ocE=f.Bi/(dmK(f.k,f.wi)*f.V);f.ocS=f.Bf/(f.dm*f.V)});
+  const nao=Vs.slice(k+1),gar=R.reduce((a,f)=>f.dias>a.dias?f:a,R[0]),usado=R.reduce((a,f)=>a+f.V,0);
+  return {prog:true,sp,S,N0,orig,R,Vs,nao,falta,gar,usado,dAlvo,ini,mort,rit,precisa:falta?R[R.length-1].Bf/R[R.length-1].dm:null,lotesAno:365/Math.max(1,gar.dias)}}
+/* volumes equilibrados: cada tanque fica o mesmo número de dias (o do tanque 1), até a despesca */
+function equilibra(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort):T(()=>bioParams().mort*100,1.5))/100,sv=d=>Math.pow(1-mort,d/30);
+  const base=dmBase(sp,C.sis),V1=listaV()[0]||P(C.V1)||32,d0=dayOf(S,w0),wD=d=>wAt(S,d0+d*rit),dAlvo=Math.max(2,Math.round((dayOf(S,S.alvo)-d0)/rit));
+  const t=Math.max(5,P(C.dias)>0?Math.round(P(C.dias)):D.dias),w1=wD(t),N0=Math.floor(base*fFase(sp,w1)*V1*1000/w1)/sv(t);
+  const bonito=v=>v<=40?Math.ceil(v/2)*2:v<=120?Math.ceil(v/4)*4:v<=400?Math.ceil(v/10)*10:Math.ceil(v/50)*50;
+  const V=[V1];for(let d=2*t;;d+=t){const dd=dAlvo-d<t*.5?dAlvo:Math.min(d,dAlvo),w=wD(dd),B=N0*sv(dd)*w/1000;V.push(bonito(B/(base*fFase(sp,w))));if(dd>=dAlvo||V.length>=12)break}
+  C.vols=V.join(", ");C.qdef="t1";C.modo="dias";C.dias=String(t);C.dmp={}}
+function esquemaProg(X){const R=X.R,mx=Math.max(...R.map(f=>f.V)),W=Math.max(640,R.length*190),H=250,cw=W/R.length;let s="";
+  R.forEach((f,k)=>{const x=k*cw+10,w=cw-20,lado=Math.max(26,Math.sqrt(f.V/mx)*Math.min(w-20,120)),lx=x+w/2-lado/2,ly=58+(120-lado),oc=Math.min(1,f.ocS);
+    s+=`<rect x="${x}" y="6" width="${w}" height="${H-12}" rx="12" fill="#f0fdf4" stroke="#86efac"/><text x="${x+w/2}" y="26" text-anchor="middle" font-size="12.5" font-weight="700" fill="#064e3b">Tanque ${k+1} · ${F(f.V)} m³</text><text x="${x+w/2}" y="42" text-anchor="middle" font-size="11" fill="#065f46">dia ${F(f.de)} → ${F(f.ate)} · ${F(f.dias)} dias</text>`;
+    s+=`<rect x="${lx}" y="${ly}" width="${lado}" height="${lado}" rx="5" fill="#e0f2fe" stroke="#0369a1"/><rect x="${lx}" y="${ly+lado*(1-oc)}" width="${lado}" height="${lado*oc}" rx="5" fill="${f.fim&&X.falta?"#f87171":"#4ade80"}" opacity=".85"/>`;
+    s+=`<text x="${x+w/2}" y="${H-52}" text-anchor="middle" font-size="11" fill="#064e3b">${Fw(f.wi)} → ${Fw(f.wf)} g</text><text x="${x+w/2}" y="${H-36}" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">${F(f.Bf)} kg · ${F(f.ocS*100)} % cheio</text><text x="${x+w/2}" y="${H-20}" text-anchor="middle" font-size="10.5" fill="#047857">${f.fim?"despesca":"muda"} em ${dBR(f.dtAte)}</text>`;
+    if(k<R.length-1)s+=`<path d="M${x+w+1} ${H/2} l16 0" stroke="#047857" stroke-width="2.5" marker-end="url(#cs-ar2)"/>`});
+  return `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Tanques com volumes progressivos"><defs><marker id="cs-ar2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#047857"/></marker></defs>${s}</svg></div>`}
+function htmlProg(X){if(X.erro)return `<div class="body"><p class="hint" style="color:#b91c1c">⚠️ ${E(X.erro)}</p></div>`;const R=X.R,u=R[R.length-1];
+  return `<div class="body"><div class="gfh-kpis bx-kpis cs-kp">
+    <div class="hk"><div><span class="hk-l">Alevinos para povoar</span><b>${F(X.N0)}</b><small>pelo ${E(X.orig)} · ${F(X.N0/R[0].V)} por m³ no tanque 1</small></div></div>
+    <div class="hk"><div><span class="hk-l">Ciclo até a despesca</span><b>${F(X.dAlvo)} dias</b><small>${F(u.Nf)} animais · ${F(u.Bf)} kg de ${Fw(u.wf)} g em ${dBR(u.dtAte)}</small></div></div>
+    <div class="hk"><div><span class="hk-l">Volume usado</span><b>${F(X.usado)} m³</b><small>${R.length} tanque(s) em sequência${X.nao.length?` · sobram ${X.nao.map(v=>F(v)+" m³").join(", ")} sem uso`:""}</small></div></div>
+    <div class="hk${X.falta?" hk-warn":""}"><div><span class="hk-l">${X.falta?"Falta volume no último tanque":"Produção escalonada"}</span><b>${X.falta?F(Math.ceil(X.precisa))+" m³":F(X.lotesAno,1)+" lotes/ano"}</b><small>${X.falta?`o tanque de ${F(u.V)} m³ enche no dia ${F(X.falta.d)} (${Fw(X.falta.w)} g): aumente o último volume, acrescente um tanque ou faça despesca parcial`:`um lote novo a cada ${F(X.gar.dias)} dias (gargalo: tanque ${R.indexOf(X.gar)+1} de ${F(X.gar.V)} m³) · ≈ ${F(u.Bf*X.lotesAno/1000,1)} t/ano`}</small></div></div></div>
+   ${esquemaProg(X)}
+   <div class="scroll"><table class="lot cs-tab"><thead><tr><th class="l">Tanque</th><th>Volume<small>m³</small></th><th class="l">Permanência</th><th>Peso<small>g entra → sai</small></th><th>Animais<small>entram → saem</small></th><th>Biomassa<small>kg entra → sai</small></th><th>DM<small>kg/m³</small></th><th>Ocupação<small>entra → sai</small></th></tr></thead><tbody>
+   ${R.map((f,k)=>`<tr${f.fim&&X.falta?' class="cs-bad"':""}><td class="l"><b>Tanque ${k+1}</b><br><small>${E(nomeFase(X.sp,f.wi))} → ${E(nomeFase(X.sp,f.wf))}</small></td><td>${F(f.V)}</td><td class="l"><small>dia ${F(f.de)} a ${F(f.ate)} · <b>${F(f.dias)} dias</b><br>${dBR(f.dtDe)} a ${dBR(f.dtAte)}</small></td><td>${Fw(f.wi)} → ${Fw(f.wf)}</td><td>${F(f.Ni)} → ${F(f.Nf)}</td><td>${F(f.Bi)} → ${F(f.Bf)}</td><td><input class="cs-n" data-cs-dmp="${k}" value="${F(f.dm,1)}" aria-label="Densidade máxima do tanque"></td><td>${F(f.ocE*100)} % → ${F(f.ocS*100)} %</td></tr>`).join("")}</tbody></table></div>
+   <p class="hint">Como ler: o lote entra no tanque 1 e muda para o próximo tanque no dia em que a biomassa chega à densidade máxima (DM × volume). Cada tanque só recebe o lote quando o anterior enche, e na produção escalonada o ritmo de povoamento é dado pelo tanque em que o lote fica mais tempo (o gargalo). Para um sistema equilibrado, use <b>🪄 Equilibrar os volumes</b>: cada tanque fica o mesmo número de dias que o tanque 1, e o tanque 1 pode receber um lote novo a cada desdobramento.</p></div>`}
+
 /* ---------- desenho ---------- */
 function esquema(X){const R=X.R,W=Math.max(640,R.length*210),H=220,cw=W/R.length;let s="";
   R.forEach((f,k)=>{const x=k*cw+12,w=cw-24,n=Math.min(f.i===0?1:Math.max(1,f.novos+(f.reuso>0?1:0)),24),cols=Math.min(n,6),rows=Math.ceil(n/cols),bw=Math.min(26,(w-8)/cols-4),bh=Math.min(22,90/rows-4);
@@ -15803,18 +15847,21 @@ function esquema(X){const R=X.R,W=Math.max(640,R.length*210),H=220,cw=W/R.length
     s+=`${tq0?`<text x="${x+w/2}" y="${H-76}" text-anchor="middle" font-size="10.5" fill="#0e7490">${E(tq0)}</text>`:""}<text x="${x+w/2}" y="${H-60}" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">${E(tq)}</text><text x="${x+w/2}" y="${H-44}" text-anchor="middle" font-size="11" fill="#064e3b">${F(f.Nf)} animais · ${F(f.Bf)} kg</text><text x="${x+w/2}" y="${H-28}" text-anchor="middle" font-size="10.5" fill="#047857">DM ${F(f.dm,1)} kg/m³ · ${dBR(f.ate)}</text>`;
     if(k<R.length-1)s+=`<path d="M${x+w+2} ${H/2} l16 0" stroke="#047857" stroke-width="2.5" marker-end="url(#cs-ar)"/>`});
   return `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Esquema dos tanques por fase"><defs><marker id="cs-ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#047857"/></marker></defs>${s}</svg></div>`}
-function html(){const D=padroes(),X=calcula(),sp=D.sp,S=D.S;
+function html(){const D=padroes(),PR=C.tipo==="prog",X=PR?calcProg():calcula(),sp=D.sp,S=D.S;
   const inp=(k,l,v,u,tp)=>`<label class="ctl">${l}<span class="inp"><input data-cs="${k}" value="${E(v??"")}"${tp?` type="${tp}"`:' inputmode="decimal"'}>${u?`<u>${u}</u>`:""}</span></label>`;
   const ctl=`<div class="body bio-ctrl cs-ctl">
     <label class="ctl">Espécie<span class="inp"><select data-cs="sp">${Object.entries(SPECIES).map(([k,s])=>`<option value="${k}"${k===sp?" selected":""}>${E(s.name)}</option>`).join("")}</select></span></label>
     <label class="ctl">Sistema de cultivo<span class="inp"><select data-cs="sis">${Object.entries(SIS).map(([k,t])=>`<option value="${k}"${k===C.sis?" selected":""}${(DMREF[sp]||{})[k]?"":" disabled"}>${t} · DM ${F(dmBase(sp,k),1)} kg/m³</option>`).join("")}</select></span></label>
-    ${inp("V1","Tanque 1 (povoamento)",C.V1,"m³")}${inp("w0","Peso no povoamento",C.w0,"g")}
-    <div class="ctl">Calcular por<div class="seg" role="group"><button type="button" class="btn" data-cs-modo="dias" aria-pressed="${C.modo!=="n"}">Dias no tanque 1</button><button type="button" class="btn" data-cs-modo="n" aria-pressed="${C.modo==="n"}">Quantidade de alevinos</button></div></div>
-    ${C.modo==="n"?inp("n0","Alevinos no tanque 1",C.n0,"un."):inp("dias","Dias no tanque 1",C.dias||D.dias,"dias")}
+    <div class="ctl cs-tipo">Desenho do sistema<div class="seg" role="group"><button type="button" class="btn" data-cs-tipo="prog" aria-pressed="${PR}">Volumes progressivos</button><button type="button" class="btn" data-cs-tipo="fases" aria-pressed="${!PR}">Tanques iguais por fase</button></div></div>
+    ${PR?`<label class="ctl cs-vols">Volumes dos tanques em sequência<span class="inp"><input data-cs="vols" value="${E(C.vols)}" placeholder="32, 64, 100, 200, 300"><u>m³</u></span></label>`:inp("V1","Tanque 1 (povoamento)",C.V1,"m³")}${inp("w0","Peso no povoamento",C.w0,"g")}
+    ${PR?`<label class="ctl">Quantidade de alevinos pelo<span class="inp"><select data-cs="qdef"><option value="final"${C.qdef!=="t1"?" selected":""}>tanque final cheio na despesca</option><option value="t1"${C.qdef==="t1"?" selected":""}>tanque 1 cheio</option></select></span></label>`:""}
+    ${PR&&C.qdef!=="t1"?"":`<div class="ctl">Calcular por<div class="seg" role="group"><button type="button" class="btn" data-cs-modo="dias" aria-pressed="${C.modo!=="n"}">Dias no tanque 1</button><button type="button" class="btn" data-cs-modo="n" aria-pressed="${C.modo==="n"}">Quantidade de alevinos</button></div></div>
+    ${C.modo==="n"?inp("n0","Alevinos no tanque 1",C.n0,"un."):inp("dias","Dias no tanque 1",C.dias||D.dias,"dias")}`}
     ${inp("ini","Povoamento",C.ini,"","date")}${inp("mort","Mortalidade",C.mort!==""?C.mort:F(T(()=>bioParams().mort*100,1.5),1),"% ao mês")}
-    <label class="opts"><input type="checkbox" data-cs="esc"${C.esc?" checked":""}> Produção escalonada: povoar o tanque 1 de novo a cada ${X&&X.t1?F(X.t1)+" dias":"ciclo do berçário"}</label>
-    ${C.esc?"":`<label class="opts"><input type="checkbox" data-cs="reuso"${C.reuso?" checked":""}> Reaproveitar os tanques já cheios nas fases seguintes</label>`}
-    <p class="hint">Crescimento pela curva da espécie com o ritmo da aba (${F(D.rit*100)} %). A densidade máxima de cada fase parte da DM do sistema${C.sis==="ras"&&dmCalc(sp)?" (a da Calculadora)":" (referência)"} × fase: alevinagem 50 %, recria 80 %, engorda 100 % — edite na tabela.</p></div>`;
+    ${PR?`<div class="cs-eq"><button type="button" class="btn" data-cs-a="equil">🪄 Equilibrar os volumes</button><small>cada tanque com o mesmo tempo de permanência do tanque 1 (${F(P(C.dias)>0?P(C.dias):D.dias)} dias), até a despesca</small></div>`:`<label class="opts"><input type="checkbox" data-cs="esc"${C.esc?" checked":""}> Produção escalonada: povoar o tanque 1 de novo a cada ${X&&X.t1?F(X.t1)+" dias":"ciclo do berçário"}</label>
+    ${C.esc?"":`<label class="opts"><input type="checkbox" data-cs="reuso"${C.reuso?" checked":""}> Reaproveitar os tanques já cheios nas fases seguintes</label>`}`}
+    <p class="hint">Crescimento pela curva da espécie com o ritmo da aba (${F(D.rit*100)} %). A densidade máxima de cada fase parte da DM do sistema${C.sis==="ras"&&dmCalc(sp)?" (a da Calculadora)":" (referência)"} × fase: sobe de 50 % no alevino até 100 % a partir de ${sp==="camarao"?"5":"150"} g — edite na tabela.</p></div>`;
+  if(PR)return ctl+htmlProg(X);
   if(X.erro)return ctl+`<div class="body"><p class="hint" style="color:#b91c1c">⚠️ ${E(X.erro)}</p></div>`;
   const f1=X.R[0],f2=X.R[1];
   return ctl+`<div class="body"><div class="gfh-kpis bx-kpis cs-kp">
@@ -15836,21 +15883,24 @@ function card(){const v=document.getElementById("view-bio");if(!v)return null;le
   if(!v.contains(c)){const a=v.querySelector("#plan-card");if(a&&a.nextSibling)v.insertBefore(c,a.nextSibling);else v.appendChild(c)}return c}
 function desenha(forca){const c=card();if(!c||document.getElementById("view-bio").hidden)return;const b=document.getElementById("cs-body"),a=document.activeElement;if(!forca&&b.contains(a)&&/INPUT|SELECT/.test(a.tagName))return;const h=T(html,"<div class='body'><p class='hint'>Não foi possível montar o planejamento.</p></div>");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
 const refaz=()=>{const a=document.activeElement;if(a&&a.closest&&a.closest("#cs-card"))try{a.blur()}catch(_){}desenha(true)};
-window.gfCascata={calcula,cfg:()=>C,set:o=>{Object.assign(C,o);grava();refaz()}};
+window.gfCascata={calcula,calcProg,equilibra,cfg:()=>C,set:o=>{Object.assign(C,o);grava();refaz()}};
 document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#cs-card"))return;e.stopPropagation();
-  if(t.dataset.cs){const k=t.dataset.cs;C[k]=t.type==="checkbox"?t.checked:t.value;if(k==="sp"){C.w0=C.sp==="camarao"?"0,01":"0,5";C.fases=null;C.dm={};C.vt={};C.dias="";if(!(DMREF[C.sp]||{})[C.sis])C.sis="bft"}if(k==="sis")C.dm={};if(k==="w0")C.dias="";grava();refaz();return}
+  if(t.dataset.cs){const k=t.dataset.cs;C[k]=t.type==="checkbox"?t.checked:t.value;if(k==="sp"){C.w0=C.sp==="camarao"?"0,01":"0,5";C.fases=null;C.dm={};C.vt={};C.dias="";if(!(DMREF[C.sp]||{})[C.sis])C.sis="bft"}if(k==="sis"){C.dm={};C.dmp={}}if(k==="vols")C.dmp={};if(k==="w0")C.dias="";grava();refaz();return}
   if(t.dataset.csF!=null){const X=calcula();const L=(X.R||[]).slice(1).map(f=>f.wf);L[+t.dataset.csF]=P(t.value);C.fases=L.filter(x=>x>0);grava();refaz();return}
+  if(t.dataset.csDmp!=null){C.dmp=Object.assign({},C.dmp,{[t.dataset.csDmp]:t.value});grava();refaz();return}
   if(t.dataset.csDm!=null){C.dm=Object.assign({},C.dm,{[t.dataset.csDm]:t.value});grava();refaz();return}
   if(t.dataset.csVt!=null){C.vt=Object.assign({},C.vt,{[t.dataset.csVt]:t.value});grava();refaz()}},true);
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#cs-card"))e.stopPropagation()},true);
-document.addEventListener("click",e=>{const m=e.target.closest&&e.target.closest("#cs-card [data-cs-modo]");if(m){C.modo=m.dataset.csModo;if(C.modo==="n"&&!(P(C.n0)>0)){const X=calcula();if(X&&X.N0)C.n0=String(X.N0)}grava();refaz();return}
+document.addEventListener("click",e=>{const tp=e.target.closest&&e.target.closest("#cs-card [data-cs-tipo]");if(tp){C.tipo=tp.dataset.csTipo;grava();refaz();return}
+  if(e.target.closest&&e.target.closest('#cs-card [data-cs-a="equil"]')){equilibra();grava();refaz();return}
+  const m=e.target.closest&&e.target.closest("#cs-card [data-cs-modo]");if(m){C.modo=m.dataset.csModo;if(C.modo==="n"&&!(P(C.n0)>0)){const X=calcula();if(X&&X.N0)C.n0=String(X.N0)}grava();refaz();return}
   const a=e.target.closest&&e.target.closest("#cs-card [data-cs-a]");if(!a)return;const X=calcula(),L=(X.R||[]).slice(1).map(f=>f.wf);
   if(a.dataset.csA==="add"){const S=padroes().S,u=L.length?L[L.length-1]:S.alvo;L.push(Math.round(u*1.3));C.fases=L}
   if(a.dataset.csA==="del"){L.pop();C.fases=L;const n=L.length+1;const dm={...C.dm},vt={...C.vt};delete dm[n];delete vt[n];C.dm=dm;C.vt=vt}
   if(a.dataset.csA==="reset"){C.fases=null;C.dm={};C.vt={};C.dias=""}
   grava();refaz()},true);
 function inicia(){if(typeof setView!=="function"||!document.getElementById("view-bio")||typeof SPECIES==="undefined"){setTimeout(inicia,300);return}
-  const st=document.createElement("style");st.textContent=`#cs-card .cs-ctl{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:10px 14px;align-items:end}#cs-card .cs-ctl .hint{flex-basis:100%;margin:0}#cs-card .cs-ctl .opts{flex-basis:100%;display:flex;gap:6px;align-items:center;font-size:13.5px}#cs-card .body{display:grid;gap:10px}.cs-kp .hk-warn b{color:#b45309}.cs-tab input{width:64px;padding:3px 6px;font:inherit;font-size:13px;text-align:right}.cs-tab td,.cs-tab th{vertical-align:middle}.cs-tab td.l small{color:var(--muted)}#cs-card svg{display:block;max-width:none}#cs-card .cs-ctl .ctl{min-width:150px;flex:0 1 auto}#cs-card .cs-ctl select{min-width:150px}`;document.head.appendChild(st);
+  const st=document.createElement("style");st.textContent=`#cs-card .cs-ctl{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:10px 14px;align-items:end}#cs-card .cs-ctl .hint{flex-basis:100%;margin:0}#cs-card .cs-ctl .opts{flex-basis:100%;display:flex;gap:6px;align-items:center;font-size:13.5px}#cs-card .body{display:grid;gap:10px}.cs-kp .hk-warn b{color:#b45309}.cs-tab input{width:64px;padding:3px 6px;font:inherit;font-size:13px;text-align:right}.cs-tab td,.cs-tab th{vertical-align:middle}.cs-tab td.l small{color:var(--muted)}#cs-card svg{display:block;max-width:none}#cs-card .cs-vols{min-width:260px!important}#cs-card .cs-vols .inp{min-width:280px;width:auto}#cs-card .cs-vols input{min-width:230px;width:100%}.cs-eq{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.cs-eq small{color:var(--muted)}.cs-tab tr.cs-bad td{background:#fef2f2}#cs-card .cs-ctl .ctl{min-width:150px;flex:0 1 auto}#cs-card .cs-ctl select{min-width:150px}`;document.head.appendChild(st);
   const o=setView;setView=function(v){o(v);if(v==="bio")setTimeout(()=>desenha(),150)};
   if(typeof drawBio==="function"){const d=drawBio;drawBio=function(){d.apply(this,arguments);clearTimeout(desenha.t);desenha.t=setTimeout(()=>desenha(),90)}}
   setTimeout(()=>desenha(),1600)}
