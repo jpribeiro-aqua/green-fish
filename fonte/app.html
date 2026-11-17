@@ -14044,7 +14044,7 @@ function oferta(A,R){const o={em:Date.now(),need:R.need,needSrc:R.needSrc,semana
 function avisos(A){if(!corr("bio_todos"))return;const vistos=rd(SEEN,{}),novos=[];
   for(const l of A){if(l.s.n<2)continue;const v=vistos[l.id]||0;if(l.s.n>v){novos.push(l);vistos[l.id]=l.s.n}}
   for(const k of Object.keys(vistos))if(!A.some(l=>l.id===k))delete vistos[k];wr(SEEN,vistos);
-  if(!novos.length)return;const t=novos.length===1?`${NIV[novos[0].s.n][0]} ${novos[0].proj} · ${novos[0].g}: ${NIV[novos[0].s.n][1].toLowerCase()} (${dBR(novos[0].h)}, ≈ ${F(novos[0].bF)} kg)`:`${novos.length} lotes mudaram de situação: ${novos.slice(0,3).map(l=>`${NIV[l.s.n][0]} ${l.g}`).join(", ")}${novos.length>3?"…":""}`;
+  if(!novos.length)return;try{window.gfPisca&&gfPisca(novos.map(l=>l.id))}catch(e){}const t=novos.length===1?`${NIV[novos[0].s.n][0]} ${novos[0].proj} · ${novos[0].g}: ${NIV[novos[0].s.n][1].toLowerCase()} (${dBR(novos[0].h)}, ≈ ${F(novos[0].bF)} kg)`:`${novos.length} lotes mudaram de situação: ${novos.slice(0,3).map(l=>`${NIV[l.s.n][0]} ${l.g}`).join(", ")}${novos.length>3?"…":""}`;
   toast(t);if(cfg().notif&&window.Notification&&Notification.permission==="granted"){try{navigator.serviceWorker&&navigator.serviceWorker.ready.then(r=>r.showNotification("Green Fish · Beneficiamento",{body:t.replace(/<[^>]+>/g,""),tag:"gf-prev",icon:"icon-192.png"})).catch(()=>{})}catch(e){}}}
 function toast(t){let b=document.getElementById("gfp-toast");if(!b){b=document.createElement("div");b.id="gfp-toast";b.setAttribute("role","status");document.body.appendChild(b)}
   b.innerHTML=`<span>${E(t)}</span><button type="button" data-gfp="ver">Ver no Beneficiamento</button><button type="button" data-gfp="x" aria-label="Fechar">✕</button>`;b.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>{b.hidden=true},20000)}
@@ -15910,6 +15910,36 @@ function inicia(){if(typeof setView!=="function"||!document.getElementById("view
   const o=setView;setView=function(v){o(v);if(v==="bio")setTimeout(()=>desenha(),150)};
   if(typeof drawBio==="function"){const d=drawBio;drawBio=function(){d.apply(this,arguments);clearTimeout(desenha.t);desenha.t=setTimeout(()=>desenha(),90)}}
   setTimeout(()=>desenha(),1600)}
+inicia();
+})();
+</script>
+<script>
+/* ===================== v270: aviso novo da Biomassa pisca na aba Beneficiamento por alguns instantes ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="greenfish-prev-pisca",DUR=9000;
+const rd=()=>{try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return {}}},wr=v=>{try{localStorage.setItem(K,JSON.stringify(v))}catch(e){}};
+/* chamado pelos avisos da Biomassa: guarda os lotes que acabaram de mudar de situação */
+window.gfPisca=ids=>{const P=rd(),t=Date.now();(ids||[]).forEach(id=>{P[id]=t});for(const k in P)if(t-P[k]>7*864e5)delete P[k];wr(P);marcaAba();aplica()};
+function marcaAba(){const tem=Object.keys(rd()).length>0;document.querySelectorAll('.tab[data-view="benef"],[data-goto="benef"],#gf-side [data-view="benef"]').forEach(b=>b.classList.toggle("gfp-tabpisca",tem))}
+const visivel=()=>{const v=document.getElementById("view-benef");return v&&!v.hidden&&v.offsetParent!==null};
+function aplica(){if(!visivel())return;const P=rd(),ids=Object.keys(P);if(!ids.length)return;const v=document.getElementById("view-benef");let primeiro=null,achou=[];
+  v.querySelectorAll(".gfp-av .gfp-it").forEach(it=>{const b=it.querySelector("[data-id]"),id=b&&b.dataset.id;if(id&&P[id]!=null){it.classList.remove("gfp-pisca");void it.offsetWidth;it.classList.add("gfp-pisca");achou.push(id);if(!primeiro)primeiro=it;clearTimeout(it.__pt);it.__pt=setTimeout(()=>it.classList.remove("gfp-pisca"),DUR)}});
+  if(!achou.length)return;
+  /* depois de piscar na tela, o aviso deixa de ser novo */
+  setTimeout(()=>{const Q=rd();achou.forEach(id=>delete Q[id]);wr(Q);marcaAba()},DUR);
+  if(aplica.rola&&primeiro){aplica.rola=false;try{primeiro.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest('#gfp-toast [data-gfp="ver"]')){aplica.rola=true;setTimeout(aplica,500);setTimeout(aplica,1500)}},true);
+function inicia(){if(typeof setView!=="function"){setTimeout(inicia,300);return}
+  const st=document.createElement("style");st.textContent=`@keyframes gfpPisca{0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,0);background:var(--bg)}50%{box-shadow:0 0 0 4px rgba(245,158,11,.85);background:#fef3c7}}
+.gfp-it.gfp-pisca{animation:gfpPisca .9s ease-in-out 10}
+@keyframes gfpTab{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 3px rgba(245,158,11,.9);background:#fef3c7;color:#92400e}}
+.gfp-tabpisca{animation:gfpTab 1.2s ease-in-out infinite;border-radius:10px}
+@media (prefers-reduced-motion:reduce){.gfp-it.gfp-pisca{animation:none;outline:3px solid #f59e0b;background:#fef3c7}.gfp-tabpisca{animation:none;outline:2px solid #f59e0b}}`;document.head.appendChild(st);
+  const o=setView;setView=function(v){o(v);if(v==="benef"){setTimeout(aplica,300);setTimeout(aplica,1200)}};
+  /* o quadro de avisos é redesenhado a cada minuto: volta a piscar enquanto o aviso ainda for novo */
+  new MutationObserver(()=>{clearTimeout(inicia.t);inicia.t=setTimeout(aplica,120)}).observe(document.getElementById("view-benef")||document.body,{childList:true,subtree:true});
+  marcaAba();setTimeout(aplica,2000)}
 inicia();
 })();
 </script>
