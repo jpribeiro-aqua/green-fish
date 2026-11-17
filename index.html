@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v276";
+  it.querySelector("code").textContent=msg;const ver="ras-v277";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v276";
+  const APP_VERSAO="ras-v277";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17740,14 +17740,14 @@ function calcula(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort
   lim.forEach((wf,k)=>{const i=k+1,dd=Math.max(1,Math.round((dayOf(S,wf)-dayOf(S,wa))/rit)),Nf=Math.round(Na*sv(dd)),Bf=Nf*wf/1000,dm=dmDe(i,wf),V=Bf/dm,vt=tamDe(i);
     const lotes=C.esc?Math.max(1,Math.ceil(dd/t1)):1;let novos,reuso=0,usa;
     if(C.esc){novos=Math.ceil(V/vt-1e-9)*lotes;usa=[[vt,Math.ceil(V/vt-1e-9),0]];volConstr+=novos*vt}
-    else if(C.reuso){const Vex=inv.reduce((a,[v,n])=>a+v*n,0);reuso=Vex;novos=Math.max(0,Math.ceil((V-Vex)/vt-1e-9));const ix=inv.findIndex(x=>x[0]===vt);if(novos){if(ix>=0)inv[ix][1]+=novos;else inv.push([vt,novos])}volConstr+=novos*vt;
-      usa=inv.map(([v,n])=>[v,n,v===vt?novos:0])}
-    else{novos=Math.ceil(V/vt-1e-9);usa=[[vt,novos,novos]];volConstr+=novos*vt}
+    else{const nT=Math.ceil(V/vt-1e-9),ix=inv.findIndex(x=>x[0]===vt),tem=C.reuso&&ix>=0?inv[ix][1]:0;novos=Math.max(0,nT-tem);reuso=Math.min(tem,nT)*vt;
+      if(ix>=0)inv[ix][1]+=novos;else inv.push([vt,novos]);volConstr+=novos*vt;usa=[[vt,nT,novos]]}
+
     const ti=tqInfo(usa,Na,Nf,wf);
     const vb=tamBruto(i);R.push({i,vb,limitado:vb>vt+0.01,nome:i===lim.length?"Engorda até a despesca":`Fase ${i+1}`,fase:nomeFase(sp,wf),wi:wa,wf,dias:dd,de:ta,ate:ta+dd*DAY,Ni:Na,Nf,dm,Bf,V,vt,novos,reuso,lotes,denI:Na*wa/1000/ti.Vu,ocS:Bf/(dm*ti.Vu),...ti});
     wa=wf;Na=Nf;ta+=dd*DAY});
   const totV=volConstr,ult=R[R.length-1],ciclo=Math.round((ult.ate-ini)/DAY);
-  return {sp,S,sis,rit,mort,V1,Vs,vMax,N0,R,totV,ciclo,ult,lotesAno:C.esc?365/t1:365/ciclo,t1}}
+  return {sp,S,sis,rit,mort,V1,Vs,vMax,inv:C.esc?Object.entries(R.reduce((m,f)=>{m[f.vt]=(m[f.vt]||0)+(f.i?f.novos:1);return m},{})).map(([v,n])=>[+v,n]):inv,N0,R,totV,ciclo,ult,lotesAno:C.esc?365/t1:365/ciclo,t1}}
 /* ---------- v265: tanques em sequência (mantido para consulta: gfCascata.calcProg) ---------- */
 function calcProg(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort):T(()=>bioParams().mort*100,1.5))/100,sv=d=>Math.pow(1-mort,d/30);
   const Vs=listaV();if(Vs.length<2)return {erro:"Informe pelo menos dois volumes em sequência, separados por vírgula (ex.: 32, 64, 100, 200, 300)."};
@@ -17815,14 +17815,14 @@ function html(){const D=padroes(),X=calcula(),sp=D.sp,S=D.S;
     ${C.modo==="n"?inp("n0","Alevinos no tanque 1",C.n0,"un."):inp("dias","Dias para o tanque 1 encher",C.dias||D.dias,"dias")}
     ${inp("ini","Povoamento",C.ini,"","date")}${inp("mort","Mortalidade",C.mort!==""?C.mort:F(T(()=>bioParams().mort*100,1.5),1),"% ao mês")}
     <label class="opts"><input type="checkbox" data-cs="esc"${C.esc?" checked":""}> Produção escalonada: povoar o tanque 1 de novo a cada ${X&&X.t1?F(X.t1)+" dias":"ciclo do berçário"} (cada fase com tanques próprios)</label>
-    ${C.esc?"":`<label class="opts"><input type="checkbox" data-cs="reuso"${C.reuso?" checked":""}> Reaproveitar os tanques das fases anteriores, inclusive o tanque 1, e repovoar todos a cada fase</label>`}
+    ${C.esc?"":`<label class="opts"><input type="checkbox" data-cs="reuso"${C.reuso?" checked":""}> Reaproveitar tanques do mesmo volume já construídos (quando a lista repete um volume)</label>`}
     <p class="hint">O 1º volume é o do tanque 1; cada fase seguinte usa o volume seguinte da lista (a última fase repete o último). Os tanques só têm os volumes da lista e nenhum passa do maior deles (${F(Math.max(...listaV().concat([0])))} m³): quando a fase precisa de mais espaço, o app aumenta o <b>número</b> de tanques. Crescimento pela curva da espécie com o ritmo da aba (${F(D.rit*100)} %); a densidade máxima parte da DM do sistema${C.sis==="ras"&&dmCalc(sp)?" (a da Calculadora)":" (referência)"} e sobe de 50 % no alevino até 100 % a partir de ${sp==="camarao"?"5":"150"} g — edite na tabela.</p></div>`;
   if(X.erro)return ctl+`<div class="body"><p class="hint" style="color:#b91c1c">⚠️ ${E(X.erro)}</p></div>`;
   const f1=X.R[0],f2=X.R[1];
   return ctl+`<div class="body"><div class="gfh-kpis bx-kpis cs-kp">
      <div class="hk"><div><span class="hk-l">Peixes para o tanque 1 de ${F(f1.V)} m³</span><b>${F(X.N0)}</b><small>enche em ${F(f1.dias)} dias (${dBR(f1.ate)}) com ${F(f1.Nf)} peixes de ${Fw(f1.wf)} g · ${F(f1.Bf)} kg</small></div></div>
      ${f2?`<div class="hk hk-warn"><div><span class="hk-l">Desdobramento no dia ${F(f1.dias)}</span><b>${F(f2.Ni)} peixes</b><small>repovoados em ${E(tqTxt(f2))} (${F(f2.Vu)} m³) · ${F(f2.Ni/f2.Vu)} peixes/m³</small></div></div>`:""}
-     <div class="hk"><div><span class="hk-l">Tanques no fim do ciclo</span><b>${F(X.R[X.R.length-1].tq.reduce((a,t)=>a+t.n,0))}</b><small>${E(tqTxt(X.R[X.R.length-1]))}</small></div></div>
+     <div class="hk"><div><span class="hk-l">Tanques a construir</span><b>${F(X.inv.reduce((a,x)=>a+x[1],0))}</b><small>${E(X.inv.filter(x=>x[1]>0).map(([v,n])=>`${F(n)} × ${Fv(v)} m³`).join(" + "))}</small></div></div>
      <div class="hk"><div><span class="hk-l">Volume total construído</span><b>${F(X.totV)} m³</b><small>${C.esc?`produção escalonada · ${F(X.lotesAno,1)} lotes/ano · ${F(X.ult.Bf*X.lotesAno/1000,1)} t/ano`:`ciclo de ${F(X.ciclo)} dias · ${F(X.ult.Bf)} kg na despesca`}</small></div></div></div>
    ${esquema(X)}
    <div class="scroll"><table class="lot cs-tab"><thead><tr><th class="l">Fase</th><th>Peso<small>g</small></th><th>Dias</th><th>Peixes<small>entram → saem</small></th><th>Biomassa<small>kg no fim</small></th><th>DM<small>kg/m³</small></th><th>Volume<small>m³ necessário</small></th><th>Tanque novo<small>m³ cada</small></th><th class="l">Tanques da fase<small>peixes por tanque na entrada</small></th><th>Ocupação<small>no fim</small></th></tr></thead><tbody>
@@ -17833,7 +17833,7 @@ function html(){const D=padroes(),X=calcula(),sp=D.sp,S=D.S;
      <td class="l">${f.tq.map(t=>`<div><b>${F(t.n)} × ${Fv(t.v)} m³</b>${t.nv&&f.i&&!C.esc?` <small>(${F(t.nv)} novo${t.nv>1?"s":""})</small>`:""} · ${F(t.pi)} peixes cada → ${F(t.kg)} kg</div>`).join("")}${C.esc&&f.lotes>1?`<small>× ${f.lotes} lotes ao mesmo tempo</small>`:""}</td>
      <td>${F((f.i?f.ocS:f.Bf/(f.dm*f.V))*100)} %</td></tr>`).join("")}</tbody></table></div>
    <div class="gfp-bt"><button type="button" class="pr-mini" data-cs-a="add">＋ Fase</button>${X.R.length>2?`<button type="button" class="pr-mini" data-cs-a="del">− Última fase</button>`:""}<button type="button" class="pr-mini" data-cs-a="reset">↺ Fases e densidades padrão da espécie</button></div>
-   <p class="hint">Como ler: o tanque 1 de ${F(f1.V)} m³ recebe ${F(X.N0)} alevinos e chega à biomassa máxima em ${F(f1.dias)} dias. Nesse dia todos os peixes são repovoados nos tanques da fase seguinte${C.reuso&&!C.esc?", inclusive o próprio tanque 1,":""} com a mesma densidade em todos, e o número de tanques do volume da fase é o suficiente para a biomassa do <b>fim</b> da fase não passar da densidade máxima. O mesmo se repete a cada fase até a despesca. Mortalidade de ${F(X.mort*100,1)} % ao mês aplicada dia a dia.</p></div>`}
+   <p class="hint">Como ler: o tanque 1 de ${F(f1.V)} m³ recebe ${F(X.N0)} alevinos e chega à biomassa máxima em ${F(f1.dias)} dias. Nesse dia todos os peixes são repovoados nos tanques da fase seguinte. Cada fase é um grupo com tanques do mesmo volume (o da lista), todos com a mesma densidade, e o número de tanques do grupo é o suficiente para a biomassa do <b>fim</b> da fase não passar da densidade máxima. O mesmo se repete a cada fase até a despesca. Mortalidade de ${F(X.mort*100,1)} % ao mês aplicada dia a dia.</p></div>`}
 function card(){const v=document.getElementById("view-bio");if(!v)return null;let c=document.getElementById("cs-card");
   if(!c){c=document.createElement("section");c.className="card wide";c.id="cs-card";c.innerHTML=`<div class="card-head"><h2>🧮 Planejamento de tanques em cascata<span>Tanque de povoamento → desdobramento do excedente pelas fases, com a capacidade de biomassa da espécie e do sistema</span></h2></div><div id="cs-body"></div>`}
   if(!v.contains(c)){const a=v.querySelector("#plan-card");if(a&&a.nextSibling)v.insertBefore(c,a.nextSibling);else v.appendChild(c)}return c}
