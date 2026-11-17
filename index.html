@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v267";
+  it.querySelector("code").textContent=msg;const ver="ras-v268";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v267";
+  const APP_VERSAO="ras-v268";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17704,6 +17704,8 @@ const nomeFase=(sp,w)=>T(()=>{const S=SPECIES[sp];return S.phases.find(b=>w<=b[0
 
 let C=Object.assign({tipo:"fases",vols:"32, 64, 100, 200, 300",qdef:"final",dmp:{},sp:"",sis:"ras",V1:"32",w0:"0,5",modo:"dias",dias:"",n0:"",ini:iso(Date.now()),reuso:true,esc:false,mort:"",fases:null,dm:{},vt:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{});
 const grava=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}};
+/* volumes gerados pelo antigo "Equilibrar os volumes" voltam para a sequência padrão (uma vez) */
+if(!C.mig267){if(C.qdef==="t1"&&C.vols!=="32, 64, 100, 200, 300"){C.vols="32, 64, 100, 200, 300";C.vt={};C.dmp={}}C.mig267=true;try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}}
 function spPadrao(){const t=T(()=>tanks.find(x=>x.lot&&x.lot.sp),null);return t?t.lot.sp:"tilapia"}
 function padroes(){const sp=C.sp||spPadrao(),S=SPECIES[sp]||SPECIES.tilapia,w0=P(C.w0)>0?P(C.w0):0.5;
   const lim1=sp==="camarao"?1:(S.phases.map(b=>b[0]).find(x=>x>=20&&x>w0)||30);
@@ -17714,7 +17716,7 @@ function padroes(){const sp=C.sp||spPadrao(),S=SPECIES[sp]||SPECIES.tilapia,w0=P
 const listaV=()=>String(C.vols||"").split(/[;,\s]+/).map(P).filter(v=>v>0);
 function calcula(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort):T(()=>bioParams().mort*100,1.5))/100,sv=d=>Math.pow(1-mort,d/30);
   const Vs=listaV().length?listaV():[P(C.V1)>0?P(C.V1):32],V1=Vs[0],d0=dayOf(S,w0),ini=msD(C.ini)||Date.now(),sis=C.sis;
-  const tamDe=i=>{const o=P((C.vt||{})[i]);return o>0?o:Vs[Math.min(i,Vs.length-1)]};
+  const vMax=P(C.vmax)>0?P(C.vmax):350,parte=v=>{const n=Math.ceil(v/vMax-1e-9);return n>1?Math.round(v/n*10)/10:v};const tamBruto=i=>{const o=P((C.vt||{})[i]);return o>0?o:Vs[Math.min(i,Vs.length-1)]},tamDe=i=>parte(tamBruto(i));
   const dmDe=(i,w)=>{const o=P((C.dm||{})[i]);return o>0?o:+(dmBase(sp,sis)*fFase(sp,w)).toFixed(1)};
   if(!(dmBase(sp,sis)>0))return {erro:`${SIS[sis]} não é indicado para ${S.name.toLowerCase()} neste planejamento.`};
   /* fase 1: o tanque de povoamento enche (biomassa máxima) no dia escolhido → quantos peixes ele comporta */
@@ -17737,10 +17739,10 @@ function calcula(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort
       usa=inv.map(([v,n])=>[v,n,v===vt?novos:0])}
     else{novos=Math.ceil(V/vt-1e-9);usa=[[vt,novos,novos]];volConstr+=novos*vt}
     const ti=tqInfo(usa,Na,Nf,wf);
-    R.push({i,nome:i===lim.length?"Engorda até a despesca":`Fase ${i+1}`,fase:nomeFase(sp,wf),wi:wa,wf,dias:dd,de:ta,ate:ta+dd*DAY,Ni:Na,Nf,dm,Bf,V,vt,novos,reuso,lotes,denI:Na*wa/1000/ti.Vu,ocS:Bf/(dm*ti.Vu),...ti});
+    const vb=tamBruto(i);R.push({i,vb,dividido:vb>vt+0.01?Math.ceil(vb/vMax-1e-9):0,nome:i===lim.length?"Engorda até a despesca":`Fase ${i+1}`,fase:nomeFase(sp,wf),wi:wa,wf,dias:dd,de:ta,ate:ta+dd*DAY,Ni:Na,Nf,dm,Bf,V,vt,novos,reuso,lotes,denI:Na*wa/1000/ti.Vu,ocS:Bf/(dm*ti.Vu),...ti});
     wa=wf;Na=Nf;ta+=dd*DAY});
   const totV=volConstr,ult=R[R.length-1],ciclo=Math.round((ult.ate-ini)/DAY);
-  return {sp,S,sis,rit,mort,V1,Vs,N0,R,totV,ciclo,ult,lotesAno:C.esc?365/t1:365/ciclo,t1}}
+  return {sp,S,sis,rit,mort,V1,Vs,vMax,N0,R,totV,ciclo,ult,lotesAno:C.esc?365/t1:365/ciclo,t1}}
 /* ---------- v265: tanques em sequência (mantido para consulta: gfCascata.calcProg) ---------- */
 function calcProg(){const D=padroes(),{sp,S,w0,rit}=D,mort=(P(C.mort)>=0?P(C.mort):T(()=>bioParams().mort*100,1.5))/100,sv=d=>Math.pow(1-mort,d/30);
   const Vs=listaV();if(Vs.length<2)return {erro:"Informe pelo menos dois volumes em sequência, separados por vírgula (ex.: 32, 64, 100, 200, 300)."};
@@ -17786,16 +17788,16 @@ function htmlProg(X){if(X.erro)return `<div class="body"><p class="hint" style="
    <p class="hint">Como ler: o lote entra no tanque 1 e muda para o próximo tanque no dia em que a biomassa chega à densidade máxima (DM × volume). Cada tanque só recebe o lote quando o anterior enche, e na produção escalonada o ritmo de povoamento é dado pelo tanque em que o lote fica mais tempo (o gargalo).</p></div>`}
 
 /* ---------- desenho ---------- */
-const tqTxt=f=>f.tq.map(t=>`${F(t.n)} × ${F(t.v)} m³`).join(" + ");
+const Fv=v=>F(v,v%1?1:0);const tqTxt=f=>f.tq.map(t=>`${F(t.n)} × ${Fv(t.v)} m³`).join(" + ");
 function esquema(X){const R=X.R,mx=Math.max(...R.flatMap(f=>f.tq.map(t=>t.v))),W=Math.max(640,R.length*220),H=300,cw=W/R.length;let s="";
   R.forEach((f,k)=>{const x=k*cw+10,w=cw-20;s+=`<rect x="${x}" y="6" width="${w}" height="${H-12}" rx="12" fill="${k?"#f0fdf4":"#ecfeff"}" stroke="${k?"#86efac":"#67e8f9"}"/>`;
     s+=`<text x="${x+w/2}" y="26" text-anchor="middle" font-size="12.5" font-weight="700" fill="#064e3b">${E(k?f.fase:"Tanque 1 · "+f.fase)}</text><text x="${x+w/2}" y="42" text-anchor="middle" font-size="11" fill="#065f46">${Fw(f.wi)} → ${Fw(f.wf)} g · ${F(f.dias)} dias</text>`;
     /* tanques desenhados com lado proporcional à raiz do volume; os novos da fase em verde, os reaproveitados em azul */
     const L=[];f.tq.forEach(t=>{for(let j=0;j<t.n;j++)L.push({v:t.v,novo:k===0||j>=t.n-t.nv})});const shown=L.slice(0,30),area={x:x+8,y:52,w:w-16,h:120};
     let cx=area.x,cy=area.y,lin=0;const sz=v=>Math.max(12,Math.sqrt(v/mx)*Math.min(70,area.w/Math.max(2,Math.ceil(Math.sqrt(shown.length)))-4));
-    shown.forEach(t=>{const z=sz(t.v);if(cx+z>area.x+area.w){cx=area.x;cy+=lin+4;lin=0}if(cy+z<=area.y+area.h)s+=`<rect x="${cx}" y="${cy}" width="${z}" height="${z}" rx="3" fill="${t.novo?(k?"#4ade80":"#22d3ee"):"#a5f3fc"}" stroke="#065f46" stroke-width=".8"><title>${F(t.v)} m³</title></rect>`;cx+=z+4;lin=Math.max(lin,z)});
+    shown.forEach(t=>{const z=sz(t.v);if(cx+z>area.x+area.w){cx=area.x;cy+=lin+4;lin=0}if(cy+z<=area.y+area.h)s+=`<rect x="${cx}" y="${cy}" width="${z}" height="${z}" rx="3" fill="${t.novo?(k?"#4ade80":"#22d3ee"):"#a5f3fc"}" stroke="#065f46" stroke-width=".8"><title>${Fv(t.v)} m³</title></rect>`;cx+=z+4;lin=Math.max(lin,z)});
     if(L.length>shown.length)s+=`<text x="${x+w-14}" y="${area.y+area.h}" text-anchor="end" font-size="10.5" fill="#065f46">+${L.length-shown.length}</text>`;
-    f.tq.slice(0,4).forEach((t,q)=>{s+=`<text x="${x+w/2}" y="${H-118+q*14}" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">${F(t.n)} × ${F(t.v)} m³ · ${F(t.pi)} peixes cada</text>`});s+=`<text x="${x+w/2}" y="${H-46}" text-anchor="middle" font-size="11" fill="#064e3b">${F(f.Nf)} animais · ${F(f.Bf)} kg no fim</text><text x="${x+w/2}" y="${H-30}" text-anchor="middle" font-size="10.5" fill="#047857">${F(f.Vu)} m³ · DM ${F(f.dm,1)} kg/m³</text><text x="${x+w/2}" y="${H-16}" text-anchor="middle" font-size="10.5" fill="#047857">${k<R.length-1?"desdobra":"despesca"} em ${dBR(f.ate)}</text>`;
+    f.tq.slice(0,4).forEach((t,q)=>{s+=`<text x="${x+w/2}" y="${H-118+q*14}" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">${F(t.n)} × ${Fv(t.v)} m³ · ${F(t.pi)} peixes cada</text>`});s+=`<text x="${x+w/2}" y="${H-46}" text-anchor="middle" font-size="11" fill="#064e3b">${F(f.Nf)} animais · ${F(f.Bf)} kg no fim</text><text x="${x+w/2}" y="${H-30}" text-anchor="middle" font-size="10.5" fill="#047857">${F(f.Vu)} m³ · DM ${F(f.dm,1)} kg/m³</text><text x="${x+w/2}" y="${H-16}" text-anchor="middle" font-size="10.5" fill="#047857">${k<R.length-1?"desdobra":"despesca"} em ${dBR(f.ate)}</text>`;
     if(k<R.length-1)s+=`<path d="M${x+w+1} ${H/2} l16 0" stroke="#047857" stroke-width="2.5" marker-end="url(#cs-ar)"/>`});
   return `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Esquema dos tanques por fase"><defs><marker id="cs-ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#047857"/></marker></defs>${s}</svg></div>`}
 function html(){const D=padroes(),X=calcula(),sp=D.sp,S=D.S;
@@ -17803,13 +17805,13 @@ function html(){const D=padroes(),X=calcula(),sp=D.sp,S=D.S;
   const ctl=`<div class="body bio-ctrl cs-ctl">
     <label class="ctl">Espécie<span class="inp"><select data-cs="sp">${Object.entries(SPECIES).map(([k,s])=>`<option value="${k}"${k===sp?" selected":""}>${E(s.name)}</option>`).join("")}</select></span></label>
     <label class="ctl">Sistema de cultivo<span class="inp"><select data-cs="sis">${Object.entries(SIS).map(([k,t])=>`<option value="${k}"${k===C.sis?" selected":""}${(DMREF[sp]||{})[k]?"":" disabled"}>${t} · DM ${F(dmBase(sp,k),1)} kg/m³</option>`).join("")}</select></span></label>
-    <label class="ctl cs-vols">Volume dos tanques de cada fase<span class="inp"><input data-cs="vols" value="${E(C.vols)}" placeholder="32, 64, 100, 200, 300"><u>m³</u></span></label>${inp("w0","Peso no povoamento",C.w0,"g")}
+    <label class="ctl cs-vols">Volume dos tanques de cada fase<span class="inp"><input data-cs="vols" value="${E(C.vols)}" placeholder="32, 64, 100, 200, 300"><u>m³</u></span></label>${inp("vmax","Volume máximo por tanque",C.vmax||"350","m³")}${inp("w0","Peso no povoamento",C.w0,"g")}
     <div class="ctl">Calcular por<div class="seg" role="group"><button type="button" class="btn" data-cs-modo="dias" aria-pressed="${C.modo!=="n"}">Dias no tanque 1</button><button type="button" class="btn" data-cs-modo="n" aria-pressed="${C.modo==="n"}">Quantidade de alevinos</button></div></div>
     ${C.modo==="n"?inp("n0","Alevinos no tanque 1",C.n0,"un."):inp("dias","Dias para o tanque 1 encher",C.dias||D.dias,"dias")}
     ${inp("ini","Povoamento",C.ini,"","date")}${inp("mort","Mortalidade",C.mort!==""?C.mort:F(T(()=>bioParams().mort*100,1.5),1),"% ao mês")}
     <label class="opts"><input type="checkbox" data-cs="esc"${C.esc?" checked":""}> Produção escalonada: povoar o tanque 1 de novo a cada ${X&&X.t1?F(X.t1)+" dias":"ciclo do berçário"} (cada fase com tanques próprios)</label>
     ${C.esc?"":`<label class="opts"><input type="checkbox" data-cs="reuso"${C.reuso?" checked":""}> Reaproveitar os tanques das fases anteriores, inclusive o tanque 1, e repovoar todos a cada fase</label>`}
-    <p class="hint">O 1º volume é o do tanque 1; cada fase seguinte usa o volume seguinte da lista (a última fase repete o último). O volume de cada tanque não muda: quando a fase precisa de mais espaço, o app aumenta o <b>número</b> de tanques. Crescimento pela curva da espécie com o ritmo da aba (${F(D.rit*100)} %); a densidade máxima parte da DM do sistema${C.sis==="ras"&&dmCalc(sp)?" (a da Calculadora)":" (referência)"} e sobe de 50 % no alevino até 100 % a partir de ${sp==="camarao"?"5":"150"} g — edite na tabela.</p></div>`;
+    <p class="hint">O 1º volume é o do tanque 1; cada fase seguinte usa o volume seguinte da lista (a última fase repete o último). O volume de cada tanque não muda: quando a fase precisa de mais espaço, o app aumenta o <b>número</b> de tanques. Um volume acima do máximo por tanque vira tanques iguais menores (ex.: 650 m³ com máximo de 350 m³ → 2 × 325 m³). Crescimento pela curva da espécie com o ritmo da aba (${F(D.rit*100)} %); a densidade máxima parte da DM do sistema${C.sis==="ras"&&dmCalc(sp)?" (a da Calculadora)":" (referência)"} e sobe de 50 % no alevino até 100 % a partir de ${sp==="camarao"?"5":"150"} g — edite na tabela.</p></div>`;
   if(X.erro)return ctl+`<div class="body"><p class="hint" style="color:#b91c1c">⚠️ ${E(X.erro)}</p></div>`;
   const f1=X.R[0],f2=X.R[1];
   return ctl+`<div class="body"><div class="gfh-kpis bx-kpis cs-kp">
@@ -17822,8 +17824,8 @@ function html(){const D=padroes(),X=calcula(),sp=D.sp,S=D.S;
    ${X.R.map(f=>`<tr><td class="l"><b>${E(f.i?f.fase:"Tanque 1")}</b><br><small>${f.i?`fase ${f.i+1}`:"povoamento"} · ${dBR(f.de)} a ${dBR(f.ate)}</small></td>
      <td>${f.i?`${Fw(f.wi)} → <input class="cs-w" data-cs-f="${f.i-1}" value="${Fw(f.wf)}" aria-label="Peso no fim da fase">`:`${Fw(f.wi)} → ${Fw(f.wf)}`}</td><td>${F(f.dias)}</td><td>${F(f.Ni)} → ${F(f.Nf)}</td><td>${F(f.Bf)}</td>
      <td><input class="cs-n" data-cs-dm="${f.i}" value="${F(f.dm,1)}" aria-label="Densidade máxima da fase"></td><td>${F(f.V,1)}</td>
-     <td>${f.i?`<input class="cs-n" data-cs-vt="${f.i}" value="${F(f.vt)}" aria-label="Volume de cada tanque novo">`:F(f.V)}</td>
-     <td class="l">${f.tq.map(t=>`<div><b>${F(t.n)} × ${F(t.v)} m³</b>${t.nv&&f.i&&!C.esc?` <small>(${F(t.nv)} novo${t.nv>1?"s":""})</small>`:""} · ${F(t.pi)} peixes cada → ${F(t.kg)} kg</div>`).join("")}${C.esc&&f.lotes>1?`<small>× ${f.lotes} lotes ao mesmo tempo</small>`:""}</td>
+     <td>${f.i?`<input class="cs-n" data-cs-vt="${f.i}" value="${F(f.vb)}" aria-label="Volume de cada tanque novo">${f.dividido?`<br><small>dividido em ${f.dividido} × ${F(f.vt,f.vt%1?1:0)} m³</small>`:""}`:F(f.V)}</td>
+     <td class="l">${f.tq.map(t=>`<div><b>${F(t.n)} × ${Fv(t.v)} m³</b>${t.nv&&f.i&&!C.esc?` <small>(${F(t.nv)} novo${t.nv>1?"s":""})</small>`:""} · ${F(t.pi)} peixes cada → ${F(t.kg)} kg</div>`).join("")}${C.esc&&f.lotes>1?`<small>× ${f.lotes} lotes ao mesmo tempo</small>`:""}</td>
      <td>${F((f.i?f.ocS:f.Bf/(f.dm*f.V))*100)} %</td></tr>`).join("")}</tbody></table></div>
    <div class="gfp-bt"><button type="button" class="pr-mini" data-cs-a="add">＋ Fase</button>${X.R.length>2?`<button type="button" class="pr-mini" data-cs-a="del">− Última fase</button>`:""}<button type="button" class="pr-mini" data-cs-a="reset">↺ Fases e densidades padrão da espécie</button></div>
    <p class="hint">Como ler: o tanque 1 de ${F(f1.V)} m³ recebe ${F(X.N0)} alevinos e chega à biomassa máxima em ${F(f1.dias)} dias. Nesse dia todos os peixes são repovoados nos tanques da fase seguinte${C.reuso&&!C.esc?", inclusive o próprio tanque 1,":""} com a mesma densidade em todos, e o número de tanques do volume da fase é o suficiente para a biomassa do <b>fim</b> da fase não passar da densidade máxima. O mesmo se repete a cada fase até a despesca. Mortalidade de ${F(X.mort*100,1)} % ao mês aplicada dia a dia.</p></div>`}
