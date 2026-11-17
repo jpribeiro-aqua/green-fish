@@ -2140,10 +2140,10 @@ function bxGrupoHTML(x){return `<div class="bx-orow bx-sub${x.real?" bx-isreal":
 function bxOutros(now){let L=[];try{L=window.gfPrev?gfPrev.todos().filter(l=>!l.vivo):[]}catch(e){}if(!L.length)return "";const por={};
   for(const l of L){const v=gfPrev.valor(l,now);if(v.pre)continue;const v1=gfPrev.valor(l,now+DAY),nA=v.w>0?v.b/v.w*1000:0;let b=v.b,w=v.w,dia=(v1.done?0:v1.b-v.b),real=false,fonte=l.cal?`curva corrigida pela biometria de ${fmtDs(l.cal.ts)}`:"estimativa pela curva da espécie";
     if(l.cap>0&&b>=l.cap){real=true;dia=0;if(l.cal&&v.w>0){w=l.cal.pm;b=w*nA/1000;fonte=`real: biometria de ${fmtDs(l.cal.ts)}`}else{b=l.cap;w=nA>0?b/nA*1000:w;fonte="no limite da biomassa máxima: faça uma biometria"}}
-    const P0=por[l.pk]||(por[l.pk]={nome:l.proj,cli:l.cli,bio:0,dia:0,cap:0,G:[]});P0.bio+=b;P0.dia+=dia;P0.cap+=l.cap||0;
+    const P0=por[l.pk]||(por[l.pk]={pk:l.pk,nome:l.proj,cli:l.cli,bio:0,dia:0,cap:0,G:[]});P0.bio+=b;P0.dia+=dia;P0.cap+=l.cap||0;
     P0.G.push({g:l.g,spn:l.spn,q:l.q,b,dia,w,alvo:l.alvo,ph:bxFaseL(l,now)||bxEstagio(w/l.alvo),real,occ:l.cap>0?b/l.cap:NaN,over:!!l.atras,dias:(now-l.st)/DAY,fonte})}
   const R=Object.values(por);if(!R.length)return "";const tot=R.reduce((a,x)=>a+x.bio,0);
-  return `<div class="bx-out"><small>📂 Outras propriedades · fora do projeto aberto · ${R.length} · ${n(tot,0)} kg agora</small><p class="bx-oh">Biomassa dos tanques e viveiros cadastrados nos outros projetos, separada da propriedade aberta. Não entra na biomassa total, na ração nem na ocupação deste projeto.</p>${R.sort((a,b)=>b.bio-a.bio).map(x=>{const o=x.cap>0?x.bio/x.cap:NaN;return `<div class="bx-proj"><div class="bx-orow bx-ph"><span>📂 ${esc(x.nome)}${x.cli?` <i>(${esc(x.cli)})</i>`:""}</span><b>${n(x.bio,0)} kg</b><em>${x.G.length} grupo${x.G.length>1?"s":""} de cultivo${x.dia>0?` · +${n(x.dia,1)} kg/dia no total`:""}${isFinite(o)?` · ${fmt(o*100,1)}% da biomassa máxima`:""}</em></div>${x.G.sort((a,b)=>b.w/b.alvo-a.w/a.alvo).map(bxGrupoHTML).join("")}</div>`}).join("")}</div>`}
+  return `<div class="bx-out"><small>📂 Outras propriedades · fora do projeto aberto · ${R.length} · ${n(tot,0)} kg agora</small><p class="bx-oh">Biomassa dos tanques e viveiros cadastrados nos outros projetos, separada da propriedade aberta. Não entra na biomassa total, na ração nem na ocupação deste projeto.</p>${R.sort((a,b)=>b.bio-a.bio).map(x=>{const o=x.cap>0?x.bio/x.cap:NaN;return `<div class="bx-proj" data-bx-proj="${esc(x.pk)}" role="button" tabindex="0" title="Ver o projeto ${esc(x.nome)}"><div class="bx-orow bx-ph"><span>📂 ${esc(x.nome)}${x.cli?` <i>(${esc(x.cli)})</i>`:""}</span><b>${n(x.bio,0)} kg</b><em>${x.G.length} grupo${x.G.length>1?"s":""} de cultivo${x.dia>0?` · +${n(x.dia,1)} kg/dia no total`:""}${isFinite(o)?` · ${fmt(o*100,1)}% da biomassa máxima`:""}</em></div>${x.G.sort((a,b)=>b.w/b.alvo-a.w/a.alvo).map(bxGrupoHTML).join("")}</div>`}).join("")}</div>`}
 function bxTot(models,now){let b=0,b1=0;for(const m of models){if(!m.ok)continue;b+=m.at(now).bio;b1+=m.at(now+3600e3).bio}return {bio:b,rate:(b1-b)/3600}}
 let bxTimer=null;
 function bxTick(){clearInterval(bxTimer);const el=document.getElementById("bx-num");if(!el)return;const b0=+el.dataset.b,r=+el.dataset.r,t0=+el.dataset.t;
@@ -6845,7 +6845,7 @@ const nomeOk=nome=>{nome=String(nome||"").trim().slice(0,80);if(!nome)throw new 
   if(!logado())throw new Error("Entre na sua conta para criar o projeto.");if(bloq())throw new Error(gate().txt||"Sua conta ainda não pode criar projetos.");
   if(st.list.some(p=>String(p.nome||"").trim().toLowerCase()===nome.toLowerCase()))throw new Error("Já existe um projeto com esse nome: abra-o na pasta de projetos ou use outro nome.");return nome};
 // abrir um projeto salvo (o aberto agora é salvo antes)
-window.projAbrir=id=>abrir(id);
+window.projAbrir=id=>abrir(id);window.projAbrirCliente=(uid,id,editar)=>abrirCliente(uid,id,editar);
 // fechar o projeto aberto: salva, limpa as abas e volta para a escolha de projeto
 window.projFechar=async()=>{const c=atual();try{await autoSalvar(true)}catch(e){}
   restaurar({});localStorage.removeItem(CUR);
@@ -15941,5 +15941,53 @@ function inicia(){if(typeof setView!=="function"){setTimeout(inicia,300);return}
   new MutationObserver(()=>{clearTimeout(inicia.t);inicia.t=setTimeout(aplica,120)}).observe(document.getElementById("view-benef")||document.body,{childList:true,subtree:true});
   marcaAba();setTimeout(aplica,2000)}
 inicia();
+})();
+</script>
+<script>
+/* ===================== v271: Outras propriedades interativo — clicar num projeto mostra o projeto (grupos, biomassa, fases,
+   ocupação, despesca e curva da biomassa) com botão para abrir ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const DAY=864e5,E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const dBR=ms=>isFinite(ms)?new Date(ms).toLocaleDateString("pt-BR"):"—";
+const T=(f,d)=>{try{return f()}catch(e){return d}};
+function curva(L){/* biomassa total do projeto dia a dia, do primeiro povoamento à última despesca */
+  const ini=Math.max(Math.min(...L.map(l=>l.st)),Math.min(...L.map(l=>isFinite(l.t0)?l.t0:l.st))),fim=Math.max(...L.map(l=>l.h)),agora=Date.now();if(!isFinite(ini)||!isFinite(fim)||fim<=ini)return "";
+  const n=Math.min(240,Math.max(30,Math.round((fim-ini)/DAY))),pts=[];let mx=1;
+  for(let i=0;i<=n;i++){const t=ini+(fim-ini)*i/n;let b=0;for(const l of L){const v=T(()=>gfPrev.valor(l,t),null);if(v&&!v.pre&&!v.done)b+=v.b||0}pts.push([t,b]);if(b>mx)mx=b}
+  const cap=L.reduce((a,l)=>a+(l.cap||0),0),top=Math.max(mx,cap)*1.08,W=640,H=170,px=t=>36+(t-ini)/(fim-ini)*(W-46),py=b=>H-22-(b/top)*(H-36);
+  const d=pts.map((p,i)=>`${i?"L":"M"}${px(p[0]).toFixed(1)} ${py(p[1]).toFixed(1)}`).join(" ");
+  const xa=Math.max(ini,Math.min(fim,agora));
+  return `<svg viewBox="0 0 ${W} ${H}" class="bxv-svg" role="img" aria-label="Biomassa projetada do projeto"><path d="${d} L${px(fim)} ${H-22} L${px(ini)} ${H-22}Z" fill="rgba(34,197,94,.18)"/><path d="${d}" fill="none" stroke="#16a34a" stroke-width="2.2"/>
+   ${cap>0?`<line x1="36" x2="${W-10}" y1="${py(cap)}" y2="${py(cap)}" stroke="#dc2626" stroke-dasharray="5 4"/><text x="${W-12}" y="${py(cap)-4}" text-anchor="end" font-size="10.5" fill="#b91c1c">biomassa máxima ${F(cap)} kg</text>`:""}
+   <line x1="${px(xa)}" x2="${px(xa)}" y1="10" y2="${H-22}" stroke="#0f172a" stroke-dasharray="3 3"/><text x="${px(xa)+4}" y="20" font-size="10.5" fill="#0f172a">hoje</text>
+   <text x="36" y="${H-6}" font-size="10.5" fill="#475569">${dBR(ini)}${ini>Math.min(...L.map(l=>l.st))+DAY?" (projeção)":""}</text><text x="${W-10}" y="${H-6}" text-anchor="end" font-size="10.5" fill="#475569">${dBR(fim)}</text><text x="4" y="${py(mx)+4}" font-size="10" fill="#475569">${F(mx)}</text></svg>`}
+function mostra(pk){const A=T(()=>gfPrev.todos(),[]).filter(l=>l.pk===pk),c=T(()=>gfPrev.cache()[pk],null)||{};
+  const nome=c.nome||(A[0]&&A[0].proj)||"Projeto",cli=c.cli||(A[0]&&A[0].cli)||"",agora=Date.now(),[uid,id]=String(pk).split("/");
+  const G=A.map(l=>{const v=T(()=>gfPrev.valor(l,agora),{w:0,b:0}),nA=v.w>0?v.b/v.w*1000:0,fase=T(()=>bxFaseL(l,agora),"")||"";return {l,v,nA,fase,oc:l.cap>0?v.b/l.cap:NaN}});
+  const bio=G.reduce((a,g)=>a+(g.v.pre||g.v.done?0:g.v.b),0),cap=A.reduce((a,l)=>a+(l.cap||0),0),tq=A.reduce((a,l)=>a+(+l.q||0),0),prox=A.filter(l=>l.h>agora).sort((a,b)=>a.h-b.h)[0];
+  const ov=document.createElement("div");ov.id="bxv";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Projeto "+nome);
+  ov.innerHTML=`<div class="bxv-box"><div class="bxv-top"><div><small>📂 Projeto fora do aberto${cli?` · ${E(cli)}`:""}</small><h3>${E(nome)}</h3></div><button type="button" class="btn" data-bxv="x" aria-label="Fechar">✕</button></div>
+   ${c.erro?`<p class="hint">⚠️ ${E(c.erro)}</p>`:""}
+   <div class="gfh-kpis bx-kpis bxv-kp"><div class="hk"><div><span class="hk-l">Biomassa agora</span><b>${F(bio)} kg</b><small>${cap>0?F(bio/cap*100,1)+" % da biomassa máxima ("+F(cap)+" kg)":""}</small></div></div>
+    <div class="hk"><div><span class="hk-l">Grupos e tanques</span><b>${A.length} · ${F(tq)}</b><small>${[...new Set(A.map(l=>l.spn))].map(E).join(", ")||"—"}</small></div></div>
+    <div class="hk"><div><span class="hk-l">Próxima despesca</span><b>${prox?dBR(prox.h):"—"}</b><small>${prox?`${E(prox.g)} · ≈ ${F(prox.bF)} kg de ${F(prox.wF)} g`:"sem despesca prevista"}</small></div></div>
+    <div class="hk"><div><span class="hk-l">Na despesca (todos)</span><b>${F(A.reduce((a,l)=>a+(l.bF||0),0))} kg</b><small>soma dos grupos no peso de abate</small></div></div></div>
+   ${A.length?`<h4 class="bxv-h">Biomassa projetada do projeto</h4>${curva(A)}`:""}
+   <h4 class="bxv-h">Grupos de cultivo</h4>
+   ${G.length?`<div class="scroll"><table class="lot bxv-tab"><thead><tr><th class="l">Grupo</th><th>Tanques</th><th class="l">Povoamento</th><th class="l">Fase agora</th><th>Peso<small>g agora</small></th><th>Animais</th><th>Biomassa<small>kg agora</small></th><th>Ocupação</th><th class="l">Despesca</th></tr></thead><tbody>${G.map(({l,v,nA,fase,oc})=>`<tr><td class="l"><b>🐟 ${E(l.g)}</b><br><small>${E(l.spn)}${l.cal?" · 📏 biometria":""}</small></td><td>${F(+l.q||0)}</td><td class="l">${dBR(l.st)}</td><td class="l">${v.pre?"ainda não povoado":v.done?"despescado":E(fase)}${l.s&&l.s.n>=2?`<br><small>${E(["","","🔵 programar","🟡 acabamento","🟠 perto da despesca","🔴 despescar"][l.s.n]||"")}</small>`:""}</td><td>${F(v.w,v.w<10?1:0)}<br><small>${l.alvo?F(v.w/l.alvo*100)+" % do abate":""}</small></td><td>${F(nA)}</td><td><b>${F(v.b)}</b></td><td class="${oc>=1?"bad":""}">${isFinite(oc)?F(oc*100)+" %":"—"}</td><td class="l">${dBR(l.h)}<br><small>≈ ${F(l.bF)} kg${l.atras?" · passou do prazo":""}</small></td></tr>`).join("")}</tbody></table></div>`:`<p class="muted">Este projeto não tem lotes cadastrados na aba Biomassa.</p>`}
+   <div class="gfp-bt bxv-bt">${uid==="me"?`<button type="button" class="btn solid" data-bxv="abrir">📂 Abrir este projeto</button>`:`<button type="button" class="btn solid" data-bxv="copia">📂 Abrir como cópia</button><button type="button" class="btn" data-bxv="editar">✏️ Editar o projeto do cliente</button>`}<button type="button" class="btn" data-bxv="x">Fechar</button></div>
+   <p class="hint">${uid==="me"?"Abrir salva o projeto atual e carrega este em todas as abas.":"Como cópia, o original do cliente não muda; editando, a versão nova aparece também no login do cliente."}</p></div>`;
+  document.body.appendChild(ov);const fecha=()=>{ov.remove();document.removeEventListener("keydown",esc)},esc=e=>{if(e.key==="Escape")fecha()};document.addEventListener("keydown",esc);
+  ov.addEventListener("click",e=>{const b=e.target.closest("[data-bxv]");if(e.target===ov||(b&&b.dataset.bxv==="x")){fecha();return}if(!b)return;
+    const k=b.dataset.bxv;b.disabled=true;b.textContent="Abrindo…";
+    try{if(k==="abrir")projAbrir(id);else if(k==="copia")projAbrirCliente(uid,id,false);else if(k==="editar")projAbrirCliente(uid,id,true)}catch(err){b.disabled=false;b.textContent="Não consegui abrir"}});
+  const f=ov.querySelector('[data-bxv="x"]');if(f)f.focus()}
+window.gfProjVer=mostra;
+document.addEventListener("click",e=>{const p=e.target.closest&&e.target.closest("[data-bx-proj]");if(!p||e.target.closest("button,a,input,select"))return;e.preventDefault();mostra(p.dataset.bxProj)});
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.dataset&&e.target.dataset.bxProj){e.preventDefault();mostra(e.target.dataset.bxProj)}});
+const st=document.createElement("style");st.textContent=`.bx-big .bx-proj[data-bx-proj]{cursor:pointer;border-radius:12px;padding-left:8px;padding-right:8px;margin:0 -8px;transition:background .15s}.bx-big .bx-proj[data-bx-proj]:hover,.bx-big .bx-proj[data-bx-proj]:focus-visible{background:rgba(134,239,172,.12);outline:none}.bx-big .bx-proj[data-bx-proj] .bx-ph span::after{content:" ›";color:#86efac}.bx-big .bx-ver{font-size:11.5px;color:#86efac;grid-column:1/3}
+#bxv{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10040;display:grid;place-items:center;padding:12px}.bxv-box{background:var(--surface,#fff);border-radius:16px;max-width:980px;width:100%;max-height:92vh;overflow:auto;padding:16px 18px;display:grid;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.35)}.bxv-top{display:flex;justify-content:space-between;gap:10px;align-items:start}.bxv-top h3{margin:2px 0 0;font-size:20px}.bxv-top small{color:var(--muted,#64748b)}.bxv-h{margin:4px 0 0;font-size:14px}.bxv-svg{width:100%;height:auto;background:#f8fafc;border-radius:10px}.bxv-tab td.bad{color:#b91c1c;font-weight:700}.bxv-tab td,.bxv-tab th{vertical-align:top}`;document.head.appendChild(st);
 })();
 </script>
