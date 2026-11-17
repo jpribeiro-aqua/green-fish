@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v271";
+  it.querySelector("code").textContent=msg;const ver="ras-v272";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -5557,7 +5557,7 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const espDe=n=>{n=String(n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");return /tambatinga/.test(n)?"tambatinga":/tambaqui/.test(n)?"tambaqui":/tilapia/.test(n)?"tilapia":/panga/.test(n)?"panga":/curimat/.test(n)?"curimata":/piau/.test(n)?"piau":/palombeta/.test(n)?"palombeta":/matrinx/.test(n)?"matrinxa":/camar/.test(n)?"camarao":"outro"};
 // referências de rendimento (% do peso do peixe inteiro) — cada número com a fonte
 const ESP={
-  tilapia:{n:"Tilápia",file:[31.5,33.7],f:"filé 31,5% (150–350 g) a 33,7% (751–950 g) — Souza et al., citado nos relatórios da aula prática (2022)"},
+  tilapia:{n:"Tilápia",file:[31.5,33.7],escama:[2.19,2.19],f:"filé 31,5% (150–350 g) a 33,7% (751–950 g) — Souza et al., citado nos relatórios da aula prática (2022); escamas ≈ 2,19% do peso do peixe (Ferreira et al., 2020, Agronomia: Jornadas Científicas v. 2, doi 10.37885/200400081)"},
   tambaqui:{n:"Tambaqui",cab:[21.3,22.1],visc:[6.5,10.4],pele:[2.9,2.9],tronco:[42.3,46.1],evisc:[93.5,93.5],f:"cabeça 21–22%, vísceras 6,5–10,4%, pele 2,9%, tronco limpo 42–46% (Cirne et al., 2019, Embrapa); eviscerado 93,5% (Borghesi et al., 2017, Embrapa)"},
   tambatinga:{n:"Tambatinga",f:"híbrido usado na aula de defumação (2022); use as referências do tambaqui como aproximação"},
   panga:{n:"Panga",file:[40,50],f:"filé 40–50% (Colpani, citado no relatório da aula, 2022); na aula, filé manual deu 11% — destreza e método pesam muito"},
@@ -5776,7 +5776,7 @@ function fxPartes(){const esp=B.esp,m=B.med,pi=P(m.inteiro),est=estimar(esp,peso
   for(const k2 of ["escama","visc","nad","cab","pele","file"])O[k2]=get(k2);
   const fp=get("filePele");O.apara=isFinite(fp)&&isFinite(O.file)&&isFinite(O.pele)&&fp-O.pele-O.file>0.05?fp-O.pele-O.file:NaN;if(isFinite(O.apara))src.apara=src.filePele;
   if(esp==="panga")O.escama=NaN;
-  const falta=Object.keys(O).filter(k2=>!isFinite(O[k2])&&k2!=="apara"&&k2!=="file"&&!(esp==="panga"&&k2==="escama")&&!(k2==="escama"));
+  const falta=Object.keys(O).filter(k2=>!isFinite(O[k2])&&k2!=="apara"&&k2!=="file"&&!(esp==="panga"&&k2==="escama"));
   const soma=Object.values(O).filter(isFinite).reduce((a,x)=>a+x,0);O.carc=isFinite(O.file)?Math.max(0,100-soma):NaN;src.carc=falta.length?"por diferença (inclui partes sem número)":"por diferença";
   return {O,src,falta,soma}}
 const fxR=()=>{B.fx=B.fx||{};const r=B.fx.realS=B.fx.realS||{};return r[B.esp]=r[B.esp]||{}},fxOk=()=>{B.fx=B.fx||{};const r=B.fx.okS=B.fx.okS||{};return r[B.esp]=r[B.esp]||{}};
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v271";
+  const APP_VERSAO="ras-v272";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
