@@ -1669,6 +1669,7 @@ if (typeof module !== "undefined") module.exports = Core;
   $("form").addEventListener("submit", (e) => {
     e.preventDefault(); const r = lerForm(); const msg = $("f-msg");
     if (r.erro) { msg.textContent = r.erro; msg.className = "msg err"; return; }
+    { let pm = null; try { pm = window.parent && window.parent !== window && window.parent.gfLeituraPermitida && window.parent.gfLeituraPermitida(r.l.unidade, "manual"); } catch (e) {} if (pm && !pm.ok) { msg.textContent = pm.msg; msg.className = "msg err"; return; } }
     const ix = S.leituras.findIndex((x) => x.unidade === r.l.unidade && x.data === r.l.data && x.hora === r.l.hora && (x.profundidade || "superfície") === r.l.profundidade && (x.ident || "") === (r.l.ident || ""));
     if (ix >= 0) S.leituras[ix] = { ...S.leituras[ix], ...r.l, id: S.leituras[ix].id }; else S.leituras.push(r.l);
     UA().exemplo = false; S.exemplo = false; sel = ix >= 0 ? S.leituras[ix].id : r.l.id; salvar();
@@ -1856,6 +1857,16 @@ if (typeof module !== "undefined") module.exports = Core;
       const pk = l.pid || "__sem"; (pj[pk] = pj[pk] || { pid: pk, pnome: l.pid ? l.pnome || "Projeto" : "Sem projeto", n: 0 }).n++; }
     const ord = Object.keys(ORIG);
     return { origens: Object.values(o).sort((a, b) => ord.indexOf(a.tipo) - ord.indexOf(b.tipo) || a.nome.localeCompare(b.nome)), projetos: Object.values(pj), fOrig: S.fOrig || "", fProj: S.fProj || "", total: S.leituras.length, visiveis: LT().length, ras: !!S.ras }; };
+  /* v286: muda o projeto das leituras de uma importação (origem k, recebidas a partir de t0) e resumo das leituras para o painel de exclusividade */
+  window.aquaRetag = (k, t0, dest) => { let n = 0; t0 = +t0 || 0;
+    for (const l of S.leituras) { if (chaveOrig(l) !== k || (l.rec || 0) < t0) continue; n++;
+      if (dest && typeof dest === "object" && dest.pid) { l.pid = dest.pid; l.pnome = dest.pnome || "Projeto"; } else { delete l.pid; delete l.pnome; } }
+    if (dest === "sep") { S.lotes = S.lotes || {}; S.lotes[k] = "isolado"; } else if ((S.lotes || {})[k] === "isolado" && dest !== "sep") { S.lotes[k] = "integrado"; if (S.fLote === k) S.fLote = ""; }
+    diaPainel = null; sel = null; salvar(); if (aba === "painel") renderPainel(); else renderUnidade(); return n; };
+  window.aquaLeiturasResumo = (dias) => { const lim = new Date(Date.now() - (Number(dias) || 3) * 864e5).toISOString().slice(0, 10), out = [];
+    for (const l of S.leituras) { if (String(l.id).startsWith("e") || !(l.data >= lim)) continue; const u = uniById(l.unidade);
+      out.push({ u: l.unidade, un: u ? u.nome || u.id : l.unidade, t: fonteDe(l), k: chaveOrig(l), nome: l.origemNome || "", d: l.data, h: l.hora, rec: l.rec || 0, pid: l.pid || "" }); }
+    return out; };
   /* tanques/viveiros criados por importação que ficaram sem nenhuma leitura saem junto (os do RAS e os criados à mão ficam) */
   const vazias = () => S.unidades.filter((u) => u.importada && !u.ras && !u.sistemaRAS && !S.leituras.some((l) => l.unidade === u.id));
   window.aquaLimparVazias = () => { const v = vazias(); if (!v.length || v.length >= S.unidades.length) return []; const ids = new Set(v.map((u) => u.id));

@@ -8318,7 +8318,13 @@ function linhasParaAmostras(rows,map){const inv={};for(const c in map)if(map[c])
 const numN=nome=>{const x=String(nome||"").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").match(/^(?:tanque\s*\/\s*viveiro|viveiro\s*\/\s*tanque|viveiro(?:\s+escavado)?|tanque(?:[- ]?rede|\s+suspenso|\s+elevado|\s+ras|\s+bft)?|gaiola|ras|bft|t|v)\s*[-:no#.]*\s*0*(\d{1,4}[a-z]?)$/);return x?x[1]:null};
 window.numN=numN;
 function guardar(lista,origem,p0){const pg=p0||projImp(),n0=B.amostras.length,h=window.IMP&&IMP.processar({tipo:"bio",origem:(origem&&origem.tipo)||"form",nome:(origem&&origem.nome)||"",linhas:(lista||[]).length,projeto:pNome(pg),salvo:pg!=="_local"});
-  try{const r=guardar0(lista,origem,p0),nv=B.amostras.slice(n0);h&&h.ok({...r,unidades:[...new Set(nv.map(a=>a.unome||a.unidade))],dias:[...new Set(nv.map(a=>a.data).filter(Boolean))],semPeso:nv.filter(a=>!(stats(a).pm>0)).length});return r}catch(e){h&&h.erro(e);throw e}}
+  try{const r=guardar0(lista,origem,p0),nv=B.amostras.slice(n0);h&&h.ok({...r,unidades:[...new Set(nv.map(a=>a.unome||a.unidade))],dias:[...new Set(nv.map(a=>a.data).filter(Boolean))],semPeso:nv.filter(a=>!(stats(a).pm>0)).length});
+    /* v286: pergunta se a biometria importada é do projeto aberto */
+    if(origem&&origem.tipo&&origem.tipo!=="form"&&nv.length&&window.gfLxConfirma){const kL=chB({origem}),ids=new Set(nv.map(a=>a.id));try{gfLxConfirma({tipo:"bio",n:nv.length,key:"bio|"+kL,orig:{tipo:origem.tipo,nome:origem.nome||""},pid:pg==="_local"?"":pg,pnome:pg==="_local"?"":pNome(pg),isolado:!!(B.lotes&&B.lotes[kL]==="isolado"),unidades:[...new Set(nv.map(a=>a.unome||a.unidade))],
+      aplicar:dest=>{if(dest==="ok"){if(B.lotes&&B.lotes[kL]==="isolado"){B.lotes[kL]="integrado";if(B.fLoteB===kL)B.fLoteB=""}salvar();outros();try{draw()}catch(e){}return}
+        for(const a of B.amostras){if(!ids.has(a.id))continue;if(dest&&dest.pid){a.pid=dest.pid;a.pnome=dest.pnome}else{delete a.pid;delete a.pnome}}
+        B.lotes=B.lotes||{};if(dest==="sep")B.lotes[kL]="isolado";else if(B.lotes[kL]==="isolado"){B.lotes[kL]="integrado";if(B.fLoteB===kL)B.fLoteB=""}salvar();outros();try{draw()}catch(e){}}})}catch(e){}}
+    return r}catch(e){h&&h.erro(e);throw e}}
 function guardar0(lista,origem,p0){const base=p0||projImp();let novas=0,sem=0,padrao,criadas=[];
   const kL=chB({origem}),isol=origem&&origem.tipo&&origem.tipo!=="form";if(isol){B.lotes=B.lotes||{};if(B.lotes[kL]==null)B.lotes[kL]=B.amostras.some(a=>chB(a)===kL)?"integrado":"isolado";if(B.lotes[kL]==="isolado")B.fLoteB=kL}
   for(const a of lista){const p=(a.proj&&projDe(a.proj))||base,us=uniP(p);let u=a.uid?us.find(x=>x.id===a.uid):null;
@@ -16459,4 +16465,134 @@ setInterval(()=>{const v=vw();if(v&&!v.hidden)desenha()},4000);
 .pp-est{margin:4px 0;padding-left:18px;font-size:13.5px}
 .pp-rasc{border:1px dashed var(--accent);border-radius:10px;padding:8px 10px;margin-bottom:8px}
 @media (max-width:640px){.pp-passos li{grid-template-columns:1fr}}
+</style>
+<script>
+/* ===================== v286: AquaNictemeral · 🎯 Leituras com dono — confirma o projeto de cada importação (água e biometria),
+   origem fixa por tanque/viveiro e nictemeral exclusiva (só uma origem grava naquela unidade enquanto ela estiver em andamento) ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="greenfish-leituras-v1",HR=36e5;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const hm=ms=>new Date(ms).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const ORI={manual:"✍️ Digitadas",arquivo:"📄 Arquivo",colado:"📋 Coladas",link:"🔗 Link",webhook:"🤖 Automação (sonda/webhook)",analise:"🧪 Análise / campo",importado:"📥 Importadas",exemplo:"🧪 Exemplo"};
+const ORIS=["manual","arquivo","colado","link","webhook","analise"];
+const rd=()=>{const o=T(()=>JSON.parse(localStorage.getItem(K)),{})||{};return {fixa:o.fixa||{},sess:Array.isArray(o.sess)?o.sess:[],dec:o.dec||{},bloq:Array.isArray(o.bloq)?o.bloq:[]}};
+let S=rd();const grava=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const w=()=>T(()=>document.getElementById("aqua-frame").contentWindow,null);
+const proj=()=>T(()=>window.projAtual&&projAtual(),null);
+const projs=()=>T(()=>(window.projLista&&projLista())||[],[]);
+const uns=()=>T(()=>{const x=w();return x&&x.aquaUnidades?x.aquaUnidades():[]},[]);
+const ativa=uid=>{const n=Date.now();return S.sess.find(s=>s.uid===uid&&!s.enc&&s.ini<=n&&n<s.fim)||null};
+
+/* ---------- regra: quem pode gravar em cada tanque/viveiro ---------- */
+function permitida(uid,tipo){const s=ativa(uid);
+  if(s&&s.tipo!==tipo)return {ok:false,msg:`🎯 ${s.unome} está com uma nictemeral exclusiva em andamento por ${ORI[s.tipo]||s.tipo} até ${hm(s.fim)}. Leituras de ${ORI[tipo]||tipo} não entram agora. Encerre a nictemeral no quadro 🎯 Leituras com dono para liberar.`};
+  const f=S.fixa[uid];if(!s&&f&&f!==tipo){const u=uns().find(x=>x.id===uid);return {ok:false,msg:`🔒 ${(u&&u.nome)||uid} só aceita leituras de ${ORI[f]||f}. Para gravar por ${ORI[tipo]||tipo}, mude no quadro 🎯 Leituras com dono.`}}
+  return {ok:true}}
+window.gfLeituraPermitida=(uid,tipo)=>{S=rd();const r=permitida(uid,tipo);if(!r.ok)registraBloq(uid,tipo,1);return r};
+function registraBloq(uid,tipo,n){const u=uns().find(x=>x.id===uid);S.bloq.unshift({em:Date.now(),uid,un:(u&&u.nome)||uid,tipo,n});S.bloq=S.bloq.slice(0,30);grava();desenha()}
+const achaU=(nome,U,dest)=>{if(nome==null||nome===""){return dest?U.find(u=>u.id===dest)||null:null}const s=String(nome).trim().toLowerCase();return U.find(u=>String(u.id).toLowerCase()===s||String(u.nome||"").trim().toLowerCase()===s)||null};
+
+/* ---------- embrulha a importação do AquaNictemeral: filtra pela regra e pergunta o projeto ---------- */
+function embrulha(){const x=w();if(!x||typeof x.aquaImport!=="function"||x.aquaImport.__lx)return;const o=x.aquaImport;
+  const f=function(lista,op){op=op||{};S=rd();const tipo=op.tipo||"arquivo",U=uns(),bl={};let L=Array.isArray(lista)?lista:[];
+    if(tipo!=="exemplo"){L=L.filter(it=>{const u=achaU(it&&it.unidade,U,op.destino);if(!u)return true;const p=permitida(u.id,tipo);if(p.ok)return true;bl[u.id]=(bl[u.id]||0)+1;return false})}
+    const t0=Date.now()-1;const r=o.call(this,L,op);
+    const nb=Object.values(bl).reduce((a,b)=>a+b,0);if(nb){for(const uid in bl)registraBloq(uid,tipo,bl[uid]);try{r.bloqueadas=nb}catch(e){}aviso(`🎯 ${nb} leitura(s) de ${ORI[tipo]||tipo} não entraram: ${Object.keys(bl).map(id=>(U.find(u=>u.id===id)||{}).nome||id).join(", ")} ${Object.keys(bl).length>1?"estão":"está"} com leitura exclusiva de outra origem.`)}
+    if(tipo!=="exemplo"&&r&&(r.novas||r.atualizadas)){const key=tipo+(op.nome?"|"+String(op.nome).slice(0,120):""),P=proj(),nomes=(r.unidades||[]).map(id=>(uns().find(u=>u.id===id)||{}).nome||id);
+      confirma({tipo:"agua",n:(r.novas||0)+(r.atualizadas||0),key:"agua|"+key,orig:{tipo,nome:op.nome||""},pid:r.isolado?"":(P?P.id:""),pnome:r.isolado?"":(P?P.nome:""),isolado:!!r.isolado,unidades:nomes,
+        aplicar:dest=>{const y=w();if(!y)return;if(dest==="ok"){if(r.isolado&&y.aquaLoteEstado)y.aquaLoteEstado(key,"integrado");return}y.aquaRetag&&y.aquaRetag(key,t0,dest);try{window.drawLotes&&drawLotes()}catch(e){}try{window.drawAquaOrig&&drawAquaOrig()}catch(e){}}})}
+    desenha();return r};
+  f.__lx=1;x.aquaImport=f}
+const fr=document.getElementById("aqua-frame");if(fr)fr.addEventListener("load",()=>setTimeout(embrulha,300));setInterval(embrulha,1500);
+
+/* ---------- pergunta: esses dados são do projeto aberto? ---------- */
+const FILA=[];let tAviso=null;
+function aviso(t){let a=document.getElementById("lx-aviso");if(!a){a=document.createElement("div");a.id="lx-aviso";document.body.appendChild(a)}a.textContent=t;a.hidden=false;clearTimeout(tAviso);tAviso=setTimeout(()=>{a.hidden=true},9000)}
+window.gfLxConfirma=c=>confirma(c);
+function confirma(c){S=rd();const d=S.dec[c.key];
+  if(d){c.aplicar(d.dest);aviso(`📥 ${c.n} ${c.tipo==="bio"?"biometria(s)":"leitura(s)"} de ${ORI[c.orig.tipo]||c.orig.tipo}${c.orig.nome?" ("+c.orig.nome+")":""}: ${d.dest==="ok"?"ficaram no projeto aberto":d.dest==="sep"?"ficaram separadas":d.dest==="__sem"?"ficaram sem projeto":"foram para o projeto "+d.dest.pnome}, como você escolheu antes para esta origem.`);return}
+  FILA.push(c);mostra()}
+function mostra(){let b=document.getElementById("lx-conf");const c=FILA[0];if(!c){if(b)b.remove();return}
+  if(!b){b=document.createElement("div");b.id="lx-conf";b.setAttribute("role","dialog");b.setAttribute("aria-label","Confirmar o projeto dos dados importados");document.body.appendChild(b)}
+  const P=proj(),pl=projs().filter(p=>!P||p.id!==P.id),auto=/^(link|webhook)$/.test(c.orig.tipo);
+  b.innerHTML=`<div class="lx-c-h">📥 ${c.tipo==="bio"?"Biometria importada":"Leituras importadas"}${FILA.length>1?` <small>(+${FILA.length-1} na fila)</small>`:""}</div>
+   <p><b>${c.n}</b> ${c.tipo==="bio"?"biometria(s)":"leitura(s)"} de <b>${E(ORI[c.orig.tipo]||c.orig.tipo)}</b>${c.orig.nome?` (${E(String(c.orig.nome).slice(0,60))})`:""}${c.unidades&&c.unidades.length?` · ${E(c.unidades.slice(0,6).join(", "))}${c.unidades.length>6?"…":""}`:""}.</p>
+   <p>${P?`Projeto aberto agora: <b>${E(P.nome)}</b>.`:`Nenhum projeto aberto agora.`} ${c.isolado?"Por enquanto o lote ficou separado.":""} <b>Esses dados são ${P?"deste projeto":"de algum projeto"}?</b></p>
+   <div class="lx-c-b">${P?`<button type="button" class="btn solid" data-lxc="ok">✅ Sim, são de ${E(P.nome)}</button>`:""}
+    <span class="lx-c-o"><select data-lxc-p aria-label="Outro projeto"><option value="">${P?"Não: são de outro projeto…":"São do projeto…"}</option>${pl.map(p=>`<option value="${E(p.id)}">${E(p.nome||"Projeto")}</option>`).join("")}</select><button type="button" class="btn" data-lxc="outro">↪ Mover</button></span>
+    <button type="button" class="btn" data-lxc="__sem">Não são de nenhum projeto</button><button type="button" class="btn" data-lxc="sep">⏸ Separar (não processar)</button></div>
+   <label class="lx-c-l"><input type="checkbox" data-lxc-lem${auto?" checked":""}> Lembrar esta resposta para as próximas leituras desta origem</label>`;
+  b.querySelectorAll("[data-lxc]").forEach(x=>x.addEventListener("click",()=>{const a=x.dataset.lxc;let dest=a;
+    if(a==="outro"){const id=b.querySelector("[data-lxc-p]").value;if(!id){b.querySelector("[data-lxc-p]").focus();return}const p=projs().find(q=>q.id===id);dest={pid:id,pnome:(p&&p.nome)||"Projeto"}}
+    const lem=b.querySelector("[data-lxc-lem]").checked;
+    const dReal=a==="ok"?(c.isolado?"ok":(P?(c.pid===P.id?"ok":{pid:P.id,pnome:P.nome}):"ok")):dest;
+    try{c.aplicar(dReal)}catch(e){}
+    if(lem){S=rd();S.dec[c.key]={dest:dReal,em:Date.now(),rot:(ORI[c.orig.tipo]||c.orig.tipo)+(c.orig.nome?" · "+c.orig.nome:""),tipo:c.tipo};grava()}
+    aviso(a==="ok"?"✅ Dados confirmados no projeto aberto.":a==="sep"?"⏸ Dados separados: não entram nos cálculos até você integrar.":a==="__sem"?"Dados marcados sem projeto.":`↪ Dados movidos para ${dest.pnome}.`);
+    FILA.shift();mostra();desenha()}))}
+
+/* ---------- quadro 🎯 Leituras com dono ---------- */
+let aberto=false;try{aberto=sessionStorage.getItem("gf-lx-ab")==="1"}catch(e){}
+function resumo(){return T(()=>{const x=w();return x&&x.aquaLeiturasResumo?x.aquaLeiturasResumo(3):[]},[])}
+function html(){S=rd();const U=uns(),R=resumo(),n=Date.now();
+  const porU={};for(const l of R){const g=porU[l.u]||(porU[l.u]={dias:{},tot:{}});(g.dias[l.d]=g.dias[l.d]||new Set()).add(l.t);g.tot[l.t]=(g.tot[l.t]||0)+1}
+  const simul=U.filter(u=>porU[u.id]&&Object.values(porU[u.id].dias).some(s=>s.size>1));
+  const at=S.sess.filter(s=>!s.enc&&s.ini<=n&&n<s.fim);
+  const nS=s=>R.filter(l=>l.u===s.uid&&l.t===s.tipo&&l.rec>=s.ini&&l.rec<=Math.min(n,s.fim)).length;
+  const ultS=s=>{const L=R.filter(l=>l.u===s.uid&&l.t===s.tipo&&l.rec>=s.ini);return L.length?Math.max(...L.map(l=>l.rec)):0};
+  const linha=u=>{const g=porU[u.id]||{dias:{},tot:{}},s=ativa(u.id),f=S.fixa[u.id]||"",sim=Object.entries(g.dias).filter(([,v])=>v.size>1).map(([d])=>d.split("-").reverse().slice(0,2).join("/"));
+    return `<tr class="${s?"lx-on":sim.length?"lx-sim":""}"><td class="l"><b>${E(u.nome)}</b><br><small>${u.tipo==="viveiro"?"viveiro":"tanque"}${u.ras?" · RAS":""}</small></td>
+     <td class="l">${Object.keys(g.tot).length?Object.entries(g.tot).map(([t,c])=>`<span class="lx-o${f&&f!==t?" lx-x":""}">${E(ORI[t]||t)} <b>${c}</b></span>`).join(" "):`<small class="muted">sem leituras em 3 dias</small>`}${sim.length?`<div class="lx-w">⚠️ Origens diferentes no mesmo dia: ${E(sim.join(", "))}</div>`:""}</td>
+     <td><select data-lx-fixa="${E(u.id)}" aria-label="Origem aceita em ${E(u.nome)}"><option value="">Qualquer origem</option>${ORIS.map(t=>`<option value="${t}"${f===t?" selected":""}>Só ${E(ORI[t])}</option>`).join("")}</select></td>
+     <td class="l">${s?`<div class="lx-s">🎯 <b>Em andamento</b> por ${E(ORI[s.tipo])}<br><small>${hm(s.ini)} → ${hm(s.fim)} · ${nS(s)} leitura(s)${ultS(s)?` · última ${hm(ultS(s))}`:""}</small><div class="lx-bar"><i style="width:${Math.min(100,(n-s.ini)/(s.fim-s.ini)*100).toFixed(0)}%"></i></div><button type="button" class="btn" data-lx-enc="${E(s.id)}">■ Encerrar</button></div>`
+       :`<div class="lx-ini"><select data-lx-st="${E(u.id)}" aria-label="Origem da nictemeral de ${E(u.nome)}">${ORIS.map(t=>`<option value="${t}"${(f||Object.keys(g.tot).sort((a,b)=>g.tot[b]-g.tot[a])[0]||"manual")===t?" selected":""}>${E(ORI[t])}</option>`).join("")}</select><select data-lx-h="${E(u.id)}" aria-label="Duração">${[12,24,48].map(h=>`<option value="${h}"${h===24?" selected":""}>${h} h</option>`).join("")}</select><button type="button" class="btn" data-lx-ini="${E(u.id)}">▶ Iniciar exclusiva</button></div>`}</td></tr>`};
+  const fim=S.sess.filter(s=>s.enc||s.fim<=n).slice(0,8);
+  const decs=Object.entries(S.dec);
+  const sub=[at.length?`${at.length} nictemeral(is) exclusiva(s) em andamento`:"nenhuma nictemeral exclusiva",simul.length?`⚠️ ${simul.length} unidade(s) com leituras simultâneas`:"sem leituras simultâneas",Object.keys(S.fixa).length?`${Object.keys(S.fixa).length} com origem fixa`:""].filter(Boolean).join(" · ");
+  return `<details class="card wide lx-card"${aberto?" open":""}><summary class="card-head"><h2>🎯 Leituras com dono<span>${E(sub)}</span></h2></summary><div class="body lx-body">
+   <p class="hint">Cada tanque/viveiro pode aceitar leituras de <b>qualquer origem</b> ou de <b>uma só</b> (🔒 origem fixa). Para uma nictemeral sem mistura, use <b>▶ Iniciar exclusiva</b>: até o fim do período, só a origem escolhida grava naquela unidade; as outras são recusadas e aparecem em “Recusadas”. Ao importar água ou biometria, o app pergunta se os dados são do projeto aberto.</p>
+   ${simul.length?`<p class="gfp-alerta">⚠️ Leituras simultâneas de origens diferentes em: <b>${E(simul.map(u=>u.nome).join(", "))}</b>. Escolha uma origem fixa ou inicie uma nictemeral exclusiva para não misturar.</p>`:""}
+   ${U.length?`<div class="scroll"><table class="lot lx-t"><thead><tr><th class="l">Tanque/viveiro</th><th class="l">Quem gravou (3 dias)</th><th>Aceita leituras de</th><th class="l">Nictemeral exclusiva</th></tr></thead><tbody>${U.map(linha).join("")}</tbody></table></div>`:`<p class="hint">O AquaNictemeral ainda está abrindo ou não tem tanques/viveiros.</p>`}
+   ${S.bloq.length?`<details class="lx-sub"><summary>🚫 Recusadas · ${S.bloq.length}</summary><ul>${S.bloq.slice(0,12).map(b=>`<li>${hm(b.em)} · <b>${E(b.un)}</b>: ${b.n} leitura(s) de ${E(ORI[b.tipo]||b.tipo)}</li>`).join("")}</ul><button type="button" class="btn" data-lx-limpa="bloq">Limpar a lista</button></details>`:""}
+   ${fim.length?`<details class="lx-sub"><summary>🕘 Nictemerais exclusivas encerradas · ${fim.length}</summary><ul>${fim.map(s=>`<li><b>${E(s.unome)}</b> · ${E(ORI[s.tipo])} · ${hm(s.ini)} → ${hm(Math.min(s.fim,s.enc||s.fim))}${s.enc&&s.enc<s.fim?" (encerrada antes)":""}</li>`).join("")}</ul></details>`:""}
+   ${decs.length?`<details class="lx-sub"><summary>📌 Respostas lembradas por origem · ${decs.length}</summary><ul>${decs.map(([k,d])=>`<li><b>${E(d.rot||k)}</b> (${d.tipo==="bio"?"biometria":"água"}) → ${d.dest==="ok"?"projeto aberto":d.dest==="sep"?"separar":d.dest==="__sem"?"sem projeto":"projeto "+E(d.dest.pnome)} <button type="button" class="btn" data-lx-esq="${E(k)}">Esquecer</button></li>`).join("")}</ul></details>`:""}
+  </div></details>`}
+function card(){const v=document.getElementById("view-aqua");if(!v)return null;let c=document.getElementById("lx-card");if(!c){c=document.createElement("div");c.id="lx-card";const r=document.getElementById("aqua-plug");v.insertBefore(c,r||v.firstChild)}return c}
+function desenha(f){const c=card(),v=document.getElementById("view-aqua");if(!c||(!f&&v.hidden))return;const a=document.activeElement;if(!f&&c.contains(a)&&a.tagName==="SELECT")return;const h=html();if(c.__h!==h){c.innerHTML=h;c.__h=h;const d=c.querySelector("details.lx-card");d&&d.addEventListener("toggle",()=>{aberto=d.open;try{sessionStorage.setItem("gf-lx-ab",aberto?"1":"0")}catch(e){}})}}
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#lx-card"))return;if(t.dataset.lxFixa!=null){S=rd();if(t.value)S.fixa[t.dataset.lxFixa]=t.value;else delete S.fixa[t.dataset.lxFixa];grava();setTimeout(()=>desenha(true),0)}});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#lx-card [data-lx-ini],#lx-card [data-lx-enc],#lx-card [data-lx-esq],#lx-card [data-lx-limpa]");if(!b)return;e.preventDefault();S=rd();const c=card();
+  if(b.dataset.lxIni){const uid=b.dataset.lxIni,u=uns().find(x=>x.id===uid)||{nome:uid},tipo=(c.querySelector(`[data-lx-st="${CSS.escape(uid)}"]`)||{}).value||"manual",h=+((c.querySelector(`[data-lx-h="${CSS.escape(uid)}"]`)||{}).value||24),n=Date.now();
+    S.sess=S.sess.filter(s=>!(s.uid===uid&&!s.enc&&s.fim>n));S.sess.unshift({id:"s"+n.toString(36),uid,unome:u.nome,tipo,ini:n,fim:n+h*HR});S.sess=S.sess.slice(0,40);grava();aviso(`🎯 Nictemeral exclusiva de ${u.nome} iniciada: só ${ORI[tipo]} grava até ${hm(n+h*HR)}.`)}
+  else if(b.dataset.lxEnc){const s=S.sess.find(x=>x.id===b.dataset.lxEnc);if(s){s.enc=Date.now();grava();aviso(`■ Nictemeral exclusiva de ${s.unome} encerrada: as outras origens voltam a gravar${S.fixa[s.uid]?" (respeitando a origem fixa)":""}.`)}}
+  else if(b.dataset.lxEsq){delete S.dec[b.dataset.lxEsq];grava()}
+  else if(b.dataset.lxLimpa){S.bloq=[];grava()}
+  desenha(true)});
+const v0=document.getElementById("view-aqua");if(v0){new MutationObserver(()=>{if(!v0.hidden)desenha()}).observe(v0,{attributes:true,attributeFilter:["hidden"]})}
+setInterval(()=>{const v=document.getElementById("view-aqua");if(v&&!v.hidden)desenha()},5000);setTimeout(()=>desenha(true),1500);
+window.gfLeituras={permitida:(u,t)=>permitida(u,t),estado:()=>rd(),desenha:()=>desenha(true)};
+})();
+</script>
+<style>
+.lx-card>summary{cursor:pointer;list-style:none}.lx-card>summary::-webkit-details-marker{display:none}
+.lx-body{display:grid;gap:10px;min-width:0}
+.lx-t td,.lx-t th{vertical-align:top}
+.lx-t select{width:auto;max-width:100%;font-size:13px}
+.lx-t tr.lx-on td{background:color-mix(in srgb,var(--accent) 8%,transparent)}
+.lx-t tr.lx-sim td{background:#e09a0012}
+.lx-o{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:12px;margin:1px 2px 1px 0;white-space:nowrap}
+.lx-o.lx-x{opacity:.55;text-decoration:line-through}
+.lx-w{font-size:12px;color:#b45309;margin-top:3px}
+.lx-ini{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.lx-s small{color:var(--muted)}
+.lx-bar{height:6px;border-radius:3px;background:var(--line);overflow:hidden;margin:4px 0;max-width:220px}.lx-bar i{display:block;height:100%;background:var(--accent)}
+.lx-sub{border:1px solid var(--line);border-radius:10px;padding:6px 10px}.lx-sub summary{cursor:pointer;font-weight:600}.lx-sub ul{margin:6px 0;padding-left:18px;font-size:13px;line-height:1.6}
+#lx-conf{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9998;width:min(560px,calc(100vw - 24px));background:var(--surface,#fff);border:2px solid var(--accent);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.25);padding:12px 14px;font-size:14px;line-height:1.45;max-height:70vh;overflow:auto}
+#lx-conf p{margin:6px 0}.lx-c-h{font-weight:700;font-size:15px}.lx-c-h small{font-weight:400;color:var(--muted)}
+.lx-c-b{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.lx-c-o{display:inline-flex;gap:4px;flex-wrap:wrap}.lx-c-o select{width:auto;max-width:220px}
+.lx-c-l{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
+#lx-aviso{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;max-width:min(560px,calc(100vw - 24px));background:#0f3d33;color:#fff;border-radius:10px;padding:9px 14px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+body.auth-lock #lx-conf{display:none}
+@media (max-width:640px){#lx-conf{bottom:calc(76px + env(safe-area-inset-bottom,0px));max-height:60vh}}
 </style>
