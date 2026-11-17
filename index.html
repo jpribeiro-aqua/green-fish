@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v278";
+  it.querySelector("code").textContent=msg;const ver="ras-v279";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v278";
+  const APP_VERSAO="ras-v279";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17700,20 +17700,24 @@ const dBR=ms=>isFinite(ms)?new Date(ms).toLocaleDateString("pt-BR"):"—";
 
 /* densidade máxima de referência (kg/m³) por espécie e sistema — editável no quadro */
 const SIS={ras:"RAS (recirculação)",bft:"Bioflocos",viv:"Viveiro escavado com aeração",rede:"Tanque-rede"};
-const DMREF={tilapia:{ras:32,bft:25,viv:1.5,rede:80},tambaqui:{ras:25,bft:15,viv:1.2,rede:50},camarao:{ras:4,bft:3.5,viv:0.4,rede:0}};
+const LOCSP={monodon:{name:"Camarão-tigre (P. monodon)",sci:"Penaeus monodon",alvo:30,ind:"Camarões",wmin:0.005,
+  curve:[[0,0.015],[15,0.1],[30,0.6],[45,2],[60,4.5],[75,8],[90,12],[105,16],[120,20],[135,24],[150,28],[165,31.5],[180,34]],
+  phases:[[1,"Berçário"],[8,"Juvenil"],[25,"Engorda"],[Infinity,"Engorda final"]],fca:[[Infinity,1.5]],lw:{a:0.0085,b:2.95,kind:"total"}}};
+const SPX=k=>(typeof SPECIES!=="undefined"&&SPECIES[k])||LOCSP[k];
+const DMREF={monodon:{ras:4,bft:3.5,viv:0.3,rede:0},tilapia:{ras:32,bft:25,viv:1.5,rede:80},tambaqui:{ras:25,bft:15,viv:1.2,rede:50},camarao:{ras:4,bft:3.5,viv:0.4,rede:0}};
 const dmCalc=sp=>{const v=P((document.getElementById("DM_"+sp)||{}).value);return v>0?v:null};
 const dmBase=(sp,sis)=>sis==="ras"&&dmCalc(sp)?dmCalc(sp):(DMREF[sp]||DMREF.tilapia)[sis]||0;
 /* peixe pequeno não suporta a densidade do adulto: fração da DM pela fase (alevinagem 50 %, recria 80 %, engorda 100 %) */
-const fFase=(sp,w)=>{const a=sp==="camarao"?.05:1,b=sp==="camarao"?5:150;return .5+.5*Math.max(0,Math.min(1,Math.log(Math.max(w,1e-6)/a)/Math.log(b/a)))};
-const nomeFase=(sp,w)=>T(()=>{const S=SPECIES[sp];return S.phases.find(b=>w<=b[0])[1]},"");
+const fFase=(sp,w)=>{const c=sp==="camarao"||sp==="monodon",a=c?.05:1,b=c?5:150;return .5+.5*Math.max(0,Math.min(1,Math.log(Math.max(w,1e-6)/a)/Math.log(b/a)))};
+const nomeFase=(sp,w)=>T(()=>{const S=SPX(sp);return S.phases.find(b=>w<=b[0])[1]},"");
 
 let C=Object.assign({tipo:"fases",vols:"32, 64, 100, 200, 300",qdef:"final",dmp:{},sp:"",sis:"ras",V1:"32",w0:"0,5",modo:"dias",dias:"",n0:"",ini:iso(Date.now()),reuso:true,esc:false,mort:"",fases:null,dm:{},vt:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{});
 const grava=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}};
 /* volumes gerados pelo antigo "Equilibrar os volumes" voltam para a sequência padrão (uma vez) */
 if(!C.mig267){if(C.qdef==="t1"&&C.vols!=="32, 64, 100, 200, 300"){C.vols="32, 64, 100, 200, 300";C.vt={};C.dmp={}}C.mig267=true;C.vmax="";try{localStorage.setItem(K,JSON.stringify(C))}catch(e){}}
 function spPadrao(){const t=T(()=>tanks.find(x=>x.lot&&x.lot.sp),null);return t?t.lot.sp:"tilapia"}
-function padroes(){const sp=C.sp||spPadrao(),S=SPECIES[sp]||SPECIES.tilapia,w0=P(C.w0)>0?P(C.w0):0.5;
-  const lim1=sp==="camarao"?1:(S.phases.map(b=>b[0]).find(x=>x>=20&&x>w0)||30);
+function padroes(){const sp=C.sp||spPadrao(),S=SPX(sp)||SPECIES.tilapia,w0=P(C.w0)>0?P(C.w0):0.5;
+  const lim1=(sp==="camarao"||sp==="monodon")?1:(S.phases.map(b=>b[0]).find(x=>x>=20&&x>w0)||30);
   const d0=dayOf(S,w0),rit=T(()=>bioParams().rit,1)||1;
   return {sp,S,w0,rit,dias:Math.max(5,Math.round((dayOf(S,lim1)-d0)/rit)),lim:S.phases.map(b=>b[0]).filter(x=>isFinite(x)&&x<S.alvo).concat([S.alvo])}}
 
@@ -17829,6 +17833,53 @@ function htmlSel(X){if(X.erro)return `<div class="body"><p class="hint" style="c
      <td class="l">${f.ult?`<b>despesca</b> ${F(f.Nf)} · ${F(f.Bf)} kg`:`${F(f.sai)} animais · ${F(f.saiKg)} kg<br><small>${F(f.segue)} seguem</small>`}</td></tr>`).join("")}</tbody></table></div>
    <p class="hint">Como ler: cada linha da lista de volumes é uma fase (cria, recrias e engorda) com tanques de um só volume. No fim de cada fase, só a parte em <b>Segue</b> (padrão 50 %) continua no sistema; o resto sai (venda de alevinos/juvenis ou despesca parcial). A última fase vai até o peso final. ${Q.q==="bf"?"Com a biomassa final, o app calcula de trás para a frente quantos animais precisam entrar em cada fase.":"Com o tanque 1 cheio, a quantidade vem da biomassa máxima do tanque 1 no fim da cria."} O número de tanques de cada fase é o suficiente para a biomassa do fim da fase não passar da densidade máxima.</p></div>`}
 
+/* ---------- v279: camarão — 3 fases em tanques (RAS/bioflocos, cada fase enchendo até a biomassa máxima) + engorda em viveiro escavado,
+   pelo pacote tecnológico de L. vannamei ou P. monodon ---------- */
+const isCam=sp=>sp==="camarao"||sp==="monodon";
+const PKG={camarao:[
+   {k:"semi",n:"Semi-intensivo",d:20,s:70,f:"referência geral de viveiro semi-intensivo; ajuste ao seu manejo"},
+   {k:"int",n:"Intensivo com aeração",d:60,s:65,f:"referência geral de viveiro intensivo com aeração mecânica"},
+   {k:"super",n:"Superintensivo (bioflocos em viveiro)",d:150,s:88,f:"150 camarões/m², 88 % de sobrevivência, 13,9 t/ha em 105 dias (Instituto de Pesca, bioflocos em viveiros de 600 m²)"}],
+ monodon:[
+   {k:"ext",n:"Extensivo",d:2,s:70,f:"FAO: 0,5–2 camarões/m², sobrevivência esperada ≈ 70 %"},
+   {k:"semi",n:"Semi-intensivo",d:5,s:70,f:"FAO: 2–5 camarões/m²"},
+   {k:"int",n:"Intensivo",d:20,s:70,f:"FAO: 5–30 camarões/m²; despesca de 30–35 g"}]};
+const CAMW={camarao:[0.3,1.2,3],monodon:[0.6,2,4.5]};
+const CAMD=()=>{const sp=C.sp,d=Object.assign({q:"t1",bf:"",wfim:"",pk:"",dens:"",sob:"",ha:"1",w:[]},(C.cam||{})[sp]||{});return d};
+function calcCam(){const D=padroes(),{sp,S,w0,rit}=D,Q=CAMD(),mort=(P(C.mort)>=0&&C.mort!==""?P(C.mort):6)/100,sv=d=>Math.pow(1-mort,d/30);
+  const Vs=listaV().length?listaV():[32,64,100],base=dmBase(sp,C.sis);if(!(base>0))return {erro:"Escolha RAS ou bioflocos para as fases em tanques."};
+  const PK=(PKG[sp]||PKG.camarao),pk=PK.find(x=>x.k===Q.pk)||PK[sp==="monodon"?1:0],dens=P(Q.dens)>0?P(Q.dens):pk.d,sob=Math.min(100,P(Q.sob)>0?P(Q.sob):pk.s)/100,ha=P(Q.ha)>0?P(Q.ha):1;
+  const wF=P(Q.wfim)>0?P(Q.wfim):S.alvo,W=[0,1,2].map(i=>P(Q.w[i])>0?P(Q.w[i]):CAMW[sp][i]),d0=dayOf(S,w0),ini=msD(C.ini)||Date.now();
+  for(let i=0;i<3;i++)if(!(W[i]>(i?W[i-1]:w0)))return {erro:`O peso no fim da fase ${i+1} precisa ser maior que o da fase anterior.`};if(!(wF>W[2]))return {erro:"O peso final precisa ser maior que o peso no fim da fase 3."};
+  const dmK=(k,w)=>{const o=P((C.dmC||{})[k]);return o>0?o:+(base*fFase(sp,w)).toFixed(2)};
+  const PH=[0,1,2].map(k=>{const wi=k?W[k-1]:w0,wf=W[k],dd=Math.max(1,Math.round((dayOf(S,wf)-dayOf(S,wi))/rit));return {k,wi,wf,dd,V:Vs[Math.min(k,Vs.length-1)],dm:dmK(k,wf),s:sv(dd)}});
+  const ddV=Math.max(1,Math.round((dayOf(S,wF)-dayOf(S,W[2]))/rit));
+  let Nst;/* camarões povoados no viveiro */
+  if(Q.q==="bf"&&P(Q.bf)>0){Nst=P(Q.bf)*1000/wF/sob;let N=Nst;for(let k=2;k>=0;k--){PH[k].Nf=N;PH[k].Ni=N/PH[k].s;N=PH[k].Ni}}
+  else{const f=PH[0];f.Nf=Math.floor(f.dm*f.V*1000/f.wf);f.Ni=f.Nf/f.s;for(let k=1;k<3;k++){PH[k].Ni=PH[k-1].Nf;PH[k].Nf=PH[k].Ni*PH[k].s}Nst=PH[2].Nf}
+  const inv={};let ta=ini;PH.forEach(f=>{f.Ni=Math.round(f.Ni);f.Nf=Math.round(f.Nf);f.Bf=f.Nf*f.wf/1000;f.n=Math.max(1,Math.ceil(f.Bf/(f.dm*f.V)-1e-9));f.Vu=f.n*f.V;f.oc=f.Bf/(f.dm*f.Vu);f.de=ta;f.ate=ta+f.dd*DAY;ta=f.ate;inv[f.V]=(inv[f.V]||0)+f.n;
+    Object.assign(f,{i:f.k,fase:["Fase 1 · berçário","Fase 2 · berçário II","Fase 3 · recria"][f.k],dias:f.dd,tq:[{v:f.V,n:f.n,nv:f.n,pi:f.Ni/f.n,pf:f.Nf/f.n,kg:f.Bf/f.n}]})});
+  Nst=Math.round(Nst);const Nfim=Math.round(Nst*sob),Bfim=Nfim*wF/1000,area=Nst/dens,nViv=Math.max(1,Math.ceil(area/(ha*1e4)-1e-9));
+  const V={Nst,Nfim,Bfim,area,nViv,ha,dens,sob,pk,dd:ddV,wi:W[2],wf:wF,de:ta,ate:ta+ddV*DAY,kgHa:Bfim/(area/1e4),porViv:Nst/nViv};
+  return {cam:true,sp,S,PH,R:PH,V,N0:PH[0].Ni,inv:Object.entries(inv).map(([v,n])=>[+v,n]),totV:Object.entries(inv).reduce((s,[v,n])=>s+v*n,0),ciclo:Math.round((V.ate-ini)/DAY),mort,PK,Q}}
+function htmlCam(X){if(X.erro)return `<div class="body"><p class="hint" style="color:#b91c1c">⚠️ ${E(X.erro)}</p></div>`;const V=X.V,Q=X.Q,f0=X.PH[0];
+  return `<div class="body"><div class="gfh-kpis bx-kpis cs-kp">
+    <div class="hk"><div><span class="hk-l">Pós-larvas para povoar</span><b>${F(X.N0)}</b><small>${Q.q==="bf"&&P(Q.bf)>0?`para ${F(P(Q.bf))} kg de ${Fw(V.wf)} g`:`enchem o tanque 1 (${Fv(f0.V)} m³) em ${F(f0.dd)} dias`} · ${F(f0.n)} × ${Fv(f0.V)} m³</small></div></div>
+    <div class="hk"><div><span class="hk-l">Juvenis para o viveiro</span><b>${F(V.Nst)}</b><small>de ${Fw(V.wi)} g · ${F(V.dens)} camarões/m² (${E(V.pk.n)})</small></div></div>
+    <div class="hk hk-warn"><div><span class="hk-l">Área de viveiro</span><b>${F(V.area/1e4,2)} ha</b><small>${F(V.nViv)} viveiro(s) de ${F(V.ha,2)} ha · ${F(V.porViv)} juvenis em cada</small></div></div>
+    <div class="hk"><div><span class="hk-l">Despesca</span><b>${F(V.Bfim)} kg</b><small>${F(V.Nfim)} camarões de ${Fw(V.wf)} g em ${dBR(V.ate)} · ${F(V.kgHa)} kg/ha · ciclo de ${F(X.ciclo)} dias</small></div></div></div>
+   ${esquema(X)}
+   <div class="cs-viv"><b>🌊 Fase 4 · engorda em viveiro escavado</b> <span>${Fw(V.wi)} → ${Fw(V.wf)} g · ${F(V.dd)} dias · ${dBR(V.de)} a ${dBR(V.ate)}</span>
+    <div class="mk-form"><label class="jr-f">Pacote tecnológico<select data-cs-cpk>${X.PK.map(p=>`<option value="${p.k}"${p.k===V.pk.k?" selected":""}>${E(p.n)} · ${F(p.d)}/m² · ${F(p.s)} %</option>`).join("")}</select></label>
+     <label class="jr-f">Densidade<input data-cs-c="dens" value="${E(Q.dens||String(V.dens))}" inputmode="decimal"><small>camarões/m²</small></label>
+     <label class="jr-f">Sobrevivência no viveiro<input data-cs-c="sob" value="${E(Q.sob||String(Math.round(V.sob*100)))}" inputmode="decimal"><small>%</small></label>
+     <label class="jr-f">Área de cada viveiro<input data-cs-c="ha" value="${E(Q.ha||"1")}" inputmode="decimal"><small>ha</small></label></div>
+    <p class="hint" style="margin:4px 0 0">${E(V.pk.f)}. ${F(V.Nst)} juvenis ÷ ${F(V.dens)}/m² = ${F(V.area)} m² de lâmina d'água.</p></div>
+   <div class="scroll"><table class="lot cs-tab"><thead><tr><th class="l">Fase</th><th>Tanque<small>m³</small></th><th>Peso<small>g no fim</small></th><th>Dias</th><th>Camarões<small>entram → saem</small></th><th>Biomassa<small>kg no fim</small></th><th>DM<small>kg/m³</small></th><th>Tanques</th><th>Ocupação</th></tr></thead><tbody>
+   ${X.PH.map(f=>`<tr><td class="l"><b>${E(f.fase)}</b><br><small>${dBR(f.de)} a ${dBR(f.ate)}</small></td><td>${Fv(f.V)}</td><td>${Fw(f.wi)} → <input class="cs-w" data-cs-cw="${f.k}" value="${Fw(f.wf)}" aria-label="Peso no fim da fase"></td><td>${F(f.dd)}</td><td>${F(f.Ni)} → ${F(f.Nf)}</td><td>${F(f.Bf)}</td><td><input class="cs-n" data-cs-cdm="${f.k}" value="${F(f.dm,2)}" aria-label="Densidade máxima"></td><td><b>${F(f.n)} × ${Fv(f.V)}</b><br><small>${F(f.Ni/f.n)} por tanque</small></td><td>${F(f.oc*100)} %</td></tr>`).join("")}
+   <tr><td class="l"><b>Fase 4 · viveiro escavado</b><br><small>${dBR(V.de)} a ${dBR(V.ate)}</small></td><td>—</td><td>${Fw(V.wi)} → ${Fw(V.wf)}</td><td>${F(V.dd)}</td><td>${F(V.Nst)} → ${F(V.Nfim)}</td><td>${F(V.Bfim)}</td><td>—</td><td><b>${F(V.nViv)} × ${F(V.ha,2)} ha</b><br><small>${F(V.dens)}/m²</small></td><td>${F(V.kgHa)} kg/ha</td></tr></tbody></table></div>
+   <p class="hint">As fases 1, 2 e 3 ficam em tanques de ${E(C.sis==="bft"?"bioflocos":"RAS")} (os três primeiros volumes da lista), cada uma com tanques do mesmo volume, em número suficiente para a biomassa do fim da fase chegar à densidade máxima. Na fase 4 todos os juvenis vão para viveiros escavados, dimensionados pela densidade do pacote tecnológico (camarões/m²). Mortalidade nos tanques: ${F(X.mort*100,1)} % ao mês${C.mort===""?" (padrão do camarão; mude em Mortalidade)":""}.${X.sp==="monodon"?" ⚠️ O P. monodon é espécie exótica com registros de invasão na costa brasileira: confirme no órgão ambiental se o cultivo é permitido antes de planejar.":""}</p></div>`}
+
 /* ---------- desenho ---------- */
 const Fv=v=>F(v,v%1?1:0);const tqTxt=f=>f.tq.map(t=>`${F(t.n)} × ${Fv(t.v)} m³`).join(" + ");
 function esquema(X){const R=X.R,mx=Math.max(...R.flatMap(f=>f.tq.map(t=>t.v))),W=Math.max(640,R.length*220),H=300,cw=W/R.length;let s="";
@@ -17839,23 +17890,26 @@ function esquema(X){const R=X.R,mx=Math.max(...R.flatMap(f=>f.tq.map(t=>t.v))),W
     let cx=area.x,cy=area.y,lin=0;const sz=v=>Math.max(12,Math.sqrt(v/mx)*Math.min(70,area.w/Math.max(2,Math.ceil(Math.sqrt(shown.length)))-4));
     shown.forEach(t=>{const z=sz(t.v);if(cx+z>area.x+area.w){cx=area.x;cy+=lin+4;lin=0}if(cy+z<=area.y+area.h)s+=`<rect x="${cx}" y="${cy}" width="${z}" height="${z}" rx="3" fill="${t.novo?(k?"#4ade80":"#22d3ee"):"#a5f3fc"}" stroke="#065f46" stroke-width=".8"><title>${Fv(t.v)} m³</title></rect>`;cx+=z+4;lin=Math.max(lin,z)});
     if(L.length>shown.length)s+=`<text x="${x+w-14}" y="${area.y+area.h}" text-anchor="end" font-size="10.5" fill="#065f46">+${L.length-shown.length}</text>`;
-    f.tq.slice(0,4).forEach((t,q)=>{s+=`<text x="${x+w/2}" y="${H-118+q*14}" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">${F(t.n)} × ${Fv(t.v)} m³ · ${F(t.pi)} peixes cada</text>`});s+=`<text x="${x+w/2}" y="${H-46}" text-anchor="middle" font-size="11" fill="#064e3b">${F(f.Nf)} animais · ${F(f.Bf)} kg no fim</text><text x="${x+w/2}" y="${H-30}" text-anchor="middle" font-size="10.5" fill="#047857">${F(f.Vu)} m³ · DM ${F(f.dm,1)} kg/m³</text><text x="${x+w/2}" y="${H-16}" text-anchor="middle" font-size="10.5" fill="#047857">${k<R.length-1?"desdobra":"despesca"} em ${dBR(f.ate)}</text>`;
+    f.tq.slice(0,4).forEach((t,q)=>{s+=`<text x="${x+w/2}" y="${H-118+q*14}" text-anchor="middle" font-size="11" font-weight="700" fill="#064e3b">${F(t.n)} × ${Fv(t.v)} m³ · ${F(t.pi)} ${X.cam||isCam(X.sp)?"camarões":"peixes"} cada</text>`});s+=`<text x="${x+w/2}" y="${H-46}" text-anchor="middle" font-size="11" fill="#064e3b">${F(f.Nf)} ${X.cam||isCam(X.sp)?"camarões":"animais"} · ${F(f.Bf)} kg no fim</text><text x="${x+w/2}" y="${H-30}" text-anchor="middle" font-size="10.5" fill="#047857">${F(f.Vu)} m³ · DM ${F(f.dm,1)} kg/m³</text><text x="${x+w/2}" y="${H-16}" text-anchor="middle" font-size="10.5" fill="#047857">${k<R.length-1?"desdobra":X.cam?"vai para o viveiro":"despesca"} em ${dBR(f.ate)}</text>`;
     if(k<R.length-1)s+=`<path d="M${x+w+1} ${H/2} l16 0" stroke="#047857" stroke-width="2.5" marker-end="url(#cs-ar)"/>`});
   return `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Esquema dos tanques por fase"><defs><marker id="cs-ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#047857"/></marker></defs>${s}</svg></div>`}
-function html(){const D=padroes(),SEL=C.tipo2==="sel",X=SEL?calcSel():calcula(),sp=D.sp,S=D.S,Q=SELD();
+function html(){const D=padroes(),CAM=isCam(D.sp)&&C.camViv!==false,SEL=!CAM&&C.tipo2==="sel",X=CAM?calcCam():SEL?calcSel():calcula(),sp=D.sp,S=D.S,Q=SELD(),QC=CAMD();
   const inp=(k,l,v,u,tp)=>`<label class="ctl">${l}<span class="inp"><input data-cs="${k}" value="${E(v??"")}"${tp?` type="${tp}"`:' inputmode="decimal"'}>${u?`<u>${u}</u>`:""}</span></label>`;
   const ctl=`<div class="body bio-ctrl cs-ctl">
-    <label class="ctl">Espécie<span class="inp"><select data-cs="sp">${Object.entries(SPECIES).map(([k,s])=>`<option value="${k}"${k===sp?" selected":""}>${E(s.name)}</option>`).join("")}</select></span></label>
+    <label class="ctl">Espécie<span class="inp"><select data-cs="sp">${Object.entries(Object.assign({},SPECIES,LOCSP)).map(([k,s])=>`<option value="${k}"${k===sp?" selected":""}>${E(k==="camarao"?"Camarão-branco (L. vannamei)":s.name)}</option>`).join("")}</select></span></label>
     <label class="ctl">Sistema de cultivo<span class="inp"><select data-cs="sis">${Object.entries(SIS).map(([k,t])=>`<option value="${k}"${k===C.sis?" selected":""}${(DMREF[sp]||{})[k]?"":" disabled"}>${t} · DM ${F(dmBase(sp,k),1)} kg/m³</option>`).join("")}</select></span></label>
-    <div class="ctl cs-tipo">Desenho<div class="seg" role="group"><button type="button" class="btn" data-cs-t2="cas" aria-pressed="${!SEL}">Todos seguem (cascata)</button><button type="button" class="btn" data-cs-t2="sel" aria-pressed="${SEL}">Só uma parte segue (seleção)</button></div></div>
+    ${isCam(sp)?`<div class="ctl cs-tipo">Camarão<div class="seg" role="group"><button type="button" class="btn" data-cs-cv="1" aria-pressed="${CAM}">3 fases em tanques + viveiro escavado</button><button type="button" class="btn" data-cs-cv="0" aria-pressed="${!CAM}">Só tanques</button></div></div>`:""}
+    ${CAM?"":`<div class="ctl cs-tipo">Desenho<div class="seg" role="group"><button type="button" class="btn" data-cs-t2="cas" aria-pressed="${!SEL}">Todos seguem (cascata)</button><button type="button" class="btn" data-cs-t2="sel" aria-pressed="${SEL}">Só uma parte segue (seleção)</button></div></div>`}
     <label class="ctl cs-vols">Volume dos tanques de cada fase<span class="inp"><input data-cs="vols" value="${E(C.vols)}" placeholder="32, 64, 100, 200, 300"><u>m³</u></span></label>${inp("w0","Peso no povoamento",C.w0,"g")}
-    ${SEL?`<div class="ctl">Quantidade de alevinos pela<div class="seg" role="group"><button type="button" class="btn" data-cs-sq="t1" aria-pressed="${Q.q!=="bf"}">Cria cheia (tanque 1)</button><button type="button" class="btn" data-cs-sq="bf" aria-pressed="${Q.q==="bf"}">Biomassa final</button></div></div>
+    ${CAM?`<div class="ctl">Quantidade pela<div class="seg" role="group"><button type="button" class="btn" data-cs-cq="t1" aria-pressed="${QC.q!=="bf"}">Tanque 1 cheio</button><button type="button" class="btn" data-cs-cq="bf" aria-pressed="${QC.q==="bf"}">Biomassa final</button></div></div>
+    ${QC.q==="bf"?`<label class="ctl">Biomassa final<span class="inp"><input data-cs-c="bf" value="${E(QC.bf)}" inputmode="decimal" placeholder="ex.: 10000"><u>kg</u></span></label>`:""}<label class="ctl">Peso final<span class="inp"><input data-cs-c="wfim" value="${E(QC.wfim||String(S.alvo))}" inputmode="decimal"><u>g</u></span></label>`:SEL?`<div class="ctl">Quantidade de alevinos pela<div class="seg" role="group"><button type="button" class="btn" data-cs-sq="t1" aria-pressed="${Q.q!=="bf"}">Cria cheia (tanque 1)</button><button type="button" class="btn" data-cs-sq="bf" aria-pressed="${Q.q==="bf"}">Biomassa final</button></div></div>
     ${inp("dias","Dias da cria (tanque 1)",C.dias||D.dias,"dias")}${Q.q==="bf"?`<label class="ctl">Biomassa final<span class="inp"><input data-cs-sbf value="${E(Q.bf)}" inputmode="decimal" placeholder="ex.: 5000"><u>kg</u></span></label>`:""}<label class="ctl">Peso final<span class="inp"><input data-cs-swf value="${E(Q.wfim||String(S.alvo))}" inputmode="decimal"><u>g</u></span></label>`:`<div class="ctl">Calcular por<div class="seg" role="group"><button type="button" class="btn" data-cs-modo="dias" aria-pressed="${C.modo!=="n"}">Dias no tanque 1</button><button type="button" class="btn" data-cs-modo="n" aria-pressed="${C.modo==="n"}">Quantidade de alevinos</button></div></div>
     ${C.modo==="n"?inp("n0","Alevinos no tanque 1",C.n0,"un."):inp("dias","Dias para o tanque 1 encher",C.dias||D.dias,"dias")}`}
-    ${inp("ini","Povoamento",C.ini,"","date")}${inp("mort","Mortalidade",C.mort!==""?C.mort:F(T(()=>bioParams().mort*100,1.5),1),"% ao mês")}
-    ${SEL?"":`<label class="opts"><input type="checkbox" data-cs="esc"${C.esc?" checked":""}> Produção escalonada: povoar o tanque 1 de novo a cada ${X&&X.t1?F(X.t1)+" dias":"ciclo do berçário"} (cada fase com tanques próprios)</label>
+    ${inp("ini","Povoamento",C.ini,"","date")}${inp("mort","Mortalidade",C.mort!==""?C.mort:CAM?"6":F(T(()=>bioParams().mort*100,1.5),1),"% ao mês")}
+    ${SEL||CAM?"":`<label class="opts"><input type="checkbox" data-cs="esc"${C.esc?" checked":""}> Produção escalonada: povoar o tanque 1 de novo a cada ${X&&X.t1?F(X.t1)+" dias":"ciclo do berçário"} (cada fase com tanques próprios)</label>
     ${C.esc?"":`<label class="opts"><input type="checkbox" data-cs="reuso"${C.reuso?" checked":""}> Reaproveitar tanques do mesmo volume já construídos (quando a lista repete um volume)</label>`}`}
     <p class="hint">O 1º volume é o do tanque 1; cada fase seguinte usa o volume seguinte da lista (a última fase repete o último). Os tanques só têm os volumes da lista e nenhum passa do maior deles (${F(Math.max(...listaV().concat([0])))} m³): quando a fase precisa de mais espaço, o app aumenta o <b>número</b> de tanques. Crescimento pela curva da espécie com o ritmo da aba (${F(D.rit*100)} %); a densidade máxima parte da DM do sistema${C.sis==="ras"&&dmCalc(sp)?" (a da Calculadora)":" (referência)"} e sobe de 50 % no alevino até 100 % a partir de ${sp==="camarao"?"5":"150"} g — edite na tabela.</p></div>`;
+  if(CAM)return ctl+htmlCam(X);
   if(SEL)return ctl+htmlSel(X);
   if(X.erro)return ctl+`<div class="body"><p class="hint" style="color:#b91c1c">⚠️ ${E(X.erro)}</p></div>`;
   const f1=X.R[0],f2=X.R[1];
@@ -17879,10 +17933,15 @@ function card(){const v=document.getElementById("view-bio");if(!v)return null;le
   if(!v.contains(c)){const a=v.querySelector("#plan-card");if(a&&a.nextSibling)v.insertBefore(c,a.nextSibling);else v.appendChild(c)}return c}
 function desenha(forca){const c=card();if(!c||document.getElementById("view-bio").hidden)return;const b=document.getElementById("cs-body"),a=document.activeElement;if(!forca&&b.contains(a)&&/INPUT|SELECT/.test(a.tagName))return;const h=T(html,"<div class='body'><p class='hint'>Não foi possível montar o planejamento.</p></div>");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
 const refaz=()=>{const a=document.activeElement;if(a&&a.closest&&a.closest("#cs-card"))try{a.blur()}catch(_){}desenha(true)};
-window.gfCascata={calcula,calcSel,calcProg,equilibra,cfg:()=>C,set:o=>{Object.assign(C,o);grava();refaz()}};
+const camSet=o=>{C.cam=Object.assign({},C.cam,{[C.sp]:Object.assign(CAMD(),o)});grava();refaz()};
+window.gfCascata={calcula,calcCam,calcSel,calcProg,equilibra,cfg:()=>C,set:o=>{Object.assign(C,o);grava();refaz()}};
 document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#cs-card"))return;e.stopPropagation();
-  if(t.dataset.cs){const k=t.dataset.cs;C[k]=t.type==="checkbox"?t.checked:t.value;if(k==="sp"){C.w0=C.sp==="camarao"?"0,01":"0,5";C.fases=null;C.dm={};C.vt={};C.dias="";if(!(DMREF[C.sp]||{})[C.sis])C.sis="bft"}if(k==="sis"){C.dm={};C.dmp={}}if(k==="vols"){C.dmp={};C.vt={}}if(k==="w0")C.dias="";grava();refaz();return}
+  if(t.dataset.cs){const k=t.dataset.cs;C[k]=t.type==="checkbox"?t.checked:t.value;if(k==="sp"){C.w0=C.sp==="camarao"?"0,01":C.sp==="monodon"?"0,015":"0,5";C.fases=null;C.dm={};C.vt={};C.dias="";if(!(DMREF[C.sp]||{})[C.sis])C.sis="bft"}if(k==="sis"){C.dm={};C.dmp={}}if(k==="vols"){C.dmp={};C.vt={}}if(k==="w0")C.dias="";grava();refaz();return}
   if(t.dataset.csF!=null){const X=calcula();const L=(X.R||[]).slice(1).map(f=>f.wf);L[+t.dataset.csF]=P(t.value);C.fases=L.filter(x=>x>0);grava();refaz();return}
+  if(t.dataset.csC!=null){camSet({[t.dataset.csC]:t.value});return}
+  if(t.dataset.csCpk!=null){camSet({pk:t.value,dens:"",sob:""});return}
+  if(t.dataset.csCw!=null){const q=CAMD(),w=(q.w||[]).slice();w[+t.dataset.csCw]=t.value;camSet({w});return}
+  if(t.dataset.csCdm!=null){C.dmC=Object.assign({},C.dmC,{[t.dataset.csCdm]:t.value});grava();refaz();return}
   if(t.dataset.csSbf!=null||t.dataset.csSwf!=null){const Q=SELD();if(t.dataset.csSbf!=null)Q.bf=t.value;else Q.wfim=t.value;C.sel=Q;grava();refaz();return}
   if(t.dataset.csSd!=null||t.dataset.csSf!=null){const Q=SELD(),k=+(t.dataset.csSd??t.dataset.csSf);Q.ph=Q.ph.slice();Q.ph[k]=Object.assign({},Q.ph[k]||{},t.dataset.csSd!=null?{dias:t.value}:{fr:t.value});C.sel=Q;grava();refaz();return}
   if(t.dataset.csSdm!=null){C.dmS=Object.assign({},C.dmS,{[t.dataset.csSdm]:t.value});grava();refaz();return}
@@ -17890,7 +17949,8 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closes
   if(t.dataset.csDm!=null){C.dm=Object.assign({},C.dm,{[t.dataset.csDm]:t.value});grava();refaz();return}
   if(t.dataset.csVt!=null){C.vt=Object.assign({},C.vt,{[t.dataset.csVt]:t.value});grava();refaz()}},true);
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#cs-card"))e.stopPropagation()},true);
-document.addEventListener("click",e=>{{const t2=e.target.closest&&e.target.closest("#cs-card [data-cs-t2]");if(t2){C.tipo2=t2.dataset.csT2;grava();refaz();return}const sq=e.target.closest&&e.target.closest("#cs-card [data-cs-sq]");if(sq){C.sel=Object.assign(SELD(),{q:sq.dataset.csSq});grava();refaz();return}}
+document.addEventListener("click",e=>{{const cv=e.target.closest&&e.target.closest("#cs-card [data-cs-cv]");if(cv){C.camViv=cv.dataset.csCv==="1";grava();refaz();return}const cq=e.target.closest&&e.target.closest("#cs-card [data-cs-cq]");if(cq){camSet({q:cq.dataset.csCq});return}}
+  {const t2=e.target.closest&&e.target.closest("#cs-card [data-cs-t2]");if(t2){C.tipo2=t2.dataset.csT2;grava();refaz();return}const sq=e.target.closest&&e.target.closest("#cs-card [data-cs-sq]");if(sq){C.sel=Object.assign(SELD(),{q:sq.dataset.csSq});grava();refaz();return}}
   const tp=e.target.closest&&e.target.closest("#cs-card [data-cs-tipo]");if(tp){C.tipo=tp.dataset.csTipo;grava();refaz();return}
   if(e.target.closest&&e.target.closest('#cs-card [data-cs-a="equil"]')){equilibra();grava();refaz();return}
   const m=e.target.closest&&e.target.closest("#cs-card [data-cs-modo]");if(m){C.modo=m.dataset.csModo;if(C.modo==="n"&&!(P(C.n0)>0)){const X=calcula();if(X&&X.N0)C.n0=String(X.N0)}grava();refaz();return}
@@ -17900,7 +17960,7 @@ document.addEventListener("click",e=>{{const t2=e.target.closest&&e.target.close
   if(a.dataset.csA==="reset"){C.fases=null;C.dm={};C.vt={};C.dias=""}
   grava();refaz()},true);
 function inicia(){if(typeof setView!=="function"||!document.getElementById("view-bio")||typeof SPECIES==="undefined"){setTimeout(inicia,300);return}
-  const st=document.createElement("style");st.textContent=`#cs-card .cs-ctl{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:10px 14px;align-items:end}#cs-card .cs-ctl .hint{flex-basis:100%;margin:0}#cs-card .cs-ctl .opts{flex-basis:100%;display:flex;gap:6px;align-items:center;font-size:13.5px}#cs-card .body{display:grid;gap:10px}.cs-kp .hk-warn b{color:#b45309}.cs-tab input{width:64px!important;min-width:0!important;padding:3px 6px;font:inherit;font-size:13px;text-align:right}.cs-tab td,.cs-tab th{vertical-align:middle}.cs-tab td.l small{color:var(--muted)}#cs-card svg{display:block;max-width:none}#cs-card .cs-vols{min-width:260px!important}#cs-card .cs-vols .inp{min-width:280px;width:auto}#cs-card .cs-vols input{min-width:230px;width:100%}.cs-eq{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.cs-eq small{color:var(--muted)}.cs-tab tr.cs-bad td{background:#fef2f2}#cs-card .cs-ctl .ctl{min-width:150px;flex:0 1 auto}#cs-card .cs-ctl select{min-width:150px}`;document.head.appendChild(st);
+  const st=document.createElement("style");st.textContent=`#cs-card .cs-ctl{display:flex!important;flex-direction:row!important;flex-wrap:wrap;gap:10px 14px;align-items:end}#cs-card .cs-ctl .hint{flex-basis:100%;margin:0}#cs-card .cs-ctl .opts{flex-basis:100%;display:flex;gap:6px;align-items:center;font-size:13.5px}#cs-card .body{display:grid;gap:10px}.cs-kp .hk-warn b{color:#b45309}.cs-tab input{width:64px!important;min-width:0!important;padding:3px 6px;font:inherit;font-size:13px;text-align:right}.cs-tab td,.cs-tab th{vertical-align:middle}.cs-tab td.l small{color:var(--muted)}#cs-card svg{display:block;max-width:none}#cs-card .cs-vols{min-width:260px!important}#cs-card .cs-vols .inp{min-width:280px;width:auto}#cs-card .cs-vols input{min-width:230px;width:100%}.cs-eq{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;align-items:center}.cs-eq small{color:var(--muted)}.cs-tab tr.cs-bad td{background:#fef2f2}.cs-viv{border:1px solid #7dd3fc;background:#f0f9ff;border-radius:12px;padding:10px 12px;display:grid;gap:6px}.cs-viv>span{color:#0369a1;font-size:13px}.cs-viv .mk-form{margin:0}#cs-card .cs-ctl .ctl{min-width:150px;flex:0 1 auto}#cs-card .cs-ctl select{min-width:150px}`;document.head.appendChild(st);
   const o=setView;setView=function(v){o(v);if(v==="bio")setTimeout(()=>desenha(),150)};
   if(typeof drawBio==="function"){const d=drawBio;drawBio=function(){d.apply(this,arguments);clearTimeout(desenha.t);desenha.t=setTimeout(()=>desenha(),90)}}
   setTimeout(()=>desenha(),1600)}
