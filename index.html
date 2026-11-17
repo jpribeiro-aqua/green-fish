@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v283";
+  it.querySelector("code").textContent=msg;const ver="ras-v284";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v283";
+  const APP_VERSAO="ras-v284";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17306,9 +17306,9 @@ function confHTML(c,R){const l=c.lote&&S.lotes.find(x=>x.lote&&x.lote.toUpperCas
    <div>${E(nomeProd(l))} · recebido em ${dBR(l.data)} (${E(l.id)})${ped?` pelo pedido ${E(ped.id)}`:""}${l.nf?` · NF ${E(l.nf)}`:""}</div><div>Fabricação ${dBR(l.fab)} · validade ${dBR(l.val)} · resta ≈ ${F(rh)} kg</div>
    ${l.foto?`<img src="${l.foto}" alt="Foto do rótulo no recebimento" style="max-width:180px;border-radius:8px;margin:4px 0">`:""}<div>Alimentou: ${Object.entries(r.uso).map(([g,kg])=>`${E(g)} (${F(kg)} kg)`).join(", ")||"ainda não usado"}</div>${l.chk?l.chk.itens.map(([o,t])=>`<div>${o>0?"✓":o<0?"⛔":"⚠️"} ${E(t)}</div>`).join(""):""}</div>`}
 function html(){recarrega();const r=T(()=>gfRacaoResumo(),{})||{};
-  return `<div class="mk-modos" style="margin-bottom:10px">${chip("ped","🛒 Pedidos")}${chip("nf","📄 Notas fiscais")}${chip("rec","🔎 Sacas (scanner)")}${chip("est","📦 Estoque e destinos")}${chip("ras","🔎 Rastreabilidade")}<span class="muted" style="margin-left:auto;font-size:12.5px">${F(r.estoque)} kg em estoque${r.dias!=null?` · ${r.dias} dias`:""}${r.pedidos?` · ${r.pedidos} pedido(s) em aberto`:""}</span></div>
+  return `<div class="mk-modos" style="margin-bottom:10px">${chip("ped","🛒 Pedidos")}${chip("nf","📄 Notas fiscais")}${chip("rec","🔎 Sacas (scanner)")}${chip("est","📦 Estoque e destinos")}${chip("ras","🔎 Rastreabilidade")}${chip("ins","🧪 Insumos do preparo"+T(()=>{const n=window.gfInsumos?gfInsumos.pendentes():0;return n?" ("+n+")":""},""))}<span class="muted" style="margin-left:auto;font-size:12.5px">${F(r.estoque)} kg em estoque${r.dias!=null?` · ${r.dias} dias`:""}${r.pedidos?` · ${r.pedidos} pedido(s) em aberto`:""}</span></div>
    ${UI.msg?`<p class="hint" style="margin:0 0 8px">${E(UI.msg)}</p>`:""}
-   ${S.aba==="rec"?htmlRec():S.aba==="nf"?htmlNF():S.aba==="est"?htmlEst():S.aba==="ras"?htmlRas():htmlPed()}`}
+   ${S.aba==="ins"?T(()=>window.gfInsumos?gfInsumos.html():"<p class=\"hint\">Carregando os insumos…</p>",""):S.aba==="rec"?htmlRec():S.aba==="nf"?htmlNF():S.aba==="est"?htmlEst():S.aba==="ras"?htmlRas():htmlPed()}`}
 /* ---------- demonstrativo no Arraçoamento: a ração de uma propriedade, grupo ou tanque, vinda da AquaGestão ---------- */
 function demoHTML(){recarrega();const R=simula(),sel=UI.demo||"prop",d=keyDest(sel),D=porDestino(R),lin=D.find(x=>x.k===sel);
   const uso=d.t==="prop"?Object.fromEntries(S.lotes.map(l=>[l.id,Object.values((R.lotes[l.id]||{uso:{}}).uso).reduce((a,b)=>a+b,0)])):d.t==="grupo"?(R.grupos[d.g]||{}):(R.tanques[d.g+"|"+d.k]||{});
@@ -17330,6 +17330,7 @@ function desenhaDemo(){const v=document.getElementById("view-racao");if(!v)retur
   if(!v.contains(c))v.appendChild(c);if(v.hidden)return;const a=document.activeElement;if(c.contains(a)&&a.tagName==="SELECT")return;const h=demoHTML();if(c.__h!==h){c.innerHTML=h;c.__h=h}}
 window.gfRacaoHub={html:()=>`<div id="rg-box" class="rg-card">${T(html,"")}</div>`,info:()=>{const r=T(()=>gfRacaoResumo(),null);return r?`${F(r.estoque)} kg · ${r.lotes} lote(s)${r.pedidos?` · ${r.pedidos} pedido(s)`:""}`:"pedido, rótulo, estoque e rastreio"}};
 const NUL={__h:"",contains:()=>false,querySelector:()=>null};const bx=()=>document.getElementById("rg-box")||NUL;
+window.gfRacaoRedesenha=()=>{bx().__h="";desenha()};window.gfRacaoAba=k=>{recarrega();S.aba=k;grava();bx().__h="";desenha()};
 function desenha(){const b=document.getElementById("rg-box");if(b&&b.offsetParent!==null){const a=document.activeElement;if(!(b.contains(a)&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)&&a.type!=="file")){const h=html();if(b.__h!==h){b.innerHTML=h;b.__h=h}}}try{desenhaDemo()}catch(e){}}
 window.gfRacaoDesenha=desenha;
 function aplica(modo,o,R){const cat=catalogo(o.ean||R.ean||o.gtin);if(cat){for(const k in cat)if(cat[k]&&!o[k]){o[k]=cat[k];(R.fontes=R.fontes||{})[k]="cadastro"}}
@@ -18152,3 +18153,255 @@ function inicia(){if(typeof setView!=="function"||!document.getElementById("view
 inicia();
 })();
 </script>
+<script>
+/* ===================== v284: AquaNictemeral · 🧪 Preparo da água e do fundo — protocolos de desinfecção, calagem, adubação e maturação
+   para viveiros escavados, RAS e bioflocos, com as doses calculadas pela área/volume do projeto, e o pedido dos insumos
+   na 🧾 Gestão da ração (aba 🧪 Insumos do preparo) ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="ras-multitanques-v1-insumos",DAY=864e5;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const P=v=>{if(typeof v==="number")return v;let t=String(v??"").trim().replace(/\s/g,"");if(!t)return NaN;if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const Fk=kg=>!isFinite(kg)?"—":kg>=100?F(kg,0)+" kg":kg>=1?F(kg,1)+" kg":F(kg*1000,0)+" g";
+const iso=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const msD=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||""));return m?new Date(+m[1],+m[2]-1,+m[3],12).getTime():NaN};
+const dBR=x=>{const t=typeof x==="number"?x:msD(x);return isFinite(t)?new Date(t).toLocaleDateString("pt-BR"):"—"};
+const hoje=()=>iso(Date.now());
+
+/* ---------- referências usadas nas doses ---------- */
+const REF={
+ emb10:"Lima, Bergamin & Moro — Engorda de peixes, cap. 10 de Piscicultura de água doce (Embrapa), Tabela 1 a partir de Kubitza (1998)",
+ emb44:"Soares, Evangelista & Pereira — Boas práticas de manejo e de biossegurança na carcinicultura, Embrapa Pesca e Aquicultura, Documentos 44 (2021)",
+ cna:"Projeto Campo Futuro CNA/Senar — Quais as opções e o custo da fertilização de viveiros escavados na piscicultura (2023)",
+ sebrae:"Sebrae — Manual do piscicultor: produção de tambaqui em viveiros escavados (2008)",
+ senar:"Senar — Piscicultura: construção de viveiros escavados, Coleção Senar 209 (2018)",
+ srac:"DeLong & Losordo — How to start a biofilter, SRAC 4502 (2012)",
+ ferri:"Ferri et al. — alevinos de tilápia em bioflocos, Embrapa/CIIC (2016): maturação de 10 dias",
+ chamorro:"Chamorro-Legarda et al. — açúcar como fonte de carbono no berçário em bioflocos, Bol. Inst. Pesca 42(2) (2016)",
+ avn:"Avnimelech (1999) — Carbon/nitrogen ratio as a control element in aquaculture systems, Aquaculture 176",
+ timmons:"Timmons & Ebeling — Recirculating Aquaculture (2010): ~0,25 kg de bicarbonato por kg de ração"};
+const REFL={emb10:"https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1083558/1/cap.10.pdf",emb44:"https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1132637/1/doc44-2021.pdf",
+ cna:"https://cnabrasil.org.br/publicacoes/quais-opcoes-e-qual-o-custo-da-fertilizacao-de-viveiros-escavados-na-piscicultura",sebrae:"https://bibliotecas.sebrae.com.br/chronus/ARQUIVOS_CHRONUS/bds/bds.nsf/e949d85c6485a9ab75f9396c1cf60a26/$File/4264.pdf",
+ senar:"https://www.cnabrasil.org.br/assets/arquivos/209-VIVEIROS-ESCAVADOS.pdf",srac:"https://srac.tamu.edu/fact-sheets/serve/241",ferri:"https://www.alice.cnptia.embrapa.br/alice/bitstream/doc/1064006/1/2016AA20.pdf",
+ chamorro:"https://institutodepesca.org/index.php/bip/article/download/1147/1125"};
+
+/* ---------- insumos: nome, unidade de compra e embalagem padrão (kg) ---------- */
+const PROD={
+ calc:{n:"Calcário agrícola",emb:50},dolo:{n:"Calcário dolomítico",emb:50},calv:{n:"Cal virgem (CaO)",emb:20},calh:{n:"Cal hidratada",emb:20},
+ ureia:{n:"Ureia (45% N)",emb:50},tsp:{n:"Superfosfato triplo",emb:50},kcl:{n:"Cloreto de potássio",emb:50},
+ estA:{n:"Esterco de aves peneirado",emb:1000},estS:{n:"Esterco suíno curtido",emb:1000},estB:{n:"Esterco bovino curtido",emb:1000},farelo:{n:"Farelo de arroz ou de trigo",emb:50},
+ map:{n:"MAP purificado",emb:25},nitr:{n:"Nitrato (de sódio ou de cálcio)",emb:25},sili:{n:"Silicato de sódio",emb:25},
+ cloro:{n:"Hipoclorito de cálcio (cloro)",emb:10},bic:{n:"Bicarbonato de sódio",emb:25},nh4:{n:"Cloreto de amônio",emb:25},fecl:{n:"Cloreto férrico",emb:1},melaco:{n:"Melaço de cana",emb:25}};
+const SIS={viv:"Viveiro escavado",ras:"RAS (recirculação)",bft:"Bioflocos"};
+
+/* ---------- estado (vai junto no projeto: a chave começa com ras-multitanques-v1) ---------- */
+const D0={cfg:{pov:"",esp:"auto",phSolo:"",mo:"",pocas:"10",alc:"",adub:"quim",est:"estA",reforco:true,estacao:"seca",alvoRas:"150",alvoBft:"150",nat:"4",doses:"8",inoc:"midia",inocBft:"10",fertBft:true,cn:"20",carb:"50",cicloRas:true,cicloBft:true,carbCiclo:true},uni:{},man:[],rasc:null,ped:[],seq:{},emb:{},preco:{}};
+const rd=()=>{const o=T(()=>JSON.parse(localStorage.getItem(K)),{})||{};const x=Object.assign(JSON.parse(JSON.stringify(D0)),o);x.cfg=Object.assign({},D0.cfg,o.cfg||{});["uni","seq","emb","preco"].forEach(k=>{if(!x[k]||typeof x[k]!=="object")x[k]={}});if(!Array.isArray(x.man))x.man=[];if(!Array.isArray(x.ped))x.ped=[];return x};
+let S=rd();const grava=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};const recarrega=()=>{S=rd()};
+if(!S.cfg.pov){S.cfg.pov=iso(Date.now()+30*DAY)}
+
+/* ---------- unidades do projeto: viveiros da Calculadora, grupos de tanques e as cadastradas aqui ---------- */
+function cam(){const c=S.cfg.esp;if(c==="peixe")return false;if(c==="camarao")return true;
+  const vr=T(()=>window.vvResumo&&vvResumo(),null);if(vr&&/camar/i.test(vr.esp||""))return true;
+  return T(()=>(feedModels()||[]).some(m=>/camar|vannamei|monodon|penaeus/i.test((m.sp&&(m.sp.name||m.sp.sci))||"")),false)}
+function sisPadrao(){const c=T(()=>JSON.parse(localStorage.getItem("ras-multitanques-v1-cascata")),{})||{};return c.sis==="bft"?"bft":"ras"}
+function unidades(){const U=[],sp=sisPadrao();
+  T(()=>(window.vvUnidades&&vvUnidades())||[],[]).forEach(u=>U.push({id:u.id,nome:u.nome,sis:"viv",area:+u.area||NaN,vol:+u.vol||((+u.area||0)*1.2),fonte:"Calculadora · viveiros"}));
+  T(()=>tanks,[]).forEach(t=>{const q=P(t.q),v=P(t.v);if(!(q>0&&v>0))return;U.push({id:"t"+t.id,tid:t.id,nome:T(()=>label(t),"Grupo "+(t.id+1)),sis:sp,q,v,vol:q*v,area:NaN,fonte:"Calculadora · grupo de tanques"})});
+  S.man.forEach(m=>{const s=m.sis||"viv",a=P(m.area),pr=P(m.prof),vol=P(m.vol);U.push({id:m.id,nome:m.nome||"Unidade",sis:s,area:a,prof:pr,vol:isFinite(vol)?vol:(a>0?a*(pr>0?pr:1.2):NaN),fonte:"cadastrada aqui",man:true})});
+  U.forEach(u=>{const o=S.uni[u.id]||{};if(o.sis&&SIS[o.sis])u.sis=o.sis;u.on=o.on!==false;if(u.sis==="viv"&&!(u.area>0)&&u.vol>0)u.area=u.vol/1.2});
+  return U}
+/* ração do ciclo de um grupo de tanques (Arraçoamento), por PB */
+function racaoGrupo(u){if(u.tid==null)return null;return T(()=>{const m=(feedModels()||[]).find(x=>x.t&&x.t.id===u.tid);if(!m)return null;const by={};const kg=feedBetween(m,Math.max(m.start,Date.now()),m.harvest,by,"fim");
+  const pb=Object.values(by).reduce((a,b)=>a+(b.pb||0)*b.fim,0)/Math.max(1e-9,kg);return {kg,pb:isFinite(pb)&&pb>0?pb:35}},null)}
+
+/* ---------- doses pelas tabelas ---------- */
+const calPeixe=ph=>ph<5?300:ph<6?200:ph<7?100:0;            // kg/1.000 m² de calcário agrícola (Embrapa cap. 10 / Kubitza 1998)
+const calAlc=a=>a<10?350:a<20?250:a<30?150:0;                 // kg/1.000 m² pela alcalinidade (Boyd 1989, já usada na Calculadora)
+const calCam=ph=>ph>=6.5?0:ph>=6?1000:ph>=5.5?2000:ph>=5?3000:4000; // kg/ha de dolomítico (Embrapa Doc 44, Tabela 6)
+const BIC10=14;   // g/m³ de bicarbonato de sódio para subir 10 mg/L de alcalinidade (SRAC 4502: 53 g em 3.785 L)
+const NH4N=3.82;  // g de cloreto de amônio por g de N amoniacal
+
+function plano(){recarrega();const c=S.cfg,C=cam(),U=unidades().filter(u=>u.on),pov=msD(c.pov)||Date.now()+30*DAY;
+  const ph=P(c.phSolo),mo=P(c.mo),alc=P(c.alc),poc=Math.max(0,Math.min(100,P(c.pocas)||0))/100,av=[],I={};
+  const add=(k,kg,quando,uso,ref)=>{if(!(kg>0))return;if(/no ciclo/.test(uso||""))k+="@c";const it=I[k]||(I[k]={k,kg:0,quando:Infinity,usos:[],refs:[]});it.kg+=kg;it.quando=Math.min(it.quando,quando);if(uso&&!it.usos.includes(uso))it.usos.push(uso);if(ref&&!it.refs.includes(ref))it.refs.push(ref)};
+  const out={viv:[],ras:[],bft:[]};
+  const semSolo=!isFinite(ph)&&!isFinite(alc);
+  for(const u of U){const R={u,passos:[],it:[]};const pu=(k,kg,q,uso,ref)=>{if(kg>0){R.it.push([k,kg]);add(k,kg,q,uso,ref)}};
+    if(u.sis==="viv"){const A=u.area>0?u.area:NaN,ha=A/1e4;if(!(A>0)){R.erro="Informe a área do viveiro.";out.viv.push(R);continue}
+      const dSec=pov-21*DAY,dCal=pov-11*DAY,dAbs=pov-8*DAY;
+      R.passos.push({d:dSec,t:"Esvaziar e secar ao sol",x:`Esvazie por completo e deixe o fundo secar ao sol por cerca de 10 dias (10 a 14 dias no manual do Sebrae). Retire o lodo e conserte taludes e monges.`,ref:"emb10"});
+      const kgCv=50/1000*A*poc;
+      pu("calv",kgCv,dCal,"desinfecção das poças",C?"emb44":"emb44");
+      R.passos.push({d:dCal,t:"Desinfetar as poças que não secam",x:`Cal virgem a 50 kg por 1.000 m² só onde ficou água (${F(poc*100)}% da área ≈ ${F(A*poc)} m²): <b>${Fk(kgCv)}</b>. Aplique de 2 a 3 dias antes de abastecer.`,ref:"emb44"});
+      if(C){let k="dolo",dose=isFinite(ph)?calCam(ph):(isFinite(alc)&&alc<60?2000:1000),obs="";
+        if(isFinite(mo)&&mo>3){k="calh";dose=1500;obs=` Matéria orgânica de ${F(mo,1)}% (acima de 3%): troque o dolomítico por cal hidratada ou virgem, de 1.500 a 2.000 kg/ha. Mantenha a MO até 4%.`}
+        const kg=dose*ha;pu(k,kg,dCal,"calagem do fundo","emb44");
+        R.passos.push({d:dCal,t:"Calagem do fundo seco",x:`${isFinite(ph)?`pH do solo ${F(ph,1)}`:"Sem pH do solo: dose de referência"} → <b>${F(dose)} kg/ha</b> de ${PROD[k].n.toLowerCase()} = <b>${Fk(kg)}</b>. Espalhe com o viveiro seco e incorpore com grade ou enxada.${obs}`,ref:"emb44"});
+        const lam=A*0.6,kgCl=4*lam/1000;pu("cloro",kgCl,dAbs,"desinfecção da água",null);
+        R.passos.push({d:dAbs,t:"Abastecer até 60 cm e desinfetar a água",x:`Com 60 cm (≈ ${F(lam)} m³): cloro a 4 g por 1.000 L = <b>${Fk(kgCl)}</b>, com aeradores desligados, no fim da tarde; deixe agir 48 h e ligue os aeradores para tirar o cloro antes de adubar.`,ref:"emb44"});
+        const seca=c.estacao!=="chuvosa",m1=5*ha,n1=(seca?20:15)*ha,s1=(seca?20:15)*ha;pu("map",m1,dAbs,"adubação inicial","emb44");pu("nitr",n1,dAbs,"adubação inicial","emb44");pu("sili",s1,dAbs,"adubação inicial","emb44");
+        R.passos.push({d:dAbs+2*DAY,t:"Adubação inicial (40 a 60 cm de água)",x:`Estação ${seca?"seca":"chuvosa"}: MAP 5 kg/ha (<b>${Fk(m1)}</b>), nitrato ${seca?20:15} kg/ha (<b>${Fk(n1)}</b>) e silicato ${seca?20:15} kg/ha (<b>${Fk(s1)}</b>). Dissolva em água antes de espalhar.`,ref:"emb44"});
+        R.passos.push({d:pov-1*DAY,t:"Conferir antes de povoar",x:`Povoe no mínimo 7 dias depois do abastecimento e da adubação. Transparência de 35 a 45 cm (disco de Secchi, entre 10 h e 14 h) e alcalinidade acima de 100 a 120 mg/L. Se a alcalinidade ficar abaixo de 60 mg/L no cultivo, aplique 100 a 300 kg/ha de dolomítico.`,ref:"emb44"});
+      }else{let dose=Math.max(isFinite(ph)?calPeixe(ph):0,isFinite(alc)?calAlc(alc):0);if(semSolo)dose=200;const kg=dose/1000*A;
+        pu("calc",kg,dCal,"calagem do fundo","emb10");
+        R.passos.push({d:dCal,t:"Calagem do fundo seco",x:dose>0?`${semSolo?"Sem análise de solo e água: dose de referência de pH 5 a 6":`Pela maior entre o pH do solo (${isFinite(ph)?F(ph,1):"—"}) e a alcalinidade da água (${isFinite(alc)?F(alc)+" mg/L":"—"})`} → <b>${F(dose)} kg por 1.000 m²</b> de calcário agrícola = <b>${Fk(kg)}</b>. Equivale a ${F(dose*0.73)} kg de cal hidratada ou ${F(dose*0.57)} kg de cal virgem por 1.000 m². Calcule quando o pH do solo for menor que 6 e a alcalinidade menor que 20 mg/L.`:`pH do solo ${F(ph,1)} e alcalinidade ${isFinite(alc)?F(alc)+" mg/L":"—"}: não precisa de calagem. Confira de novo no próximo ciclo.`,ref:"emb10"});
+        R.passos.push({d:dAbs,t:"Abastecer",x:`Abasteça com tela na entrada. Comece a adubar com no mínimo 50 cm de água.`,ref:"sebrae"});
+        const adub=c.adub,mul=c.reforco?1.5:1;let txt="";
+        if(adub==="org"){const ek=PROD[c.est]?c.est:"estA",dose2={estA:2500,estS:4000,estB:6000}[ek],kg2=dose2*ha;pu(ek,kg2*mul,dAbs,"adubação orgânica","cna");txt=`${PROD[ek].n}: ${F(dose2)} kg/ha = <b>${Fk(kg2)}</b>.`}
+        else if(adub==="mista"){const u1=40*ha,f1=100*ha;pu("ureia",u1*mul,dAbs,"adubação mista","cna");pu("farelo",f1*mul,dAbs,"adubação mista","cna");txt=`Ureia 30 a 50 kg/ha (40 kg/ha = <b>${Fk(u1)}</b>) + farelo de arroz ou de trigo 100 kg/ha (<b>${Fk(f1)}</b>).`}
+        else{const u1=30*ha,t1=30*ha,k1=15*ha;pu("tsp",t1*mul,dAbs,"adubação química","cna");pu("kcl",k1*mul,dAbs,"adubação química","cna");pu("ureia",u1*mul,dAbs,"adubação química","cna");txt=`Superfosfato triplo 30 kg/ha (<b>${Fk(t1)}</b>), cloreto de potássio 15 kg/ha (<b>${Fk(k1)}</b>) e ureia 30 kg/ha (<b>${Fk(u1)}</b>), juntos.`}
+        R.passos.push({d:dAbs,t:"Adubação inicial",x:`${txt} Dissolva em baldes antes de espalhar.${c.reforco?" O pedido leva mais 50% para o reforço: se depois de uma semana de sol a água não estiver esverdeada, aplique metade da dose inicial.":""}`,ref:"cna"});
+        R.passos.push({d:pov-1*DAY,t:"Conferir antes de povoar",x:`Água esverdeada pelo plâncton e transparência de 25 a 40 cm (disco de Secchi, entre 11 h e 13 h). Acima de 50 cm: repita a calagem e a adubação. Abaixo de 25 cm: troque de 15 a 30 cm de água pelo fundo.`,ref:"sebrae"});
+      }
+      out.viv.push(R);continue}
+    const V=u.vol;if(!(V>0)){R.erro="Informe o volume.";out[u.sis].push(R);continue}
+    const bft=u.sis==="bft",alvo=P(bft?c.alvoBft:c.alvoRas)||150,a0=isFinite(alc)?alc:20,dDes=pov-(bft?14:35)*DAY,dAlc=dDes+2*DAY;
+    const kgCl=30*V/1000;pu("cloro",kgCl,dDes,"desinfecção do sistema","emb44");
+    R.passos.push({d:dDes,t:"Limpar e desinfetar o sistema",x:`Lave tanques, canos${bft?"":", filtros"} e decantadores. Desinfete a água com hipoclorito de cálcio a 30 mg/L: <b>${Fk(kgCl)}</b> para ${F(V)} m³; deixe 48 h com aeração e só siga com o cloro residual zerado (aeração forte ou tiossulfato).${bft?"":" Não ponha cloro na mídia do biofiltro que já estiver colonizada."}`,ref:"emb44"});
+    const kgB=Math.max(0,alvo-a0)/10*BIC10*V/1000;pu("bic",kgB,dAlc,"alcalinidade inicial",bft?"emb44":"srac");
+    R.passos.push({d:dAlc,t:"Encher e corrigir a alcalinidade",x:`${isFinite(alc)?`Alcalinidade da água ${F(alc)} mg/L`:"Sem análise: considerei 20 mg/L"} → alvo ${F(alvo)} mg/L${bft?" (100 a 150 mg/L)":" (150 mg/L; 200 a 250 mg/L ajudam as bactérias que oxidam o nitrito)"}: bicarbonato de sódio, 14 g/m³ para cada 10 mg/L = <b>${Fk(kgB)}</b>. Leve a água à temperatura do cultivo.`,ref:bft?"emb44":"srac"});
+    if(!bft){const nat=P(c.nat)||4,nd=Math.max(1,Math.round(P(c.doses)||8)),dose=nat*NH4N*V/1000;pu("nh4",dose*nd,dAlc,"partida do biofiltro","srac");
+      R.passos.push({d:dAlc+DAY,t:"Partida do biofiltro (maturação)",x:`${c.inoc==="midia"?"Coloque mídia já colonizada de outro sistema (o jeito mais rápido)":c.inoc==="comercial"?"Aplique bactérias nitrificantes comerciais na dose do rótulo":"Use água ou lodo de um sistema em funcionamento como semente"}. Dê amônia com cloreto de amônio até ${F(nat,1)} mg/L de N amoniacal (3 a 5 mg/L): <b>${Fk(dose)}</b> por aplicação; repita quando a amônia cair. O pedido prevê ${nd} aplicações (ajuste). Meça amônia, nitrito, pH (6,8 a 7,2), alcalinidade e temperatura todo dia, no mesmo horário.`,ref:"srac"});
+      R.passos.push({d:pov-1*DAY,t:"Pronto para povoar",x:`Quando a amônia e depois o nitrito subirem e voltarem a valores seguros para a espécie e o nitrito ficar estável. A duração depende da temperatura (no exemplo da SRAC, a 28 °C, foi curta). Não aqueça mais que 2 a 3 °C acima da temperatura do cultivo.`,ref:"srac"});
+      if(c.cicloRas){const r=racaoGrupo(u);if(r&&r.kg>0){const kb=0.25*r.kg;pu("bic",kb,pov,"reposição de alcalinidade no ciclo","timmons");R.ciclo=`Reposição no ciclo: ${F(r.kg)} kg de ração até a despesca × 0,25 = <b>${Fk(kb)}</b> de bicarbonato.`}}}
+    else{const inoc=Math.max(0,P(c.inocBft)||0),dF=dAlc+DAY;
+      R.passos.push({d:dF,t:"Inóculo",x:inoc>0?`Água madura de bioflocos de outro sistema: ${F(inoc)}% do volume = <b>${F(V*inoc/100,1)} m³</b>. Sem inóculo, a formação dos flocos é mais lenta.`:"Sem inóculo: os flocos se formam só com a fertilização e o carbono, mais devagar.",ref:"ferri"});
+      if(c.fertBft){const ur=60*V/1000,ts=30*V/1000,fe=0.04*V/1000,si=0.02*V/1000;pu("ureia",ur,dF,"fertilização dos bioflocos","emb44");pu("tsp",ts,dF,"fertilização dos bioflocos","emb44");pu("fecl",fe,dF,"fertilização dos bioflocos","emb44");pu("sili",si,dF,"fertilização dos bioflocos","emb44");
+        const cn=P(c.cn)||20,fr=Math.max(0.1,(P(c.carb)||50)/100),Ng=ur*0.45,mel=Ng*cn/fr;pu("melaco",mel,dF,"carbono da partida","chamorro");
+        R.passos.push({d:dF,t:"Fertilização e carbono da partida",x:`Por 1.000 L: 60 g de ureia, 30 g de superfosfato triplo, 40 mg de cloreto de ferro e 20 mg de silicato de sódio → <b>${Fk(ur)}</b> de ureia, <b>${Fk(ts)}</b> de superfosfato, ${Fk(fe)} de cloreto férrico e ${Fk(si)} de silicato. Para as bactérias usarem esse nitrogênio, ${F(cn)} g de carboidrato por g de N: ${Fk(Ng)} de N → <b>${Fk(mel)}</b> de melaço (${F(fr*100)}% de carboidrato), em parcelas diárias.`,ref:"chamorro"})}
+      R.passos.push({d:pov-1*DAY,t:"Maturação e conferência",x:`Cerca de 10 dias de maturação com aeração forte. Pronto quando: sólidos sedimentáveis de 5 a 15 mL/L (cone Imhoff), sólidos suspensos de 200 a 500 mg/L e alcalinidade de 100 a 150 mg/L. Depois, carbono sempre que a amônia passar de 1 mg/L (20 g de carboidrato por g de N amoniacal).`,ref:"emb44"});
+      if(c.cicloBft){const r=racaoGrupo(u);if(r&&r.kg>0){const kb=0.25*r.kg;pu("bic",kb,pov,"reposição de alcalinidade no ciclo","emb44");let t=`Reposição no ciclo: ${F(r.kg)} kg de ração × 0,25 = <b>${Fk(kb)}</b> de bicarbonato`;
+        if(c.carbCiclo){const fr=Math.max(0.1,(P(c.carb)||50)/100),carb=r.kg*r.pb*0.016,mel=carb/fr;pu("melaco",mel,pov,"carbono no ciclo","avn");t+=`; carbono pela ração (PB média ${F(r.pb)}%): ${F(r.pb*0.016,2)} kg de carboidrato por kg = <b>${Fk(mel)}</b> de melaço`}R.ciclo=t+"."}}}
+    out[u.sis].push(R)}
+  {const h0=new Date().setHours(0,0,0,0),atr=[];Object.values(out).flat().forEach(R=>(R.passos||[]).forEach(x=>{if(x.d<h0)atr.push(R.u.nome+": "+x.t.toLowerCase())}));
+   if(atr.length)av.push(`${atr.length} etapa(s) já deveriam ter começado para povoar em ${dBR(pov)} (${atr.slice(0,3).join("; ")}${atr.length>3?"…":""}). Adie a data do povoamento ou comece hoje.`)}
+  if(semSolo&&U.some(u=>u.sis==="viv"))av.push("Sem pH do solo nem alcalinidade da água: as doses de calagem são de referência. Faça a análise antes de comprar.");
+  if(!isFinite(alc)&&U.some(u=>u.sis!=="viv"))av.push("Sem a alcalinidade da água de abastecimento: o bicarbonato foi calculado como se ela fosse 20 mg/L.");
+  const itens=Object.values(I).filter(it=>it.kg>=0.05).map(it=>{const b=it.k.split("@")[0],cic=it.k.endsWith("@c"),p=PROD[b],emb=P(S.emb[b])||p.emb,pr=P(S.preco[b]);return Object.assign(it,{base:b,cic,n:p.n+(cic?" · reposição no ciclo":""),emb,un:Math.ceil(it.kg/emb-1e-9),preco:pr})}).sort((a,b)=>a.quando-b.quando||b.kg-a.kg);
+  return {C,U,out,itens,av,pov}}
+
+/* ---------- quadro no AquaNictemeral ---------- */
+const ab=()=>T(()=>JSON.parse(sessionStorage.getItem("gf-pp-ab")||"{}"),{});const setAb=o=>{try{sessionStorage.setItem("gf-pp-ab",JSON.stringify(o))}catch(e){}};
+function html(){const L=plano(),c=S.cfg,A=ab(),C=L.C;const U=unidades();const temViv=U.some(u=>u.on&&u.sis==="viv"),temRas=U.some(u=>u.on&&u.sis==="ras"),temBft=U.some(u=>u.on&&u.sis==="bft");
+  const sel=(k,o,v)=>`<select data-pp="${k}">${o.map(([a,b])=>`<option value="${a}"${String(v)===a?" selected":""}>${b}</option>`).join("")}</select>`;
+  const inp=(k,l,ph,w)=>`<label class="pp-f">${l}<input data-pp="${k}" value="${E(c[k])}" placeholder="${E(ph||"")}" inputmode="decimal"${w?` style="max-width:${w}"`:""}></label>`;
+  const ck=(k,l)=>`<label class="pp-ck"><input type="checkbox" data-pp="${k}"${c[k]?" checked":""}> ${l}</label>`;
+  const ultPed=S.ped.find(p=>p.origem==="preparo"&&!p.arq);
+  const totR=L.itens.reduce((a,it)=>a+(isFinite(it.preco)?it.preco*it.un:0),0);
+  const grupo=(k,ico)=>{const G=L.out[k];if(!G.length)return "";return `<details class="pp-sis"${A[k]!==false?" open":""} data-ppab="${k}"><summary>${ico} ${SIS[k]} · ${G.length} unidade(s)</summary>${G.map(R=>`<div class="pp-u"><h4>${E(R.u.nome)} <small>${R.u.sis==="viv"?`${F(R.u.area)} m²`:`${F(R.u.vol)} m³${R.u.q?` (${F(R.u.q)} × ${F(R.u.v)} m³)`:""}`}</small></h4>${R.erro?`<p class="gfp-alerta">${E(R.erro)}</p>`:`<ol class="pp-passos">${R.passos.map(p=>`<li><span class="pp-d">${dBR(p.d)}</span><div><b>${E(p.t)}</b><p>${p.x}</p><small class="pp-ref">Fonte: ${E(REF[p.ref]||"")}</small></div></li>`).join("")}</ol>${R.ciclo?`<p class="hint">🔁 ${R.ciclo}</p>`:""}`}</div>`).join("")}</details>`};
+  return `<div class="card-head"><h2>🧪 Preparo da água e do fundo<span>Desinfecção, calagem, adubação e maturação · viveiros escavados, RAS e bioflocos · doses pela área e pelo volume do projeto</span></h2></div><div class="body pp-body">
+   <div class="pp-cfg"><label class="pp-f">Povoamento previsto<input type="date" data-pp="pov" value="${E(c.pov)}"></label>
+    <label class="pp-f">Cultivo${sel("esp",[["auto",`Automático (${C?"camarão":"peixe"})`],["peixe","Peixe"],["camarao","Camarão"]],c.esp)}</label>
+    ${inp("alc","Alcalinidade da água (mg/L CaCO₃)","análise da água")}
+    ${temViv?inp("phSolo","pH do solo (1:1)","análise do fundo")+inp("mo","Matéria orgânica do solo (%)","ex.: 2,5")+inp("pocas","Área com poças (%)","10"):""}
+    ${temViv&&!C?`<label class="pp-f">Adubação${sel("adub",[["quim","Química (NPK)"],["org","Orgânica (esterco)"],["mista","Mista (ureia + farelo)"]],c.adub)}</label>${c.adub==="org"?`<label class="pp-f">Esterco${sel("est",[["estA","Aves peneirado"],["estS","Suíno curtido"],["estB","Bovino curtido"]],c.est)}</label>`:""}${ck("reforco","Pedir 50% a mais para o reforço")}`:""}
+    ${temViv&&C?`<label class="pp-f">Estação${sel("estacao",[["seca","Seca"],["chuvosa","Chuvosa"]],c.estacao)}</label>`:""}
+    ${temRas?inp("alvoRas","Alcalinidade alvo no RAS","150")+inp("nat","N amoniacal na partida (mg/L)","4")+inp("doses","Aplicações de amônia","8")+`<label class="pp-f">Semente do biofiltro${sel("inoc",[["midia","Mídia colonizada"],["comercial","Bactérias comerciais"],["agua","Água ou lodo de outro sistema"]],c.inoc)}</label>`+ck("cicloRas","Somar o bicarbonato do ciclo (RAS)"):""}
+    ${temBft?inp("alvoBft","Alcalinidade alvo nos bioflocos","150")+inp("inocBft","Inóculo de água madura (%)","10")+inp("cn","g de carboidrato por g de N","20")+inp("carb","Carboidrato no melaço (%)","50")+ck("fertBft","Fertilização inicial (Embrapa)")+ck("cicloBft","Somar o bicarbonato do ciclo (bioflocos)")+ck("carbCiclo","Somar o melaço do ciclo (bioflocos)"):""}
+   </div>
+   <details class="pp-sis"${A.uni?" open":""} data-ppab="uni"><summary>📍 Unidades a preparar · ${U.filter(u=>u.on).length} de ${U.length}</summary>
+    ${U.length?`<div class="scroll"><table class="lot pp-t"><thead><tr><th></th><th class="l">Unidade</th><th class="l">Sistema</th><th>Área (m²)</th><th>Volume (m³)</th><th class="l">De onde vem</th><th></th></tr></thead><tbody>${U.map(u=>`<tr><td><input type="checkbox" data-pp-on="${E(u.id)}"${u.on?" checked":""} aria-label="Preparar ${E(u.nome)}"></td><td class="l">${E(u.nome)}</td><td class="l"><select data-pp-sis="${E(u.id)}">${Object.entries(SIS).map(([a,b])=>`<option value="${a}"${u.sis===a?" selected":""}>${b}</option>`).join("")}</select></td><td>${u.area>0?F(u.area):"—"}</td><td>${u.vol>0?F(u.vol):"—"}</td><td class="l"><small>${E(u.fonte)}</small></td><td>${u.man?`<button type="button" class="btn" data-pp-del="${E(u.id)}" title="Tirar esta unidade">✕</button>`:""}</td></tr>`).join("")}</tbody></table></div>`:`<p class="hint">Nenhuma unidade no projeto. Cadastre os grupos de tanques ou os viveiros na Calculadora, ou adicione aqui.</p>`}
+    <div class="pp-add"><input data-pp-n="nome" placeholder="Nome (ex.: Viveiro 3)"><select data-pp-n="sis">${Object.entries(SIS).map(([a,b])=>`<option value="${a}">${b}</option>`).join("")}</select><input data-pp-n="area" placeholder="Área m²" inputmode="decimal"><input data-pp-n="prof" placeholder="Prof. m" inputmode="decimal"><input data-pp-n="vol" placeholder="Volume m³" inputmode="decimal"><button type="button" class="btn" data-pp-add="1">+ Unidade</button></div>
+   </details>
+   ${L.av.map(a=>`<p class="gfp-alerta" style="margin:6px 0">⚠️ ${E(a)}</p>`).join("")}
+   ${grupo("viv","🟫")}${grupo("ras","🔁")}${grupo("bft","🫧")}
+   <h3 class="pp-h">🛒 Insumos para o preparo${L.itens.length?` · ${L.itens.length} produto(s)`:""}</h3>
+   ${L.itens.length?`<div class="scroll"><table class="lot pp-t"><thead><tr><th class="l">Insumo</th><th>Quantidade</th><th>Embalagem (kg)</th><th>Embalagens</th><th>Preço por embalagem</th><th>Precisa em</th><th class="l">Uso</th></tr></thead><tbody>${L.itens.map(it=>`<tr><td class="l"><b>${E(it.n)}</b></td><td>${Fk(it.kg)}</td><td><input data-pp-emb="${it.base}" value="${E(String(it.emb).replace(".",","))}" inputmode="decimal" style="width:70px"></td><td><b>${F(it.un)}</b></td><td><input data-pp-pr="${it.base}" value="${isFinite(it.preco)?E(String(it.preco).replace(".",",")):""}" placeholder="R$" inputmode="decimal" style="width:80px"></td><td>${dBR(it.quando)}</td><td class="l"><small>${E(it.usos.join(", "))}</small></td></tr>`).join("")}</tbody>${totR>0?`<tfoot><tr><td class="l" colspan="4"><b>Total estimado</b></td><td colspan="3" class="l"><b>R$ ${F(totR,2)}</b></td></tr></tfoot>`:""}</table></div>
+    <div class="pp-btns"><button type="button" class="btn solid" data-pp-enviar="1">🛒 Mandar para a Gestão da ração</button>${ultPed?`<span class="hint">Último pedido: <b>${E(ultPed.id)}</b> · ${E(ST[ultPed.status]||ultPed.status)} · ${dBR(ultPed.data)}</span>`:""}${S.rasc?`<span class="hint">📝 Há um rascunho de ${dBR(S.rasc.em)} na Gestão da ração.</span>`:""}</div>`:`<p class="hint">Marque ao menos uma unidade para calcular os insumos.</p>`}
+   <details class="pp-sis"><summary>📚 Referências</summary><ul class="pp-refs">${Object.keys(REF).map(k=>`<li>${REFL[k]?`<a href="${E(REFL[k])}" target="_blank" rel="noopener">${E(REF[k])}</a>`:E(REF[k])}</li>`).join("")}</ul><p class="hint">As doses são de referência e mudam com o solo, a água e o clima de cada propriedade. Confirme com a análise e com o técnico responsável.</p></details>
+  </div>`}
+const card=()=>document.getElementById("pp-card");
+function desenha(force){const v=document.getElementById("view-aqua");if(!v)return;let c=card();if(!c){c=document.createElement("section");c.className="card wide pp-card";c.id="pp-card";const ref=document.getElementById("aqua-plug");v.insertBefore(c,ref||v.firstChild)}
+  if(v.hidden&&!force)return;const a=document.activeElement;if(c.contains(a)&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)&&!force)return;const h=html();if(c.__h!==h){c.innerHTML=h;c.__h=h}}
+const set=(k,v)=>{recarrega();S.cfg[k]=v;grava()};
+const vw=()=>document.getElementById("view-aqua");
+document.addEventListener("change",e=>{const t=e.target,c=card();if(!c||!c.contains(t))return;const d=t.dataset;
+  if(d.pp){set(d.pp,t.type==="checkbox"?t.checked:t.value)}
+  else if(d.ppOn){recarrega();const o=S.uni[d.ppOn]||(S.uni[d.ppOn]={});o.on=t.checked;grava()}
+  else if(d.ppSis){recarrega();const o=S.uni[d.ppSis]||(S.uni[d.ppSis]={});o.sis=t.value;grava()}
+  else if(d.ppEmb){recarrega();const v=P(t.value);if(v>0)S.emb[d.ppEmb]=v;else delete S.emb[d.ppEmb];grava()}
+  else if(d.ppPr){recarrega();const v=P(t.value);if(v>=0)S.preco[d.ppPr]=v;else delete S.preco[d.ppPr];grava()}
+  else return;setTimeout(()=>desenha(true),0)});
+document.addEventListener("toggle",e=>{const t=e.target;if(!t.dataset||!t.dataset.ppab)return;const o=ab();o[t.dataset.ppab]=t.open;setAb(o)},true);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-pp-add],[data-pp-del],[data-pp-enviar]");if(!b||!card()||!card().contains(b))return;e.preventDefault();recarrega();
+  if(b.dataset.ppAdd){const g=k=>{const x=card().querySelector(`[data-pp-n="${k}"]`);return x?x.value:""};const nome=g("nome").trim(),sis=g("sis")||"viv",area=g("area"),prof=g("prof"),vol=g("vol");
+    if(!(P(area)>0||P(vol)>0)){alert("Informe a área (viveiro) ou o volume (tanque).");return}S.man.push({id:"m"+Date.now().toString(36),nome:nome||(SIS[sis]+" "+(S.man.length+1)),sis,area,prof,vol});grava();desenha(true);return}
+  if(b.dataset.ppDel){S.man=S.man.filter(m=>m.id!==b.dataset.ppDel);delete S.uni[b.dataset.ppDel];grava();desenha(true);return}
+  if(b.dataset.ppEnviar){const r=rascunho();if(!r){alert("Nada a pedir: marque as unidades.");return}abreGestao();return}});
+function rascunho(){const L=plano();if(!L.itens.length)return null;recarrega();const ent=Math.max(Date.now()+2*DAY,Math.min(...L.itens.map(i=>i.quando))-3*DAY);
+  S.rasc={em:Date.now(),forn:(S.rasc&&S.rasc.forn)||"",prev:iso(ent),pov:S.cfg.pov,unid:L.U.map(u=>u.nome),itens:L.itens.map(it=>({k:it.base,cic:it.cic,n:it.n,kg:Math.round(it.kg*100)/100,emb:it.emb,un:it.un,preco:isFinite(it.preco)?it.preco:"",usos:it.usos,quando:iso(it.quando)}))};grava();return S.rasc}
+function abreGestao(){try{gfRow.sel("gest","gh:racao")}catch(_){try{setView("gest");gfGestHub.abrir("racao")}catch(__){}}
+  let n=0;const go=()=>{if(window.gfRacaoAba&&document.getElementById("rg-box")){gfRacaoAba("ins");const x=document.getElementById("rg-box");x&&x.scrollIntoView({block:"start",behavior:"smooth"});return}if(++n<30)setTimeout(go,150)};setTimeout(go,150)}
+
+/* ---------- aba 🧪 Insumos do preparo na Gestão da ração ---------- */
+const ST={pedido:"🛒 Pedido",recebido:"📦 Recebido",aplicado:"✅ Aplicado",cancelado:"✕ Cancelado"};
+const novoId=()=>{const d=hoje().replace(/-/g,""),k="IN"+d;S.seq[k]=(S.seq[k]||0)+1;return `IN-${d}-${String(S.seq[k]).padStart(2,"0")}`};
+const totPed=p=>p.itens.reduce((a,it)=>a+(P(it.preco)>0?P(it.preco)*(+it.un||0):0),0);
+function estoque(){const M={};S.ped.forEach(p=>{if(p.status!=="recebido")return;p.itens.forEach(it=>{const m=M[it.n]||(M[it.n]={n:it.n,kg:0,ped:[]});m.kg+=(+it.un||0)*(+it.emb||0);if(!m.ped.includes(p.id))m.ped.push(p.id)})});return Object.values(M)}
+function tabHTML(){recarrega();const R=S.rasc,H=S.ped.filter(p=>!p.arq),ARQ=S.ped.filter(p=>p.arq),est=estoque();
+  const rasc=R?`<div class="pp-rasc"><h3 class="pp-h">📝 Rascunho vindo do 🧪 Preparo (AquaNictemeral) · ${dBR(R.em)}</h3><p class="hint">Povoamento previsto ${dBR(R.pov)} · ${E((R.unid||[]).join(", "))}. Ajuste as embalagens e os preços e registre.</p>
+    <div class="mk-form"><label class="jr-f">Fornecedor<input data-ins-r="forn" value="${E(R.forn)}" placeholder="Loja agropecuária"></label><label class="jr-f">Entrega até<input type="date" data-ins-r="prev" value="${E(R.prev)}"></label></div>
+    <div class="scroll"><table class="lot pp-t"><thead><tr><th class="l">Insumo</th><th>Precisa (kg)</th><th>Embalagem (kg)</th><th>Embalagens</th><th>R$ por embalagem</th><th>Precisa em</th><th></th></tr></thead><tbody>${R.itens.map((it,i)=>`<tr><td class="l"><b>${E(it.n)}</b><br><small>${E((it.usos||[]).join(", "))}</small></td><td>${F(it.kg,it.kg<10?2:0)}</td><td><input data-ins-i="${i}" data-c="emb" value="${E(String(it.emb).replace(".",","))}" inputmode="decimal" style="width:64px"></td><td><input data-ins-i="${i}" data-c="un" value="${E(it.un)}" inputmode="numeric" style="width:56px"></td><td><input data-ins-i="${i}" data-c="preco" value="${E(String(it.preco??"").replace(".",","))}" inputmode="decimal" style="width:76px" placeholder="R$"></td><td>${dBR(it.quando)}</td><td><button type="button" class="btn" data-ins="tira" data-i="${i}" title="Tirar do pedido">✕</button></td></tr>`).join("")}</tbody>${totPed(R)>0?`<tfoot><tr><td class="l" colspan="4"><b>Total</b></td><td colspan="3" class="l"><b>R$ ${F(totPed(R),2)}</b></td></tr></tfoot>`:""}</table></div>
+    <div class="pp-btns"><button type="button" class="btn solid" data-ins="registra">🛒 Registrar o pedido</button><button type="button" class="btn" data-ins="refaz">↻ Recalcular pelo AquaNictemeral</button><button type="button" class="btn" data-ins="descarta">Descartar o rascunho</button></div></div>`
+    :`<p class="hint">Os insumos do preparo (calcário, cal, adubos, bicarbonato, cloreto de amônio, melaço, cloro) são calculados no <b>🧪 Preparo da água e do fundo</b> do AquaNictemeral, pela área e pelo volume das unidades do projeto. <button type="button" class="btn" data-ins="refaz">↻ Trazer o cálculo do AquaNictemeral</button> <button type="button" class="btn" data-ins="abrir">🧪 Abrir o Preparo</button></p>`;
+  const linha=p=>`<tr><td class="l"><b>${E(p.id)}</b><br><small>${dBR(p.data)}${p.forn?" · "+E(p.forn):""}</small></td><td class="l">${p.itens.map(it=>`${F(+it.un)} × ${E(it.n)} (${F(+it.emb)} kg)`).join("<br>")}</td><td>${dBR(p.prev)}</td><td>${totPed(p)>0?"R$ "+F(totPed(p),2):"—"}</td><td><span class="pp-st pp-${p.status}">${E(ST[p.status]||p.status)}</span></td><td class="pp-acts">${p.arq?`<button type="button" class="btn" data-ins="desarq" data-id="${E(p.id)}">Desarquivar</button><button type="button" class="btn" data-ins="apaga" data-id="${E(p.id)}">Apagar</button>`:p.status==="pedido"?`<button type="button" class="btn" data-ins="rec" data-id="${E(p.id)}">📦 Recebido</button><button type="button" class="btn" data-ins="canc" data-id="${E(p.id)}">Cancelar</button>`:p.status==="recebido"?`<button type="button" class="btn" data-ins="apl" data-id="${E(p.id)}">✅ Aplicado</button>`:`<button type="button" class="btn" data-ins="arq" data-id="${E(p.id)}">Arquivar</button>`}</td></tr>`;
+  const tab=(L)=>`<div class="scroll"><table class="lot pp-t"><thead><tr><th class="l">Pedido</th><th class="l">Itens</th><th>Entrega</th><th>Total</th><th>Situação</th><th></th></tr></thead><tbody>${L.map(linha).join("")}</tbody></table></div>`;
+  return `${rasc}
+   <h3 class="pp-h">📋 Pedidos de insumos${H.length?` · ${H.length}`:""}</h3>${H.length?tab(H):`<p class="hint">Nenhum pedido de insumo ainda.</p>`}
+   ${est.length?`<h3 class="pp-h">📦 Insumos recebidos (ainda não aplicados)</h3><ul class="pp-est">${est.map(m=>`<li><b>${E(m.n)}</b>: ${F(m.kg)} kg <small>(${E(m.ped.join(", "))})</small></li>`).join("")}</ul>`:""}
+   ${ARQ.length?`<details class="pp-sis"><summary>🗄 Pedidos arquivados · ${ARQ.length}</summary>${tab(ARQ)}</details>`:""}`}
+const redes=()=>{try{window.gfRacaoRedesenha&&gfRacaoRedesenha()}catch(e){}};
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#rg-box"))return;const d=t.dataset;if(d.insR==null&&d.insI==null)return;recarrega();if(!S.rasc)return;
+  if(d.insR!=null)S.rasc[d.insR]=t.value;else{const it=S.rasc.itens[+d.insI];if(!it)return;const v=P(t.value);
+    if(d.c==="emb"&&v>0){it.emb=v;it.un=Math.ceil(it.kg/v-1e-9)}else if(d.c==="un"&&v>=0)it.un=Math.round(v);else if(d.c==="preco")it.preco=isFinite(v)?v:""}
+  grava();setTimeout(redes,0)});
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-ins]");if(!b||!b.closest("#rg-box"))return;e.preventDefault();e.stopPropagation();recarrega();const k=b.dataset.ins,p=b.dataset.id&&S.ped.find(x=>x.id===b.dataset.id);
+  if(k==="refaz"){rascunho()}
+  else if(k==="abrir"){try{setView("aqua")}catch(_){}setTimeout(()=>{desenha(true);const c=card();c&&c.scrollIntoView({block:"start",behavior:"smooth"})},200);return}
+  else if(k==="descarta"){if(!confirm("Descartar o rascunho de insumos?"))return;S.rasc=null}
+  else if(k==="tira"){S.rasc&&S.rasc.itens.splice(+b.dataset.i,1)}
+  else if(k==="registra"){const R=S.rasc;if(!R)return;const its=R.itens.filter(it=>(+it.un)>0);if(!its.length){alert("Nenhum item com embalagens.");return}
+    const np={id:novoId(),data:hoje(),forn:(R.forn||"").trim(),prev:R.prev||"",pov:R.pov,unid:R.unid,itens:its.map(it=>({k:it.k,n:it.n,kg:it.kg,emb:it.emb,un:+it.un,preco:it.preco,usos:it.usos,quando:it.quando})),status:"pedido",origem:"preparo",em:Date.now()};
+    S.ped.unshift(np);S.rasc=null;its.forEach(it=>{S.emb[it.k]=it.emb;if(P(it.preco)>=0)S.preco[it.k]=P(it.preco)})}
+  else if(p&&k==="rec"){p.status="recebido";p.recEm=hoje()}
+  else if(p&&k==="apl"){p.status="aplicado";p.aplEm=hoje()}
+  else if(p&&k==="canc"){if(!confirm(`Cancelar o pedido ${p.id}?`))return;p.status="cancelado"}
+  else if(p&&k==="arq"){p.arq=true}else if(p&&k==="desarq"){p.arq=false}
+  else if(p&&k==="apaga"){if(!confirm(`Apagar de vez o pedido ${p.id}?`))return;S.ped=S.ped.filter(x=>x!==p)}
+  grava();redes();desenha(true)},true);
+
+window.gfInsumos={html:()=>`<div class="pp-tab">${tabHTML()}</div>`,pendentes:()=>{recarrega();return (S.rasc?1:0)+S.ped.filter(p=>!p.arq&&(p.status==="pedido"||p.status==="recebido")).length},plano,rascunho,abrir:()=>{try{setView("aqua")}catch(_){}setTimeout(()=>{desenha(true);const c=card();c&&c.scrollIntoView({block:"start"})},200)}};
+
+const v0=vw();if(v0){desenha(true);new MutationObserver(()=>{if(!v0.hidden)desenha()}).observe(v0,{attributes:true,attributeFilter:["hidden"]})}
+window.addEventListener("storage",e=>{if(e.key===K||/ras-multitanques-v1($|-viv|-cascata)/.test(e.key||""))desenha()});
+setInterval(()=>{const v=vw();if(v&&!v.hidden)desenha()},4000);
+})();
+</script>
+<style>
+.pp-card .pp-body{display:grid;gap:10px;min-width:0}
+.pp-cfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:8px 12px;align-items:end}
+.pp-f{display:flex;flex-direction:column;gap:3px;font-size:12.5px;color:var(--muted)}
+.pp-f input,.pp-f select{font-size:14px}
+.pp-ck{display:flex;gap:6px;align-items:center;font-size:13px}
+.pp-sis{border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface)}
+.pp-sis>summary{cursor:pointer;font-weight:600;padding:4px 0}
+.pp-u{margin:8px 0 4px}.pp-u h4{margin:6px 0;font-size:14px}.pp-u h4 small{color:var(--muted);font-weight:400}
+.pp-passos{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.pp-passos li{display:grid;grid-template-columns:86px minmax(0,1fr);gap:8px;border-left:3px solid var(--accent);background:var(--bg);border-radius:6px;padding:6px 8px;font-size:13.5px;line-height:1.45}
+.pp-passos p{margin:2px 0}.pp-d{font:600 12px var(--f-mono);color:var(--accent)}
+.pp-ref{color:var(--muted);font-size:11px}
+.pp-h{margin:8px 0 4px;font-size:15px}
+.pp-t td,.pp-t th{vertical-align:middle}
+.pp-add{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.pp-add input,.pp-add select{width:auto;min-width:0;flex:1 1 110px}
+.pp-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pp-refs{margin:6px 0;padding-left:18px;font-size:12.5px;line-height:1.5}
+.pp-st{border-radius:999px;padding:2px 8px;font-size:12px;background:var(--line);white-space:nowrap}
+.pp-st.pp-recebido{background:#2a78d61f;color:#2a78d6}.pp-st.pp-aplicado{background:#1baf7a22;color:#127a55}.pp-st.pp-cancelado{background:#d33f2e1a;color:#b4332a}
+.pp-acts{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.pp-est{margin:4px 0;padding-left:18px;font-size:13.5px}
+.pp-rasc{border:1px dashed var(--accent);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+@media (max-width:640px){.pp-passos li{grid-template-columns:1fr}}
+</style>
