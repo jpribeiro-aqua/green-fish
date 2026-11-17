@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v281";
+  it.querySelector("code").textContent=msg;const ver="ras-v282";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -602,7 +602,7 @@ table.pj-tab .neg{color:var(--warn)}
 .us-trava{border:1px solid var(--line);border-radius:8px;padding:10px 12px}.us-trava input{accent-color:var(--accent)}.us-trava .muted{font-size:12px}
 body.auth-lock .wrap,body.auth-lock .dock,body.auth-lock .tip,body.auth-lock .bnav,body.auth-lock .msheet{display:none!important}
 #auth-ovl{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:16px;overflow:auto}
-#auth-ovl .au-box{width:min(460px,100%)}#auth-ovl .au-logo{display:flex;justify-content:center;padding:22px 0 4px}#auth-ovl .au-logo img{width:104px;height:104px;border-radius:24px;box-shadow:0 8px 22px rgba(15,110,79,.28)}#auth-ovl .au-marca{justify-content:center;text-align:center;flex-direction:column}body.auth-lock #gfp-toast,body.auth-lock #gf-side{display:none!important}
+#auth-ovl .au-box{width:min(460px,100%)}#auth-ovl .au-logo{display:flex;justify-content:center;padding:22px 0 4px}#auth-ovl .au-logo img{width:104px;height:104px;border-radius:24px;box-shadow:0 8px 22px rgba(15,110,79,.28)}#auth-ovl .au-marca{justify-content:center;text-align:center;flex-direction:column}#auth-ovl .au-marca .au-nome{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-basis:auto;font:inherit;color:var(--accent);text-transform:none;letter-spacing:normal;margin:0}#auth-ovl .au-marca .au-nome svg{flex:none}body.auth-lock #gfp-toast,body.auth-lock #gf-side{display:none!important}
 .au-adm{border-top:1px solid var(--line)}.au-adm summary{cursor:pointer;padding:10px 18px;font-size:13px;color:var(--muted)}
 @media (max-width:640px){.au-grid{grid-template-columns:1fr}}
 
@@ -7252,7 +7252,7 @@ function overlay(){
   if(o&&o.dataset.k===chave)return;
     if(!o){o=document.createElement("div");o.id="auth-ovl";o.setAttribute("role","dialog");o.setAttribute("aria-modal","true");o.setAttribute("aria-labelledby","au-tit");document.body.appendChild(o)}
   o.dataset.k=chave;
-  o.innerHTML=`<section class="card au-box"><div class="au-logo"><img src="icon-512.png" alt="Logo do Green Fish" width="104" height="104" decoding="async" onerror="this.parentNode.remove()"></div><div class="card-head"><h2 id="au-tit" class="au-marca">Green Fish<span>${A.supa?"Sistema RAS Multitanques · entre com a sua conta":"Sistema RAS Multitanques · acesso restrito"}</span></h2></div>${Auth.loginHTML("ov")}
+  o.innerHTML=`<section class="card au-box"><div class="au-logo"><img src="icon-512.png" alt="Logo do Green Fish" width="104" height="104" decoding="async" onerror="this.parentNode.remove()"></div><div class="card-head"><h2 id="au-tit" class="au-marca"><span class="au-nome"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12c3-5 9-6 13-2l5-3v10l-5-3c-4 4-10 3-13-2z"/><circle cx="8" cy="11" r="1"/></svg>Green Fish</span><span>${A.supa?"Sistema RAS Multitanques · entre com a sua conta":"Sistema RAS Multitanques · acesso restrito"}</span></h2></div>${Auth.loginHTML("ov")}
     ${A.mode==="local"&&Auth.admExiste()&&!BASICA?`<details class="au-adm"><summary>Entrar como administrador deste navegador</summary><form class="pj-body" id="ov-adm"><div class="pj-form au-grid"><label for="ov-admp">Senha de administrador</label><div class="inp au-pw"><input type="password" id="ov-admp" autocomplete="current-password"></div></div><div class="pj-btns"><button type="submit" class="btn">Entrar como administrador</button></div><p class="au-err" role="alert"></p></form></details>`:""}</section>`;
   Auth.bindLogin(o);
   const fa=o.querySelector("#ov-adm");fa&&fa.addEventListener("submit",async e=>{e.preventDefault();try{await Auth.admEntrar(o.querySelector("#ov-admp").value);setView("users")}catch(x){fa.querySelector(".au-err").textContent=erro(x)}});
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v281";
+  const APP_VERSAO="ras-v282";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
