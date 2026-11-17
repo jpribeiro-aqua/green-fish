@@ -15991,3 +15991,81 @@ const st=document.createElement("style");st.textContent=`.bx-big .bx-proj[data-b
 #bxv{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:10040;display:grid;place-items:center;padding:12px}.bxv-box{background:var(--surface,#fff);border-radius:16px;max-width:980px;width:100%;max-height:92vh;overflow:auto;padding:16px 18px;display:grid;gap:10px;box-shadow:0 20px 50px rgba(0,0,0,.35)}.bxv-top{display:flex;justify-content:space-between;gap:10px;align-items:start}.bxv-top h3{margin:2px 0 0;font-size:20px}.bxv-top small{color:var(--muted,#64748b)}.bxv-h{margin:4px 0 0;font-size:14px}.bxv-svg{width:100%;height:auto;background:#f8fafc;border-radius:10px}.bxv-tab td.bad{color:#b91c1c;font-weight:700}.bxv-tab td,.bxv-tab th{vertical-align:top}`;document.head.appendChild(st);
 })();
 </script>
+<script>
+/* ===================== v273: painel "Do aviso ao mercado" — a ordem dos processos do Beneficiamento, do aviso da Biomassa
+   até a expedição do pedido, com o que está em cada etapa agora e o próximo passo ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const T=(f,d)=>{try{return f()}catch(e){return d}};
+let aberto=null;
+function dados(){const A=T(()=>gfPrev.todos(),[])||[],O=T(()=>gfOrdens.lista(),[])||[],D=T(()=>gfRastreio.dados(),null)||{mp:[],pr:[],cx:[],pd:[]};
+  const av=A.filter(l=>l.s&&l.s.n>=2),comOD=new Set(O.filter(o=>!["cancelada","reprovada"].includes(o.status)).map(o=>o.lid)),semOD=av.filter(l=>!comOD.has(l.id));
+  const st=s=>O.filter(o=>o.status===s);
+  const usado=id=>(D.pr||[]).reduce((a,p)=>a+(p.ent||[]).filter(x=>x.mp===id).reduce((b,x)=>b+(+x.kg||0),0),0);
+  const mpSaldo=(D.mp||[]).map(m=>({m,s:(+m.kg||0)-usado(m.id)})).filter(x=>x.s>0.05);
+  const emCx=id=>(D.cx||[]).filter(c=>c.pa===id).reduce((a,c)=>a+(+c.kg||0),0);
+  const paSem=(D.pr||[]).map(p=>({p,s:(+p.kg||0)-emCx(p.id)})).filter(x=>x.s>0.05);
+  const exp=new Set((D.pd||[]).flatMap(p=>p.cx||[])),cxEst=(D.cx||[]).filter(c=>!exp.has(c.id));
+  const kg=L=>L.reduce((a,x)=>a+(+x.kg||0),0);
+  return {A,av,semOD,O,st,D,mpSaldo,paSem,cxEst,kg,cli:new Set((D.pd||[]).map(p=>p.cli).filter(Boolean))}}
+/* cada etapa: ícone, nome, o que se faz, onde fica no app, o que há nela agora e se há algo esperando */
+function etapas(X){const n=s=>X.st(s).length;
+  return [
+  {k:"aviso",ic:"📡",t:"Aviso da Biomassa",o:"A aba Biomassa acompanha o peso de cada lote e avisa quando ele entra na janela de despesca: 🔵 programar, 🟡 acabamento, 🟠 perto, 🔴 despescar.",ir:/Avisos da Biomassa/,
+   v:`${F(X.av.length)} lote(s) com aviso`,sub:X.av.length?`${["","","🔵","🟡","🟠","🔴"].map((c,i)=>i>=2?`${c} ${X.av.filter(l=>l.s.n===i).length}`:"").filter(Boolean).join(" · ")}`:"nenhum lote perto da despesca",pend:X.semOD.length,pt:`${X.semOD.length} sem ordem`},
+  {k:"aceite",ic:"✅",t:"Aceite e ordem de despesca",o:"A fábrica aceita a despesca do lote: nasce a ordem (OD) com data, quantidade, responsável, veículo e motorista, enviada ao setor de despesca.",ir:/Avisos da Biomassa/,
+   v:`${F(n("aceita"))} ordem(ns) aceita(s)`,sub:"aguardando a captura",pend:n("aceita"),pt:`${n("aceita")} para capturar`},
+  {k:"captura",ic:"🎣",t:"Despesca (captura)",o:"Jejum, captura e pesagem no tanque; o peixe vai para o gelo (1 kg de gelo por kg de peixe). A ordem registra a hora e o peso real.",ir:/Despesca e transporte/,
+   v:`${F(n("captura")+n("encerrada"))} em despesca`,sub:`${n("captura")} capturando · ${n("encerrada")} encerrada(s)`,pend:n("captura")+n("encerrada"),pt:"seguir para o transporte"},
+  {k:"transp",ic:"🚚",t:"Transporte",o:"Caixas isotérmicas com gelo, temperatura próxima de 0 °C; a ordem acompanha a saída e a chegada prevista.",ir:/Despesca e transporte/,
+   v:`${F(n("transporte"))} a caminho`,sub:"do tanque até a fábrica",pend:n("transporte"),pt:"registrar a chegada"},
+  {k:"chegada",ic:"🏭",t:"Chegada e conferência",o:"Na fábrica, confere peso, temperatura e rastreabilidade (lote, ração consumida, carência de medicamento). Aprovado, vira matéria-prima.",ir:/Despesca e transporte/,
+   v:`${F(n("chegou"))} para conferir`,sub:`${n("conferida")} conferida(s)${n("reprovada")?` · ${n("reprovada")} reprovada(s)`:""}`,pend:n("chegou"),pt:"conferir a rastreabilidade"},
+  {k:"mp",ic:"📥",t:"Recepção da matéria-prima",o:"Cada carga recebida ganha um lote de matéria-prima (MP-…) com fornecedor/origem, peso, nota e temperatura: é o início do rastreio dentro da fábrica.",ir:/Rastreabilidade por lote/,
+   v:`${F((X.D.mp||[]).length)} lote(s) MP`,sub:X.mpSaldo.length?`${F(X.kg(X.mpSaldo.map(x=>({kg:x.s}))),0)} kg esperando processamento`:"tudo processado",pend:X.mpSaldo.length,pt:`${X.mpSaldo.length} lote(s) a processar`},
+  {k:"proc",ic:"🔪",t:"Processamento",o:"Segue o fluxograma da espécie: lavagem, abate, descamação, evisceração, filetagem e toalete. Cada parte tem destino: filé, pele, carcaça (CMS), resíduos (farinha, óleo, silagem).",ir:/Fluxograma e destino/,
+   v:`${F((X.D.pr||[]).length)} lote(s) de produto`,sub:`${F(X.kg(X.D.pr||[]),0)} kg produzidos`,pend:0,pt:""},
+  {k:"qual",ic:"🧪",t:"Qualidade",o:"Controle do produto: pH, N-BVT, histamina (espécies que formam histamina), temperatura do congelado (−18 °C) e glaciamento até 12% (IN 21/2017).",ir:/Qualidade e legisla/,
+   v:"análises do lote",sub:"antes de embalar e vender",pend:0,pt:""},
+  {k:"emb",ic:"📦",t:"Embalagem e etiqueta",o:"O produto vai para caixas (CX-…) com etiqueta: produto, lote, peso, fabricação e validade. A etiqueta liga a caixa ao lote de origem.",ir:/Rastreabilidade por lote/,
+   v:`${F((X.D.cx||[]).length)} caixa(s)`,sub:X.paSem.length?`${F(X.kg(X.paSem.map(x=>({kg:x.s}))),0)} kg de produto sem caixa`:"todo produto embalado",pend:X.paSem.length,pt:`${X.paSem.length} lote(s) a embalar`},
+  {k:"exp",ic:"🛒",t:"Expedição do pedido",o:"O pedido (PD-…) registra cliente, nota fiscal e as caixas que saíram. Com isso dá para rastrear para trás (de onde veio) e para frente (recall).",ir:/Rastreabilidade por lote/,
+   v:`${F((X.D.pd||[]).length)} pedido(s) expedido(s)`,sub:X.cxEst.length?`${F(X.cxEst.length)} caixa(s) em estoque`:"sem caixas paradas",pend:X.cxEst.length,pt:`${X.cxEst.length} caixa(s) para vender`},
+  {k:"merc",ic:"📈",t:"Mercado",o:"Clientes, preços e volume que o mercado pede: a Camada de mercado e a decisão Beneficiamento ↔ Mercado ajudam a escolher o produto e o momento da venda.",ir:/Decisão: Beneficiamento/,merc:true,
+   v:`${F(X.cli.size)} cliente(s)`,sub:"atendidos pelos pedidos",pend:0,pt:""}]}
+function html(){const X=dados(),S=etapas(X),prox=S.find(s=>s.pend>0);const ab=S.find(s=>s.k===aberto);
+  return `<div class="rota-top"><p>Siga a ordem dos números: cada quadro é uma etapa, com o que está nela <b>agora</b>. ${prox?`<span class="rota-prox">👉 Próximo passo: <b>${E(prox.ic+" "+prox.t)}</b> — ${E(prox.pt)}</span>`:`<span class="rota-ok">✓ Nada parado: tudo em dia do aviso à expedição.</span>`}</p></div>
+   <ol class="rota">${S.map((s,i)=>`<li class="rota-e${s.pend>0?" tem":""}${prox&&prox.k===s.k?" agora":""}${aberto===s.k?" on":""}"><button type="button" data-rota="${s.k}" aria-expanded="${aberto===s.k}"><span class="rota-n">${i+1}</span><span class="rota-ic">${s.ic}</span><b>${E(s.t)}</b><span class="rota-v">${E(s.v)}</span><small>${E(s.sub)}</small>${s.pend>0?`<em>${E(s.pt)}</em>`:""}</button></li>`).join("")}</ol>
+   ${ab?`<div class="rota-det"><div><b>${ab.ic} ${E(ab.t)}</b><p>${E(ab.o)}</p></div><button type="button" class="btn solid" data-rota-ir="${ab.k}">Abrir esta etapa ›</button></div>`:`<p class="hint" style="margin:6px 0 0">Toque numa etapa para ver o que se faz nela e ir direto para o quadro certo.</p>`}`}
+function card(){const v=document.getElementById("view-benef");if(!v)return null;let c=document.getElementById("rota-card");
+  if(!c){c=document.createElement("section");c.className="card wide";c.id="rota-card";c.innerHTML=`<div class="card-head"><h2>🗺️ Do aviso ao mercado<span>A ordem dos processos, do aviso da Biomassa até a expedição do pedido, com o que está em cada etapa agora</span></h2></div><div class="body" id="rota-body"></div>`}
+  if(!v.contains(c)){const a=[...v.children].find(x=>x.matches&&x.matches("section.card")&&x!==c);if(a)v.insertBefore(c,a);else v.appendChild(c)}return c}
+function desenha(){const c=card(),v=document.getElementById("view-benef");if(!c||!v||v.hidden)return;const b=document.getElementById("rota-body"),h=T(html,"");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
+function ir(k){const X=dados(),s=etapas(X).find(x=>x.k===k);if(!s)return;
+  if(s.merc&&!T(()=>[...document.querySelectorAll("#view-benef .gf-row button")].some(b=>s.ir.test(b.innerText)),false)){try{setView("merc")}catch(e){}return}
+  const b=T(()=>[...document.querySelectorAll("#view-benef .gf-row button")].find(b=>s.ir.test(b.innerText)),null);
+  if(b){b.click();setTimeout(()=>{const r=document.querySelector("#view-benef .gf-row");try{(r||b).scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}},120);return}
+  const c=T(()=>[...document.querySelectorAll("#view-benef section.card")].find(c=>s.ir.test(c.innerText.slice(0,200))),null);if(c)try{c.scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}}
+window.gfRota={dados,etapas:()=>etapas(dados()),ir};
+document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("#rota-card [data-rota]");if(a){aberto=aberto===a.dataset.rota?null:a.dataset.rota;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();return}
+  const g=e.target.closest&&e.target.closest("#rota-card [data-rota-ir]");if(g)ir(g.dataset.rotaIr)});
+function inicia(){if(typeof setView!=="function"||!document.getElementById("view-benef")){setTimeout(inicia,300);return}
+  const st=document.createElement("style");st.textContent=`#rota-card .body{display:grid;gap:8px}.rota-top p{margin:0;font-size:13.5px}.rota-prox{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:#fef3c7;color:#92400e}.rota-ok{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:#dcfce7;color:#166534}
+.rota{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 22px;counter-reset:r}
+.rota-e{position:relative}.rota-e:not(:last-child)::after{content:"➜";position:absolute;right:-18px;top:50%;transform:translateY(-50%);color:#059669;font-size:15px;font-weight:700}
+.rota-e>button{width:100%;height:100%;display:grid;gap:2px;align-content:start;text-align:left;font:inherit;padding:10px 10px 10px 12px;border:1px solid var(--line,#e5e7eb);border-radius:14px;background:var(--surface,#fff);cursor:pointer;box-shadow:inset 4px 0 0 #cbd5e1;transition:transform .12s,box-shadow .12s}
+.rota-e>button:hover{transform:translateY(-2px);box-shadow:inset 4px 0 0 #10b981,0 6px 14px rgba(0,0,0,.08)}
+.rota-e.tem>button{box-shadow:inset 4px 0 0 #f59e0b}.rota-e.agora>button{border-color:#f59e0b;background:#fffbeb;box-shadow:inset 4px 0 0 #f59e0b,0 0 0 3px rgba(245,158,11,.25)}.rota-e.on>button{border-color:#059669;box-shadow:inset 4px 0 0 #059669,0 0 0 3px rgba(16,185,129,.25)}
+.rota-n{position:absolute;top:-9px;left:-9px;width:22px;height:22px;border-radius:50%;background:#065f46;color:#fff;font:700 12px/22px var(--f-body,inherit);text-align:center}
+.rota-ic{font-size:22px;line-height:1.1}.rota-e b{font-size:13.5px;line-height:1.25}.rota-v{font:700 13px var(--f-mono,monospace);color:#065f46}.rota-e small{color:var(--muted,#64748b);font-size:11.5px;line-height:1.3}.rota-e em{font-style:normal;font-size:11.5px;font-weight:700;color:#b45309}
+.rota-det{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.rota-det p{margin:4px 0 0;font-size:13.5px;max-width:760px}
+@media (max-width:640px){.rota{grid-template-columns:1fr;gap:14px}.rota-e:not(:last-child)::after{content:"⬇";right:auto;left:50%;top:auto;bottom:-15px;transform:translateX(-50%)}}`;document.head.appendChild(st);
+  const o=setView;setView=function(v){o(v);if(v==="benef")setTimeout(desenha,200)};
+  if(typeof window.drawBenef==="function"){const d=window.drawBenef;window.drawBenef=function(){const r=d.apply(this,arguments);setTimeout(desenha,0);return r}}
+  {const vb=document.getElementById("view-benef");new MutationObserver(()=>{if(!document.getElementById("rota-card")||!vb.contains(document.getElementById("rota-card"))){clearTimeout(inicia.t);inicia.t=setTimeout(desenha,60)}}).observe(vb,{childList:true})}
+  setInterval(()=>{if(!document.hidden)desenha()},30000);setTimeout(desenha,1800)}
+inicia();
+})();
+</script>
