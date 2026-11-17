@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v274";
+  it.querySelector("code").textContent=msg;const ver="ras-v275";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10744,7 +10744,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v274";
+  const APP_VERSAO="ras-v275";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -15605,7 +15605,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   const cardsDe=v=>{const L=[...v.querySelectorAll(".card")].filter(c=>!c.closest(".gf-row")&&!c.hasAttribute("data-gf-fixo")&&tit(c)&&[...c.children].some(ch=>!ch.classList.contains("card-head")&&ch.tagName!=="SUMMARY"&&(ch.textContent.trim()||ch.querySelector("canvas,svg,iframe,img,input,video"))));return L.filter(c=>!L.some(o=>o!==c&&o.contains(c)))};
   const chave=(v,c)=>c.dataset.gfk||(v.id+"|"+tit(c));
   function itens(v,CD){const L=(CD||cardsDe(v)).map(c=>({k:chave(v,c),t:tit(c),c}));
-    if(v.id==="view-gest"&&window.gfGestHub){const G=gfGestHub.lista().map(([k,ic,t])=>({k:"gh:"+k,t:ic+" "+t,gh:k}));return G.concat(L)}return L}
+    if(v.id==="view-gest"&&window.gfGestHub){const G=gfGestHub.lista().map(([k,ic,t])=>({k:"gh:"+k,t:ic+" "+t,gh:k}));return G.concat(L)}return v.id==="view-benef"&&window.gfOrdemBenef?gfOrdemBenef(L):L}
   function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v);let I=itens(v,CD);try{window.gfRowVisto&&gfRowVisto(vid,I)}catch(e){}const okP=k=>!window.gfParteOk||gfParteOk(vid,k);CD.forEach(c=>{const b=!okP(chave(v,c));if(c.classList.contains("gf-pk-x")!==b)c.classList.toggle("gf-pk-x",b)});I=I.filter(i=>okP(i.k));if(!I.length)return;
     /* v228: no Beneficiamento a linha segue a sequência do lote (a mesma da Rastreabilidade), com setas; os demais quadros vêm depois */
     if(vid==="benef"){const SEQ=[/Avisos da Biomassa/i,/Despesca e transporte/i,/Rastreabilidade/i,/Do lote ao produto/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i];
@@ -17987,12 +17987,18 @@ function html(){const X=dados(),S=etapas(X),prox=S.find(s=>s.pend>0);const ab=S.
 function card(){const v=document.getElementById("view-benef");if(!v)return null;let c=document.getElementById("rota-card");
   if(!c){c=document.createElement("section");c.className="card wide";c.id="rota-card";c.setAttribute("data-gf-fixo","1");c.innerHTML=`<div class="card-head"><h2>🗺️ Do aviso ao mercado<span>A ordem dos processos, do aviso da Biomassa até a expedição do pedido, com o que está em cada etapa agora</span></h2></div><div class="body" id="rota-body"></div>`}
   if(!v.contains(c)){const a=[...v.children].find(x=>x.matches&&x.matches("section.card")&&x!==c);if(a)v.insertBefore(c,a);else v.appendChild(c)}return c}
-function desenha(){const c=card(),v=document.getElementById("view-benef");if(!c||!v||v.hidden)return;c.classList.remove("gf-row-x");const b=document.getElementById("rota-body"),h=T(html,"");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
+function desenha(){const c=card(),v=document.getElementById("view-benef");if(!c||!v||v.hidden)return;numera();c.classList.remove("gf-row-x");const b=document.getElementById("rota-body"),h=T(html,"");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
 function ir(k){const X=dados(),s=etapas(X).find(x=>x.k===k);if(!s)return;
   if(s.merc&&!T(()=>[...document.querySelectorAll("#view-benef .gf-row button")].some(b=>s.ir.test(b.innerText)),false)){try{setView("merc")}catch(e){}return}
   const b=T(()=>[...document.querySelectorAll("#view-benef .gf-row button")].find(b=>s.ir.test(b.innerText)),null);
   if(b){b.click();setTimeout(()=>{const r=document.querySelector("#view-benef .gf-row");try{(r||b).scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}},120);return}
   const c=T(()=>[...document.querySelectorAll("#view-benef section.card")].find(c=>s.ir.test(c.innerText.slice(0,200))),null);if(c)try{c.scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}}
+
+/* v275: os botões do alto do Beneficiamento seguem a mesma ordem do fluxo (do aviso ao mercado), com o número da etapa */
+const ORDEM=[[/Avisos da Biomassa/,"1-2"],[/Despesca e transporte/,"3-5"],[/Rastreabilidade por lote/,"6·9·10"],[/Do lote ao produto/,"7"],[/Rendimento corporal/,"7"],[/Fluxograma e destino/,"7"],[/Salga/,"7"],[/Secagem/,"7"],[/Derivados do pescado/,"7"],[/Defuma/,"7"],[/Qualidade e legisla/,"8"],[/Decisão: Beneficiamento/,"11"],[/Beneficiamento do pescado/,""],[/Correla/,""],[/Fontes/,""]];
+const pos=t=>{const i=ORDEM.findIndex(([rx])=>rx.test(t||""));return i<0?ORDEM.length:i};
+window.gfOrdemBenef=L=>L.map((x,i)=>({x,i})).sort((a,b)=>pos(a.x.t)-pos(b.x.t)||a.i-b.i).map(o=>o.x);
+function numera(){document.querySelectorAll("#view-benef .gf-row button").forEach(b=>{const t=b.innerText||"";const o=ORDEM.find(([rx])=>rx.test(t));const n=o?o[1]:"";if(n){if(b.dataset.etapa!==n)b.dataset.etapa=n}else if(b.dataset.etapa)delete b.dataset.etapa})}
 window.gfRota={dados,etapas:()=>etapas(dados()),ir};
 document.addEventListener("click",e=>{const a=e.target.closest&&e.target.closest("#rota-card [data-rota]");if(a){aberto=aberto===a.dataset.rota?null:a.dataset.rota;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();return}
   const g=e.target.closest&&e.target.closest("#rota-card [data-rota-ir]");if(g)ir(g.dataset.rotaIr)});
@@ -18005,7 +18011,7 @@ function inicia(){if(typeof setView!=="function"||!document.getElementById("view
 .rota-e.tem>button{box-shadow:inset 4px 0 0 #f59e0b}.rota-e.agora>button{border-color:#f59e0b;background:#fffbeb;box-shadow:inset 4px 0 0 #f59e0b,0 0 0 3px rgba(245,158,11,.25)}.rota-e.on>button{border-color:#059669;box-shadow:inset 4px 0 0 #059669,0 0 0 3px rgba(16,185,129,.25)}
 .rota-n{position:absolute;top:-9px;left:-9px;width:22px;height:22px;border-radius:50%;background:#065f46;color:#fff;font:700 12px/22px var(--f-body,inherit);text-align:center}
 .rota-ic{font-size:22px;line-height:1.1}.rota-e b{font-size:13.5px;line-height:1.25}.rota-v{font:700 13px var(--f-mono,monospace);color:#065f46}.rota-e small{color:var(--muted,#64748b);font-size:11.5px;line-height:1.3}.rota-e em{font-style:normal;font-size:11.5px;font-weight:700;color:#b45309}
-.rota-det{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.rota-det p{margin:4px 0 0;font-size:13.5px;max-width:760px}
+#view-benef .gf-row button[data-etapa]::before{content:attr(data-etapa);display:inline-block;margin-right:5px;padding:0 6px;border-radius:999px;background:#fde047;color:#14532d;font:700 10.5px/17px var(--f-body,inherit)}.rota-det{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;background:#f0fdf4;border:1px solid #bbf7d0}.rota-det p{margin:4px 0 0;font-size:13.5px;max-width:760px}
 @media (max-width:640px){.rota{grid-template-columns:1fr;gap:14px}.rota-e:not(:last-child)::after{content:"⬇";right:auto;left:50%;top:auto;bottom:-15px;transform:translateX(-50%)}}`;document.head.appendChild(st);
   const o=setView;setView=function(v){o(v);if(v==="benef")setTimeout(desenha,200)};
   if(typeof window.drawBenef==="function"){const d=window.drawBenef;window.drawBenef=function(){const r=d.apply(this,arguments);setTimeout(desenha,0);return r}}
