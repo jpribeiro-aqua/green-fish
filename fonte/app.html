@@ -16891,3 +16891,55 @@ window.gfFiscal={html,leXML,deChave,dv,porChave,guarda,estado:()=>{recarrega();r
 #fx-cam video{width:100%;max-height:60vh;border-radius:10px;background:#000}
 @media print{body.fx-imp>*:not(#fx-danfe){display:none!important}body.fx-imp #fx-danfe{position:static;background:none;padding:0}body.fx-imp .fx-d{box-shadow:none;max-height:none}body.fx-imp .fx-dh .btn,body.fx-imp .fx-np{display:none!important}}
 </style>
+<script>
+/* ===================== v288: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
+   6, 5, 4, 3 e 2 meses; no último mês, semana a semana; na última semana, dia a dia. Quanto mais perto, mais forte e mais rápido ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const DAY=864e5;
+/* etapas: [até quantos dias faltam, rótulo, cor] — da mais distante para a despesca */
+const ETAPAS=[
+ [180,"6 meses","#2563eb"],[150,"5 meses","#0891b2"],[120,"4 meses","#0d9488"],[90,"3 meses","#16a34a"],[60,"2 meses","#65a30d"],
+ [30,"Último mês · semana 1","#ca8a04"],[21,"Último mês · semana 2","#d97706"],[14,"Último mês · semana 3","#ea580c"],
+ [7,"Última semana · D-7","#f97316"],[6,"D-6","#f43f5e"],[5,"D-5","#e11d48"],[4,"D-4","#dc2626"],[3,"D-3","#be123c"],[2,"D-2","#b91c1c"],[1,"D-1","#991b1b"],
+ [0,"Dia da despesca","#7e22ce"]];
+const N=ETAPAS.length;
+function etapa(dias){if(!isFinite(dias))return -1;if(dias<=0)return N-1;let k=-1;for(let i=0;i<N-1;i++){if(dias<=ETAPAS[i][0])k=i}return k}
+/* cronograma: semanas do último mês: 30–22 d = semana 1, 21–15 = semana 2, 14–8 = semana 3, 7–1 = dia a dia */
+const visivel=()=>{const v=document.getElementById("view-benef");return v&&!v.hidden};
+function lotes(){try{return (window.gfPrev&&gfPrev.todos())||[]}catch(e){return []}}
+function aplica(){const v=document.getElementById("view-benef");if(!v)return;const L=lotes(),M=new Map(L.map(l=>[String(l.id),l])),agora=Date.now();let pior=-1;
+  v.querySelectorAll(".gfp-av .gfp-it").forEach(it=>{const b=it.querySelector("[data-gfp='usar'][data-id],[data-gfp='aceitar'][data-id]")||it.querySelector("[data-id]"),l=b&&M.get(String(b.dataset.id));if(!l)return;
+    const dias=(l.h-agora)/DAY,k=etapa(Math.ceil(dias));if(k<0){it.classList.remove("gfp-cr");return}pior=Math.max(pior,k);const [,rot,cor]=ETAPAS[k],f=k/(N-1);
+    it.classList.add("gfp-cr");it.style.setProperty("--cr",cor);it.style.setProperty("--crp",(3.6-3.1*f).toFixed(2)+"s");it.style.setProperty("--crs",(2+7*f).toFixed(1)+"px");it.style.setProperty("--cra",(0.18+0.5*f).toFixed(2));
+    it.dataset.cr=k;let c=it.querySelector(".gfp-crc");if(!c){c=document.createElement("span");c.className="gfp-crc";const d=it.firstElementChild;(d||it).insertBefore(c,(d||it).firstChild)}
+    const txt=`⏳ ${rot}${k>=8&&k<N-1?"":k===N-1?"":` · ${Math.ceil(dias)} dias`}`;if(c.textContent!==txt)c.textContent=txt;c.style.background=cor});
+  /* legenda: a régua de cores, com a etapa mais urgente marcada */
+  const av=v.querySelector(".gfp-av");let lg=document.getElementById("gfp-crleg");
+  if(av){if(!lg){lg=document.createElement("div");lg.id="gfp-crleg"}if(lg.nextElementSibling!==av)av.parentNode.insertBefore(lg,av);
+    const h=`<div class="gfp-crl-t">🎨 Cor do aviso pelo tempo até a despesca${pior>=0?` · mais urgente: <b style="color:${ETAPAS[pior][2]}">${ETAPAS[pior][1]}</b>`:""}</div><div class="gfp-crl-r" role="list" aria-label="Meses, semanas do último mês (S1 a S3) e dias da última semana (7 a 1) até a despesca (D)">${ETAPAS.map((e,i)=>`<span role="listitem" class="${i===pior?"on":""}" style="--c:${e[2]};flex:${i<5?3:i<8?2:1}" title="${e[1]}"><i></i><small>${i<5?e[1].replace(" meses","m"):i<8?"S"+(i-4):i<N-1?String(15-i):"D"}</small></span>`).join("")}</div>`;
+    if(lg.__h!==h){lg.innerHTML=h;lg.__h=h}}else if(lg)lg.remove();
+  /* a aba do Beneficiamento ganha a cor do aviso mais urgente */
+  document.querySelectorAll('.tab[data-view="benef"],#gf-side [data-view="benef"]').forEach(t=>{if(pior>=0){t.style.setProperty("--cr",ETAPAS[pior][2]);t.classList.add("gfp-crtab")}else t.classList.remove("gfp-crtab")})}
+window.gfCoresDespesca={etapa,ETAPAS,aplica};
+function inicia(){const v=document.getElementById("view-benef");if(!v){setTimeout(inicia,400);return}
+  new MutationObserver(()=>{clearTimeout(inicia.t);inicia.t=setTimeout(aplica,150)}).observe(v,{childList:true,subtree:true});
+  setTimeout(aplica,2500);setInterval(aplica,60000)}
+inicia();
+})();
+</script>
+<style>
+@keyframes gfpCr{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) calc(var(--cra,.3)*100%),transparent);background:color-mix(in srgb,var(--cr) 12%,var(--bg))}}
+.gfp-it.gfp-cr{border-left-color:var(--cr)!important;border-left-width:6px}
+.gfp-it.gfp-cr:not(.gfp-pisca){animation:gfpCr var(--crp,3s) ease-in-out infinite}
+.gfp-crc{display:inline-block;color:#fff;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;margin-right:6px;vertical-align:middle;white-space:nowrap}
+#gfp-crleg{display:grid;gap:4px;margin:2px 0 6px}
+.gfp-crl-t{font-size:13px;color:var(--muted)}
+.gfp-crl-r{display:flex;gap:2px;align-items:flex-end}
+.gfp-crl-r span{display:grid;gap:2px;min-width:0;text-align:center}
+.gfp-crl-r i{display:block;height:10px;border-radius:3px;background:var(--c);opacity:.55}
+.gfp-crl-r span.on i{opacity:1;height:16px;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--c)}
+.gfp-crl-r small{font-size:9.5px;color:var(--muted);overflow:hidden;text-overflow:clip;white-space:nowrap}
+.gfp-crtab{box-shadow:inset 0 -3px 0 var(--cr)}
+@media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr:not(.gfp-pisca){animation:none;box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) 35%,transparent)}}
+</style>
