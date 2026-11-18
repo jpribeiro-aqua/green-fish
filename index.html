@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v286";
+  it.querySelector("code").textContent=msg;const ver="ras-v287";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10761,7 +10761,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v286";
+  const APP_VERSAO="ras-v287";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -14438,7 +14438,7 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   /* v239: ficha de cadastro e diagnóstico da propriedade (primeira área da AquaGestão) */
   SEC.splice(1,0,{k:"diag",ic:"📋",t:"Cadastro e diagnóstico da propriedade",d:"Ficha de cada propriedade e produto, com diagnóstico inicial e atualizado para a tomada de decisão.",app:["local","calc","bio","aqua","fin","merc","benef"],subs:[],html:()=>window.gfDiag?gfDiag.html():"",info:()=>window.gfDiag?gfDiag.info():""});
   /* v254: gestão de insumos (pedido, rótulo, estoque por propriedade/grupo/tanque e rastreabilidade) */
-  SEC.splice(2,0,{k:"racao",ic:"🧾",t:"Gestão de insumos",d:"Ração e insumos do preparo (calcário, cal, adubos, bicarbonato, melaço): pedido direcionado para a propriedade, um grupo ou um tanque, recebimento com foto do rótulo, controle de estoque automático pela ração do dia e rastreabilidade de cada lote.",app:["racao","bio","fin","benef"],subs:[],html:()=>window.gfRacaoHub?gfRacaoHub.html():"",info:()=>window.gfRacaoHub?gfRacaoHub.info():""});
+  SEC.splice(2,0,{k:"racao",ic:"🧾",t:"Gestão de insumos",d:"Ração, insumos do preparo e 🏛 agente fiscal (notas de entrada e de venda, tributos e emissão): pedido direcionado para a propriedade, um grupo ou um tanque, recebimento com foto do rótulo, controle de estoque automático pela ração do dia e rastreabilidade de cada lote.",app:["racao","bio","fin","benef"],subs:[],html:()=>window.gfRacaoHub?gfRacaoHub.html():"",info:()=>window.gfRacaoHub?gfRacaoHub.info():""});
   /* correlação: quais áreas cada aba alimenta */
   const AREAS_DE=v=>SEC.filter(s=>(s.app||[]).includes(v)||(s.tool||[]).includes(v));
   function vai(v){if(v==="@topografia"){window.gfTopoAbrir&&gfTopoAbrir();return}if(v==="@camera"){try{setView("bio")}catch(e){}setTimeout(()=>{window.gfBioCam&&gfBioCam()},300);return}try{setView(v)}catch(e){const t=document.querySelector(`[data-view="${v}"]`);t&&t.click()}scrollTo({top:0,behavior:"smooth"})}
@@ -17323,9 +17323,9 @@ function confHTML(c,R){const l=c.lote&&S.lotes.find(x=>x.lote&&x.lote.toUpperCas
    <div>${E(nomeProd(l))} · recebido em ${dBR(l.data)} (${E(l.id)})${ped?` pelo pedido ${E(ped.id)}`:""}${l.nf?` · NF ${E(l.nf)}`:""}</div><div>Fabricação ${dBR(l.fab)} · validade ${dBR(l.val)} · resta ≈ ${F(rh)} kg</div>
    ${l.foto?`<img src="${l.foto}" alt="Foto do rótulo no recebimento" style="max-width:180px;border-radius:8px;margin:4px 0">`:""}<div>Alimentou: ${Object.entries(r.uso).map(([g,kg])=>`${E(g)} (${F(kg)} kg)`).join(", ")||"ainda não usado"}</div>${l.chk?l.chk.itens.map(([o,t])=>`<div>${o>0?"✓":o<0?"⛔":"⚠️"} ${E(t)}</div>`).join(""):""}</div>`}
 function html(){recarrega();const r=T(()=>gfRacaoResumo(),{})||{};
-  return `<div class="mk-modos" style="margin-bottom:10px">${chip("ped","🛒 Pedidos")}${chip("nf","📄 Notas fiscais")}${chip("rec","🔎 Sacas (scanner)")}${chip("est","📦 Estoque e destinos")}${chip("ras","🔎 Rastreabilidade")}${chip("ins","🧪 Insumos do preparo"+T(()=>{const n=window.gfInsumos?gfInsumos.pendentes():0;return n?" ("+n+")":""},""))}<span class="muted" style="margin-left:auto;font-size:12.5px">${F(r.estoque)} kg em estoque${r.dias!=null?` · ${r.dias} dias`:""}${r.pedidos?` · ${r.pedidos} pedido(s) em aberto`:""}</span></div>
+  return `<div class="mk-modos" style="margin-bottom:10px">${chip("ped","🛒 Pedidos")}${chip("nf","📄 Notas fiscais")}${chip("rec","🔎 Sacas (scanner)")}${chip("est","📦 Estoque e destinos")}${chip("ras","🔎 Rastreabilidade")}${chip("fis","🏛 Agente fiscal")}${chip("ins","🧪 Insumos do preparo"+T(()=>{const n=window.gfInsumos?gfInsumos.pendentes():0;return n?" ("+n+")":""},""))}<span class="muted" style="margin-left:auto;font-size:12.5px">${F(r.estoque)} kg em estoque${r.dias!=null?` · ${r.dias} dias`:""}${r.pedidos?` · ${r.pedidos} pedido(s) em aberto`:""}</span></div>
    ${UI.msg?`<p class="hint" style="margin:0 0 8px">${E(UI.msg)}</p>`:""}
-   ${S.aba==="ins"?T(()=>window.gfInsumos?gfInsumos.html():"<p class=\"hint\">Carregando os insumos…</p>",""):S.aba==="rec"?htmlRec():S.aba==="nf"?htmlNF():S.aba==="est"?htmlEst():S.aba==="ras"?htmlRas():htmlPed()}`}
+   ${S.aba==="fis"?T(()=>window.gfFiscal?gfFiscal.html():"<p class=\"hint\">Carregando o agente fiscal…</p>",""):S.aba==="ins"?T(()=>window.gfInsumos?gfInsumos.html():"<p class=\"hint\">Carregando os insumos…</p>",""):S.aba==="rec"?htmlRec():S.aba==="nf"?htmlNF():S.aba==="est"?htmlEst():S.aba==="ras"?htmlRas():htmlPed()}`}
 /* ---------- demonstrativo no Arraçoamento: a ração de uma propriedade, grupo ou tanque, vinda da AquaGestão ---------- */
 function demoHTML(){recarrega();const R=simula(),sel=UI.demo||"prop",d=keyDest(sel),D=porDestino(R),lin=D.find(x=>x.k===sel);
   const uso=d.t==="prop"?Object.fromEntries(S.lotes.map(l=>[l.id,Object.values((R.lotes[l.id]||{uso:{}}).uso).reduce((a,b)=>a+b,0)])):d.t==="grupo"?(R.grupos[d.g]||{}):(R.tanques[d.g+"|"+d.k]||{});
@@ -17404,7 +17404,7 @@ async function camera(modo){const fb=()=>{const i=document.querySelector(`#rg-bo
     if(k==="luz"){luz=!luz;try{st.getVideoTracks()[0].applyConstraints({advanced:[{torch:luz}]})}catch(er){}b.classList.toggle("solid",luz);return}
     if(k==="ok"){const w=vd.videoWidth,h=vd.videoHeight;if(!w){msg.textContent="A imagem ainda não chegou; espere um instante.";return}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(vd,0,0,w,h);fecha();c.toBlob(bl=>{if(bl)foto(bl,modo)},"image/jpeg",.92)}});
   pinta();liga()}
-window.gfRacaoCamera=camera;window.gfRacaoScanTeste=tx=>{window.__rgScanTx=tx};window.gfRacaoCodTeste=c=>{window.__rgCodTeste=c};window.gfRacaoGS1=gs1;window.gfRacaoNF={leXML,leDanfe,dvChave,deChave};
+window.gfRacaoCamera=camera;window.gfCodigos=codigos;window.gfDvChave=dvChave;window.gfRacaoScanTeste=tx=>{window.__rgScanTx=tx};window.gfRacaoCodTeste=c=>{window.__rgCodTeste=c};window.gfRacaoGS1=gs1;window.gfRacaoNF={leXML,leDanfe,dvChave,deChave};
 window.gfRacaoTesteTexto=(tx,modo)=>{const o=interpreta(tx);if(modo==="conf"){UI.conf={lote:o.lote};S.aba="ras"}else{const ped=S.ped.find(aberto);UI.rec={ped:ped?ped.id:""};aplica("rec",o,{texto:tx});S.aba="rec"}bx().__h="";desenha();return o};
 function liga(b){const dentro=e=>!!(e.target.closest&&e.target.closest("#rg-box"));
   b.addEventListener("change",e=>{const t=e.target;
@@ -18551,4 +18551,299 @@ window.gfLeituras={permitida:(u,t)=>permitida(u,t),estado:()=>rd(),desenha:()=>d
 #lx-aviso{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:9999;max-width:min(560px,calc(100vw - 24px));background:#0f3d33;color:#fff;border-radius:10px;padding:9px 14px;font-size:13.5px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
 body.auth-lock #lx-conf{display:none}
 @media (max-width:640px){#lx-conf{bottom:calc(76px + env(safe-area-inset-bottom,0px));max-height:60vh}}
+</style>
+<script>
+/* ===================== v287: Gestão de insumos · 🏛 Agente fiscal — notas fiscais de entrada e de venda (NF-e, NFC-e, NFS-e):
+   adicionar pela chave de acesso, QR Code, XML ou câmera; empresas/produtores; resumo de tributos; DANFE simplificado; planilha e ZIP dos XMLs;
+   preparo da emissão de NF-e e NFS-e com os dados prontos e os canais oficiais ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="ras-multitanques-v1-fiscal",DAY=864e5;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const P=v=>{if(typeof v==="number")return v;let t=String(v??"").trim().replace(/\s/g,"").replace(/^R\$/,"");if(!t)return NaN;if(t.includes(","))t=t.replace(/\./g,"").replace(",",".");const n=parseFloat(t);return isFinite(n)?n:NaN};
+const F=(v,d=0)=>typeof v==="number"&&isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const fin=v=>typeof v==="number"&&isFinite(v);const R$=v=>fin(v)?"R$ "+F(v,2):"—";
+const so=s=>String(s||"").replace(/\D/g,"");
+const fDoc=d=>{d=so(d);return d.length===14?d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,"$1.$2.$3/$4-$5"):d.length===11?d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/,"$1.$2.$3-$4"):d};
+const fCh=c=>String(c||"").replace(/(\d{4})(?=\d)/g,"$1 ");
+const dBR=s=>{const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||""));return m?`${m[3]}/${m[2]}/${m[1]}`:"—"};
+const hoje=()=>new Date().toISOString().slice(0,10);
+const UF={11:"RO",12:"AC",13:"AM",14:"RR",15:"PA",16:"AP",17:"TO",21:"MA",22:"PI",23:"CE",24:"RN",25:"PB",26:"PE",27:"AL",28:"SE",29:"BA",31:"MG",32:"ES",33:"RJ",35:"SP",41:"PR",42:"SC",43:"RS",50:"MS",51:"MT",52:"GO",53:"DF"};
+const MOD={"55":"NF-e","65":"NFC-e","57":"CT-e","58":"MDF-e","99":"NFS-e"};
+
+/* ---------- chave de acesso (MOC: cUF 2 · AAMM 4 · CNPJ 14 · mod 2 · série 3 · nNF 9 · tpEmis 1 · cNF 8 · cDV 1; DV módulo 11, pesos 2 a 9) ---------- */
+function dv(c){if(!/^\d{44}$/.test(c))return false;let s=0,p=2;for(let i=42;i>=0;i--){s+=(+c[i])*p;p=p===9?2:p+1}const r=s%11;return (r<2?0:11-r)===+c[43]}
+function deChave(c){c=so(c);if(!dv(c))return null;return {chave:c,uf:UF[+c.slice(0,2)]||c.slice(0,2),emissao:"20"+c.slice(2,4)+"-"+c.slice(4,6)+"-01",aamm:c.slice(2,6),cnpj:c.slice(6,20),mod:c.slice(20,22),serie:String(+c.slice(22,25)),numero:String(+c.slice(25,34)),tpEmis:c[34]}}
+function achaChave(t){t=String(t||"");const q=/[?&]p=(\d{44})/.exec(t);if(q&&dv(q[1]))return q[1];const x=t.replace(/[\s.\-\/]/g,"");for(const m of x.matchAll(/\d{44}/g))if(dv(m[0]))return m[0];return ""}
+
+/* ---------- estado ---------- */
+const D0={emp:[],empSel:"*",notas:[],rasc:[],aba:"notas",add:"chave",q:"",ftipo:"",fmes:"",fsit:"",msg:""};
+const rd=()=>{const o=T(()=>JSON.parse(localStorage.getItem(K)),{})||{};const x=Object.assign(JSON.parse(JSON.stringify(D0)),o);["emp","notas","rasc"].forEach(k=>{if(!Array.isArray(x[k]))x[k]=[]});return x};
+let S=rd();const grava=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){S.msg="⚠️ Sem espaço neste aparelho: apague notas antigas ou baixe o ZIP.";}};const recarrega=()=>{S=rd()};
+const redes=()=>{try{window.gfRacaoRedesenha&&gfRacaoRedesenha()}catch(e){}};
+/* XMLs ficam no IndexedDB do aparelho (não ocupam o espaço do projeto) */
+const IDB=(()=>{let p;const db=()=>p||(p=new Promise((ok,er)=>{const r=indexedDB.open("greenfish-fiscal",1);r.onupgradeneeded=()=>r.result.createObjectStore("xml");r.onsuccess=()=>ok(r.result);r.onerror=()=>er(r.error)}));
+  const tx=(m,f)=>db().then(d=>new Promise((ok,er)=>{const t=d.transaction("xml",m),s=t.objectStore("xml"),q=f(s);t.oncomplete=()=>ok(q&&q.result);t.onerror=()=>er(t.error)}));
+  return {put:(k,v)=>tx("readwrite",s=>s.put(v,k)),get:k=>tx("readonly",s=>s.get(k)),del:k=>tx("readwrite",s=>s.delete(k))}})();
+
+/* ---------- empresas / produtores e classificação entrada × venda ---------- */
+const docsEmp=()=>new Set(S.emp.map(e=>so(e.doc)).filter(Boolean));
+const raizes=()=>new Set(S.emp.map(e=>so(e.doc)).filter(d=>d.length===14).map(d=>d.slice(0,8)));
+function tipoDe(n){const D=docsEmp(),R=raizes(),e=so(n.emit&&n.emit.doc),d=so(n.dest&&n.dest.doc);
+  if(e&&(D.has(e)||(e.length===14&&R.has(e.slice(0,8)))))return "venda";if(d&&(D.has(d)||(d.length===14&&R.has(d.slice(0,8)))))return "entrada";return S.emp.length?"terceiros":"entrada"}
+function empDe(n){const t=tipoDe(n),doc=so(t==="venda"?n.emit&&n.emit.doc:n.dest&&n.dest.doc);return S.emp.find(e=>so(e.doc)===doc)||S.emp.find(e=>so(e.doc).length===14&&doc.length===14&&so(e.doc).slice(0,8)===doc.slice(0,8))||null}
+
+/* ---------- categorias dos itens (liga com os insumos da propriedade) ---------- */
+const CAT=[[/^2309/,"🍽 Ração"],[/^2301/,"🍽 Farinhas para ração"],[/^0301/,"🐟 Alevinos / peixes vivos"],[/^0306/,"🦐 Crustáceos"],[/^030[2-5]/,"🐟 Pescado"],[/^252[12]/,"🪨 Calcário e cal"],[/^310[1-5]/,"🌱 Adubos"],[/^2836/,"🧂 Bicarbonato / carbonatos"],[/^2828|^2801/,"🧴 Cloro / desinfetantes"],[/^1703/,"🍯 Melaço"],[/^2827|^2835/,"🧪 Sais e fosfatos"],[/^3002|^3004|^3003/,"💊 Medicamentos e vacinas"],[/^2710|^2711/,"⛽ Combustíveis"],[/^8413|^8414|^8421|^8501|^8504|^8537/,"⚙️ Bombas, aeradores e elétrica"],[/^3917|^3920|^3921|^3925|^3926/,"🧱 Plásticos, lonas e canos"],[/^2501/,"🧂 Sal"]];
+const catDe=it=>{const n=so(it.ncm);for(const [r,c] of CAT)if(r.test(n))return c;if(/ra[cç][aã]o/i.test(it.desc||""))return "🍽 Ração";if(/calc[aá]rio|\bcal\b/i.test(it.desc||""))return "🪨 Calcário e cal";if(/alevin/i.test(it.desc||""))return "🐟 Alevinos / peixes vivos";return "📦 Outros"};
+
+/* ---------- leitura do XML (NF-e/NFC-e 4.00, evento de cancelamento, NFS-e padrão nacional) ---------- */
+function leXML(txt){const d=new DOMParser().parseFromString(String(txt).replace(/^﻿/,""),"application/xml");if(d.getElementsByTagName("parsererror").length)throw new Error("arquivo não é um XML válido");
+  const g=(el,t)=>{if(!el)return "";const x=el.getElementsByTagName(t)[0];return x?x.textContent.trim():""},el=(p,t)=>p?p.getElementsByTagName(t)[0]||null:null,n=v=>{const x=parseFloat(v);return isFinite(x)?x:0};
+  const ev=el(d,"infEvento");if(ev&&!el(d,"infNFe")){const tp=g(ev,"tpEvento"),ch=g(ev,"chNFe");return {evento:tp,chave:ch,cancel:tp==="110111",desc:g(ev,"descEvento")||g(ev,"xEvento")}}
+  const inf=el(d,"infNFe");
+  if(inf){const ide=el(inf,"ide"),emit=el(inf,"emit"),dest=el(inf,"dest"),tot=el(inf,"ICMSTot"),ch=(inf.getAttribute("Id")||"").replace(/\D/g,"")||g(d,"chNFe");
+    const ender=el(emit,"enderEmit"),endD=el(dest,"enderDest"),ibs=el(inf,"IBSCBSTot");
+    const itens=[...inf.getElementsByTagName("det")].map(x=>{const p=el(x,"prod"),im=el(x,"imposto");return {desc:g(p,"xProd"),ncm:g(p,"NCM"),cfop:g(p,"CFOP"),un:g(p,"uCom"),q:n(g(p,"qCom")),vu:n(g(p,"vUnCom")),vp:n(g(p,"vProd")),icms:n(g(el(im,"ICMS"),"vICMS")),cst:g(el(im,"ICMS"),"CST")||g(el(im,"ICMS"),"CSOSN")}});
+    const st=el(d,"protNFe"),cStat=st?g(st,"cStat"):"";
+    return {chave:ch,mod:g(ide,"mod")||ch.slice(20,22),serie:g(ide,"serie"),numero:g(ide,"nNF"),emissao:(g(ide,"dhEmi")||g(ide,"dEmi")).slice(0,10),natOp:g(ide,"natOp"),tpNF:g(ide,"tpNF"),
+      emit:{doc:g(emit,"CNPJ")||g(emit,"CPF"),nome:g(emit,"xNome"),fant:g(emit,"xFant"),ie:g(emit,"IE"),uf:g(ender,"UF"),mun:g(ender,"xMun")},
+      dest:dest?{doc:g(dest,"CNPJ")||g(dest,"CPF")||g(dest,"idEstrangeiro"),nome:g(dest,"xNome"),uf:g(endD,"UF"),mun:g(endD,"xMun")}:{doc:"",nome:"Consumidor"},
+      valor:n(g(tot,"vNF")),vProd:n(g(tot,"vProd")),icms:n(g(tot,"vICMS")),st:n(g(tot,"vST")),ipi:n(g(tot,"vIPI")),pis:n(g(tot,"vPIS")),cofins:n(g(tot,"vCOFINS")),frete:n(g(tot,"vFrete")),desc:n(g(tot,"vDesc")),
+      ibs:ibs?n(g(ibs,"vIBS")):0,cbs:ibs?n(g(ibs,"vCBS")):0,trib:n(g(tot,"vTotTrib")),itens,prot:st?{cStat,nProt:g(st,"nProt"),dh:g(st,"dhRecbto")}:null,canc:cStat==="101"}}
+  const nf=el(d,"infNFSe");
+  if(nf){const dps=el(d,"infDPS"),em=el(nf,"emit"),to=el(dps,"toma"),sv=el(dps,"serv"),vl=el(nf,"valores"),ch=(nf.getAttribute("Id")||"").replace(/\D/g,"");
+    return {chave:ch,mod:"99",serie:g(dps,"serie"),numero:g(nf,"nNFSe"),emissao:(g(dps,"dhEmi")||g(nf,"dhProc")).slice(0,10),natOp:"Serviço",
+      emit:{doc:g(em,"CNPJ")||g(em,"CPF"),nome:g(em,"xNome"),uf:g(el(em,"enderNac"),"UF"),mun:g(nf,"xLocEmi")},dest:{doc:g(to,"CNPJ")||g(to,"CPF"),nome:g(to,"xNome")},
+      valor:n(g(vl,"vLiq"))||n(g(dps,"vServ")),vProd:n(g(dps,"vServ")),iss:n(g(vl,"vISSQN")),icms:0,ipi:0,pis:0,cofins:0,ibs:0,cbs:0,
+      itens:[{desc:g(sv,"xDescServ")||"Serviço",ncm:"",cfop:"",un:"serv",q:1,vu:n(g(dps,"vServ")),vp:n(g(dps,"vServ")),cServ:g(sv,"cTribNac")}]}}
+  throw new Error("o XML não é de NF-e, NFC-e, NFS-e nem evento")}
+
+/* ---------- guardar notas ---------- */
+function guarda(N,origem,xml){recarrega();if(N.evento){const x=S.notas.find(a=>a.chave===N.chave);if(x&&N.cancel){x.canc=true;grava();return {txt:`Nota ${x.numero} marcada como cancelada (evento de cancelamento).`}}return {txt:N.cancel?"Evento de cancelamento de uma nota que não está na lista.":"Evento lido: "+(N.desc||N.evento)}}
+  const i=S.notas.findIndex(a=>a.chave&&a.chave===N.chave);const o=Object.assign({},i>=0?S.notas[i]:{},N,{xml:!!xml||(i>=0&&S.notas[i].xml),origem:i>=0?S.notas[i].origem:origem,em:i>=0?S.notas[i].em:Date.now()});
+  if(i>=0)S.notas[i]=o;else S.notas.unshift(o);if(xml&&N.chave)IDB.put(N.chave,xml).catch(()=>{});grava();return {nota:o,nova:i<0}}
+function porChave(txt,origem){const c=achaChave(txt);if(!c){const d=so(txt);return {erro:d.length===44?"Chave com dígito verificador inválido: confira os números.":`A chave tem 44 números (você digitou ${d.length}). Também aceito o link do QR Code da NFC-e.`}}
+  const k=deChave(c);recarrega();if(S.notas.some(a=>a.chave===c))return {erro:"Essa nota já está na lista."};
+  return guarda({chave:c,mod:k.mod,serie:k.serie,numero:k.numero,emissao:k.emissao,emit:{doc:k.cnpj,nome:"",uf:k.uf},dest:{doc:"",nome:""},valor:NaN,itens:[],soChave:true},origem)}
+async function porArquivos(files){const out=[];for(const f of files){try{const t=await f.text();if(/^\s*</.test(t)){const N=leXML(t);out.push(guarda(N,"xml",N.evento?null:t))}else{const r=porChave(t,"arquivo");out.push(r.erro?{erro:f.name+": "+r.erro}:r)}}catch(e){out.push({erro:f.name+": "+e.message})}}
+  const nv=out.filter(r=>r.nota&&r.nova).length,at=out.filter(r=>r.nota&&!r.nova).length,ev=out.filter(r=>r.txt),er=out.filter(r=>r.erro);
+  recarrega();S.msg=[nv?`✅ ${nv} nota(s) nova(s)`:"",at?`${at} atualizada(s) com o XML`:"",...ev.map(r=>r.txt),...er.map(r=>"⚠️ "+r.erro)].filter(Boolean).join(" · ")||"Nenhuma nota lida.";grava();redes()}
+
+/* notas de ração lançadas na aba 📄 Notas fiscais da Gestão de insumos entram aqui também */
+function importaRacao(){const R=T(()=>JSON.parse(localStorage.getItem("ras-multitanques-v1-racaogest")),{})||{};let n=0;
+  for(const x of R.nfs||[]){const c=so(x.chave);if(c.length!==44||S.notas.some(a=>a.chave===c))continue;const k=deChave(c);if(!k)continue;
+    S.notas.unshift({chave:c,mod:k.mod,serie:k.serie,numero:x.numero||k.numero,emissao:x.emissao||k.emissao,emit:{doc:x.cnpj||k.cnpj,nome:x.emitente||"",uf:k.uf},dest:{doc:"",nome:""},valor:P(x.valor),
+      itens:(x.itens||[]).map(it=>({desc:it.desc||"Ração",ncm:"2309",cfop:"",un:"sc",q:P(it.sacas)||0,vu:NaN,vp:P(it.valor)||0})),origem:"racao",xml:/XML/i.test(x.fonte||""),em:Date.now()});n++}
+  if(n)grava();return n}
+
+/* ---------- filtros e totais ---------- */
+const sit=n=>n.canc?"cancelada":n.soChave?"falta":"ok";
+function lista(tp){const q=String(S.q||"").toLowerCase().trim(),qd=so(q);return S.notas.filter(n=>{const t=tipoDe(n);if(tp&&t!==tp)return false;if(S.ftipo&&t!==S.ftipo)return false;
+  if(S.empSel!=="*"){const e=empDe(n);if(!e||e.id!==S.empSel)return false}
+  if(S.fmes&&String(n.emissao||"").slice(0,7)!==S.fmes)return false;if(S.fsit&&sit(n)!==S.fsit)return false;
+  if(q){const h=[n.emit&&n.emit.nome,n.emit&&n.emit.fant,n.dest&&n.dest.nome,n.numero,n.natOp,...(n.itens||[]).map(i=>i.desc)].join(" ").toLowerCase();if(!h.includes(q)&&!(qd&&(so(n.chave).includes(qd)||so(n.emit&&n.emit.doc).includes(qd)||so(n.dest&&n.dest.doc).includes(qd))))return false}
+  return true}).sort((a,b)=>String(b.emissao||"").localeCompare(String(a.emissao||""))||b.em-a.em)}
+const soma=(L,k)=>L.filter(n=>!n.canc).reduce((a,n)=>a+(fin(n[k])?n[k]:0),0);
+/* Funrural (LC 224/2025, a partir de 01/04/2026): PF 1,63% · PJ 2,23% sobre a receita bruta da comercialização da produção rural */
+const FUN={pf:[1.63,"Produtor pessoa física: 1,32% Previdência + 0,11% GILRAT + 0,2% Senar"],pj:[2.23,"Produtor pessoa jurídica: 1,87% Previdência + 0,11% GILRAT + 0,25% Senar"]};
+
+/* ---------- telas ---------- */
+const chipA=(k,t)=>`<button type="button" class="chip${S.aba===k?" on":""}" data-fx="aba" data-k="${k}" aria-pressed="${S.aba===k}">${t}</button>`;
+function cab(){const L=S.emp;return `<div class="fx-top"><label class="fx-emp">🏢<select data-fxv="empSel" aria-label="Empresa ou produtor"><option value="*">Todas as empresas (${L.length})</option>${L.map(e=>`<option value="${E(e.id)}"${S.empSel===e.id?" selected":""}>${E(e.nome||fDoc(e.doc))}</option>`).join("")}</select></label>
+   <button type="button" class="btn" data-fx="aba" data-k="emp">＋ Empresas</button><span class="fx-cap" title="A busca automática na SEFAZ precisa do certificado digital">⚪ Captura automática: precisa do certificado digital · <a href="#" data-fx="aba" data-k="guia">ver como</a></span></div>
+   <div class="mk-modos fx-abas">${chipA("notas","🧾 Notas")}${chipA("entrada","⬇️ Entradas")}${chipA("venda","⬆️ Vendas")}${chipA("nfe","✏️ Emitir NF-e")}${chipA("nfse","✏️ Emitir NFS-e")}${chipA("emp","🏢 Empresas")}${chipA("guia","📚 Tributos e guia")}</div>
+   ${S.msg?`<p class="hint fx-msg">${E(S.msg)}</p>`:""}`}
+function addHTML(){const a=S.add;return `<div class="fx-add"><h3 class="pp-h">Adicionar nota</h3><div class="fx-sub">${[["chave","🔑 Chave de acesso"],["xml","📄 Arquivo XML"],["cam","📷 Câmera"]].map(([k,t])=>`<button type="button" class="fx-st${a===k?" on":""}" data-fx="add" data-k="${k}">${t}</button>`).join("")}</div>
+   ${a==="xml"?`<p class="hint">Escolha um ou vários XML de NF-e, NFC-e ou NFS-e (também o evento de cancelamento). O XML fica guardado neste aparelho.</p><label class="btn solid fx-file">📄 Escolher XML<input type="file" accept=".xml,text/xml,application/xml" multiple data-fx-xml hidden></label>`
+    :a==="cam"?`<p class="hint">Aponte para o código de barras do DANFE ou para o QR Code da NFC-e. Sem câmera, tire uma foto.</p><div class="pp-btns"><button type="button" class="btn solid" data-fx="cam">📷 Abrir a câmera</button><label class="btn">🖼 Usar uma foto<input type="file" accept="image/*" capture="environment" data-fx-foto hidden></label></div>`
+    :`<p class="hint">Digite ou cole os 44 números da chave de acesso (no DANFE, abaixo do código de barras). Também aceita o link do QR Code da NFC-e.</p><div class="fx-row"><input data-fx-chave inputmode="numeric" autocomplete="off" placeholder="0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000" aria-label="Chave de acesso"><button type="button" class="btn solid" data-fx="chave">Adicionar</button></div>`}</div>`}
+function kpis(L){const f=L.filter(n=>n.soChave&&!n.canc).length,c=L.filter(n=>n.canc).length;
+  return `<div class="gfh-kpis bx-kpis fx-k"><div class="hk"><div><span class="hk-l">Notas</span><b>${F(L.length)}</b><small><a href="#" data-fx="fsit" data-k="">ver todas</a></small></div></div>
+   <div class="hk"><div><span class="hk-l">Valor total</span><b>${R$(soma(L,"valor"))}</b><small>ICMS ${R$(soma(L,"icms"))}</small></div></div>
+   <div class="hk ${f?"hk-warn":""}"><div><span class="hk-l">Falta o XML</span><b>${F(f)}</b><small><a href="#" data-fx="fsit" data-k="falta">ver quais</a></small></div></div>
+   <div class="hk"><div><span class="hk-l">Canceladas</span><b>${F(c)}</b><small><a href="#" data-fx="fsit" data-k="cancelada">ver quais</a></small></div></div></div>`}
+function tabela(L){const meses=[...new Set(S.notas.map(n=>String(n.emissao||"").slice(0,7)).filter(Boolean))].sort().reverse();
+  return `<div class="fx-suas"><div class="fx-row fx-h"><h3 class="pp-h">Suas notas</h3><span class="fx-acts"><button type="button" class="btn" data-fx="zip">⬇️ Baixar XMLs (ZIP)</button><button type="button" class="btn" data-fx="csv">▦ Exportar planilha</button></span></div>
+   <div class="fx-row"><input data-fx-q value="${E(S.q)}" placeholder="🔍 Buscar por emitente, número, CNPJ/CPF, produto ou chave" aria-label="Buscar notas">
+    <select data-fxv="ftipo" aria-label="Tipo"><option value="">Entradas e vendas</option><option value="entrada"${S.ftipo==="entrada"?" selected":""}>Entradas</option><option value="venda"${S.ftipo==="venda"?" selected":""}>Vendas</option><option value="terceiros"${S.ftipo==="terceiros"?" selected":""}>De outras empresas</option></select>
+    <select data-fxv="fmes" aria-label="Mês"><option value="">Todos os meses</option>${meses.map(m=>`<option value="${m}"${S.fmes===m?" selected":""}>${m.split("-").reverse().join("/")}</option>`).join("")}</select>
+    <select data-fxv="fsit" aria-label="Situação"><option value="">Todas as situações</option><option value="ok"${S.fsit==="ok"?" selected":""}>Com XML</option><option value="falta"${S.fsit==="falta"?" selected":""}>Falta o XML</option><option value="cancelada"${S.fsit==="cancelada"?" selected":""}>Canceladas</option></select></div>
+   ${L.length?`<div class="scroll"><table class="lot fx-t"><thead><tr><th class="l">Nota</th><th class="l">Emitente → destinatário</th><th>Emissão</th><th>Valor</th><th>Tipo</th><th></th></tr></thead><tbody>${L.slice(0,300).map(n=>{const t=tipoDe(n);
+     return `<tr data-fx-row="${E(n.chave)}" class="${n.canc?"fx-canc":""}"><td class="l"><b>${E(MOD[n.mod]||"Nota")} ${E(n.numero||"")}</b>${n.serie?`<small> · série ${E(n.serie)}</small>`:""}<br><small class="fx-ch">${E(fCh(n.chave).slice(0,24))}…</small></td>
+      <td class="l">${E(n.emit&&(n.emit.fant||n.emit.nome)||fDoc(n.emit&&n.emit.doc)||"—")}<br><small>→ ${E(n.dest&&n.dest.nome||fDoc(n.dest&&n.dest.doc)||"—")}</small></td><td>${n.soChave?dBR(n.emissao).slice(3):dBR(n.emissao)}</td><td>${R$(n.valor)}</td>
+      <td><span class="fx-tp fx-${t}">${t==="venda"?"⬆️ venda":t==="entrada"?"⬇️ entrada":"outra"}</span>${n.canc?`<br><span class="fx-tp fx-c">cancelada</span>`:n.soChave?`<br><span class="fx-tp fx-f">falta o XML</span>`:""}</td>
+      <td class="fx-acts"><button type="button" class="btn" data-fx="ver" data-k="${E(n.chave)}">Ver</button><button type="button" class="btn" data-fx="sefaz" data-k="${E(n.chave)}" title="Copia a chave e abre a consulta pública">SEFAZ</button></td></tr>`}).join("")}</tbody></table></div>${L.length>300?`<p class="hint">Mostrando 300 de ${L.length}. Use a busca ou os filtros.</p>`:""}`:`<p class="hint">${S.notas.length?"Nenhuma nota com esses filtros.":"Nenhuma nota ainda. Adicione pela chave, pelo XML ou pela câmera."}</p>`}</div>`}
+function resumoTipo(tp,L){const A=L.filter(n=>!n.canc),cats={},cf={};for(const n of A)for(const it of n.itens||[]){const c=catDe(it);cats[c]=(cats[c]||0)+(it.vp||0);if(it.cfop){cf[it.cfop]=(cf[it.cfop]||0)+(it.vp||0)}}
+  const tot=soma(A,"valor"),e=S.empSel!=="*"?S.emp.find(x=>x.id===S.empSel):null,reg=e&&(e.reg==="pf"||e.reg==="pj")?e.reg:"";
+  const bars=o=>{const m=Math.max(1,...Object.values(o));return `<div class="dc-bars">${Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([k,v])=>`<div class="dc-bar"><span>${E(k)}</span><i><em style="width:${Math.max(1.5,v/m*100)}%"></em></i><b>${R$(v)}</b></div>`).join("")}</div>`};
+  return `<div class="fx-res">${Object.keys(cats).length?`<h3 class="pp-h">${tp==="venda"?"Vendas por produto":"Gastos por categoria de insumo"}</h3>${bars(cats)}`:""}
+   ${Object.keys(cf).length?`<details class="pp-sis"><summary>Por CFOP</summary>${bars(cf)}</details>`:""}
+   <h3 class="pp-h">🧮 Tributos destacados nas notas</h3><div class="scroll"><table class="lot fx-t"><tbody>
+    <tr><td class="l">ICMS</td><td>${R$(soma(A,"icms"))}</td></tr><tr><td class="l">ICMS-ST</td><td>${R$(soma(A,"st"))}</td></tr><tr><td class="l">IPI</td><td>${R$(soma(A,"ipi"))}</td></tr><tr><td class="l">PIS</td><td>${R$(soma(A,"pis"))}</td></tr><tr><td class="l">COFINS</td><td>${R$(soma(A,"cofins"))}</td></tr>
+    <tr><td class="l">IBS / CBS (reforma, teste em 2026)</td><td>${R$(soma(A,"ibs"))} / ${R$(soma(A,"cbs"))}</td></tr>${soma(A,"iss")?`<tr><td class="l">ISS (NFS-e)</td><td>${R$(soma(A,"iss"))}</td></tr>`:""}</tbody></table></div>
+   ${tp==="venda"?`<h3 class="pp-h">🌾 Funrural estimado sobre as vendas</h3><p class="hint">Receita das vendas: <b>${R$(tot)}</b>. ${reg?`${FUN[reg][1]} = <b>${R$(tot*FUN[reg][0]/100)}</b> (${F(FUN[reg][0],2)}%).`:`Pessoa física 1,63% = <b>${R$(tot*0.0163)}</b> · pessoa jurídica 2,23% = <b>${R$(tot*0.0223)}</b>. Escolha a empresa e o tipo de produtor em 🏢 Empresas para ver só o seu.`} Alíquotas da LC 224/2025, valendo desde 01/04/2026. Confira com o contador quem recolhe (o comprador pessoa jurídica costuma reter) e se há opção pela folha.</p>`:""}</div>`}
+function notasHTML(tp){const L=lista(tp);return `${tp?"":addHTML()}${kpis(L)}${tp?resumoTipo(tp,L):""}${tabela(L)}`}
+
+/* ---------- empresas ---------- */
+function empHTML(){return `<h3 class="pp-h">🏢 Empresas e produtores</h3><p class="hint">Cadastre os CNPJs/CPFs da propriedade. Notas emitidas por eles viram <b>vendas</b>; notas para eles viram <b>entradas</b>. Os dados ficam só neste aparelho e no projeto.</p>
+  ${S.emp.length?`<div class="scroll"><table class="lot fx-t"><thead><tr><th class="l">Nome</th><th class="l">CNPJ / CPF</th><th>IE</th><th>UF</th><th class="l">Tipo</th><th></th></tr></thead><tbody>${S.emp.map(e=>`<tr><td class="l"><b>${E(e.nome)}</b></td><td class="l">${E(fDoc(e.doc))}</td><td>${E(e.ie||"—")}</td><td>${E(e.uf||"—")}</td><td class="l"><select data-fx-reg="${E(e.id)}" aria-label="Tipo de ${E(e.nome)}">${[["pf","Produtor rural pessoa física"],["pj","Produtor rural pessoa jurídica"],["sn","Simples Nacional"],["mei","MEI"],["out","Lucro presumido / real"]].map(([k,t])=>`<option value="${k}"${e.reg===k?" selected":""}>${t}</option>`).join("")}</select></td><td><button type="button" class="btn" data-fx="emp-del" data-k="${E(e.id)}">✕</button></td></tr>`).join("")}</tbody></table></div>`:""}
+  <div class="fx-row fx-wrap"><input data-fx-e="nome" placeholder="Nome / razão social"><input data-fx-e="doc" placeholder="CNPJ ou CPF" inputmode="numeric"><input data-fx-e="ie" placeholder="Inscrição estadual (opcional)"><select data-fx-e="uf">${Object.values(UF).sort().map(u=>`<option${u==="MA"?" selected":""}>${u}</option>`).join("")}</select><select data-fx-e="reg"><option value="pf">Produtor rural pessoa física</option><option value="pj">Produtor rural pessoa jurídica</option><option value="sn">Simples Nacional</option><option value="mei">MEI</option><option value="out">Lucro presumido / real</option></select><button type="button" class="btn solid" data-fx="emp-add">＋ Adicionar</button></div>`}
+const docOk=d=>{d=so(d);if(d.length===11){if(/^(\d)\1+$/.test(d))return false;const c=k=>{let s=0;for(let i=0;i<k;i++)s+=(+d[i])*(k+1-i);const r=(s*10)%11;return r===10?0:r};return c(9)===+d[9]&&c(10)===+d[10]}
+  if(d.length===14){if(/^(\d)\1+$/.test(d))return false;const c=k=>{const w=k===12?[5,4,3,2,9,8,7,6,5,4,3,2]:[6,5,4,3,2,9,8,7,6,5,4,3,2];let s=0;for(let i=0;i<k;i++)s+=(+d[i])*w[i];const r=s%11;return r<2?0:11-r};return c(12)===+d[12]&&c(13)===+d[13]}return false};
+
+/* ---------- emissão: prepara a nota e leva ao emissor oficial ---------- */
+const PRODS=[["Tilápia inteira fresca ou refrigerada","03027100","kg"],["Tilápia inteira congelada","03032300","kg"],["Filé de tilápia congelado","03046100","kg"],["Outro produto (informe o NCM)","","kg"]];
+let UIe=null;
+function nfeHTML(serv){const e0=S.emp.find(x=>x.id===S.empSel)||S.emp[0]||null;const U=UIe&&UIe.serv===serv?UIe:(UIe={serv,emp:e0?e0.id:"",dDoc:"",dNome:"",dUF:e0&&e0.uf||"MA",itens:[{p:0,desc:PRODS[0][0],ncm:PRODS[0][1],un:"kg",q:"",vu:""}],obs:"",serv_desc:"",serv_v:"",serv_cod:"",iss:""});
+  const e=S.emp.find(x=>x.id===U.emp)||null,inter=e&&U.dUF&&e.uf&&U.dUF!==e.uf,cfop=inter?"6101":"5101";
+  const its=U.itens.map(i=>({...i,vp:(P(i.q)||0)*(P(i.vu)||0)})),tot=serv?(P(U.serv_v)||0):its.reduce((a,i)=>a+i.vp,0);
+  const reg=e&&e.reg,fun=reg==="pf"||reg==="pj"?tot*FUN[reg][0]/100:NaN,ibs=tot*0.001,cbs=tot*0.009;
+  const okDoc=!U.dDoc||docOk(U.dDoc);
+  if(!S.emp.length)return `<p class="hint">Primeiro cadastre a empresa ou o produtor que vai emitir em <a href="#" data-fx="aba" data-k="emp">🏢 Empresas</a>.</p>`;
+  return `<h3 class="pp-h">${serv?"✏️ Preparar NFS-e (serviço)":"✏️ Preparar NF-e (venda da produção)"}</h3>
+   <div class="fx-row fx-wrap"><label class="pp-f">Emitente<select data-fxe="emp">${S.emp.map(x=>`<option value="${E(x.id)}"${U.emp===x.id?" selected":""}>${E(x.nome)} · ${E(fDoc(x.doc))}</option>`).join("")}</select></label>
+    <label class="pp-f">${serv?"Tomador":"Destinatário"}: CNPJ/CPF<input data-fxe="dDoc" value="${E(U.dDoc)}" inputmode="numeric"${okDoc?"":` aria-invalid="true"`}></label><label class="pp-f">Nome<input data-fxe="dNome" value="${E(U.dNome)}"></label>
+    ${serv?"":`<label class="pp-f">UF do destinatário<select data-fxe="dUF">${Object.values(UF).sort().map(u=>`<option${U.dUF===u?" selected":""}>${u}</option>`).join("")}</select></label>`}</div>
+   ${okDoc?"":`<p class="gfp-alerta">⚠️ CNPJ/CPF do ${serv?"tomador":"destinatário"} com dígito inválido.</p>`}
+   ${serv?`<div class="fx-row fx-wrap"><label class="pp-f" style="flex:2">Descrição do serviço<input data-fxe="serv_desc" value="${E(U.serv_desc)}" placeholder="Ex.: consultoria técnica em piscicultura"></label><label class="pp-f">Código do serviço (tributação nacional)<input data-fxe="serv_cod" value="${E(U.serv_cod)}" placeholder="ver na lista do emissor"></label><label class="pp-f">Valor (R$)<input data-fxe="serv_v" value="${E(U.serv_v)}" inputmode="decimal"></label><label class="pp-f">Alíquota de ISS do município (%)<input data-fxe="iss" value="${E(U.iss)}" inputmode="decimal" placeholder="2 a 5"></label></div>`
+   :`<div class="scroll"><table class="lot fx-t"><thead><tr><th class="l">Produto</th><th>NCM</th><th>CFOP</th><th>Quantidade (kg)</th><th>R$ por kg</th><th>Total</th><th></th></tr></thead><tbody>${its.map((i,k)=>`<tr><td class="l"><select data-fxi="${k}" data-c="p">${PRODS.map((p,j)=>`<option value="${j}"${+i.p===j?" selected":""}>${E(p[0])}</option>`).join("")}</select>${+i.p===PRODS.length-1?`<input data-fxi="${k}" data-c="desc" value="${E(i.desc)}" placeholder="Descrição">`:""}</td><td><input data-fxi="${k}" data-c="ncm" value="${E(i.ncm)}" style="width:96px" inputmode="numeric"></td><td>${cfop}</td><td><input data-fxi="${k}" data-c="q" value="${E(i.q)}" inputmode="decimal" style="width:90px"></td><td><input data-fxi="${k}" data-c="vu" value="${E(i.vu)}" inputmode="decimal" style="width:80px"></td><td>${R$(i.vp)}</td><td>${U.itens.length>1?`<button type="button" class="btn" data-fx="it-del" data-k="${k}">✕</button>`:""}</td></tr>`).join("")}</tbody></table></div><button type="button" class="btn" data-fx="it-add">＋ Item</button>`}
+   <div class="gfh-kpis bx-kpis fx-k"><div class="hk"><div><span class="hk-l">Total da nota</span><b>${R$(tot)}</b><small>${serv?"serviço":`CFOP ${cfop} · ${inter?"venda para outro estado":"venda dentro do estado"}`}</small></div></div>
+    ${serv?`<div class="hk"><div><span class="hk-l">ISS estimado</span><b>${R$(tot*(P(U.iss)||0)/100)}</b><small>pela alíquota informada</small></div></div>`:`<div class="hk"><div><span class="hk-l">Funrural estimado</span><b>${R$(fun)}</b><small>${reg==="pf"||reg==="pj"?F(FUN[reg][0],2)+"% (LC 224/2025)":"só para produtor rural"}</small></div></div>`}
+    <div class="hk"><div><span class="hk-l">IBS / CBS (teste 2026)</span><b>${R$(ibs)} / ${R$(cbs)}</b><small>0,1% e 0,9% informativos</small></div></div></div>
+   ${serv?"":`<p class="hint">Peixe das posições 0302, 0303 e 0304 (menos salmonídeos, atuns, bacalhaus, hadoque e saithe) está na Cesta Básica Nacional: alíquota zero de IBS e CBS quando a reforma valer (LC 214/2025, Anexo I). O ICMS e eventuais isenções dependem do seu estado: confira na SEFAZ e com o contador.</p>`}
+   <label class="pp-f">Informações complementares<textarea data-fxe="obs" rows="2">${E(U.obs)}</textarea></label>
+   <div class="pp-btns"><button type="button" class="btn solid" data-fx="rasc">💾 Salvar e copiar os dados</button>${serv?`<a class="btn" href="https://www.nfse.gov.br/EmissorNacional" target="_blank" rel="noopener">🌐 Abrir o Emissor Nacional da NFS-e</a>`:`<a class="btn" href="https://www.nfe.fazenda.gov.br/portal/principal.aspx" target="_blank" rel="noopener">🌐 Portal Nacional da NF-e</a>`}<button type="button" class="btn" data-fx="add" data-k="xml" data-fx-ir="notas">📄 Já emiti: importar o XML</button></div>
+   <p class="hint">${serv?"O Emissor Nacional (web, celular ou API) é gratuito e aceita conta gov.br prata/ouro ou certificado digital. Cole os dados salvos e emita lá; depois importe o XML aqui.":"A autorização da NF-e exige assinatura com o certificado digital e envio ao webservice da SEFAZ, feitos pelo emissor (o do seu estado, a NFA-e ou o sistema contratado). No Maranhão, o produtor rural pessoa física com inscrição no CAD-ICMS emite NF-e modelo 55, série 920 (Resolução GABIN 40/2021). Emita lá com os dados copiados e depois importe o XML aqui."}</p>
+   ${S.rasc.length?`<details class="pp-sis"><summary>💾 Rascunhos salvos · ${S.rasc.length}</summary><ul class="pp-est">${S.rasc.slice(0,10).map((r,i)=>`<li>${dBR(r.data)} · <b>${r.serv?"NFS-e":"NF-e"}</b> para ${E(r.dNome||fDoc(r.dDoc)||"—")} · ${R$(r.tot)} <button type="button" class="btn" data-fx="rasc-abre" data-k="${i}">Abrir</button><button type="button" class="btn" data-fx="rasc-del" data-k="${i}">✕</button></li>`).join("")}</ul></details>`:""}`}
+function textoRasc(U){const e=S.emp.find(x=>x.id===U.emp)||{};const L=[`EMITENTE: ${e.nome||""} · ${fDoc(e.doc)}${e.ie?" · IE "+e.ie:""} · ${e.uf||""}`,`${U.serv?"TOMADOR":"DESTINATÁRIO"}: ${U.dNome||""} · ${fDoc(U.dDoc)}${U.serv?"":" · "+U.dUF}`];
+  if(U.serv)L.push(`SERVIÇO: ${U.serv_desc||""}${U.serv_cod?" · código "+U.serv_cod:""} · VALOR R$ ${F(P(U.serv_v)||0,2)}${U.iss?" · ISS "+U.iss+"%":""}`);
+  else{const inter=e.uf&&U.dUF&&e.uf!==U.dUF;L.push(`NATUREZA: Venda de produção do estabelecimento · CFOP ${inter?"6101":"5101"}`);U.itens.forEach((i,k)=>L.push(`ITEM ${k+1}: ${i.desc} · NCM ${i.ncm} · ${i.q} ${i.un} × R$ ${i.vu} = R$ ${F((P(i.q)||0)*(P(i.vu)||0),2)}`))}
+  if(U.obs)L.push("INFORMAÇÕES COMPLEMENTARES: "+U.obs);return L.join("\n")}
+
+/* ---------- guia ---------- */
+const FONTES=[["Portal Nacional da NF-e (consulta pública, DANFE e notas técnicas)","https://www.nfe.fazenda.gov.br/portal/principal.aspx"],["NFS-e Nacional (Emissor Nacional e API)","https://www.gov.br/nfse"],["NT 2014.002: Distribuição de DF-e (busca das notas emitidas contra o CNPJ, com certificado)","https://www.tributos.io/blog/legislacao-e-normas/nfedistribuicaodfe-consulta-df-e-para-emitentes-e-destinatarios"],["Cronograma do IBS e da CBS nos documentos fiscais (Receita Federal e CGIBS, ago/2026)","https://www.opovo.com.br/noticias/economia/2026/08/03/emissao-de-notas-fiscais-com-cbs-e-ibs-comeca-nesta-segunda-feira.html"],["Funrural a partir de abril de 2026 (LC 224/2025, Senar/CRC-MA)","https://crcma.org.br/noticias/senarinforma-contribuicao-sobre-a-comercializacao-da-producao-rural-tera-novas-aliquotas-a-partir-de-abril-de-2026"],["Cesta Básica Nacional com alíquota zero (LC 214/2025, Anexo I)","https://buscadorncm.com.br/reforma/cesta-basica"],["NF-e do produtor rural no Maranhão (Resolução GABIN 40/2021, série 920)","https://inventti.com.br/?p=17003"],["Composição da chave de acesso","https://focusnfe.com.br/blog/como-e-formada-a-chave-de-acesso-de-nf-e-nfc-e-ct-e-e-mdf-e/"],["NFS-e Nacional: quem é obrigado em 2026","https://triviumcontabil.com.br/nfs-e-nacional/"]];
+function guiaHTML(){return `<h3 class="pp-h">📚 Tributos, notas e o que o agente faz</h3><div class="fx-guia">
+  <details class="pp-sis" open><summary>🔎 Por que a busca automática precisa do certificado digital</summary><p>A lista de notas emitidas contra o seu CNPJ/CPF vem do serviço <b>NFeDistribuicaoDFe</b> do Ambiente Nacional (NT 2014.002). Ele só responde a quem se autentica com o <b>certificado digital</b> (e-CNPJ ou e-CPF) do mesmo CNPJ base, e os documentos ficam disponíveis por cerca de três meses. Um aplicativo no navegador não consegue usar o certificado com segurança para isso: é preciso um servidor com o certificado guardado com proteção, ou o sistema do contador. Por isso, aqui as notas entram pela chave, pelo XML ou pela câmera.</p><p>A consulta pública (no Portal da NF-e) mostra a nota pela chave, com uma verificação “não sou robô” que você mesmo faz. O botão <b>SEFAZ</b> de cada nota copia a chave e abre o portal.</p></details>
+  <details class="pp-sis"><summary>🔑 Chave de acesso e DANFE</summary><p>A chave tem 44 números: código da UF (2), ano e mês (4), CNPJ do emitente (14), modelo (2: 55 NF-e, 65 NFC-e), série (3), número (9), tipo de emissão (1), código numérico (8) e dígito verificador (1, módulo 11). O app confere o dígito e já tira dela UF, mês, CNPJ, série e número. O DANFE é só a representação impressa: o documento válido é o XML autorizado.</p></details>
+  <details class="pp-sis"><summary>🏛 Reforma tributária: IBS e CBS</summary><p>Em 2026 o IBS (estados e municípios) e a CBS (federal) aparecem nas notas em teste, com 0,1% e 0,9%, sem aumentar a carga. Os campos ficaram obrigatórios em 3/8/2026 para NF-e e NFC-e, em 1/10/2026 para a maior parte das NFS-e e em 1/1/2027 para o Simples Nacional. Peixes das posições 0302, 0303 e 0304, menos salmonídeos, atuns, bacalhaus, hadoque e saithe, estão na Cesta Básica Nacional com alíquota zero (LC 214/2025, Anexo I). Camarão (0306) não está nessa lista.</p></details>
+  <details class="pp-sis"><summary>🌾 Funrural do produtor rural</summary><p>Desde 01/04/2026 (LC 224/2025): pessoa física 1,63% (1,32% Previdência, 0,11% GILRAT, 0,2% Senar); pessoa jurídica 2,23% (1,87%, 0,11% e 0,25%). Antes eram 1,5% e 2,05%. Incide sobre a receita bruta da venda da produção. Segurados especiais e agroindústrias não mudaram.</p></details>
+  <details class="pp-sis"><summary>🧾 NF-e do produtor e NFS-e de serviços</summary><p>Maranhão: o produtor rural pessoa física inscrito no CAD-ICMS emite NF-e modelo 55, série 920 (Resolução GABIN 40/2021), obrigatório por faixa de receita desde 2022 (acima de R$ 360 mil desde 01/01/2023). Outros estados têm regras e emissores próprios (NFA-e).</p><p>Serviços (consultoria, projetos, assistência técnica): NFS-e no padrão nacional. MEI emite pelo Emissor Nacional desde 09/2023; ME e EPP do Simples, só por ele desde 01/09/2026. Acesso com conta gov.br prata/ouro ou certificado.</p></details>
+  <details class="pp-sis"><summary>⚠️ ICMS</summary><p>O ICMS do pescado e dos insumos muda de estado para estado (isenções, diferimento, substituição tributária). O agente soma o ICMS destacado nas notas; a regra que vale para a sua operação deve ser confirmada no regulamento da SEFAZ do seu estado e com o contador.</p></details>
+  <h4>Fontes</h4><ul class="pp-refs">${FONTES.map(([t,u])=>`<li><a href="${E(u)}" target="_blank" rel="noopener">${E(t)}</a></li>`).join("")}</ul><p class="hint">O agente organiza e estima; não substitui o contador nem a legislação. Os valores de tributos são informativos.</p></div>`}
+
+let rac0=false;
+function html(){recarrega();if(!rac0){rac0=true;importaRacao()}const a=S.aba;
+  return `<div class="fx">${cab()}${a==="entrada"||a==="venda"?notasHTML(a):a==="nfe"?nfeHTML(false):a==="nfse"?nfeHTML(true):a==="emp"?empHTML():a==="guia"?guiaHTML():notasHTML("")}</div>`}
+
+/* ---------- DANFE simplificado (visualização) ---------- */
+/* código de barras CODE-128 (conjunto C, só números — o mesmo do DANFE), sem biblioteca externa */
+const C128="212222 222122 222221 121223 121322 131222 122213 122312 132212 221213 221312 231212 112232 122132 122231 113222 123122 123221 223211 221132 221231 213212 223112 312131 311222 321122 321221 312212 322112 322211 212123 212321 232121 111323 131123 131321 112313 132113 132311 211313 231113 231311 112133 112331 132131 113123 113321 133121 313121 211331 231131 213113 213311 213131 311123 311321 331121 312113 312311 332111 314111 221411 431111 111224 111422 121124 121421 141122 141221 112214 112412 122114 122411 142112 142211 241211 221114 413111 241112 134111 111242 121142 121241 114212 124112 124211 411212 421112 421211 212141 214121 412121 111143 111341 131141 114113 114311 411113 411311 113141 114131 311141 411131 211412 211214 211232".split(" ");
+function svg128(num,h){num=String(num).replace(/\D/g,"");if(num.length%2)num="0"+num;const v=[105];for(let i=0;i<num.length;i+=2)v.push(+num.slice(i,i+2));let ck=105;for(let i=1;i<v.length;i++)ck+=v[i]*i;v.push(ck%103);
+  const pat=v.map(x=>C128[x]).join("")+"2331112";let x=10,r="";for(let i=0;i<pat.length;i++){const w=+pat[i];if(i%2===0)r+=`<rect x="${x}" y="0" width="${w}" height="${h}"/>`;x+=w}
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${x+10} ${h}" width="${(x+10)*2}" height="${h}" preserveAspectRatio="none" shape-rendering="crispEdges" fill="#000" role="img" aria-label="Código de barras da chave"><rect x="0" y="0" width="${x+10}" height="${h}" fill="#fff"/>${r}</svg>`}
+/* ZIP sem compressão (armazenado), sem biblioteca externa */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=t[(c^b[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0}})();
+function zipBlob(files){const enc=new TextEncoder(),parts=[],cen=[];let off=0;const d=new Date(),dt=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate(),tm=(d.getHours()<<11)|(d.getMinutes()<<5)|(d.getSeconds()>>1);
+  for(const [nome,txt] of files){const nm=enc.encode(nome),dat=enc.encode(txt),crc=CRC(dat),h=new DataView(new ArrayBuffer(30));
+    h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(8,0,true);h.setUint16(10,tm,true);h.setUint16(12,dt,true);h.setUint32(14,crc,true);h.setUint32(18,dat.length,true);h.setUint32(22,dat.length,true);h.setUint16(26,nm.length,true);h.setUint16(28,0,true);
+    parts.push(h.buffer,nm,dat);const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(10,0,true);c.setUint16(12,tm,true);c.setUint16(14,dt,true);c.setUint32(16,crc,true);c.setUint32(20,dat.length,true);c.setUint32(24,dat.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+    cen.push(c.buffer,nm);off+=30+nm.length+dat.length}
+  const cs=cen.reduce((a,b)=>a+(b.byteLength||b.length),0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cen,e.buffer],{type:"application/zip"})}
+
+function ver(ch){recarrega();const n=S.notas.find(x=>x.chave===ch);if(!n)return;let o=document.getElementById("fx-danfe");if(o)o.remove();o=document.createElement("div");o.id="fx-danfe";o.setAttribute("role","dialog");o.setAttribute("aria-label","Nota fiscal");
+  const its=n.itens||[];o.innerHTML=`<div class="fx-d"><div class="fx-dh"><b>${E(MOD[n.mod]||"Nota")} nº ${E(n.numero)} · série ${E(n.serie||"—")}</b><span><button type="button" class="btn" data-fxd="print">🖨 Imprimir</button><button type="button" class="btn" data-fxd="x" aria-label="Fechar">✕</button></span></div>
+   <div class="fx-dg"><div><small>EMITENTE</small><b>${E(n.emit&&n.emit.nome||"(sem o XML)")}</b><span>${E(fDoc(n.emit&&n.emit.doc))}${n.emit&&n.emit.ie?" · IE "+E(n.emit.ie):""} · ${E([n.emit&&n.emit.mun,n.emit&&n.emit.uf].filter(Boolean).join("/"))}</span></div>
+    <div><small>DESTINATÁRIO</small><b>${E(n.dest&&n.dest.nome||"—")}</b><span>${E(fDoc(n.dest&&n.dest.doc))} ${E([n.dest&&n.dest.mun,n.dest&&n.dest.uf].filter(Boolean).join("/"))}</span></div>
+    <div><small>EMISSÃO</small><b>${dBR(n.emissao)}</b><span>${E(n.natOp||"")}</span></div><div><small>PROTOCOLO</small><b>${E(n.prot&&n.prot.nProt||"—")}</b><span>${n.canc?"⛔ CANCELADA":n.soChave?"falta o XML":n.prot?"autorizada":"XML sem o protocolo de autorização"}</span></div></div>
+   <div class="fx-bc" id="fx-bcs">${/^\d{44}$/.test(n.chave)?svg128(n.chave,48):""}<code>${E(fCh(n.chave))}</code></div>
+   ${its.length?`<div class="scroll"><table class="lot fx-t"><thead><tr><th class="l">Produto / serviço</th><th>NCM</th><th>CFOP</th><th>Qtd.</th><th>Un.</th><th>Valor</th><th class="l">Categoria</th></tr></thead><tbody>${its.map(i=>`<tr><td class="l">${E(i.desc)}</td><td>${E(i.ncm)}</td><td>${E(i.cfop)}</td><td>${F(i.q,i.q%1?3:0)}</td><td>${E(i.un)}</td><td>${R$(i.vp)}</td><td class="l"><small>${E(catDe(i))}</small></td></tr>`).join("")}</tbody></table></div>`:`<p class="hint">Sem os itens: importe o XML desta nota para ver produtos e impostos.</p>`}
+   <div class="fx-dg fx-tot"><div><small>VALOR DA NOTA</small><b>${R$(n.valor)}</b></div><div><small>ICMS</small><b>${R$(n.icms)}</b></div><div><small>IPI</small><b>${R$(n.ipi)}</b></div><div><small>PIS / COFINS</small><b>${R$(n.pis)} / ${R$(n.cofins)}</b></div>${n.ibs||n.cbs?`<div><small>IBS / CBS</small><b>${R$(n.ibs)} / ${R$(n.cbs)}</b></div>`:""}${n.iss?`<div><small>ISS</small><b>${R$(n.iss)}</b></div>`:""}</div>
+   <p class="hint">Visualização feita pelo app a partir ${n.soChave?"da chave":"do XML"}: não substitui o DANFE do emitente.</p>
+   <div class="pp-btns fx-np">${n.xml?`<button type="button" class="btn" data-fxd="xml">⬇️ Baixar o XML</button>`:`<label class="btn">📄 Anexar o XML<input type="file" accept=".xml" data-fxd-xml hidden></label>`}<button type="button" class="btn" data-fxd="sefaz">🔎 Consultar na SEFAZ</button><button type="button" class="btn" data-fxd="canc">${n.canc?"Desmarcar cancelada":"Marcar como cancelada"}</button><button type="button" class="btn" data-fxd="del">🗑 Apagar da lista</button></div></div>`;
+  document.body.appendChild(o);
+  const fecha=()=>o.remove();o.addEventListener("click",async e=>{if(e.target===o)return fecha();const b=e.target.closest("[data-fxd]");if(!b)return;const k=b.dataset.fxd;
+    if(k==="x")return fecha();if(k==="print"){document.body.classList.add("fx-imp");setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("fx-imp"),500)},50);return}
+    if(k==="sefaz")return sefaz(n.chave);
+    if(k==="xml"){const x=await IDB.get(n.chave).catch(()=>null);if(!x){alert("O XML não está neste aparelho.");return}baixa(new Blob([x],{type:"application/xml"}),`${n.chave}.xml`);return}
+    recarrega();const m=S.notas.find(x=>x.chave===n.chave);if(!m)return fecha();
+    if(k==="canc"){m.canc=!m.canc;grava();redes();fecha();ver(n.chave);return}
+    if(k==="del"){if(!confirm(`Apagar a nota ${m.numero} da lista? O XML guardado neste aparelho também sai.`))return;S.notas=S.notas.filter(x=>x!==m);IDB.del(m.chave).catch(()=>{});grava();redes();fecha()}});
+  o.addEventListener("change",async e=>{const f=e.target.closest("[data-fxd-xml]");if(!f||!f.files[0])return;try{const t=await f.files[0].text(),N=leXML(t);if(N.chave&&N.chave!==n.chave&&!confirm("Este XML é de outra nota. Adicionar mesmo assim?"))return;guarda(N,"xml",t);redes();fecha();ver(N.chave||n.chave)}catch(er){alert(er.message)}});
+  document.addEventListener("keydown",function esc(e){if(e.key==="Escape"){fecha();document.removeEventListener("keydown",esc)}});}
+function sefaz(ch){try{navigator.clipboard&&navigator.clipboard.writeText(ch)}catch(e){}window.open("https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx?tipoConsulta=resumo&tipoConteudo=7PhJ+gAVw2g=","_blank","noopener");recarrega();S.msg="📋 Chave copiada. No portal da NF-e, cole a chave, confirme o “não sou robô” e consulte.";grava();redes()}
+function baixa(blob,nome){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+async function zip(){const L=lista(S.aba==="entrada"||S.aba==="venda"?S.aba:"").filter(n=>n.xml);if(!L.length){recarrega();S.msg="Nenhuma nota com XML neste filtro.";grava();redes();return}
+  try{const fs=[];for(const x of L){const t=await IDB.get(x.chave).catch(()=>null);if(t)fs.push([`${tipoDe(x)}/${String(x.emissao||"").slice(0,7)}/${x.chave}.xml`,t])}const n=fs.length;
+    if(!n)throw new Error("os XML não estão neste aparelho");baixa(zipBlob(fs),`notas-${hoje()}.zip`);recarrega();S.msg=`⬇️ ZIP com ${n} XML gerado.`;grava();redes()}catch(e){recarrega();S.msg="⚠️ "+e.message;grava();redes()}}
+function csv(){const L=lista(S.aba==="entrada"||S.aba==="venda"?S.aba:"");const q=v=>{const s=String(v??"");return /[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s},nb=v=>fin(v)?String(v.toFixed(2)).replace(".",","):"";
+  const H=["Tipo","Modelo","Número","Série","Emissão","Chave","Emitente","CNPJ/CPF emitente","UF","Destinatário","CNPJ/CPF destinatário","Valor","ICMS","ICMS-ST","IPI","PIS","COFINS","IBS","CBS","ISS","Situação","Itens"];
+  const rows=L.map(n=>[tipoDe(n),MOD[n.mod]||n.mod,n.numero,n.serie,dBR(n.emissao),"'"+n.chave,n.emit&&n.emit.nome,fDoc(n.emit&&n.emit.doc),n.emit&&n.emit.uf,n.dest&&n.dest.nome,fDoc(n.dest&&n.dest.doc),nb(n.valor),nb(n.icms),nb(n.st),nb(n.ipi),nb(n.pis),nb(n.cofins),nb(n.ibs),nb(n.cbs),nb(n.iss),sit(n),(n.itens||[]).map(i=>`${i.desc} (NCM ${i.ncm||"—"}, ${F(i.q,2)} ${i.un}, R$ ${F(i.vp,2)})`).join(" | ")]);
+  baixa(new Blob(["﻿"+[H,...rows].map(r=>r.map(q).join(";")).join("\r\n")],{type:"text/csv;charset=utf-8"}),`notas-${hoje()}.csv`)}
+
+/* ---------- câmera ---------- */
+async function camera(){let o=document.getElementById("fx-cam");if(o)o.remove();o=document.createElement("div");o.id="fx-cam";o.innerHTML=`<div class="fx-d"><div class="fx-dh"><b>📷 Aponte para o código de barras do DANFE ou o QR Code</b><button type="button" class="btn" data-x>✕</button></div><video playsinline muted autoplay></video><p class="hint" data-st>Abrindo a câmera…</p></div>`;document.body.appendChild(o);
+  const v=o.querySelector("video"),st=o.querySelector("[data-st]");let s=null,vivo=true;const fim=()=>{vivo=false;try{s&&s.getTracks().forEach(t=>t.stop())}catch(e){}o.remove()};o.querySelector("[data-x]").onclick=fim;
+  try{s=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1920}}});v.srcObject=s;await v.play();st.textContent="Procurando a chave…"}catch(e){st.textContent="Não foi possível abrir a câmera. Use “Usar uma foto”.";return}
+  const t0=Date.now();while(vivo&&Date.now()-t0<90000){await new Promise(r=>setTimeout(r,450));if(!vivo||!v.videoWidth)continue;const cods=await (window.gfCodigos?gfCodigos(v):Promise.resolve([])).catch(()=>[]);
+    for(const x of cods){const ch=achaChave(x.text||x);if(ch){fim();const r=porChave(ch,"camera");recarrega();S.msg=r.erro?"⚠️ "+r.erro:`✅ Nota ${r.nota.numero} adicionada pela câmera. Importe o XML para ver os itens.`;grava();redes();return}}}
+  if(vivo)st.textContent="Não achei a chave. Aproxime o código de barras, com boa luz, ou digite a chave."}
+async function foto(f){const img=new Image();img.src=URL.createObjectURL(f);await img.decode().catch(()=>{});const cods=await (window.gfCodigos?gfCodigos(img):Promise.resolve([])).catch(()=>[]);let ch="";for(const x of cods){ch=achaChave(x.text||x);if(ch)break}
+  recarrega();if(!ch){S.msg="⚠️ Não achei a chave na foto. Tente outra foto mais próxima do código de barras, ou digite a chave.";grava();redes();return}const r=porChave(ch,"camera");recarrega();S.msg=r.erro?"⚠️ "+r.erro:`✅ Nota ${r.nota.numero} adicionada pela foto.`;grava();redes()}
+
+/* ---------- eventos (dentro da caixa da Gestão de insumos) ---------- */
+const dentro=t=>t&&t.closest&&t.closest("#rg-box .fx");
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-fx]");if(!b||!dentro(b))return;e.preventDefault();e.stopPropagation();recarrega();const a=b.dataset.fx,k=b.dataset.k;S.msg="";
+  if(a==="aba"){S.aba=k}else if(a==="add"){S.add=k;if(b.dataset.fxIr)S.aba=b.dataset.fxIr}else if(a==="fsit"){S.fsit=k;S.aba=S.aba==="entrada"||S.aba==="venda"?S.aba:"notas"}
+  else if(a==="chave"){const i=document.querySelector("#rg-box [data-fx-chave]"),r=porChave(i?i.value:"","chave");recarrega();S.msg=r.erro?"⚠️ "+r.erro:`✅ ${MOD[r.nota.mod]||"Nota"} ${r.nota.numero} de ${r.nota.emit.uf} (${fDoc(r.nota.emit.doc)}) adicionada. Falta o XML para os itens e os impostos.`}
+  else if(a==="cam"){grava();camera();return}else if(a==="ver"){grava();ver(k);return}else if(a==="sefaz"){grava();sefaz(k);return}else if(a==="zip"){grava();zip();return}else if(a==="csv"){grava();csv();return}
+  else if(a==="emp-add"){const g=f=>{const x=document.querySelector(`#rg-box [data-fx-e="${f}"]`);return x?x.value.trim():""};const d=so(g("doc"));if(!g("nome")||!docOk(d)){S.msg="⚠️ Informe o nome e um CNPJ ou CPF válido.";}else if(S.emp.some(x=>so(x.doc)===d)){S.msg="Esse CNPJ/CPF já está cadastrado."}else{S.emp.push({id:"e"+Date.now().toString(36),nome:g("nome"),doc:d,ie:g("ie"),uf:g("uf")||"MA",reg:g("reg")||"pf"});S.msg="✅ Empresa cadastrada: as notas foram reclassificadas em entradas e vendas."}}
+  else if(a==="emp-del"){const x=S.emp.find(y=>y.id===k);if(x&&confirm(`Tirar ${x.nome} da lista? As notas continuam.`)){S.emp=S.emp.filter(y=>y!==x);if(S.empSel===k)S.empSel="*"}}
+  else if(a==="it-add"){UIe&&UIe.itens.push({p:0,desc:PRODS[0][0],ncm:PRODS[0][1],un:"kg",q:"",vu:""})}else if(a==="it-del"){UIe&&UIe.itens.splice(+k,1)}
+  else if(a==="rasc"&&UIe){const U=UIe,tot=U.serv?(P(U.serv_v)||0):U.itens.reduce((s,i)=>s+(P(i.q)||0)*(P(i.vu)||0),0);if(!(tot>0)){S.msg="⚠️ Informe quantidade e preço (ou o valor do serviço).";}else{S.rasc.unshift(Object.assign(JSON.parse(JSON.stringify(U)),{data:hoje(),tot}));S.rasc=S.rasc.slice(0,30);const tx=textoRasc(U);try{navigator.clipboard.writeText(tx);S.msg="💾 Rascunho salvo e dados copiados: cole no emissor oficial."}catch(er){S.msg="💾 Rascunho salvo."}}}
+  else if(a==="rasc-abre"){const r=S.rasc[+k];if(r){UIe=JSON.parse(JSON.stringify(r));S.aba=r.serv?"nfse":"nfe"}}else if(a==="rasc-del"){S.rasc.splice(+k,1)}
+  grava();redes()},true);
+document.addEventListener("change",async e=>{const t=e.target;if(!dentro(t))return;recarrega();
+  if(t.dataset.fxv!=null){S[t.dataset.fxv]=t.value;grava();redes();return}
+  if(t.dataset.fxReg!=null){const x=S.emp.find(y=>y.id===t.dataset.fxReg);if(x){x.reg=t.value;grava();redes()}return}
+  if(t.dataset.fxe!=null&&UIe){UIe[t.dataset.fxe]=t.value;redes();return}
+  if(t.dataset.fxi!=null&&UIe){const it=UIe.itens[+t.dataset.fxi];if(!it)return;if(t.dataset.c==="p"){it.p=+t.value;const p=PRODS[it.p];it.desc=p[1]?p[0]:"";it.ncm=p[1];it.un=p[2]}else it[t.dataset.c]=t.value;redes();return}
+  if(t.matches("[data-fx-xml]")&&t.files.length){S.msg="Lendo os XML…";grava();await porArquivos([...t.files]);return}
+  if(t.matches("[data-fx-foto]")&&t.files[0]){await foto(t.files[0]);return}},true);
+document.addEventListener("input",e=>{const t=e.target;if(!dentro(t))return;
+  if(t.matches("[data-fx-q]")){clearTimeout(t.__t);t.__t=setTimeout(()=>{recarrega();S.q=t.value;grava();const q=t.value.toLowerCase().trim(),qd=so(q);document.querySelectorAll("#rg-box [data-fx-row]").forEach(r=>{r.hidden=!!q&&!r.textContent.toLowerCase().includes(q)&&!(qd&&String(r.dataset.fxRow).includes(qd))})},200)}
+  else if(t.matches("[data-fx-chave]")){const d=so(t.value);t.classList.toggle("fx-okc",d.length===44&&dv(d))}},true);
+document.addEventListener("keydown",e=>{const t=e.target;if(e.key==="Enter"&&dentro(t)&&t.matches("[data-fx-chave]")){e.preventDefault();const b=document.querySelector('#rg-box [data-fx="chave"]');b&&b.click()}},true);
+
+window.gfFiscal={html,leXML,deChave,dv,porChave,guarda,estado:()=>{recarrega();return S},resumo:()=>{recarrega();const A=S.notas.filter(n=>!n.canc);return {notas:S.notas.length,entradas:A.filter(n=>tipoDe(n)==="entrada").reduce((a,n)=>a+(n.valor||0),0),vendas:A.filter(n=>tipoDe(n)==="venda").reduce((a,n)=>a+(n.valor||0),0),falta:S.notas.filter(n=>n.soChave&&!n.canc).length}}};
+})();
+</script>
+<style>
+.fx{display:grid;gap:10px;min-width:0}
+.fx-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.fx-emp{display:flex;gap:6px;align-items:center;font-size:14px}.fx-emp select{width:auto;max-width:260px}
+.fx-cap{font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.fx-abas{flex-wrap:wrap}
+.fx-msg{margin:0;border-left:3px solid var(--accent);padding-left:8px}
+.fx-add{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface)}
+.fx-sub{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:8px;flex-wrap:wrap}
+.fx-st{background:none;border:0;border-bottom:3px solid transparent;padding:6px 10px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}.fx-st.on{color:var(--accent);border-bottom-color:var(--accent)}
+.fx-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.fx-row input{flex:1 1 220px;min-width:0}.fx-row select{width:auto;max-width:100%}
+.fx-wrap>*{flex:1 1 160px}.fx-row .pp-f{flex:1 1 170px}.fx-row .pp-f input,.fx-row .pp-f select,.fx-row .pp-f textarea{flex:none;width:100%}
+[data-fx-chave]{font-family:var(--f-mono);letter-spacing:.5px}[data-fx-chave].fx-okc{border-color:#1baf7a;box-shadow:0 0 0 2px #1baf7a33}
+.fx-file{cursor:pointer}
+.fx-h{justify-content:space-between}.fx-acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.fx-t td,.fx-t th{vertical-align:top}.fx-ch{font-family:var(--f-mono);color:var(--muted);font-size:11px}
+.fx-t tr.fx-canc td{opacity:.6;text-decoration:line-through}
+.fx-tp{display:inline-block;border-radius:999px;padding:1px 8px;font-size:12px;background:var(--line);white-space:nowrap}.fx-tp.fx-venda{background:#1baf7a22;color:#127a55}.fx-tp.fx-entrada{background:#2a78d61f;color:#2a78d6}.fx-tp.fx-f{background:#e09a0022;color:#a46400}.fx-tp.fx-c{background:#d33f2e1a;color:#b4332a}
+.fx-guia p{font-size:13.5px;line-height:1.55;margin:6px 0}
+#fx-danfe,#fx-cam{position:fixed;inset:0;z-index:10050;background:rgba(10,20,18,.55);display:grid;place-items:center;padding:12px}
+.fx-d{background:var(--surface,#fff);color:var(--ink,#111);border-radius:14px;max-width:880px;width:100%;max-height:92vh;overflow:auto;padding:14px 16px;display:grid;gap:10px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.fx-dh{display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}.fx-dh span{display:flex;gap:6px}
+.fx-dg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:6px}.fx-dg>div{border:1px solid var(--line);border-radius:8px;padding:6px 8px;display:grid;gap:2px;font-size:13px}.fx-dg small{color:var(--muted);font-size:10.5px;letter-spacing:.5px}
+.fx-bc{display:grid;justify-items:center;gap:4px;border:1px solid var(--line);border-radius:8px;padding:8px;overflow:hidden}.fx-bc svg{max-width:100%;height:auto}.fx-bc code{font-size:12.5px;letter-spacing:.5px;word-break:break-all;text-align:center}
+#fx-cam video{width:100%;max-height:60vh;border-radius:10px;background:#000}
+@media print{body.fx-imp>*:not(#fx-danfe){display:none!important}body.fx-imp #fx-danfe{position:static;background:none;padding:0}body.fx-imp .fx-d{box-shadow:none;max-height:none}body.fx-imp .fx-dh .btn,body.fx-imp .fx-np{display:none!important}}
 </style>
