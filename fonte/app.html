@@ -16892,7 +16892,7 @@ window.gfFiscal={html,leXML,deChave,dv,porChave,guarda,estado:()=>{recarrega();r
 @media print{body.fx-imp>*:not(#fx-danfe){display:none!important}body.fx-imp #fx-danfe{position:static;background:none;padding:0}body.fx-imp .fx-d{box-shadow:none;max-height:none}body.fx-imp .fx-dh .btn,body.fx-imp .fx-np{display:none!important}}
 </style>
 <script>
-/* ===================== v288/v289: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
+/* ===================== v288–v290: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
    6, 5, 4, 3 e 2 meses; no último mês, semana a semana; na última semana, dia a dia. Quanto mais perto, mais forte e mais rápido ===================== */
 (function(){
 if(window.__gfPrevIframe)return;
@@ -16910,23 +16910,31 @@ const visivel=()=>{const v=document.getElementById("view-benef");return v&&!v.hi
 function lotes(){try{return (window.gfPrev&&gfPrev.todos())||[]}catch(e){return []}}
 const SK="gf-cr-sel";const selG=()=>{try{const v=sessionStorage.getItem(SK);return v===null||v===""?-1:+v}catch(e){return -1}},selS=k=>{try{if(k<0)sessionStorage.removeItem(SK);else sessionStorage.setItem(SK,String(k))}catch(e){}};
 /* janela de datas de cada cor: (dias da próxima etapa, dias desta etapa] a partir de hoje */
-function janela(k,agora){const hi=ETAPAS[k][0],lo=k<N-1?ETAPAS[k+1][0]:-Infinity;return k===N-1?[agora-30*DAY,agora+0.5*DAY]:[agora+lo*DAY,agora+hi*DAY]}
+function janela(k,agora){const h=sod(agora),hi=ETAPAS[k][0],lo=k<N-1?ETAPAS[k+1][0]:0;return k===N-1?[h-DAY,h]:[h+lo*DAY,h+hi*DAY]}
 const dBR=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+/* dias de calendário até a data (meia-noite a meia-noite): cada data cai numa só cor */
+const sod=ms=>{const d=new Date(ms);d.setHours(0,0,0,0);return d.getTime()};const dd=(ms,agora)=>Math.round((sod(ms)-sod(agora))/DAY);
+const kDia=(ms,agora)=>{const x=dd(ms,agora);return x<0?-1:etapa(x)};
 function aplica(){const v=document.getElementById("view-benef");if(!v)return;const L=lotes(),M=new Map(L.map(l=>[String(l.id),l])),agora=Date.now();let pior=-1;const sel=selG();
-  const kDe=l=>etapa(Math.ceil((l.h-agora)/DAY)),cont=new Array(N).fill(0);L.forEach(l=>{const k=kDe(l);if(k>=0)cont[k]++});
+  const kDe=l=>etapa(dd(l.h,agora)),cont=new Array(N).fill(0);L.forEach(l=>{const k=kDe(l);if(k>=0)cont[k]++});
   let prim=null;
   v.querySelectorAll(".gfp-av .gfp-it").forEach(it=>{const b=it.querySelector("[data-gfp='usar'][data-id],[data-gfp='aceitar'][data-id]")||it.querySelector("[data-id]"),l=b&&M.get(String(b.dataset.id));if(!l)return;
-    const dias=(l.h-agora)/DAY,k=etapa(Math.ceil(dias));if(k<0){it.classList.remove("gfp-cr","gfp-crsel","gfp-crdim");return}pior=Math.max(pior,k);const [,rot,cor]=ETAPAS[k],f=k/(N-1);
+    const dias=dd(l.h,agora),k=etapa(dias);if(k<0){it.classList.remove("gfp-cr","gfp-crsel","gfp-crdim");return}pior=Math.max(pior,k);const [,rot,cor]=ETAPAS[k],f=k/(N-1);
     it.classList.add("gfp-cr");it.style.setProperty("--cr",cor);it.style.setProperty("--crp",(3.6-3.1*f).toFixed(2)+"s");it.style.setProperty("--crs",(2+7*f).toFixed(1)+"px");it.style.setProperty("--cra",(0.18+0.5*f).toFixed(2));
     it.classList.toggle("gfp-crsel",sel>=0&&k===sel);it.classList.toggle("gfp-crdim",sel>=0&&k!==sel);if(sel===k&&!prim)prim=it;
     it.dataset.cr=k;let c=it.querySelector(".gfp-crc");if(!c){c=document.createElement("span");c.className="gfp-crc";const d=it.firstElementChild;(d||it).insertBefore(c,(d||it).firstChild)}
-    const txt=`⏳ ${rot}${k>=8&&k<N-1?"":k===N-1?"":` · ${Math.ceil(dias)} dias`}`;if(c.textContent!==txt)c.textContent=txt;c.style.background=cor});
+    const txt=`⏳ ${rot}${k>=8&&k<N-1?"":k===N-1?"":` · ${dias} dias`}`;if(c.textContent!==txt)c.textContent=txt;c.style.background=cor});
   /* semanas do cronograma da fábrica que caem na cor escolhida */
   let W=[];try{W=(gfPrev.semanas()||{}).W||[]}catch(e){}const jan=sel>=0?janela(sel,agora):null;let nW=0,primW=null;
   const tabC=[...v.querySelectorAll("table.gfp-tab")].find(t=>/Despescas previstas/.test((t.tHead||t).textContent))||null,rows=tabC?[...tabC.tBodies[0].rows]:[];
-  rows.forEach((tr,i)=>{const w=W[i];let on=false;if(jan&&w){on=(w.a<jan[1]&&w.b>jan[0])||(w.L||[]).some(l=>kDe(l)===sel)}
-    tr.classList.toggle("gfp-crw",on);let c=tr.querySelector(".gfp-crwc");if(on){nW++;if(!primW)primW=tr;tr.style.setProperty("--cr",ETAPAS[sel][2]);const f=sel/(N-1);tr.style.setProperty("--crp",(2.4-1.9*f).toFixed(2)+"s");
-      if(!c){c=document.createElement("span");c.className="gfp-crwc";const td=tr.firstElementChild;td&&td.appendChild(c)}const t=`⏳ ${ETAPAS[sel][1]}`;if(c&&c.textContent!==t){c.textContent=t;c.style.background=ETAPAS[sel][2]}}else if(c)c.remove()});
+  rows.forEach((tr,i)=>{const w=W[i];if(!w)return;const dias=[];for(let t=sod(w.a);t<w.b;t+=DAY){const x=sod(t+3*3600e3);if(!dias.length||dias[dias.length-1]!==x)dias.push(x)}
+    const kd=dias.map(t=>kDia(t,agora)),meus=dias.filter((t,j)=>sel>=0&&kd[j]===sel),on=meus.length>0;
+    const td=tr.firstElementChild;if(!td)return;let st=td.querySelector(".gfp-crd");if(!st){st=document.createElement("div");st.className="gfp-crd";td.appendChild(st)}
+    const hs=dias.map((t,j)=>{const k=kd[j];return `<span class="${k<0?"fora":""}${sel>=0&&k===sel?" sel":""}${sel>=0&&k!==sel?" dim":""}" style="${k>=0?`--c:${ETAPAS[k][2]}`:""}" title="${new Date(t).toLocaleDateString("pt-BR")}${k>=0?" · "+ETAPAS[k][1]:" · fora do prazo de aviso"}">${new Date(t).getDate()}</span>`}).join("");
+    if(st.__h!==hs){st.innerHTML=hs;st.__h=hs}
+    tr.classList.toggle("gfp-crw",on);let c=tr.querySelector(".gfp-crwc");
+    if(on){nW++;if(!primW)primW=tr;tr.style.setProperty("--cr",ETAPAS[sel][2]);const f=sel/(N-1);tr.style.setProperty("--crp",(2.4-1.9*f).toFixed(2)+"s");
+      if(!c){c=document.createElement("span");c.className="gfp-crwc";td.appendChild(c)}const a=meus[0],b=meus[meus.length-1],t=`⏳ ${ETAPAS[sel][1]} · ${a===b?dBR(a):dBR(a)+" a "+dBR(b)}`;if(c.textContent!==t){c.textContent=t;c.style.background=ETAPAS[sel][2]}}else if(c)c.remove()});
   /* legenda: a régua de cores clicável */
   const av=v.querySelector(".gfp-av");let lg=document.getElementById("gfp-crleg");
   const ancora=av||tabC;
@@ -16968,6 +16976,12 @@ inicia();
 .gfp-it.gfp-crdim{opacity:.4;filter:saturate(.5)}
 @keyframes gfpCrW{0%,100%{background:transparent}50%{background:color-mix(in srgb,var(--cr) 26%,transparent)}}
 table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinite}table.gfp-tab tr.gfp-crw td:first-child{box-shadow:inset 5px 0 0 var(--cr)}
+.gfp-crd{display:flex;gap:2px;margin-top:4px;flex-wrap:nowrap}
+.gfp-crd span{min-width:20px;height:18px;border-radius:4px;background:var(--c,#cbd5d1);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;line-height:1}
+.gfp-crd span.fora{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.gfp-crd span.dim{opacity:.28}
+.gfp-crd span.sel{outline:2px solid var(--c);outline-offset:1px;animation:gfpCrD var(--crp,1s) ease-in-out infinite}
+@keyframes gfpCrD{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 .gfp-crwc{display:block;width:max-content;margin-top:3px;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px}
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr.gfp-crsel:not(.gfp-pisca),table.gfp-tab tr.gfp-crw td,.gfp-crl-r button.sel i{animation:none}table.gfp-tab tr.gfp-crw td{background:color-mix(in srgb,var(--cr) 18%,transparent)}}
 .gfp-crtab{box-shadow:inset 0 -3px 0 var(--cr)}
