@@ -16892,7 +16892,7 @@ window.gfFiscal={html,leXML,deChave,dv,porChave,guarda,estado:()=>{recarrega();r
 @media print{body.fx-imp>*:not(#fx-danfe){display:none!important}body.fx-imp #fx-danfe{position:static;background:none;padding:0}body.fx-imp .fx-d{box-shadow:none;max-height:none}body.fx-imp .fx-dh .btn,body.fx-imp .fx-np{display:none!important}}
 </style>
 <script>
-/* ===================== v288–v291: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
+/* ===================== v288–v292: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
    6, 5, 4, 3 e 2 meses; no último mês, semana a semana; na última semana, dia a dia. Quanto mais perto, mais forte e mais rápido ===================== */
 (function(){
 if(window.__gfPrevIframe)return;
@@ -16911,6 +16911,7 @@ function lotes(){try{return (window.gfPrev&&gfPrev.todos())||[]}catch(e){return 
 const SK="gf-cr-sel";const selG=()=>{try{const v=sessionStorage.getItem(SK);return v===null||v===""?-1:+v}catch(e){return -1}},selS=k=>{try{if(k<0)sessionStorage.removeItem(SK);else sessionStorage.setItem(SK,String(k))}catch(e){}};
 /* janela de datas de cada cor: (dias da próxima etapa, dias desta etapa] a partir de hoje */
 function janela(k,agora){const h=sod(agora),hi=ETAPAS[k][0],lo=k<N-1?ETAPAS[k+1][0]:0;return k===N-1?[h-DAY,h]:[h+lo*DAY,h+hi*DAY]}
+const esc=x=>String(x??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const dBR=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
 /* dias de calendário até a data (meia-noite a meia-noite): cada data cai numa só cor */
 const sod=ms=>{const d=new Date(ms);d.setHours(0,0,0,0);return d.getTime()};const dd=(ms,agora)=>Math.round((sod(ms)-sod(agora))/DAY);
@@ -16930,7 +16931,8 @@ function aplica(){const v=document.getElementById("view-benef");if(!v)return;con
   rows.forEach((tr,i)=>{const w=W[i];if(!w)return;const dias=[];for(let t=sod(w.a);t<w.b;t+=DAY){const x=sod(t+3*3600e3);if(!dias.length||dias[dias.length-1]!==x)dias.push(x)}
     const kd=dias.map(t=>kDia(t,agora)),meus=dias.filter((t,j)=>sel>=0&&kd[j]===sel),on=meus.length>0;
     const td=tr.firstElementChild;if(!td)return;let st=td.querySelector(".gfp-crd");if(!st){st=document.createElement("div");st.className="gfp-crd";td.appendChild(st)}
-    const hs=dias.map((t,j)=>{const k=kd[j];return `<span class="${k<0?"fora":""}${sel>=0&&k===sel?" sel":""}${sel>=0&&k!==sel?" esc":""}" style="${k>=0?`--c:${ETAPAS[k][2]}`:""}" title="${new Date(t).toLocaleDateString("pt-BR")}${k>=0?" · "+ETAPAS[k][1]:" · fora do prazo de aviso"}">${new Date(t).getDate()}</span>`}).join("");
+    const proj=t=>(w.L||[]).filter(l=>sod(l.h)===t);
+    const hs=dias.map((t,j)=>{const k=kd[j],P=proj(t),d=new Date(t);return `<div class="gfp-cdl${k<0?" fora":""}${sel>=0&&k===sel?" sel":""}${sel>=0&&k!==sel?" esc":""}${P.length?" tem":""}" style="${k>=0?`--c:${ETAPAS[k][2]}`:""}" title="${k>=0?ETAPAS[k][1]:"fora do prazo de aviso"}"><span class="gfp-cdn">${d.getDate()}</span><span class="gfp-cdw">${d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","")} ${dBR(t)}</span><span class="gfp-cdp">${P.length?P.map(l=>`<b>${esc(l.proj||"Projeto")}</b>${l.g?" · "+esc(l.g):""}${isFinite(l.bF)?` · ${Math.round(l.bF).toLocaleString("pt-BR")} kg`:""}`).join("<br>"):"—"}</span></div>`}).join("");
     if(st.__h!==hs){st.innerHTML=hs;st.__h=hs}
     tr.classList.toggle("gfp-crw",on);tr.classList.toggle("gfp-crhide",sel>=0&&!on);let c=tr.querySelector(".gfp-crwc");
     if(on){nW++;if(!primW)primW=tr;tr.style.setProperty("--cr",ETAPAS[sel][2]);const f=sel/(N-1);tr.style.setProperty("--crp",(2.4-1.9*f).toFixed(2)+"s");
@@ -16940,9 +16942,7 @@ function aplica(){const v=document.getElementById("view-benef");if(!v)return;con
   const ancora=av||tabC;
   if(ancora){if(!lg){lg=document.createElement("div");lg.id="gfp-crleg"}const alvo=av||ancora.closest(".scroll")||ancora;if(lg.nextElementSibling!==alvo)alvo.parentNode.insertBefore(lg,alvo);
     const info=sel>=0?(()=>{const [a,b]=jan;return `<div class="gfp-crl-i" style="--c:${ETAPAS[sel][2]}"><b>${ETAPAS[sel][1]}</b> · ${sel===N-1?"despesca hoje ou atrasada":(()=>{const x=dBR(Math.max(a+DAY,agora)),y=dBR(b);return x===y?`despesca em ${y}`:`despescas de ${x} a ${y}`})()} · <b>${cont[sel]}</b> projeto(s)/lote(s) nessa cor · <b>${nW}</b> semana(s) no cronograma ${cont[sel]?"":"· nenhum lote nessa cor agora"} <button type="button" class="chip" data-cr-sel="-1">✕ Limpar</button></div>`})():`<div class="gfp-crl-i gfp-crl-dica">Toque numa cor: mês mostra só os lotes e as semanas daquele mês; semana, só aquela semana; dia, só aquele dia.</div>`;
-    const B=(i,lab,fx)=>`<button type="button" data-cr-sel="${i}" class="${i===pior?"on":""}${i===sel?" sel":""}${cont[i]?" tem":""}" aria-pressed="${i===sel}" style="--c:${ETAPAS[i][2]};${fx}" title="${ETAPAS[i][1]}: ${cont[i]} lote(s)"><i>${cont[i]?`<em>${cont[i]}</em>`:""}</i><small>${lab}</small></button>`;
-    const h=`<div class="gfp-crl-t">🎨 Cor do aviso pelo tempo até a despesca${pior>=0?` · mais urgente: <b style="color:${ETAPAS[pior][2]}">${ETAPAS[pior][1]}</b>`:""}</div><div class="gfp-crl-w"><div class="gfp-crl-r" role="group" aria-label="Meses e semanas do último mês">${ETAPAS.slice(0,8).map((e,i)=>B(i,i<5?e[1].replace(" meses"," meses"):"Sem. "+(i-4),`flex:${i<5?3:2}`)).join("")}<span class="gfp-crl-sep" aria-hidden="true">Última semana, dia a dia (data da despesca) →</span></div>
-      <div class="gfp-crl-v" role="group" aria-label="Dias da última semana">${ETAPAS.slice(8).map((e,j)=>{const i=j+8,dia=sod(agora)+(i<N-1?(15-i):0)*DAY,wd=new Date(dia).toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","");return B(i,`${i<N-1?"D-"+(15-i):"Despesca"} · ${wd} ${dBR(dia)}`,"")}).join("")}</div></div>${info}`;
+    const h=`<div class="gfp-crl-t">🎨 Cor do aviso pelo tempo até a despesca${pior>=0?` · mais urgente: <b style="color:${ETAPAS[pior][2]}">${ETAPAS[pior][1]}</b>`:""}</div><div class="gfp-crl-r" role="group" aria-label="Meses, semanas do último mês (S1 a S3) e dias da última semana (7 a 1) até a despesca (D)">${ETAPAS.map((e,i)=>`<button type="button" data-cr-sel="${i}" class="${i===pior?"on":""}${i===sel?" sel":""}${cont[i]?" tem":""}" aria-pressed="${i===sel}" style="--c:${e[2]};flex:${i<5?3:i<8?2:1}" title="${e[1]}: ${cont[i]} lote(s)"><i>${cont[i]?`<em>${cont[i]}</em>`:""}</i><small>${i<5?e[1].replace(" meses","m"):i<8?"S"+(i-4):i<N-1?String(15-i):"D"}</small></button>`).join("")}</div>${info}`;
     if(lg.__h!==h){lg.innerHTML=h;lg.__h=h}}else if(lg)lg.remove();
   if(aplica.rola){aplica.rola=false;const t=prim||primW;if(t)try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
   /* a aba do Beneficiamento ganha a cor do aviso mais urgente */
@@ -16979,25 +16979,16 @@ inicia();
 @keyframes gfpCrW{0%,100%{background:transparent}50%{background:color-mix(in srgb,var(--cr) 26%,transparent)}}
 table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinite}table.gfp-tab tr.gfp-crw td:first-child{box-shadow:inset 5px 0 0 var(--cr)}
 .gfp-crhide{display:none!important}
-.gfp-crl-w{display:flex;gap:10px;align-items:stretch}
-.gfp-crl-w .gfp-crl-r{flex:1;min-width:0;flex-wrap:wrap;align-content:flex-start}
-.gfp-crl-sep{flex:1 0 100%;font-size:11px;color:var(--muted);text-align:right}
-.gfp-crl-v{display:flex;flex-direction:column;gap:3px;width:150px;flex:none}
-.gfp-crl-v button{display:flex;align-items:center;gap:6px;background:none;border:1px solid transparent;border-radius:6px;padding:1px 4px;cursor:pointer;font:inherit;color:inherit;text-align:left}
-.gfp-crl-v button i{flex:none;width:26px;height:16px;border-radius:4px;background:var(--c);opacity:.6;display:grid;place-items:center;font-style:normal}
-.gfp-crl-v button small{font-size:11.5px;white-space:nowrap}
-.gfp-crl-v button.tem i,.gfp-crl-v button.on i{opacity:1}
-.gfp-crl-v button:hover,.gfp-crl-v button:focus-visible{border-color:var(--c)}
-.gfp-crl-v button.sel{border-color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent)}.gfp-crl-v button.sel i{animation:gfpCrB .8s ease-in-out infinite}
-.gfp-crl-r button small{font-size:10.5px}
-.gfp-crd span.esc{display:none}
-.gfp-crl-v em{font-style:normal;font-size:10px;font-weight:700;color:#fff;line-height:1}
-@media (max-width:560px){.gfp-crl-w{flex-direction:column}.gfp-crl-v{width:auto}.gfp-crl-sep{text-align:left}.gfp-crl-r button small{white-space:nowrap;font-size:10px;overflow:visible}}
-.gfp-crd{display:flex;gap:2px;margin-top:4px;flex-wrap:nowrap}
-.gfp-crd span{min-width:20px;height:18px;border-radius:4px;background:var(--c,#cbd5d1);color:#fff;font-size:10.5px;font-weight:700;display:grid;place-items:center;line-height:1}
-.gfp-crd span.fora{background:transparent;color:var(--muted);border:1px dashed var(--line)}
-.gfp-crd span.dim{opacity:.28}
-.gfp-crd span.sel{outline:2px solid var(--c);outline-offset:1px;animation:gfpCrD var(--crp,1s) ease-in-out infinite}
+.gfp-crd{display:flex;flex-direction:column;gap:2px;margin-top:6px;min-width:230px}
+.gfp-cdl{display:grid;grid-template-columns:26px 74px minmax(0,1fr);gap:6px;align-items:center;font-size:12px;border-radius:5px;padding:1px 4px 1px 0}
+.gfp-cdl .gfp-cdn{height:18px;border-radius:4px;background:var(--c,#cbd5d1);color:#fff;font-weight:700;font-size:11px;display:grid;place-items:center}
+.gfp-cdl .gfp-cdw{color:var(--muted);white-space:nowrap}
+.gfp-cdl .gfp-cdp{color:var(--muted);min-width:0}
+.gfp-cdl.tem .gfp-cdp{color:inherit}
+.gfp-cdl.tem{background:color-mix(in srgb,var(--c,#888) 10%,transparent)}
+.gfp-cdl.fora .gfp-cdn{background:transparent;color:var(--muted);border:1px dashed var(--line)}
+.gfp-cdl.esc{display:none}
+.gfp-cdl.sel{outline:2px solid var(--c);outline-offset:0;background:color-mix(in srgb,var(--c) 16%,transparent)}.gfp-cdl.sel .gfp-cdn{animation:gfpCrD var(--crp,1s) ease-in-out infinite}
 @keyframes gfpCrD{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
 .gfp-crwc{display:block;width:max-content;margin-top:3px;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px}
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr.gfp-crsel:not(.gfp-pisca),table.gfp-tab tr.gfp-crw td,.gfp-crl-r button.sel i{animation:none}table.gfp-tab tr.gfp-crw td{background:color-mix(in srgb,var(--cr) 18%,transparent)}}
