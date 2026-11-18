@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v288";
+  it.querySelector("code").textContent=msg;const ver="ras-v289";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10761,7 +10761,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v288";
+  const APP_VERSAO="ras-v289";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -18848,7 +18848,7 @@ window.gfFiscal={html,leXML,deChave,dv,porChave,guarda,estado:()=>{recarrega();r
 @media print{body.fx-imp>*:not(#fx-danfe){display:none!important}body.fx-imp #fx-danfe{position:static;background:none;padding:0}body.fx-imp .fx-d{box-shadow:none;max-height:none}body.fx-imp .fx-dh .btn,body.fx-imp .fx-np{display:none!important}}
 </style>
 <script>
-/* ===================== v288: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
+/* ===================== v288/v289: avisos da Biomassa no Beneficiamento piscam numa cor por etapa até a despesca —
    6, 5, 4, 3 e 2 meses; no último mês, semana a semana; na última semana, dia a dia. Quanto mais perto, mais forte e mais rápido ===================== */
 (function(){
 if(window.__gfPrevIframe)return;
@@ -18864,19 +18864,36 @@ function etapa(dias){if(!isFinite(dias))return -1;if(dias<=0)return N-1;let k=-1
 /* cronograma: semanas do último mês: 30–22 d = semana 1, 21–15 = semana 2, 14–8 = semana 3, 7–1 = dia a dia */
 const visivel=()=>{const v=document.getElementById("view-benef");return v&&!v.hidden};
 function lotes(){try{return (window.gfPrev&&gfPrev.todos())||[]}catch(e){return []}}
-function aplica(){const v=document.getElementById("view-benef");if(!v)return;const L=lotes(),M=new Map(L.map(l=>[String(l.id),l])),agora=Date.now();let pior=-1;
+const SK="gf-cr-sel";const selG=()=>{try{const v=sessionStorage.getItem(SK);return v===null||v===""?-1:+v}catch(e){return -1}},selS=k=>{try{if(k<0)sessionStorage.removeItem(SK);else sessionStorage.setItem(SK,String(k))}catch(e){}};
+/* janela de datas de cada cor: (dias da próxima etapa, dias desta etapa] a partir de hoje */
+function janela(k,agora){const hi=ETAPAS[k][0],lo=k<N-1?ETAPAS[k+1][0]:-Infinity;return k===N-1?[agora-30*DAY,agora+0.5*DAY]:[agora+lo*DAY,agora+hi*DAY]}
+const dBR=ms=>new Date(ms).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+function aplica(){const v=document.getElementById("view-benef");if(!v)return;const L=lotes(),M=new Map(L.map(l=>[String(l.id),l])),agora=Date.now();let pior=-1;const sel=selG();
+  const kDe=l=>etapa(Math.ceil((l.h-agora)/DAY)),cont=new Array(N).fill(0);L.forEach(l=>{const k=kDe(l);if(k>=0)cont[k]++});
+  let prim=null;
   v.querySelectorAll(".gfp-av .gfp-it").forEach(it=>{const b=it.querySelector("[data-gfp='usar'][data-id],[data-gfp='aceitar'][data-id]")||it.querySelector("[data-id]"),l=b&&M.get(String(b.dataset.id));if(!l)return;
-    const dias=(l.h-agora)/DAY,k=etapa(Math.ceil(dias));if(k<0){it.classList.remove("gfp-cr");return}pior=Math.max(pior,k);const [,rot,cor]=ETAPAS[k],f=k/(N-1);
+    const dias=(l.h-agora)/DAY,k=etapa(Math.ceil(dias));if(k<0){it.classList.remove("gfp-cr","gfp-crsel","gfp-crdim");return}pior=Math.max(pior,k);const [,rot,cor]=ETAPAS[k],f=k/(N-1);
     it.classList.add("gfp-cr");it.style.setProperty("--cr",cor);it.style.setProperty("--crp",(3.6-3.1*f).toFixed(2)+"s");it.style.setProperty("--crs",(2+7*f).toFixed(1)+"px");it.style.setProperty("--cra",(0.18+0.5*f).toFixed(2));
+    it.classList.toggle("gfp-crsel",sel>=0&&k===sel);it.classList.toggle("gfp-crdim",sel>=0&&k!==sel);if(sel===k&&!prim)prim=it;
     it.dataset.cr=k;let c=it.querySelector(".gfp-crc");if(!c){c=document.createElement("span");c.className="gfp-crc";const d=it.firstElementChild;(d||it).insertBefore(c,(d||it).firstChild)}
     const txt=`⏳ ${rot}${k>=8&&k<N-1?"":k===N-1?"":` · ${Math.ceil(dias)} dias`}`;if(c.textContent!==txt)c.textContent=txt;c.style.background=cor});
-  /* legenda: a régua de cores, com a etapa mais urgente marcada */
+  /* semanas do cronograma da fábrica que caem na cor escolhida */
+  let W=[];try{W=(gfPrev.semanas()||{}).W||[]}catch(e){}const jan=sel>=0?janela(sel,agora):null;let nW=0,primW=null;
+  const tabC=[...v.querySelectorAll("table.gfp-tab")].find(t=>/Despescas previstas/.test((t.tHead||t).textContent))||null,rows=tabC?[...tabC.tBodies[0].rows]:[];
+  rows.forEach((tr,i)=>{const w=W[i];let on=false;if(jan&&w){on=(w.a<jan[1]&&w.b>jan[0])||(w.L||[]).some(l=>kDe(l)===sel)}
+    tr.classList.toggle("gfp-crw",on);let c=tr.querySelector(".gfp-crwc");if(on){nW++;if(!primW)primW=tr;tr.style.setProperty("--cr",ETAPAS[sel][2]);const f=sel/(N-1);tr.style.setProperty("--crp",(2.4-1.9*f).toFixed(2)+"s");
+      if(!c){c=document.createElement("span");c.className="gfp-crwc";const td=tr.firstElementChild;td&&td.appendChild(c)}const t=`⏳ ${ETAPAS[sel][1]}`;if(c&&c.textContent!==t){c.textContent=t;c.style.background=ETAPAS[sel][2]}}else if(c)c.remove()});
+  /* legenda: a régua de cores clicável */
   const av=v.querySelector(".gfp-av");let lg=document.getElementById("gfp-crleg");
-  if(av){if(!lg){lg=document.createElement("div");lg.id="gfp-crleg"}if(lg.nextElementSibling!==av)av.parentNode.insertBefore(lg,av);
-    const h=`<div class="gfp-crl-t">🎨 Cor do aviso pelo tempo até a despesca${pior>=0?` · mais urgente: <b style="color:${ETAPAS[pior][2]}">${ETAPAS[pior][1]}</b>`:""}</div><div class="gfp-crl-r" role="list" aria-label="Meses, semanas do último mês (S1 a S3) e dias da última semana (7 a 1) até a despesca (D)">${ETAPAS.map((e,i)=>`<span role="listitem" class="${i===pior?"on":""}" style="--c:${e[2]};flex:${i<5?3:i<8?2:1}" title="${e[1]}"><i></i><small>${i<5?e[1].replace(" meses","m"):i<8?"S"+(i-4):i<N-1?String(15-i):"D"}</small></span>`).join("")}</div>`;
+  const ancora=av||tabC;
+  if(ancora){if(!lg){lg=document.createElement("div");lg.id="gfp-crleg"}const alvo=av||ancora.closest(".scroll")||ancora;if(lg.nextElementSibling!==alvo)alvo.parentNode.insertBefore(lg,alvo);
+    const info=sel>=0?(()=>{const [a,b]=jan;return `<div class="gfp-crl-i" style="--c:${ETAPAS[sel][2]}"><b>${ETAPAS[sel][1]}</b> · ${sel===N-1?"despesca hoje ou atrasada":(()=>{const x=dBR(Math.max(a+DAY,agora)),y=dBR(b);return x===y?`despesca em ${y}`:`despescas de ${x} a ${y}`})()} · <b>${cont[sel]}</b> projeto(s)/lote(s) nessa cor · <b>${nW}</b> semana(s) no cronograma ${cont[sel]?"":"· nenhum lote nessa cor agora"} <button type="button" class="chip" data-cr-sel="-1">✕ Limpar</button></div>`})():`<div class="gfp-crl-i gfp-crl-dica">Toque numa cor para fazer piscar os lotes e as semanas dessa etapa.</div>`;
+    const h=`<div class="gfp-crl-t">🎨 Cor do aviso pelo tempo até a despesca${pior>=0?` · mais urgente: <b style="color:${ETAPAS[pior][2]}">${ETAPAS[pior][1]}</b>`:""}</div><div class="gfp-crl-r" role="group" aria-label="Meses, semanas do último mês (S1 a S3) e dias da última semana (7 a 1) até a despesca (D)">${ETAPAS.map((e,i)=>`<button type="button" data-cr-sel="${i}" class="${i===pior?"on":""}${i===sel?" sel":""}${cont[i]?" tem":""}" aria-pressed="${i===sel}" style="--c:${e[2]};flex:${i<5?3:i<8?2:1}" title="${e[1]}: ${cont[i]} lote(s)"><i>${cont[i]?`<em>${cont[i]}</em>`:""}</i><small>${i<5?e[1].replace(" meses","m"):i<8?"S"+(i-4):i<N-1?String(15-i):"D"}</small></button>`).join("")}</div>${info}`;
     if(lg.__h!==h){lg.innerHTML=h;lg.__h=h}}else if(lg)lg.remove();
+  if(aplica.rola){aplica.rola=false;const t=prim||primW;if(t)try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
   /* a aba do Beneficiamento ganha a cor do aviso mais urgente */
   document.querySelectorAll('.tab[data-view="benef"],#gf-side [data-view="benef"]').forEach(t=>{if(pior>=0){t.style.setProperty("--cr",ETAPAS[pior][2]);t.classList.add("gfp-crtab")}else t.classList.remove("gfp-crtab")})}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#gfp-crleg [data-cr-sel]");if(!b)return;e.preventDefault();const k=+b.dataset.crSel,cur=selG();selS(k<0||k===cur?-1:k);aplica.rola=k>=0&&k!==cur;aplica()});
 window.gfCoresDespesca={etapa,ETAPAS,aplica};
 function inicia(){const v=document.getElementById("view-benef");if(!v){setTimeout(inicia,400);return}
   new MutationObserver(()=>{clearTimeout(inicia.t);inicia.t=setTimeout(aplica,150)}).observe(v,{childList:true,subtree:true});
@@ -18892,10 +18909,23 @@ inicia();
 #gfp-crleg{display:grid;gap:4px;margin:2px 0 6px}
 .gfp-crl-t{font-size:13px;color:var(--muted)}
 .gfp-crl-r{display:flex;gap:2px;align-items:flex-end}
-.gfp-crl-r span{display:grid;gap:2px;min-width:0;text-align:center}
-.gfp-crl-r i{display:block;height:10px;border-radius:3px;background:var(--c);opacity:.55}
-.gfp-crl-r span.on i{opacity:1;height:16px;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--c)}
-.gfp-crl-r small{font-size:9.5px;color:var(--muted);overflow:hidden;text-overflow:clip;white-space:nowrap}
+.gfp-crl-r button{display:grid;gap:2px;min-width:0;text-align:center;background:none;border:0;padding:2px 0;cursor:pointer;font:inherit;color:inherit}
+.gfp-crl-r button i{display:grid;place-items:center;height:12px;border-radius:3px;background:var(--c);opacity:.5;font-style:normal;transition:height .15s,opacity .15s}
+.gfp-crl-r button.tem i{opacity:.8}.gfp-crl-r button:hover i,.gfp-crl-r button:focus-visible i{opacity:1;height:18px}
+.gfp-crl-r button.on i{opacity:1;height:16px}
+.gfp-crl-r button.sel i{opacity:1;height:22px;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--c);animation:gfpCrB .8s ease-in-out infinite}
+.gfp-crl-r em{font-style:normal;font-size:10px;font-weight:700;color:#fff;line-height:1}
+.gfp-crl-r small{font-size:9.5px;color:var(--muted);overflow:hidden;white-space:nowrap}
+.gfp-crl-i{font-size:13px;border-left:4px solid var(--c,var(--line));padding:4px 8px;border-radius:4px;background:color-mix(in srgb,var(--c,#888) 8%,transparent);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.gfp-crl-dica{color:var(--muted);border-left-color:var(--line)}
+@keyframes gfpCrB{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.25)}}
+@keyframes gfpCrS{0%,100%{box-shadow:0 0 0 0 transparent;background:var(--bg)}50%{box-shadow:0 0 0 7px color-mix(in srgb,var(--cr) 70%,transparent);background:color-mix(in srgb,var(--cr) 22%,var(--bg))}}
+.gfp-it.gfp-cr.gfp-crsel:not(.gfp-pisca){animation:gfpCrS .7s ease-in-out infinite;outline:2px solid var(--cr);outline-offset:1px}
+.gfp-it.gfp-crdim{opacity:.4;filter:saturate(.5)}
+@keyframes gfpCrW{0%,100%{background:transparent}50%{background:color-mix(in srgb,var(--cr) 26%,transparent)}}
+table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinite}table.gfp-tab tr.gfp-crw td:first-child{box-shadow:inset 5px 0 0 var(--cr)}
+.gfp-crwc{display:block;width:max-content;margin-top:3px;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px}
+@media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr.gfp-crsel:not(.gfp-pisca),table.gfp-tab tr.gfp-crw td,.gfp-crl-r button.sel i{animation:none}table.gfp-tab tr.gfp-crw td{background:color-mix(in srgb,var(--cr) 18%,transparent)}}
 .gfp-crtab{box-shadow:inset 0 -3px 0 var(--cr)}
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr:not(.gfp-pisca){animation:none;box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) 35%,transparent)}}
 </style>
