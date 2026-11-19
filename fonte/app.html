@@ -12410,11 +12410,14 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   const algumVis=()=>IDS.some(id=>vis[id]&&existe(id));
   function marca(){st.textContent=IDS.filter(id=>!vis[id]).map(id=>"#"+id).join(",")+(IDS.some(id=>!vis[id])?"{display:none!important}":"");
     tab.textContent=algumVis()?"✕":"⋯";tab.title="Botões flutuantes: mostrar ou esconder todos, ou um por vez";tab.setAttribute("aria-expanded",String(aberto));tab.classList.toggle("on",algumVis())}
-  function painel(){const L=IDS.filter(existe);if(!L.length){pn.innerHTML=`<p>Nenhum botão flutuante disponível nesta tela.</p>`;return}const todos=L.every(id=>vis[id]);
-    pn.innerHTML=`<div class="gf-fl-h"><b>Botões flutuantes</b><button type="button" data-fl="x" aria-label="Fechar">✕</button></div>
-      <button type="button" class="gf-fl-all" data-fl="todos">${todos?"🙈 Esconder todos":"👁 Mostrar todos"}</button>
-      ${L.map(id=>`<label class="gf-fl-it"><input type="checkbox" data-fl-id="${id}"${vis[id]?" checked":""}><span>${NOME[id]}</span></label>`).join("")}
-      <small>Depois de mostrar, arraste o botão para onde quiser.</small>`}
+  /* v306: a lingueta mostra os 3 botões sempre; os que não valem para o projeto aberto aparecem apagados, dizendo quando voltam */
+  const POR={"gf-mapa-fab":"Aparece quando o projeto aberto tem levantamento com coordenadas (aba Levantamentos e projetos).","gf-res-btn":"Aparece quando o projeto aberto tem levantamento ou viveiros projetados em Levantamentos e projetos.","cp-fab":"Aparece para quem tem tarefas de campo da equipe."};
+  function painel(){const L=IDS.filter(existe),todos=L.length&&L.every(id=>vis[id]),proj=(()=>{try{return (window.projAtual&&projAtual()||{}).nome||""}catch(e){return ""}})();
+    const h=`<div class="gf-fl-h"><b>Botões flutuantes</b><button type="button" data-fl="x" aria-label="Fechar">✕</button></div>
+      ${L.length?`<button type="button" class="gf-fl-all" data-fl="todos">${todos?"🙈 Esconder todos":"👁 Mostrar todos"}</button>`:""}
+      ${IDS.map(id=>existe(id)?`<label class="gf-fl-it"><input type="checkbox" data-fl-id="${id}"${vis[id]?" checked":""}><span>${NOME[id]}</span></label>`:`<div class="gf-fl-it gf-fl-off"><input type="checkbox" disabled aria-disabled="true"><span>${NOME[id]}<small>${POR[id]}</small></span></div>`).join("")}
+      ${IDS.some(id=>id!=="cp-fab"&&!existe(id))?`<button type="button" class="gf-fl-all gf-fl-lev" data-fl="lev">📐 Abrir Levantamentos e projetos${proj?" de "+proj.replace(/[<>&"]/g,""):""}</button>`:""}
+      <small>Depois de mostrar, arraste o botão para onde quiser.</small>`;if(pn.__h!==h){pn.innerHTML=h;pn.__h=h}}
   const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
   function poe(el){const p=pos[el.id];if(!p)return;const r=el.getBoundingClientRect(),w=r.width||48,h=r.height||48;el.style.left=clamp(p.x*innerWidth,4,innerWidth-w-4)+"px";el.style.top=clamp(p.y*innerHeight,4,innerHeight-h-4)+"px";el.style.right="auto";el.style.bottom="auto"}
   function liga(el){if(el.dataset.gfDrag)return;el.dataset.gfDrag="1";el.style.touchAction="none";let ini=null;
@@ -12427,12 +12430,13 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   const grava=()=>{ls(KV,vis);marca();aplica();if(aberto)painel()};
   tab.onclick=()=>{aberto=!aberto;pn.hidden=!aberto;if(aberto)painel();marca()};
   pn.addEventListener("click",e=>{const b=e.target.closest("[data-fl]");if(!b)return;if(b.dataset.fl==="x"){aberto=false;pn.hidden=true;marca();return}
+    if(b.dataset.fl==="lev"){aberto=false;pn.hidden=true;marca();try{setView("topo")}catch(_){}return}
     const L=IDS.filter(existe),todos=L.every(id=>vis[id]);L.forEach(id=>vis[id]=!todos);grava()});
   pn.addEventListener("change",e=>{const c=e.target.closest("[data-fl-id]");if(!c)return;vis[c.dataset.flId]=c.checked;grava()});
   document.addEventListener("pointerdown",e=>{if(aberto&&!pn.contains(e.target)&&e.target!==tab){aberto=false;pn.hidden=true;marca()}});
   window.addEventListener("resize",aplica);new MutationObserver(aplica).observe(document.body,{childList:true});
   window.gfFlutuantes={mostrar:(v,id)=>{(id?[id]:IDS).forEach(k=>vis[k]=v!==false);grava()},zerar:()=>{pos={};ls(KP,pos);IDS.forEach(id=>{const el=document.getElementById(id);if(el){el.style.left=el.style.top=el.style.right=el.style.bottom=""}})}};
-  const temAlgum=()=>{tab.hidden=!IDS.some(existe);marca();if(aberto&&tab.hidden){aberto=false;pn.hidden=true}};setInterval(temAlgum,1500);
+  const temAlgum=()=>{tab.hidden=false;marca();if(aberto)painel()};setInterval(temAlgum,1500);
   marca();aplica();temAlgum()};if(document.body)run();else document.addEventListener("DOMContentLoaded",run)})();
 
 /* ---------- v195: Central de gestão no AquaGestão (fontes oficiais + atalhos para as abas do app) ---------- */
@@ -13257,6 +13261,7 @@ function gfCADInto(box,q,titulo,conjFn){
   else{if(body.__v3){body.__v3.destroy();body.__v3=null}body.innerHTML=Q?gfCADConj(Q,q):gfCAD(q);if(box.__ed&&box.__ed.on)gfEdHandles(box);else gfTxtOv(box)}
   if(!primeiro){box.classList.remove("mexeu");void box.offsetWidth;box.classList.add("mexeu")}}
 window.gfCAD=gfCAD;window.gfCADInto=gfCADInto;
+{const st=document.createElement("style");st.textContent=`#gf-fl-pn .gf-fl-off{opacity:.6;cursor:default;align-items:flex-start}#gf-fl-pn .gf-fl-off small{display:block;font-size:11.5px;line-height:1.3;margin-top:2px;opacity:.95}#gf-fl-pn .gf-fl-lev{margin-top:6px}`;document.head.appendChild(st)}
 {const st=document.createElement("style");st.textContent=`.gfc-qt{display:inline-flex;align-items:center;gap:2px}.gfc-qt .gfc-n{width:58px;font:inherit;font-weight:700;text-align:center;padding:4px 2px;border:1px solid rgba(148,163,184,.55);border-radius:8px;background:rgba(255,255,255,.1);color:inherit}.gfc-qt button:disabled{opacity:.4}`;document.head.appendChild(st)}
 
 /* ===================== mapa do projeto em tempo real (v164: painel flutuante + mapa embutido na Calculadora) ===================== */
