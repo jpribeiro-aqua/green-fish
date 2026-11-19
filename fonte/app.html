@@ -16200,7 +16200,7 @@ function lista(k,X){const O=X.O,D=X.D,odOf=id=>O.find(o=>o.lid===id&&!["cancelad
 function html(){const X=dados(),S=etapas(X),prox=S.find(s=>s.pend>0);const ab=S.find(s=>s.k===aberto);
   return `<div class="rota-top"><p>Siga a ordem dos números: cada quadro é uma etapa, com o que está nela <b>agora</b>. ${prox?`<span class="rota-prox">👉 Próximo passo: <b>${E(prox.ic+" "+prox.t)}</b> — ${E(prox.pt)}</span>`:`<span class="rota-ok">✓ Nada parado: tudo em dia do aviso à expedição.</span>`}</p></div>
    <ol class="rota">${S.map((s,i)=>`<li class="rota-e${s.pend>0?" tem":""}${prox&&prox.k===s.k?" agora":""}${aberto===s.k?" on":""}"><button type="button" data-rota="${s.k}" aria-expanded="${aberto===s.k}"><span class="rota-n">${i+1}</span><span class="rota-ic">${s.ic}</span><b>${E(s.t)}</b><span class="rota-v">${E(s.v)}</span><small>${E(s.sub)}</small>${s.pend>0?`<em>${E(s.pt)}</em>`:""}</button></li>`).join("")}</ol>
-   ${ab?`<div class="rota-det"><div class="rota-dh"><div><b>${ab.ic} ${E(ab.t)}</b><p>${E(ab.o)}</p></div><div class="gfp-bt">${(()=>{const S2=etapas(X),i=S2.findIndex(x=>x.k===ab.k);return `${i>0?`<button type="button" class="btn" data-rota="${S2[i-1].k}">‹ Etapa ${i}</button>`:""}${i<S2.length-1?`<button type="button" class="btn" data-rota="${S2[i+1].k}">Etapa ${i+2} ›</button>`:""}`})()}<button type="button" class="btn solid" data-rota-ir="${ab.k}">Abrir esta etapa ›</button></div></div>${T(()=>lista(ab.k,X),"")}</div>`:`<p class="hint" style="margin:6px 0 0">Toque numa etapa para ver o que se faz nela e ir direto para o quadro certo.</p>`}`}
+   ${ab?`<div class="rota-det"><div class="rota-dh"><div><b>${ab.ic} ${E(ab.t)}</b><p>${E(ab.o)}</p></div><div class="gfp-bt">${(()=>{const S2=etapas(X),i=S2.findIndex(x=>x.k===ab.k);return `${i>0?`<button type="button" class="btn" data-rota="${S2[i-1].k}">‹ Etapa ${i}</button>`:""}${i<S2.length-1?`<button type="button" class="btn" data-rota="${S2[i+1].k}">Etapa ${i+2} ›</button>`:""}`})()}<button type="button" class="btn solid" data-rota-ir="${ab.k}">Abrir esta etapa ›</button><button type="button" class="btn" data-rota-fecha="1" aria-label="Fechar o resumo">✕</button></div></div>${T(()=>lista(ab.k,X),"")}</div>`:`<p class="hint" style="margin:6px 0 0">Toque numa etapa: o app abre a função dela e leva você direto ao lugar certo. O resumo da etapa fica aqui, com ‹ › para andar entre elas.</p>`}`}
 function card(){const v=document.getElementById("view-benef");if(!v)return null;let c=document.getElementById("rota-card");
   if(!c){c=document.createElement("section");c.className="card wide";c.id="rota-card";c.setAttribute("data-gf-fixo","1");c.innerHTML=`<div class="card-head"><h2>🗺️ Do aviso ao mercado<span>A ordem dos processos, do aviso da Biomassa até a expedição do pedido, com o que está em cada etapa agora</span></h2></div><div class="body" id="rota-body"></div>`}
   if(!v.contains(c)){const a=[...v.children].find(x=>x.matches&&x.matches("section.card")&&x!==c);if(a)v.insertBefore(c,a);else v.appendChild(c)}return c}
@@ -16216,19 +16216,41 @@ const ORDEM=[[/Avisos da Biomassa/,"1-2"],[/Despesca e transporte/,"3-5"],[/Rast
 const pos=t=>{const i=ORDEM.findIndex(([rx])=>rx.test(t||""));return i<0?ORDEM.length:i};
 window.gfOrdemBenef=L=>L.map((x,i)=>({x,i})).sort((a,b)=>pos(a.x.t)-pos(b.x.t)||a.i-b.i).map(o=>o.x);
 function numera(){document.querySelectorAll("#view-benef .gf-row button").forEach(b=>{const t=b.innerText||"";const o=ORDEM.find(([rx])=>rx.test(t));const n=o?o[1]:"";if(n){if(b.dataset.etapa!==n)b.dataset.etapa=n}else if(b.dataset.etapa)delete b.dataset.etapa})}
-window.gfRota={dados,etapas:()=>etapas(dados()),ir};
+/* v299: tocar no quadro abre a função da etapa e leva até ela, com um brilho no lugar certo */
+function alvo(sel){let n=0;const t=setInterval(()=>{const el=typeof sel==="function"?T(sel,null):document.querySelector(sel);if(!el&&++n<18)return;clearInterval(t);if(!el)return;
+  try{el.scrollIntoView({block:"start",behavior:"smooth"})}catch(_){}el.classList.remove("rota-alvo");void el.offsetWidth;el.classList.add("rota-alvo");setTimeout(()=>el.classList.remove("rota-alvo"),2800)},130)}
+function vai(k){const X=dados(),O=X.O;
+  const od=st=>{const o=O.filter(o=>st.includes(o.status)).sort((a,b)=>String(a.data).localeCompare(String(b.data)))[0];if(!o)return false;
+    try{gfOrdens.abrir(o.id)}catch(_){return false}alvo(`#gfp-od [data-odbox="${o.id}"]`);return true};
+  const rt=aba=>{ir("mp");setTimeout(()=>{const b=document.querySelector(`#rt-card [data-rta="${aba}"]`);if(b&&b.getAttribute("aria-selected")!=="true")b.click();alvo("#rt-card .rt-pane")},280)};
+  const av=()=>document.querySelector("#view-benef .gfp-av")||document.getElementById("gfp-card");
+  if(k==="aviso"){ir("aviso");alvo(av);return}
+  if(k==="aceite"){if(od(["aceita"]))return;if(X.semOD.length)try{window.gfPisca&&gfPisca(X.semOD.map(l=>l.id))}catch(_){}ir("aviso");alvo(()=>document.querySelector("#view-benef .gfp-av .gfp-pisca")||av());return}
+  if(k==="captura"){if(!od(["captura","encerrada","aceita"])){ir("captura");alvo("#gfp-od")}return}
+  if(k==="transp"){if(!od(["transporte"])){ir("transp");alvo("#gfp-od")}return}
+  if(k==="chegada"){if(!od(["chegou","conferida","reprovada"])){ir("chegada");alvo("#gfp-od")}return}
+  if(k==="mp"){rt(X.mpSaldo.length?"lot":"rec");return}
+  if(k==="proc"){ir("proc");setTimeout(()=>{const b=document.querySelector("#bn-fx [data-fxtog]");if(b&&b.getAttribute("aria-expanded")!=="true")b.click();alvo("#bn-fx")},260);return}
+  if(k==="qual"){ir("qual");alvo("#bn-qual");return}
+  if(k==="emb"){rt("emb");return}
+  if(k==="exp"){rt("exp");return}
+  ir(k);const s=etapas(X).find(x=>x.k===k);if(s)alvo(()=>[...document.querySelectorAll("#view-benef section.card")].find(c=>c.id!=="rota-card"&&c.offsetParent&&s.ir.test(c.innerText.slice(0,200))))}
+window.gfRota={dados,etapas:()=>etapas(dados()),ir,vai};
 document.addEventListener("click",e=>{
   {const t=e.target.closest&&e.target.closest("#rota-card [data-rota-od],#rota-card [data-rota-rt],#rota-card [data-rota-lote]");if(t){
     if(t.dataset.rotaOd){try{gfOrdens.abrir(t.dataset.rotaOd)}catch(_){ir("captura")}return}
     if(t.dataset.rotaLote){try{window.gfPisca&&gfPisca([t.dataset.rotaLote])}catch(_){}ir("aviso");return}
     if(t.dataset.rotaRt){ir("mp");setTimeout(()=>{try{gfRastreio.abrir(t.dataset.rotaRt)}catch(_){}},250);return}}}
+  {const f=e.target.closest&&e.target.closest("#rota-card [data-rota-fecha]");if(f){aberto=null;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();return}}
+  {const q=e.target.closest&&e.target.closest("#rota-card .rota-e>button[data-rota]");if(q){aberto=q.dataset.rota;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();vai(q.dataset.rota);return}}
   const a=e.target.closest&&e.target.closest("#rota-card [data-rota]");if(a){const nav=a.closest(".rota-det");aberto=nav?a.dataset.rota:aberto===a.dataset.rota?null:a.dataset.rota;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();if(aberto)setTimeout(()=>{const d=document.querySelector("#rota-card .rota-det");if(d)try{d.scrollIntoView({block:"nearest",behavior:"smooth"})}catch(_){}},60);return}
-  const g=e.target.closest&&e.target.closest("#rota-card [data-rota-ir]");if(g)ir(g.dataset.rotaIr)});
+  const g=e.target.closest&&e.target.closest("#rota-card [data-rota-ir]");if(g)vai(g.dataset.rotaIr)});
 function inicia(){if(typeof setView!=="function"||!document.getElementById("view-benef")){setTimeout(inicia,300);return}
   const st=document.createElement("style");st.textContent=`#rota-card .body{display:grid;gap:8px}.rota-top p{margin:0;font-size:13.5px}.rota-prox{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:#fef3c7;color:#92400e}.rota-ok{display:inline-block;margin-top:4px;padding:3px 10px;border-radius:999px;background:#dcfce7;color:#166534}
 .rota{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px 22px;counter-reset:r}
 .rota-e{position:relative}.rota-e:not(:last-child)::after{content:"➜";position:absolute;right:-18px;top:50%;transform:translateY(-50%);color:#059669;font-size:15px;font-weight:700}
 .rota-e>button{width:100%;height:100%;display:grid;gap:2px;align-content:start;text-align:left;font:inherit;padding:10px 10px 10px 12px;border:1px solid var(--line,#e5e7eb);border-radius:14px;background:var(--surface,#fff);cursor:pointer;box-shadow:inset 4px 0 0 #cbd5e1;transition:transform .12s,box-shadow .12s}
+.rota-alvo{animation:rotaAlvo 2.6s ease-out;border-radius:14px}@keyframes rotaAlvo{0%,40%{box-shadow:0 0 0 4px #10b981,0 0 18px 4px rgba(16,185,129,.55)}100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}}
 .rota-e>button:hover{transform:translateY(-2px);box-shadow:inset 4px 0 0 #10b981,0 6px 14px rgba(0,0,0,.08)}
 .rota-e.tem>button{box-shadow:inset 4px 0 0 #f59e0b}.rota-e.agora>button{border-color:#f59e0b;background:#fffbeb;box-shadow:inset 4px 0 0 #f59e0b,0 0 0 3px rgba(245,158,11,.25)}.rota-e.on>button{border-color:#059669;box-shadow:inset 4px 0 0 #059669,0 0 0 3px rgba(16,185,129,.25)}
 .rota-n{position:absolute;top:-9px;left:-9px;width:22px;height:22px;border-radius:50%;background:#065f46;color:#fff;font:700 12px/22px var(--f-body,inherit);text-align:center}
