@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v311";
+  it.querySelector("code").textContent=msg;const ver="ras-v312";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10825,7 +10825,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v311";
+  const APP_VERSAO="ras-v312";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -20212,6 +20212,13 @@ function aplica(){const v=document.getElementById("view-benef");if(!v)return;con
     return `<div class="tl-fx"><div class="tl-fxh"><em><b>${esc(l.proj||"Projeto")}</b>${l.g?" · "+esc(l.g):""}</em><span>${nf(l.bF)} kg</span></div><dl>${L.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl></div>`};
   const lotesEntre=(t0,t1)=>{let r=[];for(let t=t0;t<=t1;t+=DAY)r=r.concat(porDia[sod(t+3*3600e3)]||[]);return r};
   const wd=t=>new Date(t).toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","");
+  /* v312: cada aviso de lote no Beneficiamento ganha a ficha completa (abre e fecha), não só no dia da despesca */
+  v.querySelectorAll(".gfp-av .gfp-it").forEach(it=>{const b=it.querySelector("[data-gfp='usar'][data-id],[data-gfp='aceitar'][data-id]")||it.querySelector("[data-id]"),l=b&&M.get(String(b.dataset.id));
+    let d=it.querySelector(":scope>details.gfp-fx");if(!l){if(d)d.remove();return}
+    if(!d){d=document.createElement("details");d.className="gfp-fx";d.innerHTML=`<summary>📋 Ficha completa da propriedade e da despesca</summary><div class="gfp-fxb"></div>`;it.appendChild(d);
+      d.addEventListener("toggle",()=>{try{const S=JSON.parse(sessionStorage.getItem("gf-fx-ab")||"{}");S[l.id]=d.open?1:0;sessionStorage.setItem("gf-fx-ab",JSON.stringify(S))}catch(e){}});
+      try{if(JSON.parse(sessionStorage.getItem("gf-fx-ab")||"{}")[l.id]||dd(l.h,agora)<=0)d.open=true}catch(e){}}
+    const x=ficha(l),c=d.querySelector(".gfp-fxb"),cor=(ETAPAS[etapa(dd(l.h,agora))]||[])[2]||"#0f766e";if(c.__h!==x){c.innerHTML=x;c.__h=x}d.style.setProperty("--c",cor)});
   const bloco=k=>{const [hi,rot,cor]=ETAPAS[k],lo=k<N-1?ETAPAS[k+1][0]:-1,t0=h0+(lo+1)*DAY,t1=h0+hi*DAY,ls=lotesEntre(t0,t1),kg=ls.reduce((a,l)=>a+(isFinite(l.bF)?l.bF:0),0);
     const cab=`<div class="tl-h"><span class="tl-c">${rot}</span><span>${k===N-1?`${wd(h0)} ${dBR(h0)} · hoje (e atrasadas)`:t0===t1?`${wd(t0)} ${dBR(t0)}`:`${dBR(t0)} a ${dBR(t1)}`}</span><span class="tl-n">${ls.length?`${ls.length} lote(s) · ${Math.round(kg).toLocaleString("pt-BR")} kg`:"sem despesca"}</span></div>`;
     let corpo="";
@@ -20232,7 +20239,7 @@ function aplica(){const v=document.getElementById("view-benef");if(!v)return;con
   if(aplica.rola){aplica.rola=false;const t=prim||primW;if(t)try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
   /* a aba do Beneficiamento ganha a cor do aviso mais urgente */
   document.querySelectorAll('.tab[data-view="benef"],#gf-side [data-view="benef"]').forEach(t=>{if(pior>=0){t.style.setProperty("--cr",ETAPAS[pior][2]);t.classList.add("gfp-crtab")}else t.classList.remove("gfp-crtab")})}
-document.addEventListener("click",e=>{const o=e.target.closest&&e.target.closest("#gfp-crtl [data-tl-od],#gfp-crtl [data-tl-aceita]");if(o){e.preventDefault();
+document.addEventListener("click",e=>{const o=e.target.closest&&e.target.closest("#gfp-crtl [data-tl-od],#gfp-crtl [data-tl-aceita],.gfp-fx [data-tl-od],.gfp-fx [data-tl-aceita]");if(o){e.preventDefault();
   if(o.dataset.tlOd){try{gfOrdens.abrir(o.dataset.tlOd)}catch(_){}}else{const v=document.getElementById("view-benef"),bt=v&&[...v.querySelectorAll("[data-gfp='aceitar'][data-id]")].find(x=>x.dataset.id===o.dataset.tlAceita);
     if(bt){bt.scrollIntoView({block:"center",behavior:"smooth"});bt.click()}else try{gfPrevToast("Abra o aviso desse lote no Beneficiamento para aceitar a despesca.")}catch(_){}}return}
   const b=e.target.closest&&e.target.closest("#gfp-crleg [data-cr-sel]");if(!b)return;e.preventDefault();const k=+b.dataset.crSel,cur=selG();selS(k<0||k===cur?-1:k);if(k>=0){try{sessionStorage.setItem("gf-tl-ab","1")}catch(_){}}aplica.rola=k>=0&&k!==cur;aplica()});
@@ -20294,6 +20301,8 @@ table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinit
 .tl-fxh{display:flex;gap:6px;align-items:baseline;font-size:13.5px}.tl-fxh em{font-style:normal;min-width:0}.tl-fxh span{margin-left:auto;font-weight:700;color:var(--c);white-space:nowrap}
 .tl-fx dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;margin:0;font-size:12.5px}.tl-fx dt{color:var(--muted);white-space:nowrap}.tl-fx dd{margin:0;overflow-wrap:anywhere}
 .tl-atr{color:#b91c1c}
+.gfp-fx{margin-top:6px;border-top:1px dashed var(--line);padding-top:4px}.gfp-fx>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--c,inherit)}
+.gfp-fxb{margin-top:5px}.gfp-fxb .tl-fx{max-width:640px}
 @media (max-width:560px){.tl-dia{grid-template-columns:1fr}.tl-n{margin-left:0}.tl-h{flex-wrap:wrap}.tl-fx dl{gap:3px 8px}.tl-fx dt{font-size:11.5px}}
 @media (prefers-reduced-motion:reduce){.tl-b.sel{animation:none}}
 .gfp-crhide{display:none!important}
