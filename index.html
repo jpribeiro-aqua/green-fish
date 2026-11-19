@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v293";
+  it.querySelector("code").textContent=msg;const ver="ras-v294";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10761,7 +10761,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v293";
+  const APP_VERSAO="ras-v294";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16166,7 +16166,7 @@ function fabHTML(){const F0=fab(),fb=O.fab||{};
 /* rota ao vivo da despesca: fábrica → propriedade → fábrica, com a posição do caminhão */
 function rotaOD(o){const F0=fab(),G=okG(o.geo)?o.geo:null;
   if(!G)return `<div class="gfp-rota"><b>🗺 Rota da despesca</b><p class="hint">A propriedade desta ordem não tem coordenadas.</p><div class="mk-form"><label class="jr-f">Latitude<input data-odf="gLat" value="${E((o.rasc||{}).gLat??"")}" inputmode="decimal"></label><label class="jr-f">Longitude<input data-odf="gLon" value="${E((o.rasc||{}).gLon??"")}" inputmode="decimal"></label><div class="gfp-bt"><button type="button" class="btn solid" data-gfp="od-geo-ok" data-id="${o.id}">Salvar</button><button type="button" class="btn" data-gfp="od-geo-gps" data-id="${o.id}">📍 GPS</button><button type="button" class="btn" data-gfp="od-geo-mapa" data-id="${o.id}">🗺 Mapa</button></div></div></div>`;
-  if(!F0)return `<div class="gfp-rota"><b>🗺 Rota da despesca</b> · propriedade em ${gTxt(G)}<p class="hint">Informe o local da fábrica (acima) para calcular a rota.</p></div>`;
+  if(!F0)return `<div class="gfp-rota"><b>🗺 Rota da despesca</b> · propriedade em ${gTxt(G)}<p class="hint">A fábrica ainda não está marcada: marque no mapa abaixo (ou no quadro 🚚 Despesca e transporte) e a rota é traçada na hora. Com o GPS do veículo ligado, o mapa mostra o veículo indo até a propriedade.</p>${window.gfRmHTML?gfRmHTML(o):""}</div>`;
   const e=estrada(F0,G),hc=1+o.kgPrev/2000,now=Date.now(),H=s=>((o.hist||[]).filter(x=>x.s===s).pop()||{}).em;let viva="",frac=null,pos=null;
   if(o.status==="aceita"){viva=`Saída sugerida da fábrica: ${hmD(e.h)} antes da hora marcada para a captura · ciclo completo ≈ ${hmD(e.h*2+hc)} (ida, captura de ${F(o.kgPrev)} kg e volta)`}
   else if(o.status==="captura"){const t=H("captura")||now,eta=t+(hc+e.h)*36e5;viva=`🎣 Captura desde ${hm(t)} · volta à fábrica prevista às <b>${hm(eta)}</b>${eta<now?" (atrasada)":""}`}
@@ -16178,7 +16178,7 @@ function rotaOD(o){const F0=fab(),G=okG(o.geo)?o.geo:null;
   return `<div class="gfp-rota"><b>🗺 Rota da despesca</b> · ${E(F0.nome)} → propriedade (${gTxt(G)})
    <div class="gfp-rk"><span><small>Estrada (estimada)</small><b>${F(e.km,1)} km</b><small>${F(e.lin,1)} km em linha reta × ${F(e.f,2)}</small></span><span><small>Tempo de viagem</small><b>${hmD(e.h)}</b><small>${F(e.v)} km/h na estrada</small></span><span><small>Ida e volta</small><b>${F(e.km*2,0)} km</b><small>R$ ${F(e.custo*2,2)} de frete</small></span></div>
    ${frac!==null?`<div class="meter"><div style="width:${(frac*100).toFixed(1)}%"></div></div>`:""}${viva?`<p class="gfp-viva">${viva}</p>`:""}
-   <div class="gfp-bt"><button type="button" class="btn" data-gfp="od-mapa" data-id="${o.id}">🗺 Ver no mapa</button><a class="btn" href="${gmaps(F0,G)}" target="_blank" rel="noopener">🧭 Navegar até a propriedade</a>${o.status==="transporte"||o.status==="captura"||o.status==="encerrada"?`<button type="button" class="btn" data-gfp="od-pos" data-id="${o.id}">📡 Atualizar posição do caminhão (GPS)</button>`:""}</div></div>`}
+   <div class="gfp-bt"><button type="button" class="btn" data-gfp="od-mapa" data-id="${o.id}">🗺 Ver no mapa</button><a class="btn" href="${gmaps(F0,G)}" target="_blank" rel="noopener">🧭 Navegar até a propriedade</a>${o.status==="transporte"||o.status==="captura"||o.status==="encerrada"?`<button type="button" class="btn" data-gfp="od-pos" data-id="${o.id}">📡 Atualizar posição do caminhão (GPS)</button>`:""}</div>${window.gfRmHTML?gfRmHTML(o):""}</div>`}
 /* rota até o mercado de destino: fábrica → clientes escolhidos → fábrica (vizinho mais próximo + 2-opt) */
 function tour(F0,D){let r=[],rest=D.slice(),cur=F0;while(rest.length){rest.sort((a,b)=>linhaKm(cur,a)-linhaKm(cur,b));cur=rest.shift();r.push(cur)}
   const len=t=>{let s=0,p=F0;for(const x of t){s+=linhaKm(p,x);p=x}return s+linhaKm(p,F0)};let melhor=true;while(melhor){melhor=false;for(let i=0;i<r.length-1;i++)for(let j=i+1;j<r.length;j++){const t=r.slice(0,i).concat(r.slice(i,j+1).reverse(),r.slice(j+1));if(len(t)+1e-9<len(r)){r=t;melhor=true}}}return r}
@@ -16318,7 +16318,7 @@ function clique(e){const a=e.target.closest&&e.target.closest("[data-gfp]");if(!
   else if(k==="x"){const t=document.getElementById("gfp-toast");if(t)t.hidden=true}
   else if(k==="aceitar"){ui.aceita=a.dataset.id;desenha(box,htmlBenef)}
   else if(k==="od-nao"){ui.aceita=null;desenha(box,htmlBenef)}
-  else if(k==="od-criar"){const l=todos().find(x=>x.id===a.dataset.id);if(!l)return;const o=criaOrdem(l);desenha(box,htmlBenef);poe();if(boxO)desenha(boxO,odHTML);toast(`Despesca aceita: ordem ${o.id} enviada ao setor de despesca e transporte (${F(o.kgPrev)} kg em ${dBRa(msD(o.data))}).`)}
+  else if(k==="od-criar"){const l=todos().find(x=>x.id===a.dataset.id);if(!l)return;const o=criaOrdem(l);desenha(box,htmlBenef);poe();if(boxO)desenha(boxO,odHTML);toast(`Despesca aceita: ordem ${o.id} enviada ao setor de despesca e transporte (${F(o.kgPrev)} kg em ${dBRa(msD(o.data))}). A rota já está no mapa da ordem.`);setTimeout(()=>{ui.ab=o.id;irOD()},600)}
   else if(k==="od-ver"){ui.ab=a.dataset.id;irOD()}
   else if(k==="geo-gps"){const lid=ui.aceita;gps(p=>{const f=ui.f[lid]||(ui.f[lid]={});f.lat=String(p.lat);f.lon=String(p.lon);f.gf=`GPS deste aparelho (±${p.prec} m)`;desenha(box,htmlBenef)})}
   else if(k==="geo-mapa"){const lid=ui.aceita,f=ui.f[lid]||{},F0=fab(),g={lat:P(f.lat),lon:P(f.lon)};abreMapa({t:"Marque a propriedade da despesca",pontos:[okG(g)?{...g,t:"📍 atual",c:"#2563eb"}:null,F0?{...F0,t:"🏭 "+F0.nome}:null].filter(Boolean),pick:p=>{const ff=ui.f[lid]||(ui.f[lid]={});ff.lat=String(p.lat);ff.lon=String(p.lon);ff.gf="marcado no mapa";desenha(box,htmlBenef)}})}
@@ -16338,7 +16338,7 @@ function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activ
 for(const id of ["view-benef","view-merc"]){const v=document.getElementById(id);if(v)new MutationObserver(()=>{if(!v.hidden)poe()}).observe(v,{childList:true,attributes:true,attributeFilter:["hidden"]})}
 /* ---- relógio: ao vivo a cada minuto ---- */
 function tick(){try{S.live=aoVivo()||[]}catch(e){S.live=[]}const A=todos();try{const R=semanas(A);oferta(A,R)}catch(e){}badge(A);avisos(A);poe();desenhaTudo()}
-window.gfPrevToast=t=>toast(t);window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()}};window.gfPrev={valor:(l,ms)=>valor(l,ms),cache:()=>S.cache,todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
+window.gfPrevToast=t=>toast(t);window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()},grava:()=>{gravaO();try{if(boxO)desenha(boxO,odHTML)}catch(e){}},fab:()=>fab(),estrada:(a,b)=>estrada(a,b),marcaFab:p=>{O.fab=Object.assign(O.fab||{},{lat:p.lat,lon:p.lon,fonte:"marcado no mapa da rota"});gravaO();try{if(boxO)desenha(boxO,odHTML);if(box)desenha(box,htmlBenef)}catch(e){}}};window.gfPrev={valor:(l,ms)=>valor(l,ms),cache:()=>S.cache,todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
 setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);
 setTimeout(()=>processa(false),7000);setInterval(()=>{if(!document.hidden)processa(false)},15*60000);
 window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
@@ -18981,4 +18981,102 @@ table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinit
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr.gfp-crsel:not(.gfp-pisca),table.gfp-tab tr.gfp-crw td,.gfp-crl-r button.sel i{animation:none}table.gfp-tab tr.gfp-crw td{background:color-mix(in srgb,var(--cr) 18%,transparent)}}
 .gfp-crtab{box-shadow:inset 0 -3px 0 var(--cr)}
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr:not(.gfp-pisca){animation:none;box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) 35%,transparent)}}
+</style>
+<script>
+/* ===================== v294: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
+   fábrica → propriedade (cadastro georreferenciado) → fábrica pela estrada (OSRM/OpenStreetMap) e o veículo pelo GPS
+   (celular no veículo rastreando ao vivo ou posição enviada). O mapa fica vivo entre as atualizações da ordem ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const ok=g=>g&&isFinite(+g.lat)&&isFinite(+g.lon)&&Math.abs(+g.lat)<=90&&Math.abs(+g.lon)<=180&&!(+g.lat===0&&+g.lon===0);
+const F=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const hm=ms=>new Date(ms).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const hmD=h=>{const m=Math.round(h*60);return m<60?`${m} min`:`${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")}`};
+const API=()=>window.gfOrdens||{};
+const ordem=id=>T(()=>API().lista().find(o=>o.id===id),null);
+const fab=()=>T(()=>API().fab(),null);
+const ATIVO=["aceita","captura","encerrada","transporte"];
+const posOk=o=>o&&o.pos&&ok(o.pos)&&Date.now()-o.pos.em<30*60e3;
+
+/* ---------- rota pela estrada (OSRM, OpenStreetMap) com cache; sem internet: linha reta ---------- */
+const RC={};let rcLS={};try{rcLS=JSON.parse(sessionStorage.getItem("gf-osrm")||"{}")}catch(e){}
+const kR=(a,b)=>[a.lat,a.lon,b.lat,b.lon].map(x=>(+x).toFixed(4)).join(",");
+function rota(a,b){const k=kR(a,b);if(RC[k])return RC[k];if(rcLS[k])return RC[k]=Promise.resolve(rcLS[k]);
+  const url=`https://router.project-osrm.org/route/v1/driving/${(+a.lon).toFixed(6)},${(+a.lat).toFixed(6)};${(+b.lon).toFixed(6)},${(+b.lat).toFixed(6)}?overview=full&geometries=geojson`;
+  return RC[k]=fetch(url).then(r=>r.ok?r.json():Promise.reject(new Error("rota "+r.status))).then(j=>{const r=j.routes&&j.routes[0];if(!r)throw new Error("sem rota");
+    const o={pts:r.geometry.coordinates.map(c=>[c[1],c[0]]),km:r.distance/1000,h:r.duration/3600,estrada:true};rcLS[k]=o;try{const ks=Object.keys(rcLS);if(ks.length>40)delete rcLS[ks[0]];sessionStorage.setItem("gf-osrm",JSON.stringify(rcLS))}catch(e){}return o})
+    .catch(()=>{delete RC[k];const e=T(()=>API().estrada(a,b),null);return {pts:[[+a.lat,+a.lon],[+b.lat,+b.lon]],km:e?e.km:NaN,h:e?e.h:NaN,estrada:false}})}
+
+/* ---------- pernas da rota conforme a situação da ordem ---------- */
+function plano(o){const Fb=fab(),G=ok(o.geo)?o.geo:null,V=posOk(o)?o.pos:null,st=o.status,L=[];
+  if(!G)return {Fb,G,V,L};
+  if(st==="transporte"){if(V){if(Fb)L.push({a:V,b:Fb,c:"#ea580c",t:"Veículo → fábrica (ao vivo)"});if(Fb)L.push({a:Fb,b:G,c:"#94a3b8",d:"6 6",t:"Ida (feita)"})}else if(Fb)L.push({a:G,b:Fb,c:"#ea580c",t:"Propriedade → fábrica"})}
+  else if(st==="chegou"||st==="conferida"){if(Fb){L.push({a:Fb,b:G,c:"#94a3b8",d:"6 6",t:"Ida"});L.push({a:G,b:Fb,c:"#94a3b8",d:"6 6",t:"Volta"})}}
+  else{const ori=V||Fb;if(ori)L.push({a:ori,b:G,c:"#2563eb",t:V?"Veículo → propriedade (ao vivo)":"Fábrica → propriedade (ida)"});if(Fb)L.push({a:G,b:Fb,c:"#0f766e",d:"8 6",t:"Propriedade → fábrica (volta com o pescado)"})}
+  return {Fb,G,V,L}}
+
+/* ---------- HTML colocado dentro do quadro 🗺 Rota da despesca da ordem ---------- */
+const TRK={};/* id da ordem → watchPosition deste aparelho */
+window.gfRmHTML=o=>{if(!o||!ok(o.geo))return "";const Fb=fab(),V=posOk(o)?o.pos:null,trk=TRK[o.id]!=null,at=ATIVO.includes(o.status);
+  return `<div class="rm-w"><div class="rm-map" data-rmap="${E(o.id)}" aria-label="Mapa da rota da despesca ${E(o.id)}"></div>
+   <div class="rm-leg"><span><i style="background:#0f766e"></i>🏭 ${Fb?E(Fb.nome):"fábrica não marcada"}</span><span><i style="background:#2563eb"></i>📍 ${E(o.proj||"Propriedade")}${o.g?" · "+E(o.g):""}</span><span><i style="background:#ea580c"></i>🚚 ${E(o.veic||"veículo")}${V?` · GPS ${hm(V.em)}${V.prec?` (±${V.prec} m)`:""}`:" · sem GPS"}</span></div>
+   <p class="hint rm-info" data-rminfo="${E(o.id)}">Traçando a rota…</p>
+   <div class="gfp-bt">${Fb?"":`<button type="button" class="btn solid" data-rmx="fab" data-id="${E(o.id)}">🏭 Marcar a fábrica no mapa</button>`}${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button></div>
+   ${at?`<details class="rm-trk"><summary>🛰 GPS do veículo por link (rastreador)</summary><p class="hint">Se o veículo tem rastreador que publica a posição num link (JSON com latitude e longitude), cole o link: o app lê a cada minuto enquanto a ordem estiver aberta.</p><div class="mk-form"><label class="jr-f">Link do rastreador<input data-rmlink="${E(o.id)}" value="${E(o.trkUrl||"")}" placeholder="https://…" inputmode="url"></label></div></details>`:""}</div>`};
+
+/* ---------- mapas vivos: o mesmo mapa é reaproveitado quando a ordem é redesenhada ---------- */
+const MAPS={};let LfP=null;
+const leaf=()=>window.L&&window.L.map?Promise.resolve(window.L):LfP||(LfP=new Promise((res,rej)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>res(window.L);s.onerror=()=>{LfP=null;rej(new Error("sem internet"))};document.head.appendChild(s)}));
+const pin=(Lf,p,cor,txt,r)=>Lf.circleMarker([+p.lat,+p.lon],{radius:r||8,color:"#fff",weight:2,fillColor:cor,fillOpacity:1}).bindTooltip(txt,{permanent:true,direction:"top",offset:[0,-6]});
+function chave(o){const P=plano(o);return JSON.stringify([o.status,P.Fb&&[P.Fb.lat,P.Fb.lon],P.G&&[P.G.lat,P.G.lon],P.V&&[P.V.lat,P.V.lon,P.V.em]])}
+async function hidrata(ph){const id=ph.dataset.rmap,o=ordem(id);if(!o)return;let M=MAPS[id];
+  if(M&&M.el){if(M.el.parentNode!==ph){ph.appendChild(M.el);setTimeout(()=>M.map.invalidateSize(),60)}}
+  else{let Lf;try{Lf=await leaf()}catch(e){ph.innerHTML=`<p class="hint">Sem internet para abrir o mapa.</p>`;return}
+    const el=document.createElement("div");el.className="rm-el";ph.appendChild(el);const map=Lf.map(el,{scrollWheelZoom:false});Lf.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
+    M=MAPS[id]={el,map,Lf,g:Lf.layerGroup().addTo(map),k:"",fit:false,pick:null};map.on("click",e=>{if(M.pick){const p={lat:+e.latlng.lat.toFixed(6),lon:+e.latlng.lng.toFixed(6)};const f=M.pick;M.pick=null;el.classList.remove("rm-pick");f(p)}});
+    map.setView([+o.geo.lat,+o.geo.lon],12);setTimeout(()=>map.invalidateSize(),80)}
+  const k=chave(o);if(M.k===k){const i=document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);if(i&&M.info!=null&&i.innerHTML!==M.info)i.innerHTML=M.info;return}M.k=k;await pinta(o,M)}
+async function pinta(o,M){const {Lf,map,g}=M,P=plano(o),info=()=>document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);g.clearLayers();
+  if(P.Fb)pin(Lf,P.Fb,"#0f766e","🏭 "+E(P.Fb.nome||"Fábrica")).addTo(g);pin(Lf,P.G,"#2563eb","📍 "+E(o.proj||"Propriedade")).addTo(g);
+  if(P.V)pin(Lf,P.V,"#ea580c",`🚚 ${E(o.veic||"veículo")} · ${hm(P.V.em)}`,9).addTo(g);
+  const R=await Promise.all(P.L.map(l=>rota(l.a,l.b)));if(M.k!==chave(o))return;
+  R.forEach((r,i)=>{const l=P.L[i];Lf.polyline(r.pts,{color:l.c,weight:r.estrada?5:4,opacity:.9,dashArray:l.d||(r.estrada?null:"4 8")}).addTo(g).bindTooltip(`${l.t}: ${F(r.km,1)} km · ${isFinite(r.h)?hmD(r.h):"—"}`,{sticky:true})});
+  const all=[P.Fb,P.G,P.V].filter(Boolean).map(p=>[+p.lat,+p.lon]).concat(...R.map(r=>r.pts));
+  if(!M.fit&&all.length>1){map.fitBounds(all,{padding:[30,30]});M.fit=true}
+  let h0;{if(!P.L.length)h0=P.Fb?"":"📍 Propriedade marcada pelo cadastro. Marque a fábrica (ou ligue o GPS do veículo) para o app traçar a rota.";
+    else h0=R.map((r,j)=>`<b style="color:${P.L[j].c}">■</b> ${E(P.L[j].t)}: <b>${F(r.km,1)} km</b> · ${isFinite(r.h)?hmD(r.h):"—"}${r.estrada?"":" <small>(linha reta estimada: sem acesso ao serviço de rotas)</small>"}`).join("<br>")+(R.some(r=>r.estrada)?`<br><small>Rota pelas estradas do OpenStreetMap (OSRM).</small>`:"")}M.info=h0;const i=info();if(i)i.innerHTML=h0}
+function varre(){document.querySelectorAll("[data-rmap]").forEach(ph=>{hidrata(ph)})}
+new MutationObserver(()=>{clearTimeout(varre.t);varre.t=setTimeout(varre,120)}).observe(document.body,{childList:true,subtree:true});
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.open&&d.querySelector&&d.querySelector("[data-rmap]"))setTimeout(()=>{d.querySelectorAll("[data-rmap]").forEach(ph=>{const M=MAPS[ph.dataset.rmap];if(M){M.map.invalidateSize();if(!M.fit){M.k="";hidrata(ph)}}else hidrata(ph)})},80)},true);
+setInterval(()=>{for(const id in MAPS){const M=MAPS[id];if(!M.el.isConnected)continue;const o=ordem(id);if(o&&chave(o)!==M.k){M.k=chave(o);pinta(o,M)}}},15000);
+
+/* ---------- GPS do veículo: este celular (ao vivo) ou link de rastreador ---------- */
+function grava(){T(()=>API().grava(),null)}
+function liga(id){if(!navigator.geolocation){alert("Este aparelho não oferece GPS ao navegador.");return}let ult=0;
+  TRK[id]=navigator.geolocation.watchPosition(p=>{const o=ordem(id);if(!o)return;const now=Date.now();if(now-ult<20000&&o.pos)return;ult=now;
+    o.pos={lat:+p.coords.latitude.toFixed(6),lon:+p.coords.longitude.toFixed(6),em:now,prec:Math.round(p.coords.accuracy||0),fonte:"celular no veículo"};grava();const M=MAPS[id];if(M&&M.el.isConnected){M.k=chave(o);pinta(o,M)}},
+    ()=>{alert("Não consegui o GPS: libere a localização para o app.");para(id)},{enableHighAccuracy:true,maximumAge:15000,timeout:30000});grava()}
+function para(id){if(TRK[id]!=null){try{navigator.geolocation.clearWatch(TRK[id])}catch(e){}delete TRK[id]}grava()}
+async function leLinks(){for(const o of T(()=>API().lista(),[])){if(!o.trkUrl||!ATIVO.includes(o.status))continue;try{const j=await (await fetch(o.trkUrl,{cache:"no-store"})).json();const x=Array.isArray(j)?j[j.length-1]:(j.position||j.posicao||j.data||j);
+    const lat=+(x.lat??x.latitude),lon=+(x.lon??x.lng??x.longitude);if(ok({lat,lon})){o.pos={lat,lon,em:Date.now(),fonte:"rastreador do veículo"};grava()}}catch(e){}}}
+setInterval(()=>{if(!document.hidden)leLinks()},60000);
+document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||t.dataset.rmlink==null)return;const o=ordem(t.dataset.rmlink);if(!o)return;const v=t.value.trim();if(v&&!/^https:\/\//i.test(v)){alert("Use um link https.");return}o.trkUrl=v;grava();leLinks()},true);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-rmx]");if(!b)return;e.preventDefault();e.stopPropagation();const id=b.dataset.id,a=b.dataset.rmx,M=MAPS[id];
+  if(a==="trk"){if(TRK[id]!=null)para(id);else liga(id);return}
+  if(a==="cen"){const o=ordem(id);if(M&&o){M.fit=false;M.k="";hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`))}return}
+  if(a==="fab"){if(!M){alert("O mapa ainda está abrindo.");return}M.el.classList.add("rm-pick");const i=document.querySelector(`[data-rminfo="${CSS.escape(id)}"]`);if(i)i.innerHTML="👆 <b>Toque no mapa onde fica a fábrica.</b>";
+    M.pick=p=>{T(()=>API().marcaFab(p),null);M.k="";M.fit=false;setTimeout(()=>hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`)),300)}}},true);
+})();
+</script>
+<style>
+.rm-w{display:grid;gap:6px;margin-top:8px}
+.rm-map{position:relative;height:320px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#e5ecea}
+.rm-el{position:absolute;inset:0}
+.rm-el.rm-pick{cursor:crosshair;outline:3px solid #0f766e}
+.rm-leg{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px}.rm-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.rm-info{margin:0;font-size:12.5px;line-height:1.5}
+.rm-trk summary{cursor:pointer;font-size:13px}
+@media (max-width:560px){.rm-map{height:260px}}
 </style>
