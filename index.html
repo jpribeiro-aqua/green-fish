@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v294";
+  it.querySelector("code").textContent=msg;const ver="ras-v295";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -5067,7 +5067,7 @@ function iconeCor(cor,txt,grande){return LF.divIcon({className:"mk-pin",html:`<s
 function montaMapa(){const box=document.getElementById("mk-lmap");if(!box||!LF)return;
   if(MAP&&MAP.getContainer()!==box){try{MAP.remove()}catch(e){}MAP=null}
   if(!MAP){const L0=localEmp()||(S.res&&isFinite(S.res.lat)?S.res:{lat:-2.52,lon:-45.08});MAP=LF.map(box,{zoomControl:true}).setView([L0.lat,L0.lon],10);box.querySelectorAll(":scope>.note").forEach(n=>n.remove());
-    LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(MAP);
+    if(window.gfMapaCamadas)gfMapaCamadas(LF,MAP);else LF.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(MAP);
     MAP.on("click",ev=>{if(modo==="add"){const c=addCliente({lat:ev.latlng.lat,lon:ev.latlng.lng,nome:"Novo cliente"});modo="nav";envDraw();setTimeout(()=>{const i=document.getElementById("mk-ed-nome");if(i){i.focus();i.select()}},50)}
       else if(modo==="local"&&!fixado()&&recFeito()){S.crm.local={lat:ev.latlng.lat,lon:ev.latlng.lng,nome:"Local escolhido no mapa"};modo="nav";grava();envDraw()}});
     LY={raio:LF.layerGroup().addTo(MAP),prosp:LF.layerGroup().addTo(MAP),rota:LF.layerGroup().addTo(MAP),funil:LF.layerGroup().addTo(MAP),emp:LF.layerGroup().addTo(MAP),cat:LF.layerGroup().addTo(MAP),sel:LF.layerGroup().addTo(MAP)};
@@ -10761,7 +10761,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v294";
+  const APP_VERSAO="ras-v295";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16143,9 +16143,9 @@ function gps(fn){if(!navigator.geolocation){toast("Este aparelho não oferece GP
 function loadLeaf(){if(window.L&&window.L.map)return Promise.resolve(window.L);return new Promise((ok,err)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>ok(window.L);s.onerror=()=>err(new Error("sem internet"));document.head.appendChild(s)})}
 function abreMapa(op){loadLeaf().then(Lf=>{let ov=document.getElementById("gfp-map");if(ov)ov.remove();ov=document.createElement("div");ov.id="gfp-map";
   ov.innerHTML=`<div class="gfp-map-b"><div class="gfp-map-h"><b>${E(op.t)}</b><span>${op.pick?"Toque no mapa para marcar o ponto":E(op.sub||"")}</span><button type="button" class="btn" data-x>✕ Fechar</button></div><div class="gfp-map-m"></div>${op.pick?`<div class="gfp-map-f"><span data-c>nenhum ponto marcado</span><button type="button" class="btn solid" data-ok disabled>Usar este ponto</button></div>`:""}</div>`;document.body.appendChild(ov);
-  const m=Lf.map(ov.querySelector(".gfp-map-m"));Lf.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(m);
+  const m=Lf.map(ov.querySelector(".gfp-map-m"));if(window.gfMapaCamadas)gfMapaCamadas(Lf,m);else Lf.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(m);
   const pts=(op.pontos||[]).filter(okG);pts.forEach(p=>Lf.circleMarker([p.lat,p.lon],{radius:p.r||8,color:"#fff",weight:2,fillColor:p.c||"#0f766e",fillOpacity:1}).addTo(m).bindTooltip(E(p.t),{permanent:true,direction:"top",offset:[0,-6]}));
-  (op.linhas||[]).forEach(li=>Lf.polyline(li.p.filter(okG).map(p=>[p.lat,p.lon]),{color:li.c||"#0f766e",weight:4,dashArray:li.d||null,opacity:.9}).addTo(m));
+  (op.linhas||[]).forEach(li=>{const q=li.p.filter(okG);for(let i=0;i<q.length-1;i++){const pl=Lf.polyline([[q[i].lat,q[i].lon],[q[i+1].lat,q[i+1].lon]],{color:li.c||"#0f766e",weight:4,dashArray:li.d||"4 8",opacity:.9}).addTo(m);if(window.gfRmRota)gfRmRota(q[i],q[i+1]).then(r=>{if(r&&r.estrada){pl.setLatLngs(r.pts);pl.setStyle({dashArray:li.d&&li.d!=="8 6"?li.d:null,weight:5});pl.bindTooltip(`${(+r.km).toFixed(1).replace(".",",")} km pela estrada`,{sticky:true})}}).catch(()=>{})}});
   if(pts.length>1)m.fitBounds(pts.map(p=>[p.lat,p.lon]),{padding:[50,50]});else if(pts.length)m.setView([pts[0].lat,pts[0].lon],13);else m.setView([-2.53,-44.3],8);
   let sel=null,mk=null;if(op.pick)m.on("click",e=>{sel={lat:+e.latlng.lat.toFixed(6),lon:+e.latlng.lng.toFixed(6)};if(mk)mk.remove();mk=Lf.marker([sel.lat,sel.lon]).addTo(m);ov.querySelector("[data-c]").textContent=gTxt(sel);ov.querySelector("[data-ok]").disabled=false});
   ov.addEventListener("click",e=>{if(e.target.closest("[data-x]")||e.target===ov)ov.remove();else if(e.target.closest("[data-ok]")&&sel){op.pick(sel);ov.remove()}});setTimeout(()=>m.invalidateSize(),150)}).catch(()=>toast("Sem internet para abrir o mapa: digite as coordenadas."))}
@@ -18983,7 +18983,7 @@ table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinit
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr:not(.gfp-pisca){animation:none;box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) 35%,transparent)}}
 </style>
 <script>
-/* ===================== v294: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
+/* ===================== v294/v295: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
    fábrica → propriedade (cadastro georreferenciado) → fábrica pela estrada (OSRM/OpenStreetMap) e o veículo pelo GPS
    (celular no veículo rastreando ao vivo ou posição enviada). O mapa fica vivo entre as atualizações da ordem ===================== */
 (function(){
@@ -19003,19 +19003,22 @@ const posOk=o=>o&&o.pos&&ok(o.pos)&&Date.now()-o.pos.em<30*60e3;
 /* ---------- rota pela estrada (OSRM, OpenStreetMap) com cache; sem internet: linha reta ---------- */
 const RC={};let rcLS={};try{rcLS=JSON.parse(sessionStorage.getItem("gf-osrm")||"{}")}catch(e){}
 const kR=(a,b)=>[a.lat,a.lon,b.lat,b.lon].map(x=>(+x).toFixed(4)).join(",");
+const SRV=["https://router.project-osrm.org/route/v1/driving/","https://routing.openstreetmap.de/routed-car/route/v1/driving/"];
 function rota(a,b){const k=kR(a,b);if(RC[k])return RC[k];if(rcLS[k])return RC[k]=Promise.resolve(rcLS[k]);
-  const url=`https://router.project-osrm.org/route/v1/driving/${(+a.lon).toFixed(6)},${(+a.lat).toFixed(6)};${(+b.lon).toFixed(6)},${(+b.lat).toFixed(6)}?overview=full&geometries=geojson`;
-  return RC[k]=fetch(url).then(r=>r.ok?r.json():Promise.reject(new Error("rota "+r.status))).then(j=>{const r=j.routes&&j.routes[0];if(!r)throw new Error("sem rota");
-    const o={pts:r.geometry.coordinates.map(c=>[c[1],c[0]]),km:r.distance/1000,h:r.duration/3600,estrada:true};rcLS[k]=o;try{const ks=Object.keys(rcLS);if(ks.length>40)delete rcLS[ks[0]];sessionStorage.setItem("gf-osrm",JSON.stringify(rcLS))}catch(e){}return o})
-    .catch(()=>{delete RC[k];const e=T(()=>API().estrada(a,b),null);return {pts:[[+a.lat,+a.lon],[+b.lat,+b.lon]],km:e?e.km:NaN,h:e?e.h:NaN,estrada:false}})}
+  const q=`${(+a.lon).toFixed(6)},${(+a.lat).toFixed(6)};${(+b.lon).toFixed(6)},${(+b.lat).toFixed(6)}?overview=full&geometries=geojson`;
+  const tenta=i=>i>=SRV.length?Promise.reject(new Error("sem rota")):fetch(SRV[i]+q).then(r=>r.ok?r.json():Promise.reject(new Error("rota "+r.status))).then(j=>{const r=j.routes&&j.routes[0];if(!r||!r.geometry)throw new Error("sem rota");return r}).catch(()=>tenta(i+1));
+  return RC[k]=tenta(0).then(r=>{const o={pts:r.geometry.coordinates.map(c=>[c[1],c[0]]),km:r.distance/1000,h:r.duration/3600,estrada:true};rcLS[k]=o;try{const ks=Object.keys(rcLS);if(ks.length>40)delete rcLS[ks[0]];sessionStorage.setItem("gf-osrm",JSON.stringify(rcLS))}catch(e){}return o})
+    .catch(()=>{setTimeout(()=>{delete RC[k]},60000);const e=T(()=>API().estrada(a,b),null);return {pts:[[+a.lat,+a.lon],[+b.lat,+b.lon]],km:e?e.km:NaN,h:e?e.h:NaN,estrada:false}})}
+window.gfRmRota=rota;
 
 /* ---------- pernas da rota conforme a situação da ordem ---------- */
+let AQUI=null,aquiPed=false;function aqui(){if(aquiPed||!navigator.geolocation)return;aquiPed=true;navigator.geolocation.getCurrentPosition(p=>{AQUI={lat:+p.coords.latitude.toFixed(6),lon:+p.coords.longitude.toFixed(6),em:Date.now()};for(const id in MAPS){const M=MAPS[id];M.k="";const ph=document.querySelector(`[data-rmap="${CSS.escape(id)}"]`);ph&&hidrata(ph)}},()=>{},{enableHighAccuracy:false,timeout:15000,maximumAge:300000})}
 function plano(o){const Fb=fab(),G=ok(o.geo)?o.geo:null,V=posOk(o)?o.pos:null,st=o.status,L=[];
   if(!G)return {Fb,G,V,L};
   if(st==="transporte"){if(V){if(Fb)L.push({a:V,b:Fb,c:"#ea580c",t:"Veículo → fábrica (ao vivo)"});if(Fb)L.push({a:Fb,b:G,c:"#94a3b8",d:"6 6",t:"Ida (feita)"})}else if(Fb)L.push({a:G,b:Fb,c:"#ea580c",t:"Propriedade → fábrica"})}
   else if(st==="chegou"||st==="conferida"){if(Fb){L.push({a:Fb,b:G,c:"#94a3b8",d:"6 6",t:"Ida"});L.push({a:G,b:Fb,c:"#94a3b8",d:"6 6",t:"Volta"})}}
-  else{const ori=V||Fb;if(ori)L.push({a:ori,b:G,c:"#2563eb",t:V?"Veículo → propriedade (ao vivo)":"Fábrica → propriedade (ida)"});if(Fb)L.push({a:G,b:Fb,c:"#0f766e",d:"8 6",t:"Propriedade → fábrica (volta com o pescado)"})}
-  return {Fb,G,V,L}}
+  else{const ori=V||Fb||AQUI;if(!ori)aqui();if(ori)L.push({a:ori,b:G,c:"#2563eb",t:V?"Veículo → propriedade (ao vivo)":Fb?"Fábrica → propriedade (ida)":"Você (este aparelho) → propriedade"});if(Fb)L.push({a:G,b:Fb,c:"#0f766e",d:"8 6",t:"Propriedade → fábrica (volta com o pescado)"})}
+  return {Fb,G,V,L,A:!V&&!Fb?AQUI:null}}
 
 /* ---------- HTML colocado dentro do quadro 🗺 Rota da despesca da ordem ---------- */
 const TRK={};/* id da ordem → watchPosition deste aparelho */
@@ -19023,27 +19026,46 @@ window.gfRmHTML=o=>{if(!o||!ok(o.geo))return "";const Fb=fab(),V=posOk(o)?o.pos:
   return `<div class="rm-w"><div class="rm-map" data-rmap="${E(o.id)}" aria-label="Mapa da rota da despesca ${E(o.id)}"></div>
    <div class="rm-leg"><span><i style="background:#0f766e"></i>🏭 ${Fb?E(Fb.nome):"fábrica não marcada"}</span><span><i style="background:#2563eb"></i>📍 ${E(o.proj||"Propriedade")}${o.g?" · "+E(o.g):""}</span><span><i style="background:#ea580c"></i>🚚 ${E(o.veic||"veículo")}${V?` · GPS ${hm(V.em)}${V.prec?` (±${V.prec} m)`:""}`:" · sem GPS"}</span></div>
    <p class="hint rm-info" data-rminfo="${E(o.id)}">Traçando a rota…</p>
-   <div class="gfp-bt">${Fb?"":`<button type="button" class="btn solid" data-rmx="fab" data-id="${E(o.id)}">🏭 Marcar a fábrica no mapa</button>`}${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button></div>
+   <div class="gfp-bt">${Fb?"":`<button type="button" class="btn solid" data-rmx="fab" data-id="${E(o.id)}">🏭 Marcar a fábrica no mapa</button>`}${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button><button type="button" class="btn" data-rmx="tela" data-id="${E(o.id)}">⛶ Tela cheia</button></div>
    ${at?`<details class="rm-trk"><summary>🛰 GPS do veículo por link (rastreador)</summary><p class="hint">Se o veículo tem rastreador que publica a posição num link (JSON com latitude e longitude), cole o link: o app lê a cada minuto enquanto a ordem estiver aberta.</p><div class="mk-form"><label class="jr-f">Link do rastreador<input data-rmlink="${E(o.id)}" value="${E(o.trkUrl||"")}" placeholder="https://…" inputmode="url"></label></div></details>`:""}</div>`};
 
 /* ---------- mapas vivos: o mesmo mapa é reaproveitado quando a ordem é redesenhada ---------- */
 const MAPS={};let LfP=null;
 const leaf=()=>window.L&&window.L.map?Promise.resolve(window.L):LfP||(LfP=new Promise((res,rej)=>{const c=document.createElement("link");c.rel="stylesheet";c.href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css";document.head.appendChild(c);const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js";s.onload=()=>res(window.L);s.onerror=()=>{LfP=null;rej(new Error("sem internet"))};document.head.appendChild(s)}));
+/* camadas do mapa: bases (ruas, satélite, relevo, claro, escuro) e sobreposições (estradas e nomes) — a escolha fica guardada */
+const BASES=[["🗺 Ruas (OpenStreetMap)","https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}],
+ ["🛰 Satélite (Esri)","https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imagens © Esri, Maxar, Earthstar Geographics"}],
+ ["🛣 Ruas detalhadas (Esri)","https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri"}],
+ ["⛰ Relevo (OpenTopoMap)","https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",{maxZoom:17,attribution:"© OpenTopoMap (CC-BY-SA), © OpenStreetMap"}],
+ ["🏔 Topográfico (Esri)","https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"© Esri"}],
+ ["⚪ Claro (Carto)","https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{maxZoom:20,subdomains:"abcd",attribution:"© OpenStreetMap © CARTO"}],
+ ["⚫ Escuro (Carto)","https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:20,subdomains:"abcd",attribution:"© OpenStreetMap © CARTO"}]];
+const SOBRE=[["🛣 Estradas (sobre o satélite)","https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}],
+ ["🏷 Nomes de cidades e limites","https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}]];
+const LSB="gf-mapa-base",LSO="gf-mapa-sobre";
+function camadas(Lf,map,extra){const b={},o={};BASES.forEach(([n,u,op])=>b[n]=Lf.tileLayer(u,op));SOBRE.forEach(([n,u,op])=>o[n]=Lf.tileLayer(u,Object.assign({opacity:.95},op)));
+  let nb="";try{nb=localStorage.getItem(LSB)||""}catch(e){}(b[nb]||b[BASES[0][0]]).addTo(map);
+  let so=[];try{so=JSON.parse(localStorage.getItem(LSO)||"[]")}catch(e){}so.forEach(n=>o[n]&&o[n].addTo(map));
+  Object.assign(o,extra||{});const c=Lf.control.layers(b,o,{collapsed:true,position:"topright"}).addTo(map);
+  map.on("baselayerchange",e=>{try{localStorage.setItem(LSB,e.name)}catch(_){}});
+  const sv=()=>{try{localStorage.setItem(LSO,JSON.stringify(SOBRE.map(x=>x[0]).filter(n=>map.hasLayer(o[n]))))}catch(_){}};map.on("overlayadd",sv);map.on("overlayremove",sv);
+  try{Lf.control.scale({imperial:false}).addTo(map)}catch(e){}return c}
+window.gfMapaCamadas=camadas;
 const pin=(Lf,p,cor,txt,r)=>Lf.circleMarker([+p.lat,+p.lon],{radius:r||8,color:"#fff",weight:2,fillColor:cor,fillOpacity:1}).bindTooltip(txt,{permanent:true,direction:"top",offset:[0,-6]});
 function chave(o){const P=plano(o);return JSON.stringify([o.status,P.Fb&&[P.Fb.lat,P.Fb.lon],P.G&&[P.G.lat,P.G.lon],P.V&&[P.V.lat,P.V.lon,P.V.em]])}
 async function hidrata(ph){const id=ph.dataset.rmap,o=ordem(id);if(!o)return;let M=MAPS[id];
   if(M&&M.el){if(M.el.parentNode!==ph){ph.appendChild(M.el);setTimeout(()=>M.map.invalidateSize(),60)}}
   else{let Lf;try{Lf=await leaf()}catch(e){ph.innerHTML=`<p class="hint">Sem internet para abrir o mapa.</p>`;return}
-    const el=document.createElement("div");el.className="rm-el";ph.appendChild(el);const map=Lf.map(el,{scrollWheelZoom:false});Lf.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"}).addTo(map);
-    M=MAPS[id]={el,map,Lf,g:Lf.layerGroup().addTo(map),k:"",fit:false,pick:null};map.on("click",e=>{if(M.pick){const p={lat:+e.latlng.lat.toFixed(6),lon:+e.latlng.lng.toFixed(6)};const f=M.pick;M.pick=null;el.classList.remove("rm-pick");f(p)}});
+    const el=document.createElement("div");el.className="rm-el";ph.appendChild(el);const map=Lf.map(el,{scrollWheelZoom:false});const gP=Lf.layerGroup().addTo(map),gR=Lf.layerGroup().addTo(map),gV=Lf.layerGroup().addTo(map);camadas(Lf,map,{"🧭 Rota":gR,"📍 Fábrica e propriedade":gP,"🚚 Veículo":gV});
+    M=MAPS[id]={el,map,Lf,gP,gR,gV,k:"",fit:false,pick:null};map.on("click",e=>{if(M.pick){const p={lat:+e.latlng.lat.toFixed(6),lon:+e.latlng.lng.toFixed(6)};const f=M.pick;M.pick=null;el.classList.remove("rm-pick");f(p)}});
     map.setView([+o.geo.lat,+o.geo.lon],12);setTimeout(()=>map.invalidateSize(),80)}
   const k=chave(o);if(M.k===k){const i=document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);if(i&&M.info!=null&&i.innerHTML!==M.info)i.innerHTML=M.info;return}M.k=k;await pinta(o,M)}
-async function pinta(o,M){const {Lf,map,g}=M,P=plano(o),info=()=>document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);g.clearLayers();
-  if(P.Fb)pin(Lf,P.Fb,"#0f766e","🏭 "+E(P.Fb.nome||"Fábrica")).addTo(g);pin(Lf,P.G,"#2563eb","📍 "+E(o.proj||"Propriedade")).addTo(g);
-  if(P.V)pin(Lf,P.V,"#ea580c",`🚚 ${E(o.veic||"veículo")} · ${hm(P.V.em)}`,9).addTo(g);
+async function pinta(o,M){const {Lf,map,gP,gR,gV}=M,P=plano(o),info=()=>document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);[gP,gR,gV].forEach(x=>x.clearLayers());
+  if(P.Fb)pin(Lf,P.Fb,"#0f766e","🏭 "+E(P.Fb.nome||"Fábrica")).addTo(gP);pin(Lf,P.G,"#2563eb","📍 "+E(o.proj||"Propriedade")).addTo(gP);if(P.A)pin(Lf,P.A,"#7c3aed","📱 você",7).addTo(gP);
+  if(P.V)pin(Lf,P.V,"#ea580c",`🚚 ${E(o.veic||"veículo")} · ${hm(P.V.em)}`,9).addTo(gV);
   const R=await Promise.all(P.L.map(l=>rota(l.a,l.b)));if(M.k!==chave(o))return;
-  R.forEach((r,i)=>{const l=P.L[i];Lf.polyline(r.pts,{color:l.c,weight:r.estrada?5:4,opacity:.9,dashArray:l.d||(r.estrada?null:"4 8")}).addTo(g).bindTooltip(`${l.t}: ${F(r.km,1)} km · ${isFinite(r.h)?hmD(r.h):"—"}`,{sticky:true})});
-  const all=[P.Fb,P.G,P.V].filter(Boolean).map(p=>[+p.lat,+p.lon]).concat(...R.map(r=>r.pts));
+  R.forEach((r,i)=>{const l=P.L[i];Lf.polyline(r.pts,{color:l.c,weight:r.estrada?5:4,opacity:.9,dashArray:l.d||(r.estrada?null:"4 8")}).addTo(gR).bindTooltip(`${l.t}: ${F(r.km,1)} km · ${isFinite(r.h)?hmD(r.h):"—"}`,{sticky:true})});
+  const all=[P.Fb,P.G,P.V,P.A].filter(Boolean).map(p=>[+p.lat,+p.lon]).concat(...R.map(r=>r.pts));
   if(!M.fit&&all.length>1){map.fitBounds(all,{padding:[30,30]});M.fit=true}
   let h0;{if(!P.L.length)h0=P.Fb?"":"📍 Propriedade marcada pelo cadastro. Marque a fábrica (ou ligue o GPS do veículo) para o app traçar a rota.";
     else h0=R.map((r,j)=>`<b style="color:${P.L[j].c}">■</b> ${E(P.L[j].t)}: <b>${F(r.km,1)} km</b> · ${isFinite(r.h)?hmD(r.h):"—"}${r.estrada?"":" <small>(linha reta estimada: sem acesso ao serviço de rotas)</small>"}`).join("<br>")+(R.some(r=>r.estrada)?`<br><small>Rota pelas estradas do OpenStreetMap (OSRM).</small>`:"")}M.info=h0;const i=info();if(i)i.innerHTML=h0}
@@ -19065,6 +19087,7 @@ setInterval(()=>{if(!document.hidden)leLinks()},60000);
 document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||t.dataset.rmlink==null)return;const o=ordem(t.dataset.rmlink);if(!o)return;const v=t.value.trim();if(v&&!/^https:\/\//i.test(v)){alert("Use um link https.");return}o.trkUrl=v;grava();leLinks()},true);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-rmx]");if(!b)return;e.preventDefault();e.stopPropagation();const id=b.dataset.id,a=b.dataset.rmx,M=MAPS[id];
   if(a==="trk"){if(TRK[id]!=null)para(id);else liga(id);return}
+  if(a==="tela"){const w=b.closest(".rm-w");if(w){const on=!w.classList.contains("rm-full");w.classList.toggle("rm-full",on);b.textContent=on?"✕ Sair da tela cheia":"⛶ Tela cheia";document.body.classList.toggle("rm-full-on",on);setTimeout(()=>M&&M.map.invalidateSize(),120)}return}
   if(a==="cen"){const o=ordem(id);if(M&&o){M.fit=false;M.k="";hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`))}return}
   if(a==="fab"){if(!M){alert("O mapa ainda está abrindo.");return}M.el.classList.add("rm-pick");const i=document.querySelector(`[data-rminfo="${CSS.escape(id)}"]`);if(i)i.innerHTML="👆 <b>Toque no mapa onde fica a fábrica.</b>";
     M.pick=p=>{T(()=>API().marcaFab(p),null);M.k="";M.fit=false;setTimeout(()=>hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`)),300)}}},true);
@@ -19075,6 +19098,9 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 .rm-map{position:relative;height:320px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#e5ecea}
 .rm-el{position:absolute;inset:0}
 .rm-el.rm-pick{cursor:crosshair;outline:3px solid #0f766e}
+.rm-w.rm-full{position:fixed;inset:0;z-index:10040;background:var(--surface,#fff);padding:10px;grid-template-rows:1fr auto auto auto;overflow:auto}.rm-w.rm-full .rm-map{height:auto;min-height:60vh}
+body.rm-full-on{overflow:hidden}
+.leaflet-control-layers-expanded{font-size:12.5px;line-height:1.5;max-height:60vh;overflow:auto}
 .rm-leg{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px}.rm-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
 .rm-info{margin:0;font-size:12.5px;line-height:1.5}
 .rm-trk summary{cursor:pointer;font-size:13px}
