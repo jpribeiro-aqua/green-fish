@@ -9937,7 +9937,9 @@ const D0={modo:"ras",tipo:"auto",sp:"tilapia",sis:"semi",dim:"area",areaDisp:"",
   zA:"",zB:"",dist:"",cEv:"1",ren:"",encD:"4",zFonte:"",zCheg:"",bacia:"10",limn:{},pr:{},vu:{},nF:"",aerOn:"auto",fin:""};
 const rd=()=>{try{return JSON.parse(localStorage.getItem(VK))||{}}catch(e){return {}}};
 let V=Object.assign({},D0,rd()),pidV=null;let vvSide="cad";try{vvSide=localStorage.getItem("gf-vv-side")||"cad"}catch(e){}
-const recarrega=()=>{let pid="";try{pid=(window.projAtual&&projAtual()||{}).id||""}catch(e){}if(pid!==pidV){pidV=pid;V=Object.assign({},JSON.parse(JSON.stringify(D0)),rd());["limn","pr","vu"].forEach(k=>{if(!V[k]||typeof V[k]!=="object")V[k]={}})}};
+const recarrega=()=>{let pid="";try{pid=(window.projAtual&&projAtual()||{}).id||""}catch(e){}if(pid!==pidV){pidV=pid;V=Object.assign({},JSON.parse(JSON.stringify(D0)),rd());["limn","pr","vu"].forEach(k=>{if(!V[k]||typeof V[k]!=="object")V[k]={}});T(medidoAuto)}};
+/* v305: ao abrir um projeto, o desenho técnico segue os dados medidos dele (viveiros do levantamento), a menos que você tenha escolhido outra forma de dimensionar */
+function medidoAuto(){if(V.dimUser||V.vazio)return false;const TP=T(()=>window.topoResumo&&topoResumo(),null);if(TP&&TP.n>0&&TP.viv&&TP.viv.length&&V.dim!=="topo"){V.dim="topo";if(V.modo!=="viv")V.modo="viv";V.dimAuto=1;grava();return true}return false}
 const grava=()=>{try{localStorage.setItem(VK,JSON.stringify(V))}catch(e){}};
 
 /* ---------- leitura das outras abas ---------- */
@@ -10199,7 +10201,7 @@ function build(){const v=view();if(!v)return;
    <section class="card"><div class="card-head"><h2>Parâmetros do projeto<span>Campos em branco usam o valor automático (mostrado em cinza), vindo das outras abas ou das referências técnicas</span></h2></div><div class="vv-body"><div id="vv-rapido">${rapidoHTML(o)}</div><div id="vv-imp"></div><div id="vv-levbar"></div><div class="vv-pcad"><div class="vv-g">${GRP.map(([t,ks])=>`<div class="vv-sub">${t}</div>${ks.map(k=>campo(k,o)).join("")}`).join("")}</div><div class="vv-side"><div class="vv-dbar"><button type="button" class="btn" data-vdb="limpar">🗑 Limpar o quadro</button><button type="button" class="btn" data-vdb="salvar">💾 Salvar e fechar</button><button type="button" class="btn" data-vdb="editar">✏️ Editar o desenho</button><button type="button" class="btn" data-vdb="salvos">📁 Arquivo de projetos</button><button type="button" class="btn" data-vdb="topo" title="Poligonal da estação total, memorial descritivo e planta do imóvel (padrão INCRA)">📐 Topografia</button></div><div class="vv-tabs" role="tablist"><button type="button" role="tab" data-vside="cad" aria-selected="${vvSide!=="mapa"}">📐 Desenho técnico</button><button type="button" role="tab" data-vside="mapa" aria-selected="${vvSide==="mapa"}">🗺 Mapa ao vivo</button></div><div id="vv-cad"${vvSide==="mapa"?" hidden":""}></div><div id="vv-mapa"${vvSide!=="mapa"?" hidden":""}></div></div></div></div></section>
    <section class="card"><div class="card-head"><h2>💧 Limnologia · qualidade da água da fonte<span>Comparada com as faixas da espécie escolhida</span></h2></div><div class="vv-body">${limnHTML(o)}</div></section>
    <div id="vv-out" style="display:grid;gap:16px;min-width:0"></div>`;
-  el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;delete V.vazio;grava();build()});
+  el.querySelectorAll("[data-vv]").forEach(i=>{const k=i.dataset.vv;if(i.tagName==="SELECT")i.addEventListener("change",()=>{V[k]=i.value;if(k==="dim"){V.dimUser=1;delete V.dimAuto}delete V.vazio;grava();build()});
     else i.addEventListener("input",()=>{V[k]=i.value;delete V.vazio;grava();clearTimeout(tm);tm=setTimeout(update,250)})});
   el.querySelectorAll("[data-vrel]").forEach(b=>b.addEventListener("click",()=>vvRelatorio({print:b.dataset.vrel==="p"})));
   if(window.gfImportarInto)T(()=>gfImportarInto(document.getElementById("vv-imp")));
@@ -10265,7 +10267,7 @@ function update(){if(!el||el.hidden)return;const o=calc();vvUltO=o;vvUltT=Date.n
     lb.innerHTML=o.medido?`<div class="vv-al ${o.difLev.length?"al":"ok"}" style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span style="flex:1 1 260px">🗺 ${o.difLev.length?`Medidas digitadas diferentes das do levantamento: <b>${E(o.difLev.join(", "))}</b>. Aplique para redesenhar os ${nf(o.n,0)} ${o.uni}(s) sobre o terreno e recalcular corte, aterro e água.`:`Medidas do viveiro <b>sugeridas pelo levantamento</b> (valores em cinza, marcados 🔗 Levantamentos). Para usar as suas, digite nos campos de “Estrutura” e “Engenharia do viveiro”${dig?" — os valores digitados já batem com o desenho":""}.`}</span><button type="button" class="btn${o.difLev.length?" solid":""}" data-vaplicar="1">🗺 Aplicar aos viveiros do levantamento</button>${dig?`<button type="button" class="btn" data-vlimpar="1">↩ Voltar às sugestões do levantamento</button>`:""}${vvLevMsg?`<small style="flex-basis:100%">${E(vvLevMsg)}</small>`:""}</div>`:"";
     const ap=lb.querySelector("[data-vaplicar]");if(ap)ap.onclick=()=>{const q={L:o.Lw,W:o.Ww,D:o.elev?o.Lw:NaN,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.cr,dec:o.decl};const r=T(()=>window.topoAplicar?topoAplicar(q):null,null);vvLevMsg=r?r.msg:"Abra a aba Levantamentos e projetos uma vez e tente de novo.";build()};
     const li=lb.querySelector("[data-vlimpar]");if(li)li.onclick=()=>{KS.forEach(k=>{V[k]=D0[k]??""});grava();vvLevMsg="Valores digitados apagados: o projeto voltou às medidas sugeridas pelo levantamento.";build()}}
-  {const q={nome:(o.TQ?(o.elev?"Tanque":"Raceway"):"Viveiro")+" tipo",tipo:o.elev?"elev":o.tipo,circ:!!o.elev,L:o.Lw,W:o.Ww,D:o.elev?o.D:o.Lw,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,n:o.n,rows:o.rows,aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6),dren:V.dren||"auto",rot:{N:90,S:270,L:0,O:180}[V.dren]??0,anot:Array.isArray(V.anot)&&V.anot.length?V.anot:null,eqMv:V.eqMv&&Object.keys(V.eqMv).length?V.eqMv:null},tit="Desenho técnico do "+(o.TQ?"tanque":"viveiro")+" · "+nf(o.n,0)+" unidade(s)";
+  {const q={nome:(o.TQ?(o.elev?"Tanque":"Raceway"):"Viveiro")+" tipo",tipo:o.elev?"elev":o.tipo,circ:!!o.elev,L:o.Lw,W:o.Ww,D:o.elev?o.D:o.Lw,h:o.hm,bl:o.bl,zi:o.ti,ze:o.te,c:o.TQ?2:o.cr,dec:o.decl,n:o.n,rows:o.rows,aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6),dren:V.dren||"auto",rot:{N:90,S:270,L:0,O:180}[V.dren]??0,anot:Array.isArray(V.anot)&&V.anot.length?V.anot:null,eqMv:V.eqMv&&Object.keys(V.eqMv).length?V.eqMv:null},tit="Desenho técnico do "+(o.TQ?"tanque":"viveiro")+" · "+nf(o.n,0)+" unidade(s)"+(o.medido?" · medidas do levantamento":"");
    if(V.vazio){const cb=document.getElementById("vv-cad"),mb=document.getElementById("vv-mapa");if(cb){T(()=>window.gfCADInto&&gfCADInto(cb,null));cb.hidden=vvSide==="mapa";cb.classList.remove("gf-cadbox");cb.innerHTML=`<div class="vv-vazio"><b>🧹 Quadro limpo</b><span>Nada aberto no desenho técnico. Para começar outro: preencha o <b>🧩 Projeto rápido</b>, digite as medidas nos campos, importe um arquivo ou abra um em <b>📂 Desenhos salvos</b>.</span></div>`}if(mb&&window.gfMapaInto)T(()=>gfMapaInto(mb,null))}
    else if(vvSide!=="mapa"){const cb=document.getElementById("vv-cad");if(cb&&window.gfCADInto)T(()=>gfCADInto(cb,q,tit,o.medido?(()=>window.topoCADConjunto&&topoCADConjunto()):(qq=>gfLayoutUnidades(qq))))}
    else{const mb=document.getElementById("vv-mapa");if(mb&&window.gfMapaInto)T(()=>gfMapaInto(mb,o.medido&&o.difLev&&o.difLev.length&&!o.elev?q:null))}}
@@ -10507,8 +10509,10 @@ window.vvEditor={
   parametros(){recarrega();return JSON.parse(JSON.stringify(V))},
   /* v303: duplicar o viveiro ou escolher quantos, mantendo as medidas do que está desenhado ou foi editado */
   qtd(n){recarrega();const o=vvUltO||T(calc,null);if(!o)return false;const s2=x=>String(Math.round(x*100)/100).replace(".",",");n=Math.max(1,Math.min(500,Math.round(+n||1)));
-    const p={dim:"qtd",nViv:String(n)};if(isFinite(o.aViv)&&o.aViv>0)p.aViv=s2(o.aViv);if(o.medido&&!o.elev&&isFinite(o.Lw)&&isFinite(o.Ww)&&o.Ww>0)p.rel=s2(Math.max(o.Lw,o.Ww)/Math.max(.1,Math.min(o.Lw,o.Ww)));this.set(p);T(build);return true},
-  quantos(){const o=vvUltO||T(calc,null);return o?{n:o.n,dim:o.dim,medido:!!o.medido,aViv:o.aViv}:null}};
+    const p={dim:"qtd",nViv:String(n),dimUser:1};if(isFinite(o.aViv)&&o.aViv>0)p.aViv=s2(o.aViv);if(o.medido&&!o.elev&&isFinite(o.Lw)&&isFinite(o.Ww)&&o.Ww>0)p.rel=s2(Math.max(o.Lw,o.Ww)/Math.max(.1,Math.min(o.Lw,o.Ww)));this.set(p);T(build);return true},
+  quantos(){const o=vvUltO||T(calc,null);return o?{n:o.n,dim:o.dim,medido:!!o.medido,aViv:o.aViv}:null},
+  refaz(){T(build)}};
+window.addEventListener("proj-status",()=>setTimeout(()=>{const a=T(()=>(projAtual()||{}).id,"");recarrega();if(T(medidoAuto,false)||a!==undefined){const v=view();if(v&&!v.hidden)T(build)}},350));
 /* arquivo de projetos = lista de desenhos salvos, que pode ser baixada (.gfproj) e aberta de novo em qualquer aparelho */
 function vvAbrirV(v,nome,guarda){const P=limpaV(v);if(!P)return false;V=Object.assign({},JSON.parse(JSON.stringify(D0)),P);delete V.vazio;V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}
   if(guarda){const it={id:"d"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome:nome||"Projeto",em:Date.now(),V:JSON.parse(JSON.stringify(V)),arquivo:"",resumo:"",svg:""};const L=lerDs();L.unshift(it);gravaDs(L);setAtual(it)}else setAtual(null);build();return true}
@@ -13224,7 +13228,7 @@ function gfCADInto(box,q,titulo,conjFn){
   if(!q){box.innerHTML="";box.hidden=true;return}box.hidden=false;box.classList.add("gf-cadbox");
   let hd=box.querySelector(":scope>.gfc-h"),body=box.querySelector(":scope>.gfc-b");
   if(!hd||!body){
-    box.innerHTML=`<div class="gfc-h"><b><span class="gfc-live"></span><span class="gfc-t"></span> <small>atualiza enquanto você digita</small></b><span class="gfc-seg" role="group" aria-label="Vista"><button type="button" data-c="2d">📐 2D</button><button type="button" data-c="3d">🧊 3D</button></span><span class="gfc-seg gfc-cj" role="group" aria-label="Quantos viveiros"><button type="button" data-c="um">1 viveiro</button><button type="button" data-c="conj">👥 Todos juntos</button></span>${box.id==="vv-cad"?`<span class="gfc-seg gfc-qt" role="group" aria-label="Quantidade de viveiros"><button type="button" data-c="menos" title="Tirar um viveiro" aria-label="Tirar um viveiro">➖</button><input type="number" class="gfc-n" min="1" max="500" step="1" inputmode="numeric" aria-label="Quantidade de viveiros" title="Quantidade de viveiros com as medidas deste desenho"><button type="button" data-c="mais" title="Duplicar: mais um viveiro com as mesmas medidas">➕ Duplicar</button></span>`:""}<button type="button" data-c="full">⤢ Ampliar</button><button type="button" data-c="dl">⬇ Exportar</button><button type="button" data-c="topo" title="Poligonal da estação total, memorial descritivo e planta do imóvel (padrão INCRA)">📐 Topografia</button>${box.id==="vv-cad"?`<button type="button" data-c="edit" aria-pressed="false" title="Desenhar canais, cotas, textos e estruturas; mover aeradores e coletas; mudar o tamanho arrastando">✏️ Editar</button><button type="button" data-c="salvar" title="Guarda este desenho e os parâmetros e deixa o quadro livre para outro">💾 Salvar e fechar</button><button type="button" data-c="limpar" title="Tira o desenho e os dados abertos do quadro">🗑 Limpar</button><button type="button" data-c="salvos">📁 Projetos</button>`:""}</div>${box.id==="vv-cad"?'<div class="gfc-ed" hidden></div>':""}<div class="gfc-b"></div>`;
+    box.innerHTML=`<div class="gfc-h"><b><span class="gfc-live"></span><span class="gfc-t"></span> <small>atualiza enquanto você digita</small></b><span class="gfc-seg" role="group" aria-label="Vista"><button type="button" data-c="2d">📐 2D</button><button type="button" data-c="3d">🧊 3D</button></span><span class="gfc-seg gfc-cj" role="group" aria-label="Quantos viveiros"><button type="button" data-c="um">1 viveiro</button><button type="button" data-c="conj">👥 Todos juntos</button></span>${box.id==="vv-cad"?`<span class="gfc-seg gfc-qt" role="group" aria-label="Quantidade de viveiros"><button type="button" data-c="menos" title="Tirar um viveiro" aria-label="Tirar um viveiro">➖</button><input type="number" class="gfc-n" min="1" max="500" step="1" inputmode="numeric" aria-label="Quantidade de viveiros" title="Quantidade de viveiros com as medidas deste desenho"><button type="button" data-c="mais" title="Duplicar: mais um viveiro com as mesmas medidas">➕ Duplicar</button></span>`:""}<button type="button" data-c="full">⤢ Ampliar</button><button type="button" data-c="dl">⬇ Exportar</button><button type="button" data-c="topo" title="Poligonal da estação total, memorial descritivo e planta do imóvel (padrão INCRA)">📐 Topografia</button>${box.id==="vv-cad"?`<button type="button" data-c="fig" title="Colar um print, soltar uma imagem ou tirar foto de um desenho e projetar a partir dele">🖼 Figura</button><button type="button" data-c="edit" aria-pressed="false" title="Desenhar canais, cotas, textos e estruturas; mover aeradores e coletas; mudar o tamanho arrastando">✏️ Editar</button><button type="button" data-c="salvar" title="Guarda este desenho e os parâmetros e deixa o quadro livre para outro">💾 Salvar e fechar</button><button type="button" data-c="limpar" title="Tira o desenho e os dados abertos do quadro">🗑 Limpar</button><button type="button" data-c="salvos">📁 Projetos</button>`:""}</div>${box.id==="vv-cad"?'<div class="gfc-ed" hidden></div>':""}<div class="gfc-b"></div>`;
     hd=box.querySelector(".gfc-h");body=box.querySelector(".gfc-b");
     const troca=()=>{ult.delete(box);gfCADInto(box,box.__q,box.__tit)};
     hd.querySelector('[data-c="2d"]').onclick=()=>{box.__modo="2d";lsS3("gf-cad-modo","2d");troca()};hd.querySelector('[data-c="3d"]').onclick=()=>{box.__modo="3d";lsS3("gf-cad-modo","3d");troca()};
@@ -13237,6 +13241,7 @@ function gfCADInto(box,q,titulo,conjFn){
     {const bs=hd.querySelector('[data-c="salvar"]'),bl=hd.querySelector('[data-c="salvos"]');if(bs)bs.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("salvar",box.__Q?gfCADConj(box.__Q,box.__q):gfCAD(box.__q),box.__tit);if(bl)bl.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("salvos");const bx=hd.querySelector('[data-c="limpar"]');if(bx)bx.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("limpar",box.__Q?gfCADConj(box.__Q,box.__q):gfCAD(box.__q),box.__tit)}
     {const tp=hd.querySelector('[data-c="topo"]');if(tp)tp.onclick=()=>{if(window.gfTopoAbrir)gfTopoAbrir()}}hd.querySelector('[data-c="dl"]').onclick=()=>gfExportUI(box);
     {const be=hd.querySelector('[data-c="edit"]');if(be)be.onclick=()=>gfEdOnOff(box,!(box.__ed&&box.__ed.on))}
+    {const bf=hd.querySelector('[data-c="fig"]');if(bf)bf.onclick=()=>{if(window.gfFigura)gfFigura.abrir()}}
     {const qt=hd.querySelector(".gfc-qt");if(qt){const vai=n=>{const E2=window.vvEditor;if(!E2||!E2.qtd)return;const x=E2.quantos&&E2.quantos();
         if(x&&x.medido&&x.dim==="topo"&&!confirm("Os viveiros deste desenho vêm do levantamento do terreno. Ao mudar a quantidade, o desenho passa a ser um projeto-tipo com as medidas médias desses viveiros (o levantamento continua guardado). Continuar?"))return;
         if(n>1&&!box.__conj){box.__conj=true;lsS3("gf-cad-conj","1")}if(box.__ed&&box.__ed.on)gfEdOnOff(box,false);E2.qtd(n)};
@@ -15037,6 +15042,194 @@ function inicia(){if(typeof setView!=="function"||!window.abaPermitida){setTimeo
   embrulhaPerm();aplica(true);vigiaMenu();let papel="";
   setInterval(()=>{const p=!!sb()+"|"+dono()+"|"+uid();if(p!==papel){papel=p;carregaMeu();edCard()}aplica(false)},2000);setInterval(carregaMeu,300000)}
 inicia();
+})();
+</script>
+<script>
+/* ===================== v305: 📐 Desenho técnico dos tanques da Calculadora (RAS) — cada grupo de tanques vira tanques circulares
+   com o volume, a quantidade e a profundidade do projeto aberto; atualiza ao abrir outro projeto ou ao mudar os grupos ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const num=v=>{if(typeof v==="number")return v;let s=String(v??"").trim().replace(/\s/g,"");if(!s)return NaN;if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if(/^\d{1,3}(\.\d{3})+$/.test(s))s=s.replace(/\./g,"");return parseFloat(s)};
+const F=(v,d=1)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d}):"—";
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let sel=0;
+function grupos(){let L=T(()=>typeof tanks!=="undefined"?tanks:null,null);if(!Array.isArray(L))L=T(()=>JSON.parse(localStorage.getItem("ras-multitanques-v1")).tanks,[])||[];
+  const prof=T(()=>num(JSON.parse(localStorage.getItem("ras-multitanques-v1-local")).prof),NaN),h=prof>0?prof:1.2;
+  return L.map((t,i)=>{const q=Math.round(num(t.q)),v=num(t.v);if(!(q>0&&v>0))return null;const D=Math.sqrt(4*v/(Math.PI*h));
+    return {i,q,v,h,D,nome:String(t.name||"").trim()||`Grupo ${i+1}`}}).filter(Boolean)}
+const qDe=(g,n)=>({nome:`${g.nome} · ${F(g.v)} m³`,tipo:"elev",circ:true,L:+g.D.toFixed(2),W:+g.D.toFixed(2),D:+g.D.toFixed(2),h:g.h,bl:.2,zi:0,ze:0,c:.15,dec:0,n:n||g.q,rows:1,aer:0,nCol:1,dCol:NaN,lCmp:.3,dren:"auto",rot:0});
+function conjunto(G){const U=[];let y=0,tot=0;G.forEach((g,r)=>{const q=qDe(g),geo=T(()=>gfGeoU(q),{Ao:g.D/2+.15}),p=2*geo.Ao+1.2,per=Math.min(g.q,12),lin=Math.ceil(Math.min(g.q,60)/per);
+    for(let k=0;k<Math.min(g.q,60);k++){const c=k%per,l=Math.floor(k/per);U.push(Object.assign({},q,{nome:`T${tot+k+1}`,cx:(c-(per-1)/2)*p,cy:y+l*p,rotR:0}))}tot+=g.q;y+=lin*p+2});
+  const my=U.length?(Math.min(...U.map(u=>u.cy))+Math.max(...U.map(u=>u.cy)))/2:0;U.forEach(u=>u.cy-=my);return {unidades:U,total:tot,rot:0,nome:`Conjunto de ${tot} tanque(s) em ${G.length} grupo(s)`}}
+function card(){const v=document.getElementById("view-calc"),form=document.getElementById("form");if(!v||!form)return null;let c=document.getElementById("ras-cad-card");
+  if(!c){c=document.createElement("section");c.className="card";c.id="ras-cad-card";c.innerHTML=`<div class="card-head"><h2>📐 Desenho técnico dos tanques<span>Tanques circulares de cada grupo da calculadora: volume e quantidade dos grupos, profundidade da aba Local</span></h2></div><div class="rc-b"><div class="rc-ctl"></div><div id="ras-cad"></div></div>`;
+    c.addEventListener("change",e=>{if(e.target.dataset.rcg!=null){sel=+e.target.value;desenha(true)}})}
+  if(c.parentNode!==form)form.appendChild(c);return c}
+let ultK="";
+function desenha(forca){const form=document.getElementById("form"),v=document.getElementById("view-calc");if(!v||v.hidden||!form||form.hidden){const c=document.getElementById("ras-cad-card");if(c)c.hidden=true;return}
+  const c=card();if(!c)return;const G=grupos(),pid=T(()=>(projAtual()||{}).id,"");const k=JSON.stringify([G,pid]);if(!forca&&k===ultK&&!c.hidden)return;ultK=k;c.hidden=false;
+  const box=c.querySelector("#ras-cad"),ctl=c.querySelector(".rc-ctl");if(!G.length){ctl.innerHTML=`<p class="hint">Cadastre os grupos de tanques (quantidade e volume) acima para ver o desenho.</p>`;T(()=>gfCADInto(box,null));return}
+  if(sel>=G.length)sel=0;const g=G[sel],tot=G.reduce((a,x)=>a+x.q,0);
+  ctl.innerHTML=`<label class="jr-f">Grupo mostrado em "1 tanque"<select data-rcg="1">${G.map((x,i)=>`<option value="${i}"${i===sel?" selected":""}>${E(x.nome)} · ${x.q} × ${F(x.v)} m³</option>`).join("")}</select></label>
+   <p class="hint" style="margin:0">${G.map(x=>`<b>${E(x.nome)}</b>: ${x.q} tanque(s) de ${F(x.v)} m³ → Ø ${F(x.D,2)} m com ${F(x.h,2)} m de água`).join(" · ")} · total ${tot} tanque(s), ${F(G.reduce((a,x)=>a+x.q*x.v,0),0)} m³.</p>`;
+  T(()=>gfCADInto(box,Object.assign(qDe(g,tot),{nTot:tot}),`Desenho técnico · ${g.nome} (${g.q} × ${F(g.v)} m³)`,()=>conjunto(G)))}
+window.gfRasCad={desenha:()=>desenha(true),grupos};
+setInterval(()=>T(()=>desenha(false)),1200);
+window.addEventListener("proj-status",()=>setTimeout(()=>T(()=>desenha(true)),400));
+const st=document.createElement("style");st.textContent=`#ras-cad-card .rc-b{display:grid;gap:8px;padding:10px 14px 14px}#ras-cad-card .rc-ctl{display:grid;gap:6px}#ras-cad-card select{max-width:100%}`;document.head.appendChild(st);
+})();
+</script>
+<script>
+/* ===================== v304: 🖼 Projetar a partir de uma figura — cole um print, solte uma imagem ou tire uma foto de um desenho;
+   o app lê os textos e as cotas (OCR), deixa medir na própria figura (escala, 3 cantos de um viveiro, contar viveiros)
+   e projeta tudo no desenho técnico, pronto para editar ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const TESS="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const F=(v,d=2)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:d}):"";
+const numBR=(s,milhar)=>{s=String(s??"").trim().replace(/\s/g,"");if(!s)return NaN;if(s.includes(","))return parseFloat(s.replace(/\./g,"").replace(",","."));if(milhar&&/^\d{1,3}(\.\d{3})+$/.test(s))return parseFloat(s.replace(/\./g,""));return parseFloat(s)};
+const s2=x=>String(Math.round(x*100)/100).replace(".",",");
+const CAMPOS=[["forma","Forma","sel"],["L","Comprimento (m)"],["W","Largura (m)"],["D","Diâmetro (m)"],["area","Área de cada um (m²)"],["n","Quantidade"],["rasa","Profundidade (m)"],["bl","Borda livre (m)"],["ti","Talude interno (H:1)"],["te","Talude externo (H:1)"],["crista","Crista do dique (m)"],["decl","Declividade do fundo (%)"]];
+let FG=null;
+
+/* ---------- leitor de texto (o mesmo motor do rótulo das sacas) ---------- */
+let tP=null,wk=null,wkP=null,prog=()=>{};
+function tess(){if(window.Tesseract)return Promise.resolve(window.Tesseract);if(tP)return tP;tP=new Promise((ok,no)=>{const s=document.createElement("script");s.src=window.GF_TESS_SRC||TESS;s.onload=()=>ok(window.Tesseract);s.onerror=()=>{tP=null;no(new Error("sem internet para baixar o leitor de texto"))};document.head.appendChild(s)});return tP}
+async function leitor(){if(wk)return wk;if(!wkP)wkP=(async()=>{const Ts=await tess();wk=await Ts.createWorker("por",1,Object.assign({logger:m=>{if(m.status==="recognizing text")prog(`🔤 Lendo a figura… ${Math.round((m.progress||0)*100)}%`);else if(/load|initializ/i.test(m.status||""))prog(`⬇️ Preparando o leitor de texto… ${Math.round((m.progress||0)*100)}%`)}},window.GF_TESS_OPTS||{}));return wk})();try{return await wkP}catch(e){wkP=null;throw e}}
+
+/* ---------- o que o texto diz: cotas, áreas, taludes e quantidades ---------- */
+function achar(t){const A={},put=(k,v,s,c)=>{if(!isFinite(v)||v<=0)return;if(!A[k]||c>A[k].c)A[k]={v,s:String(s).trim().replace(/\s+/g," ").slice(0,70),c}};
+  const N="(\\d{1,4}(?:[.,]\\d{1,3})?)";const L=String(t||"").replace(/\r/g,"").replace(/[–—]/g,"-").replace(/[‚]/g,",").split(/\n+/);
+  for(const ln of L){const l=ln.toLowerCase();let m;
+    if(m=l.match(new RegExp("(?:comprimento|compr\\.?|\\bl\\s*[=:])\\D{0,12}"+N)))put("L",numBR(m[1]),ln,3);
+    if(m=l.match(new RegExp("(?:largura|larg\\.?|\\bw\\s*[=:])\\D{0,12}"+N)))put("W",numBR(m[1]),ln,3);
+    if(m=l.match(new RegExp("(?:di[âa]metro|diam\\.?|ø|⌀|\\bd\\s*[=:])\\D{0,10}"+N)))put("D",numBR(m[1]),ln,3);
+    if(m=l.match(/(\d{1,3}(?:\.\d{3})+|\d+(?:,\d+)?)\s*(?:m²|m2\b|m\^2)/))put("area",numBR(m[1],true),ln,/[áa]rea|espelho|l[âa]mina|cada/.test(l)?3:2);
+    if(m=l.match(new RegExp(N+"\\s*ha\\b")))put("area",numBR(m[1])*1e4,ln,/[áa]rea|espelho|l[âa]mina|cada/.test(l)?3:1);
+    if(m=l.match(new RegExp("(?:profundidade|prof\\.?|l[âa]mina d.?[áa]gua|\\bh\\s*[=:])\\D{0,10}"+N))){const v=numBR(m[1]);if(v>=.2&&v<=6)put("rasa",v,ln,3)}
+    if(m=l.match(new RegExp("(?:borda livre|\\bbl\\b|folga)\\D{0,8}"+N))){const v=numBR(m[1]);if(v>0&&v<=2)put("bl",v,ln,3)}
+    if(m=l.match(new RegExp("(?:crista|coroamento)\\D{0,12}"+N))){const v=numBR(m[1]);if(v>0&&v<=15&&!/[+±]\s*$/.test(m[0].slice(0,m[0].length-m[1].length)))put("crista",v,ln,3)}
+    if(m=l.match(new RegExp("(?:declividade|decl\\.?|\\bi\\s*[=:])\\D{0,8}"+N+"\\s*%"))){const v=numBR(m[1]);if(v>0&&v<=10)put("decl",v,ln,3)}
+    if(m=l.match(/(\d{1,3})\s*(?:viveiros?|tanques?|unidades?|und\b|un\.)/)){const v=+m[1];if(v>=1&&v<=500)put("n",v,ln,3)}
+    {const rx=new RegExp(N+"\\s*:\\s*"+N,"g");let q;while((q=rx.exec(l))){const a=numBR(q[1]),b=numBR(q[2]);if(!(a>0&&b>0)||Math.max(a,b)>6||Math.min(a,b)!==1&&Math.max(a,b)/Math.min(a,b)>6)continue;const H=Math.max(a,b)/Math.min(a,b);
+      const ant=l.slice(0,q.index),k=ant.lastIndexOf("ext")>ant.lastIndexOf("int")?"te":"ti";put(k,Math.round(H*100)/100,ln,/talude/.test(l)?3:1)}}
+    {const rx=new RegExp(N+"\\s*(?:m\\s*)?[x×X*]\\s*"+N,"g");let q;while((q=rx.exec(ln))){const a=numBR(q[1]),b=numBR(q[2]);if(a>=2&&b>=2&&a<=3000&&b<=3000){put("L",Math.max(a,b),ln,2);put("W",Math.min(a,b),ln,2)}}}}
+  const V=new Set([...String(t||"").matchAll(/\b[Vv]\s?(\d{1,3})\b/g)].map(m=>+m[1]).filter(x=>x>0&&x<300));if(V.size>1)put("n",Math.max(...V),`rótulos V1…V${Math.max(...V)}`,1);
+  const ms=[...String(t||"").matchAll(/(\d{1,4}(?:[.,]\d{1,3})?)\s*m\b(?![²2])/g)].map(m=>numBR(m[1])).filter(v=>v>=3&&v<=3000);const u=[...new Set(ms)].sort((a,b)=>b-a);
+  if(!A.L&&!A.D&&u[0])put("L",u[0],"maior cota em metros",0);if(!A.W&&!A.D&&A.L&&A.area&&A.area.v>A.L.v)put("W",Math.round(A.area.v/A.L.v*100)/100,"área ÷ comprimento",1);{const w=u.find(v=>A.L&&v<A.L.v*0.98);if(!A.W&&!A.D&&w)put("W",w,"cota menor que o comprimento",0)}
+  if(A.L&&A.W&&A.L.v<A.W.v){const x=A.L;A.L=A.W;A.W=x}
+  return A}
+
+/* ---------- guardar a última figura neste aparelho ---------- */
+const DB=()=>new Promise((ok,no)=>{const r=indexedDB.open("greenfish-figuras",1);r.onupgradeneeded=()=>r.result.createObjectStore("f");r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+const dbPut=async(k,v)=>{try{const d=await DB();await new Promise(ok=>{const t=d.transaction("f","readwrite");t.objectStore("f").put(v,k);t.oncomplete=ok;t.onerror=ok})}catch(e){}};
+const dbGet=async k=>{try{const d=await DB();return await new Promise(ok=>{const r=d.transaction("f").objectStore("f").get(k);r.onsuccess=()=>ok(r.result);r.onerror=()=>ok(null)})}catch(e){return null}};
+
+/* ---------- a janela ---------- */
+const ov=()=>document.getElementById("gfig");
+async function abrir(arq){let o=ov();if(!o){o=document.createElement("div");o.id="gfig";document.body.appendChild(o)}
+  if(arq){await carrega(arq);return}const ult=await dbGet("ultima");FG=null;desenha(ult)}
+function fechar(){const o=ov();if(o)o.remove();FG=null}
+function desenha(ult){const o=ov();if(!o)return;
+  if(!FG){o.innerHTML=`<div class="gfig-b" role="dialog" aria-label="Projetar a partir de uma figura"><header><b>🖼 Projetar a partir de uma figura</b><button type="button" data-fg="x" aria-label="Fechar">✕</button></header>
+   <div class="gfig-drop" tabindex="0"><div class="gfig-ico">🖼</div><p><b>Cole aqui um print</b> (Ctrl+V, ou tocar e segurar › Colar), <b>solte uma imagem</b> ou escolha:</p>
+    <div class="gfp-bt"><label class="btn solid">📁 Escolher imagem<input type="file" accept="image/*" data-fgf="1" hidden></label><label class="btn">📷 Tirar foto<input type="file" accept="image/*" capture="environment" data-fgf="1" hidden></label>${navigator.clipboard&&navigator.clipboard.read?`<button type="button" class="btn" data-fg="colar">📋 Colar da área de transferência</button>`:""}${ult?`<button type="button" class="btn" data-fg="ultima">↩ Usar a última figura (${new Date(ult.em).toLocaleDateString("pt-BR")})</button>`:""}</div>
+    <p class="hint">Serve print de projeto, planta, foto de croqui ou imagem de satélite. O app lê os textos e as cotas e você confere ou mede na própria figura antes de projetar.</p></div></div>`;
+    o.querySelector(".gfig-drop").focus();return}
+  const c=FG.campos;
+  o.innerHTML=`<div class="gfig-b" role="dialog" aria-label="Projetar a partir de uma figura"><header><b>🖼 Projetar a partir de uma figura</b><button type="button" data-fg="x" aria-label="Fechar">✕</button></header>
+   <div class="gfig-main"><div class="gfig-left"><div class="gfig-tools">
+     <button type="button" class="btn${FG.modo==="esc"?" solid":""}" data-fg="esc">📏 Escala</button><button type="button" class="btn${FG.modo==="med"?" solid":""}" data-fg="med">▱ Medir viveiro</button><button type="button" class="btn${FG.modo==="cont"?" solid":""}" data-fg="cont">🔢 Contar viveiros</button><button type="button" class="btn" data-fg="desf">↩ Desfazer</button><button type="button" class="btn" data-fg="ocr">🔤 Ler o texto</button><button type="button" class="btn" data-fg="nova">🖼 Outra figura</button></div>
+     <div class="gfig-stage"><canvas></canvas></div><p class="gfig-st" role="status">${E(FG.st||"")}</p>
+     ${FG.pedeEsc?`<div class="gfig-esc"><label class="jr-f">Quanto mede a linha marcada (m)?<input id="gfig-escm" inputmode="decimal" autofocus></label><button type="button" class="btn solid" data-fg="escok">OK</button></div>`:""}</div>
+    <div class="gfig-right"><h4>📋 Dados do projeto</h4><p class="hint" style="margin:0">Valores lidos ou medidos na figura (🔤 lido, 📏 medido). Confira e corrija antes de projetar.</p>
+     <div class="gfig-form">${CAMPOS.map(([k,t,tp])=>{const src=FG.src[k];if(tp==="sel")return `<label class="jr-f">${t}<select data-fgc="${k}"><option value="ret"${c.forma!=="circ"?" selected":""}>Retangular (viveiro)</option><option value="circ"${c.forma==="circ"?" selected":""}>Circular (tanque)</option></select></label>`;
+       if(k==="D"&&c.forma!=="circ"||(k==="L"||k==="W")&&c.forma==="circ")return "";return `<label class="jr-f">${t}<input data-fgc="${k}" inputmode="decimal" value="${E(isFinite(c[k])?F(c[k],2):"")}">${src?`<small class="gfig-src" title="${E(src.s||"")}">${src.m?"📏":"🔤"} ${E(src.m?src.s:"“"+src.s+"”")}</small>`:""}</label>`}).join("")}</div>
+     ${(()=>{const a=area(c);return `<p class="gfig-res">${isFinite(a)?`Cada ${c.forma==="circ"?"tanque":"viveiro"}: <b>${F(a,0)} m²</b>${c.forma!=="circ"&&c.L>0&&c.W>0?` · relação ${F(Math.max(c.L,c.W)/Math.min(c.L,c.W),2)} : 1`:""} · ${F(Math.max(1,Math.round(c.n||1)),0)} unidade(s) · lâmina total ${F(a*Math.max(1,Math.round(c.n||1))/1e4,2)} ha`:"Informe as medidas (ou a área) de cada unidade."}</p>`})()}
+     <div class="gfp-bt"><button type="button" class="btn solid" data-fg="projetar"${isFinite(area(c))?"":" disabled"}>📐 Projetar no desenho técnico</button></div>
+     ${FG.txt?`<details class="pp-sis"><summary>🔤 Texto lido na figura</summary><pre class="gfig-txt">${E(FG.txt)}</pre></details>`:""}</div></div></div>`;
+  pinta()}
+const area=c=>c.area>0?c.area:c.forma==="circ"?(c.D>0?Math.PI*c.D*c.D/4:NaN):(c.L>0&&c.W>0?c.L*c.W:NaN);
+async function carrega(arq){const url=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);r.readAsDataURL(arq)});return usa(url,true)}
+async function usa(url,novo,salvo){const img=await new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error("a imagem não abriu"));i.src=url});
+  /* reduz para guardar (até 1800 px) */const e=Math.min(1,1800/Math.max(img.naturalWidth,img.naturalHeight));let im=img,du=url;if(e<1||novo){const c=document.createElement("canvas");c.width=Math.round(img.naturalWidth*e);c.height=Math.round(img.naturalHeight*e);c.getContext("2d").drawImage(img,0,0,c.width,c.height);du=c.toDataURL("image/jpeg",.85);im=await new Promise(ok=>{const i=new Image();i.onload=()=>ok(i);i.src=du})}
+  FG=Object.assign({img:im,url:du,W:im.naturalWidth,H:im.naturalHeight,esc:NaN,cal:[],med:[],cont:[],modo:"",campos:{forma:"ret"},src:{},txt:"",st:""},salvo||{});FG.img=im;FG.url=du;
+  if(!ov()){const o=document.createElement("div");o.id="gfig";document.body.appendChild(o)}desenha();if(novo||!FG.txt)ocr();else guarda()}
+async function ocr(){if(!FG)return;const f=FG;f.st="⬇️ Preparando o leitor de texto…";desenha();prog=t=>{if(FG===f){f.st=t;const p=ov()&&ov().querySelector(".gfig-st");if(p)p.textContent=t}};
+  try{const w=await leitor();const k=Math.min(2.5,Math.max(1,2200/Math.max(f.W,f.H))),c=document.createElement("canvas");c.width=Math.round(f.W*k);c.height=Math.round(f.H*k);const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(f.img,0,0,c.width,c.height);
+    /* desenho escuro (fundo preto, como o do app) vira texto escuro em fundo claro */const d=x.getImageData(0,0,c.width,c.height),a=d.data;let soma=0;for(let i=0;i<a.length;i+=16)soma+=a[i]+a[i+1]+a[i+2];const escuro=soma/(a.length/16)/3<110;
+    for(let i=0;i<a.length;i+=4){let g=.299*a[i]+.587*a[i+1]+.114*a[i+2];if(escuro)g=255-g;a[i]=a[i+1]=a[i+2]=g}x.putImageData(d,0,0);
+    const r=await w.recognize(c);if(FG!==f)return;f.txt=(r&&r.data&&r.data.text||"").trim();const A=achar(f.txt);let n=0;
+    for(const k in A){if(f.src[k]&&f.src[k].m)continue;f.campos[k]=A[k].v;f.src[k]={s:A[k].s};n++}if(A.D&&!A.L)f.campos.forma="circ";
+    f.st=n?`🔤 Li ${n} dado(s) na figura. Confira os dados do projeto; para medir direto na imagem use 📏 Escala e ▱ Medir viveiro.`:"🔤 Não achei cotas legíveis. Meça na figura: 📏 marque a escala e depois ▱ os cantos de um viveiro.";}
+  catch(e){if(FG!==f)return;f.st=`Não deu para ler o texto (${E(e.message||e)}). Você ainda pode medir na figura: 📏 Escala e ▱ Medir viveiro.`}
+  desenha();guarda()}
+function guarda(){if(!FG)return;const {url,esc,cal,med,cont,campos,src,txt}=FG;dbPut("ultima",{url,esc,cal,med,cont,campos,src,txt,em:Date.now()})}
+
+/* ---------- desenhar a figura e as marcas ---------- */
+function pinta(){const o=ov();if(!o||!FG)return;const cv=o.querySelector(".gfig-stage canvas");if(!cv)return;const st=cv.parentNode,wd=Math.max(200,st.clientWidth||600),k=Math.min(1,wd/FG.W),hmax=Math.max(260,innerHeight*.62),k2=Math.min(k,hmax/FG.H);
+  const dpr=Math.min(2,devicePixelRatio||1);cv.style.width=Math.round(FG.W*k2)+"px";cv.style.height=Math.round(FG.H*k2)+"px";cv.width=Math.round(FG.W*k2*dpr);cv.height=Math.round(FG.H*k2*dpr);FG.k=k2;
+  const x=cv.getContext("2d"),s=k2*dpr;x.setTransform(s,0,0,s,0,0);x.drawImage(FG.img,0,0);const lw=2.2/k2,fs=Math.max(12,15/k2);
+  const pt=(p,cor)=>{x.fillStyle=cor;x.beginPath();x.arc(p[0],p[1],5/k2,0,7);x.fill()},txt=(t,X,Y,cor)=>{x.font=`bold ${fs}px system-ui`;const w=x.measureText(t).width;x.fillStyle="rgba(0,0,0,.65)";x.fillRect(X-3/k2,Y-fs,w+6/k2,fs*1.3);x.fillStyle=cor;x.fillText(t,X,Y)};
+  if(FG.cal.length){x.strokeStyle="#facc15";x.lineWidth=lw;x.setLineDash([8/k2,5/k2]);x.beginPath();x.moveTo(...FG.cal[0]);if(FG.cal[1])x.lineTo(...FG.cal[1]);x.stroke();x.setLineDash([]);FG.cal.forEach(p=>pt(p,"#facc15"));if(FG.cal[1]&&isFinite(FG.esc)){const m=[(FG.cal[0][0]+FG.cal[1][0])/2,(FG.cal[0][1]+FG.cal[1][1])/2];txt(`escala ${F(Math.hypot(FG.cal[1][0]-FG.cal[0][0],FG.cal[1][1]-FG.cal[0][1])/FG.esc,2)} m`,m[0],m[1]-6/k2,"#fde68a")}}
+  if(FG.med.length){const [a,b,c]=FG.med;x.strokeStyle="#22c55e";x.lineWidth=lw;x.beginPath();x.moveTo(...a);if(b)x.lineTo(...b);if(b&&c){x.lineTo(b[0]+c[0]-a[0],b[1]+c[1]-a[1]);x.lineTo(...c);x.closePath();x.fillStyle="rgba(34,197,94,.18)";x.fill()}x.stroke();FG.med.forEach(p=>pt(p,"#22c55e"));
+    if(b&&isFinite(FG.esc))txt(`${F(Math.hypot(b[0]-a[0],b[1]-a[1])/FG.esc,2)} m`,(a[0]+b[0])/2,(a[1]+b[1])/2-6/k2,"#bbf7d0");if(c&&isFinite(FG.esc))txt(`${F(Math.hypot(c[0]-a[0],c[1]-a[1])/FG.esc,2)} m`,(a[0]+c[0])/2,(a[1]+c[1])/2,"#bbf7d0")}
+  FG.cont.forEach((p,i)=>{x.fillStyle="#2563eb";x.beginPath();x.arc(p[0],p[1],11/k2,0,7);x.fill();x.fillStyle="#fff";x.font=`bold ${12/k2}px system-ui`;x.textAlign="center";x.textBaseline="middle";x.fillText(String(i+1),p[0],p[1]);x.textAlign="left";x.textBaseline="alphabetic"})}
+function toque(e){if(!FG||!FG.modo)return;const cv=e.target.closest(".gfig-stage canvas");if(!cv)return;e.preventDefault();const r=cv.getBoundingClientRect(),p=[(e.clientX-r.left)/FG.k,(e.clientY-r.top)/FG.k];
+  if(FG.modo==="esc"){if(FG.cal.length>=2)FG.cal=[];FG.cal.push(p);if(FG.cal.length===2){FG.pedeEsc=true;FG.st="📏 Digite quanto mede a linha marcada (use a barra de escala ou uma cota conhecida)."}else FG.st="📏 Agora toque no outro ponta da medida conhecida.";desenha();if(FG.pedeEsc)setTimeout(()=>{const i=document.getElementById("gfig-escm");i&&i.focus()},50);return}
+  if(FG.modo==="med"){if(FG.med.length>=3)FG.med=[];FG.med.push(p);const n=FG.med.length;FG.st=n===1?"▱ Toque no canto do mesmo viveiro ao longo do comprimento.":n===2?"▱ Agora toque no canto ao longo da largura.":"";
+    if(n===3)aplicaMed();desenha();return}
+  if(FG.modo==="cont"){FG.cont.push(p);FG.campos.n=FG.cont.length;FG.src.n={s:`${FG.cont.length} contado(s) na figura`,m:true};FG.st=`🔢 ${FG.cont.length} viveiro(s) contado(s). Toque em cada um; ↩ Desfazer tira o último.`;desenha();guarda()}}
+function aplicaMed(){const [a,b,c]=FG.med,lp=Math.hypot(b[0]-a[0],b[1]-a[1]),wp=Math.hypot(c[0]-a[0],c[1]-a[1]),C=FG.campos;
+  if(isFinite(FG.esc)){const L=lp/FG.esc,W=wp/FG.esc;C.L=Math.round(Math.max(L,W)*100)/100;C.W=Math.round(Math.min(L,W)*100)/100;delete C.area;FG.src.L=FG.src.W={s:"medido na figura",m:true};delete FG.src.area;FG.st=`▱ Medido: ${F(C.L)} × ${F(C.W)} m. Meça outro ou projete.`}
+  else{const rel=Math.max(lp,wp)/Math.min(lp,wp),a2=area(C);if(isFinite(a2)){C.L=Math.round(Math.sqrt(a2*rel)*100)/100;C.W=Math.round(a2/C.L*100)/100;FG.src.L=FG.src.W={s:`pela área e a proporção medida (${F(rel)} : 1)`,m:true};FG.st=`▱ Sem escala: usei a área (${F(a2,0)} m²) com a proporção medida.`}
+    else FG.st="▱ Marque a 📏 escala primeiro (ou informe a área de cada viveiro) para virar metros."}guarda()}
+
+/* ---------- projetar ---------- */
+function projetar(){const c=FG.campos,ed=window.vvEditor;if(!ed){alert("Abra a Calculadora em 🏞 Viveiros escavados uma vez e tente de novo.");return}const a=area(c);if(!(a>=4)){alert("A área de cada unidade ficou muito pequena: confira as medidas.");return}
+  const par=T(()=>ed.parametros(),{})||{},n=Math.max(1,Math.min(500,Math.round(c.n||1))),p={aViv:s2(a),dim:"qtd",nViv:String(n),dimUser:1};
+  if(c.forma==="circ")p.tipo="elev_ab";else{if(String(par.tipo||"").startsWith("elev"))p.tipo="esc";if(c.L>0&&c.W>0)p.rel=s2(Math.max(c.L,c.W)/Math.max(.1,Math.min(c.L,c.W)))}
+  [["rasa","rasa"],["bl","bl"],["ti","ti"],["te","te"],["crista","crista"],["decl","decl"]].forEach(([k,v])=>{if(isFinite(c[k])&&c[k]>0)p[v]=s2(c[k])});
+  ed.set(p);T(()=>ed.refaz&&ed.refaz());guarda();fechar();
+  setTimeout(()=>{const b=document.getElementById("vv-cad");if(b){b.scrollIntoView({block:"start",behavior:"smooth"});const t=document.createElement("div");t.className="gfig-ok";t.textContent=`🖼 Projetado da figura: ${n} × ${F(a,0)} m². Use ✏️ Editar para ajustar no desenho.`;b.prepend(t);setTimeout(()=>t.remove(),7000)}},250)}
+
+/* ---------- eventos ---------- */
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#gfig [data-fg]");if(!b)return;e.preventDefault();const k=b.dataset.fg;
+  if(k==="x")fechar();else if(k==="nova"){FG=null;desenha(await dbGet("ultima"))}
+  else if(k==="ultima"){const u=await dbGet("ultima");if(u)usa(u.url,false,u)}
+  else if(k==="colar"){try{const it=await navigator.clipboard.read();for(const i of it){const t=i.types.find(x=>x.startsWith("image/"));if(t){const bl=await i.getType(t);await carrega(new File([bl],"colado",{type:t}));return}}alert("Não há imagem copiada. Copie um print e tente de novo.")}catch(_){alert("O navegador não deixou ler a área de transferência: use Ctrl+V ou tocar e segurar › Colar.")}}
+  else if(FG&&["esc","med","cont"].includes(k)){FG.modo=FG.modo===k?"":k;FG.pedeEsc=false;FG.st={esc:"📏 Toque nas duas pontas de uma medida conhecida (barra de escala, uma cota ou um lado medido).",med:"▱ Toque em um canto do viveiro.",cont:"🔢 Toque em cada viveiro para contar."}[FG.modo]||"";desenha()}
+  else if(FG&&k==="escok"){const v=numBR((document.getElementById("gfig-escm")||{}).value);if(!(v>0)){alert("Digite a medida em metros.");return}const [p,q]=FG.cal;FG.esc=Math.hypot(q[0]-p[0],q[1]-p[1])/v;FG.pedeEsc=false;FG.modo="med";FG.med=[];FG.st=`📏 Escala marcada (${F(FG.esc,2)} pixels por metro). Agora ▱ toque em 3 cantos de um viveiro.`;desenha();guarda()}
+  else if(FG&&k==="desf"){if(FG.modo==="cont"&&FG.cont.length){FG.cont.pop();FG.campos.n=FG.cont.length||FG.campos.n}else if(FG.modo==="med"&&FG.med.length)FG.med.pop();else if(FG.modo==="esc"&&FG.cal.length){FG.cal.pop();FG.pedeEsc=false}else if(FG.cont.length)FG.cont.pop();desenha();guarda()}
+  else if(FG&&k==="ocr")ocr();else if(FG&&k==="projetar")projetar()});
+document.addEventListener("pointerdown",e=>{if(e.target.closest&&e.target.closest("#gfig .gfig-stage canvas"))toque(e)});
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#gfig"))return;e.stopPropagation();
+  if(t.dataset.fgf&&t.files&&t.files[0]){carrega(t.files[0]).catch(er=>alert(er.message));return}
+  if(t.dataset.fgc&&FG){const k=t.dataset.fgc;if(k==="forma")FG.campos.forma=t.value;else{const v=numBR(t.value);if(isFinite(v)&&v>0)FG.campos[k]=v;else delete FG.campos[k];FG.src[k]=null;if((k==="L"||k==="W"||k==="D")&&FG.src.area==null)delete FG.campos.area}desenha();guarda()}},true);
+document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#gfig"))e.stopPropagation()},true);
+document.addEventListener("keydown",e=>{if(!ov())return;if(e.key==="Escape"){fechar();return}if(e.key==="Enter"&&e.target.id==="gfig-escm"){e.preventDefault();const b=ov().querySelector('[data-fg="escok"]');b&&b.click()}},true);
+const imgDe=dt=>{const f=[...(dt&&dt.files||[])].find(x=>/^image\//.test(x.type));if(f)return f;const it=[...(dt&&dt.items||[])].find(x=>x.kind==="file"&&/^image\//.test(x.type));return it?it.getAsFile():null};
+const cadVisivel=()=>{const b=document.getElementById("vv-cad");return b&&!b.hidden&&b.offsetParent!==null};
+document.addEventListener("paste",e=>{const f=imgDe(e.clipboardData);if(!f)return;const a=document.activeElement;if(ov()||(cadVisivel()&&!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&!ov()))){e.preventDefault();abrir(f)}});
+document.addEventListener("dragover",e=>{if(e.target.closest&&(e.target.closest("#gfig")||e.target.closest("#vv-cad"))&&[...(e.dataTransfer&&e.dataTransfer.types||[])].includes("Files"))e.preventDefault()});
+document.addEventListener("drop",e=>{if(!(e.target.closest&&(e.target.closest("#gfig")||e.target.closest("#vv-cad"))))return;const f=imgDe(e.dataTransfer);if(f){e.preventDefault();abrir(f)}});
+addEventListener("resize",()=>{if(FG)pinta()});
+
+window.gfFigura={abrir,fechar,achar,estado:()=>FG};
+const st=document.createElement("style");st.textContent=`#gfig{position:fixed;inset:0;z-index:2147482000;background:rgba(2,12,9,.6);display:flex;align-items:center;justify-content:center;padding:12px}
+#gfig .gfig-b{background:var(--surface,#fff);color:var(--ink,#0f172a);border-radius:16px;width:min(1180px,100%);max-height:100%;overflow:auto;display:grid;gap:10px;padding:12px 14px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+#gfig header{display:flex;justify-content:space-between;align-items:center;gap:8px}#gfig header button{background:none;border:0;font-size:20px;cursor:pointer;color:inherit}
+.gfig-drop{border:2px dashed #10b981;border-radius:14px;padding:22px 16px;text-align:center;display:grid;gap:8px;justify-items:center;outline:none}.gfig-drop:focus{background:#ecfdf5}.gfig-ico{font-size:44px}.gfig-drop p{margin:0}
+.gfig-main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr);gap:14px;align-items:start}.gfig-left,.gfig-right{display:grid;gap:8px;min-width:0}
+.gfig-tools{display:flex;flex-wrap:wrap;gap:6px}.gfig-stage{background:#0b1220;border-radius:12px;overflow:auto;max-width:100%;display:flex;justify-content:center}.gfig-stage canvas{display:block;touch-action:none;cursor:crosshair;max-width:none}
+.gfig-st{margin:0;font-size:13.5px;min-height:1.2em}.gfig-esc{display:flex;gap:8px;align-items:end;flex-wrap:wrap;background:#fef9c3;border-radius:10px;padding:8px}
+.gfig-right h4{margin:0}.gfig-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px 10px}.gfig-form input,.gfig-form select{width:100%}.gfig-src{display:block;font-size:11px;color:#047857;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gfig-res{margin:0;padding:8px 10px;border-radius:10px;background:#ecfdf5;font-size:13.5px}.gfig-txt{white-space:pre-wrap;font-size:12px;max-height:200px;overflow:auto;margin:6px 0 0}
+.gfig-ok{position:sticky;top:0;z-index:3;background:#dcfce7;color:#14532d;border-radius:10px;padding:8px 12px;margin-bottom:6px;font-size:14px}
+@media(max-width:760px){.gfig-main{grid-template-columns:1fr}#gfig{padding:0}#gfig .gfig-b{border-radius:0;height:100%;max-height:none}}`;document.head.appendChild(st);
 })();
 </script>
 <script>
