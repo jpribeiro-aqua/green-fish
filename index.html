@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v302";
+  it.querySelector("code").textContent=msg;const ver="ras-v303";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10789,7 +10789,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v302";
+  const APP_VERSAO="ras-v303";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -11888,7 +11888,7 @@ const raMM=(lat,i)=>{const J=[17,47,75,105,135,162,198,228,258,288,318,344][i],f
   return 0.408*24*60/Math.PI*0.082*dr*(ws*Math.sin(f)*Math.sin(d)+Math.cos(f)*Math.cos(d)*Math.sin(ws))};
 
 /* ---------- estado (por projeto) ---------- */
-const D0={modo:"ras",tipo:"auto",sp:"tilapia",sis:"semi",dim:"area",areaDisp:"",aprov:"65",meta:"",aViv:"",rel:"3",rasa:"",decl:"0,5",
+const D0={modo:"ras",tipo:"auto",sp:"tilapia",sis:"semi",dim:"area",areaDisp:"",aprov:"65",meta:"",nViv:"",aViv:"",rel:"3",rasa:"",decl:"0,5",
   dens:"",w0:"",wf:"",sob:"",fca:"",interv:"20",argila:"",phSolo:"",infil:"",ti:"",te:"",crista:"",cristaT:"4,5",bl:"",fc:"1,15",
   zA:"",zB:"",dist:"",cEv:"1",ren:"",encD:"4",zFonte:"",zCheg:"",bacia:"10",limn:{},pr:{},vu:{},nF:"",aerOn:"auto",fin:""};
 const rd=()=>{try{return JSON.parse(localStorage.getItem(VK))||{}}catch(e){return {}}};
@@ -11944,8 +11944,9 @@ function calc(){
   // dimensionamento
   o.aprov=val("aprov",65);o.rel=Math.max(1,val("rel",3));o.rasa=A("rasa",S.rasa);o.decl=val("decl",0.5);
   const tha=TP&&isFinite(TP.ha)&&TP.ha>0?TP.ha:NaN;o.areaDisp=A("areaDisp",isFinite(tha)?tha:(cam?10:2),isFinite(tha)?"Levantamentos":"");
-  let aViv=A("aViv",o.elev?Math.round(Math.PI*25):o.tipo==="alv"?90:o.tipo==="rev"?300:S.aViv),n,Alam;const dim=V.dim==="topo"&&TP&&TP.n>0?"topo":V.dim==="meta"?"meta":"area";o.dim=dim;
+  let aViv=A("aViv",o.elev?Math.round(Math.PI*25):o.tipo==="alv"?90:o.tipo==="rev"?300:S.aViv),n,Alam;const dim=V.dim==="topo"&&TP&&TP.n>0?"topo":V.dim==="meta"?"meta":V.dim==="qtd"?"qtd":"area";o.dim=dim;
   if(dim==="topo"){n=TP.n;const aS=(TP.esp>0?TP.esp:n*aViv)/n;aViv=A("aViv",Math.round(aS),"Levantamentos");Alam=n*aViv}
+  else if(dim==="qtd"){/* v303: a quantidade é escolhida; cada viveiro com as medidas do desenhado/editado */n=Math.max(1,Math.min(500,Math.round(val("nViv",1)||1)));Alam=n*aViv}
   else if(dim==="meta"){o.meta=A("meta",cam?40000:50000);Alam=o.meta/(o.Bm2*o.ciclos);n=Math.max(1,Math.ceil(Alam/aViv-1e-9));aViv=Alam/n}
   else{const Ld=o.areaDisp*1e4*o.aprov/100;n=Math.max(1,Math.floor(Ld/aViv+1e-9));if(Ld<aViv){aViv=Ld}Alam=n*aViv}
   o.n=n;o.aViv=aViv;o.Alam=Alam;o.ha=Alam/1e4;
@@ -12090,7 +12091,8 @@ const FLD={
  tipo:["Tipo de estrutura","sel",()=>TIPO],
  sp:["Espécie","sel",()=>Object.fromEntries(Object.entries(SPD).map(([k,v])=>[k,v.n]))],
  sis:["Sistema de cultivo","sel",()=>SIS],
- dim:["Dimensionar por","sel",()=>({area:"Área disponível do terreno",meta:"Meta de produção anual",topo:"Viveiros do levantamento (aba Levantamentos)"})],
+ dim:["Dimensionar por","sel",()=>({area:"Área disponível do terreno",meta:"Meta de produção anual",qtd:"Quantidade de viveiros que eu escolho",topo:"Viveiros do levantamento (aba Levantamentos)"})],
+ nViv:["Quantidade de viveiros","un.","Todos com as medidas do viveiro desenhado ou editado (use ➕ Duplicar no desenho técnico)"],
  aerOn:["Aeração mecânica","sel",()=>({auto:"Automática (liga se a biomassa pedir)",sim:"Sim",nao:"Não"})],
  areaDisp:["Área disponível do terreno","ha","Em branco: área do levantamento"],
  aprov:["Aproveitamento em lâmina d'água","%","Parte da área que vira espelho d'água; o resto é dique, canal e bacia (≈ 60–70 %)"],
@@ -12127,7 +12129,7 @@ const FLD={
  dColeta:["Distância do aerador ao ponto de coleta","m","Em branco: 1/3 do comprimento"],
  larCmp:["Largura da comporta / monge","m","Em branco: 0,6 m"],
  nF:["Funcionários fixos","un.","Em branco: 1 para cada 3 ha de lâmina"],projPct:["Elaboração do projeto","% do investimento",""]};
-const GRP=[["Estrutura, espécie, sistema e tamanho",["tipo","sp","sis","aerOn","dim","areaDisp","aprov","meta","aViv"]],["Biologia e ciclo",["dens","w0","wf","sob","fca","interv","kgHP"]],
+const GRP=[["Estrutura, espécie, sistema e tamanho",["tipo","sp","sis","aerOn","dim","areaDisp","aprov","meta","nViv","aViv"]],["Biologia e ciclo",["dens","w0","wf","sob","fca","interv","kgHP"]],
  ["Topografia e solo",["zA","zB","dist","argila","phSolo","infil"]],["Engenharia do viveiro e dos diques",["rel","rasa","decl","ti","te","crista","cristaT","bl","fc"]],["Equipamentos, comportas e pontos de coleta",["nAerV","dren","larCmp","nColeta","dColeta"]],
  ["Água, clima e captação",["cEv","ren","encD","zFonte","zCheg","bacia"]]];
 const SRCN={Local:"📍 Local e viabilidade",Levantamentos:"🗺 Levantamentos",AquaNictemeral:"📈 AquaNictemeral"};
@@ -12205,7 +12207,7 @@ function update(){if(!el||el.hidden)return;const o=calc();vvUltO=o;vvUltT=Date.n
   // placeholders e fontes
   for(const k in o.auto){const i=el.querySelector(`[data-vv="${k}"]`);if(i&&i.tagName==="INPUT")i.placeholder=s2(o.auto[k])||"auto";const s=el.querySelector(`[data-vsrc="${k}"]`);if(s)s.textContent=o.src[k]&&String(V[k]||"").trim()===""?"🔗 "+(SRCN[o.src[k]]||o.src[k]):""}
   if(o.medido)for(const k of ["rel","decl"]){const i=el.querySelector(`[data-vv="${k}"]`),sr=el.querySelector(`[data-vsrc="${k}"]`);if(i&&String(V[k]??"")===String(D0[k]??"")&&document.activeElement!==i){i.value="";if(sr)sr.textContent="🔗 "+SRCN.Levantamentos}}
-  const hid=(k,h)=>{const f=el.querySelector(`[data-vf="${k}"]`);if(f)f.hidden=h};hid("areaDisp",o.dim!=="area");hid("aprov",o.dim!=="area");hid("meta",o.dim!=="meta");hid("aViv",false);
+  const hid=(k,h)=>{const f=el.querySelector(`[data-vf="${k}"]`);if(f)f.hidden=h};hid("areaDisp",o.dim!=="area");hid("aprov",o.dim!=="area");hid("meta",o.dim!=="meta");hid("nViv",o.dim!=="qtd");hid("aViv",false);
   if(V.dim==="topo"&&o.dim!=="topo")o.warn.unshift(["al","A aba Levantamentos ainda não tem viveiros projetados: dimensionei pela área disponível."]);
   for(const k in WQ){const c=el.querySelector(`[data-vwq="${k}"]`);if(c){const q=o.wq[k],st=stCls(q.v,q.fx),lim=k==="sal"&&WQ.sal.lim&&WQ.sal.lim[o.S.g];let t={ok:"✓ adequado",al:"⚠️ fora do ideal",cr:"⛔ crítico",nd:"sem dado"}[st];
     if(k==="sal"&&lim&&isFinite(q.v)&&st!=="ok")t=q.v>=lim[0]&&q.v<=lim[1]?"⚠️ tolerável (0,8–35 ‰)":"⛔ fora do tolerável";c.innerHTML=`<span class="vv-st ${st}">${t}</span>`}}
@@ -12434,7 +12436,7 @@ window.vvRelatorio=vvRelatorio;
 window.vvLado=lado=>{vvSide=lado;try{localStorage.setItem("gf-vv-side",lado)}catch(e){}const b=el&&el.querySelector(`[data-vside="${lado}"]`);if(b)b.click();else build()};
 window.vvEquip=()=>{try{const o=vvUltO&&Date.now()-vvUltT<3000?vvUltO:(recarrega(),calc());return {aer:o.aerViv,nCol:val("nColeta",1),dCol:val("dColeta",NaN),lCmp:val("larCmp",0.6)}}catch(e){return {}}};
 /* v173: desenhos salvos — guardar o desenho e os parâmetros, fechar e começar outro */
-const DK="gf-desenhos-v1",KD=["tipo","dim","areaDisp","aprov","meta","aViv","rel","rasa","decl","ti","te","crista","cristaT","bl","nAerV","dren","nColeta","dColeta","larCmp","rap","anot","eqMv"];
+const DK="gf-desenhos-v1",KD=["tipo","dim","areaDisp","aprov","meta","nViv","aViv","rel","rasa","decl","ti","te","crista","cristaT","bl","nAerV","dren","nColeta","dColeta","larCmp","rap","anot","eqMv"];
 const lerDs=()=>{try{return JSON.parse(localStorage.getItem(DK))||[]}catch(e){return []}},gravaDs=a=>{try{localStorage.setItem(DK,JSON.stringify(a));return true}catch(e){return false}};
 const baixaTxt=(nome,txt,tipo)=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:tipo}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},600)};
 const slugD=t=>String(t||"desenho").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w\-]+/g,"_").slice(0,60);
@@ -12458,7 +12460,11 @@ window.vvEditor={
   set(p){recarrega();for(const k in p){if(p[k]==null)(k in D0)?V[k]=D0[k]:delete V[k];else V[k]=p[k]}delete V.vazio;V.modo="viv";grava();clearTimeout(tm);update()},
   dims(L,W,circ){recarrega();const o=vvUltO||T(calc,null);if(!o||o.medido)return false;const s2=x=>String(Math.round(x*100)/100).replace(".",","),a=circ?Math.PI*L*L/4:L*W;if(!(a>=4))return false;
     const p={aViv:s2(a),dim:"area",areaDisp:String(Math.round(Math.max(1,o.n||1)*a/((o.aprov||65)/100)/1e4*1e4+5)/1e4).replace(".",",")};if(!circ)p.rel=s2(Math.max(L,W)/Math.max(.1,Math.min(L,W)));this.set(p);return true},
-  parametros(){recarrega();return JSON.parse(JSON.stringify(V))}};
+  parametros(){recarrega();return JSON.parse(JSON.stringify(V))},
+  /* v303: duplicar o viveiro ou escolher quantos, mantendo as medidas do que está desenhado ou foi editado */
+  qtd(n){recarrega();const o=vvUltO||T(calc,null);if(!o)return false;const s2=x=>String(Math.round(x*100)/100).replace(".",",");n=Math.max(1,Math.min(500,Math.round(+n||1)));
+    const p={dim:"qtd",nViv:String(n)};if(isFinite(o.aViv)&&o.aViv>0)p.aViv=s2(o.aViv);if(o.medido&&!o.elev&&isFinite(o.Lw)&&isFinite(o.Ww)&&o.Ww>0)p.rel=s2(Math.max(o.Lw,o.Ww)/Math.max(.1,Math.min(o.Lw,o.Ww)));this.set(p);T(build);return true},
+  quantos(){const o=vvUltO||T(calc,null);return o?{n:o.n,dim:o.dim,medido:!!o.medido,aViv:o.aViv}:null}};
 /* arquivo de projetos = lista de desenhos salvos, que pode ser baixada (.gfproj) e aberta de novo em qualquer aparelho */
 function vvAbrirV(v,nome,guarda){const P=limpaV(v);if(!P)return false;V=Object.assign({},JSON.parse(JSON.stringify(D0)),P);delete V.vazio;V.modo="viv";grava();try{window.gfImportarLimpar&&gfImportarLimpar()}catch(e){}
   if(guarda){const it={id:"d"+Date.now().toString(36)+Math.random().toString(36).slice(2,5),nome:nome||"Projeto",em:Date.now(),V:JSON.parse(JSON.stringify(V)),arquivo:"",resumo:"",svg:""};const L=lerDs();L.unshift(it);gravaDs(L);setAtual(it)}else setAtual(null);build();return true}
@@ -15174,7 +15180,7 @@ function gfCADInto(box,q,titulo,conjFn){
   if(!q){box.innerHTML="";box.hidden=true;return}box.hidden=false;box.classList.add("gf-cadbox");
   let hd=box.querySelector(":scope>.gfc-h"),body=box.querySelector(":scope>.gfc-b");
   if(!hd||!body){
-    box.innerHTML=`<div class="gfc-h"><b><span class="gfc-live"></span><span class="gfc-t"></span> <small>atualiza enquanto você digita</small></b><span class="gfc-seg" role="group" aria-label="Vista"><button type="button" data-c="2d">📐 2D</button><button type="button" data-c="3d">🧊 3D</button></span><span class="gfc-seg gfc-cj" role="group" aria-label="Quantos viveiros"><button type="button" data-c="um">1 viveiro</button><button type="button" data-c="conj">👥 Todos juntos</button></span><button type="button" data-c="full">⤢ Ampliar</button><button type="button" data-c="dl">⬇ Exportar</button><button type="button" data-c="topo" title="Poligonal da estação total, memorial descritivo e planta do imóvel (padrão INCRA)">📐 Topografia</button>${box.id==="vv-cad"?`<button type="button" data-c="edit" aria-pressed="false" title="Desenhar canais, cotas, textos e estruturas; mover aeradores e coletas; mudar o tamanho arrastando">✏️ Editar</button><button type="button" data-c="salvar" title="Guarda este desenho e os parâmetros e deixa o quadro livre para outro">💾 Salvar e fechar</button><button type="button" data-c="limpar" title="Tira o desenho e os dados abertos do quadro">🗑 Limpar</button><button type="button" data-c="salvos">📁 Projetos</button>`:""}</div>${box.id==="vv-cad"?'<div class="gfc-ed" hidden></div>':""}<div class="gfc-b"></div>`;
+    box.innerHTML=`<div class="gfc-h"><b><span class="gfc-live"></span><span class="gfc-t"></span> <small>atualiza enquanto você digita</small></b><span class="gfc-seg" role="group" aria-label="Vista"><button type="button" data-c="2d">📐 2D</button><button type="button" data-c="3d">🧊 3D</button></span><span class="gfc-seg gfc-cj" role="group" aria-label="Quantos viveiros"><button type="button" data-c="um">1 viveiro</button><button type="button" data-c="conj">👥 Todos juntos</button></span>${box.id==="vv-cad"?`<span class="gfc-seg gfc-qt" role="group" aria-label="Quantidade de viveiros"><button type="button" data-c="menos" title="Tirar um viveiro" aria-label="Tirar um viveiro">➖</button><input type="number" class="gfc-n" min="1" max="500" step="1" inputmode="numeric" aria-label="Quantidade de viveiros" title="Quantidade de viveiros com as medidas deste desenho"><button type="button" data-c="mais" title="Duplicar: mais um viveiro com as mesmas medidas">➕ Duplicar</button></span>`:""}<button type="button" data-c="full">⤢ Ampliar</button><button type="button" data-c="dl">⬇ Exportar</button><button type="button" data-c="topo" title="Poligonal da estação total, memorial descritivo e planta do imóvel (padrão INCRA)">📐 Topografia</button>${box.id==="vv-cad"?`<button type="button" data-c="edit" aria-pressed="false" title="Desenhar canais, cotas, textos e estruturas; mover aeradores e coletas; mudar o tamanho arrastando">✏️ Editar</button><button type="button" data-c="salvar" title="Guarda este desenho e os parâmetros e deixa o quadro livre para outro">💾 Salvar e fechar</button><button type="button" data-c="limpar" title="Tira o desenho e os dados abertos do quadro">🗑 Limpar</button><button type="button" data-c="salvos">📁 Projetos</button>`:""}</div>${box.id==="vv-cad"?'<div class="gfc-ed" hidden></div>':""}<div class="gfc-b"></div>`;
     hd=box.querySelector(".gfc-h");body=box.querySelector(".gfc-b");
     const troca=()=>{ult.delete(box);gfCADInto(box,box.__q,box.__tit)};
     hd.querySelector('[data-c="2d"]').onclick=()=>{box.__modo="2d";lsS3("gf-cad-modo","2d");troca()};hd.querySelector('[data-c="3d"]').onclick=()=>{box.__modo="3d";lsS3("gf-cad-modo","3d");troca()};
@@ -15186,15 +15192,23 @@ function gfCADInto(box,q,titulo,conjFn){
       const fecha=()=>{if(v3)v3.destroy();ov.remove()};ov.querySelector("[data-x]").onclick=fecha;ov.addEventListener("click",e=>{if(e.target===ov)fecha()})};
     {const bs=hd.querySelector('[data-c="salvar"]'),bl=hd.querySelector('[data-c="salvos"]');if(bs)bs.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("salvar",box.__Q?gfCADConj(box.__Q,box.__q):gfCAD(box.__q),box.__tit);if(bl)bl.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("salvos");const bx=hd.querySelector('[data-c="limpar"]');if(bx)bx.onclick=()=>window.vvDesenhoUI&&vvDesenhoUI("limpar",box.__Q?gfCADConj(box.__Q,box.__q):gfCAD(box.__q),box.__tit)}
     {const tp=hd.querySelector('[data-c="topo"]');if(tp)tp.onclick=()=>{if(window.gfTopoAbrir)gfTopoAbrir()}}hd.querySelector('[data-c="dl"]').onclick=()=>gfExportUI(box);
-    {const be=hd.querySelector('[data-c="edit"]');if(be)be.onclick=()=>gfEdOnOff(box,!(box.__ed&&box.__ed.on))}}
+    {const be=hd.querySelector('[data-c="edit"]');if(be)be.onclick=()=>gfEdOnOff(box,!(box.__ed&&box.__ed.on))}
+    {const qt=hd.querySelector(".gfc-qt");if(qt){const vai=n=>{const E2=window.vvEditor;if(!E2||!E2.qtd)return;const x=E2.quantos&&E2.quantos();
+        if(x&&x.medido&&x.dim==="topo"&&!confirm("Os viveiros deste desenho vêm do levantamento do terreno. Ao mudar a quantidade, o desenho passa a ser um projeto-tipo com as medidas médias desses viveiros (o levantamento continua guardado). Continuar?"))return;
+        if(n>1&&!box.__conj){box.__conj=true;lsS3("gf-cad-conj","1")}if(box.__ed&&box.__ed.on)gfEdOnOff(box,false);E2.qtd(n)};
+      const cur=()=>Math.max(1,Math.round(+((box.__q||{}).n)||1)),ni=qt.querySelector(".gfc-n");
+      qt.querySelector('[data-c="mais"]').onclick=()=>vai(cur()+1);qt.querySelector('[data-c="menos"]').onclick=()=>{if(cur()>1)vai(cur()-1)};
+      ni.addEventListener("change",()=>{const n=Math.round(+String(ni.value).replace(",","."));if(n>=1&&n!==cur())vai(Math.min(500,n));else ni.value=cur()});
+      ni.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();ni.blur()}})}}}
   hd.querySelector(".gfc-t").textContent=(modo==="3d"?"🧊 ":"📐 ")+(Q?(Q.nome||"Conjunto"):(titulo||"Desenho técnico"));
   hd.querySelector('[data-c="2d"]').setAttribute("aria-pressed",String(modo!=="3d"));hd.querySelector('[data-c="3d"]').setAttribute("aria-pressed",String(modo==="3d"));
-  const cj=hd.querySelector(".gfc-cj");cj.hidden=!podeConj;hd.querySelector('[data-c="um"]').setAttribute("aria-pressed",String(!Q));hd.querySelector('[data-c="conj"]').setAttribute("aria-pressed",String(!!Q));hd.querySelector('[data-c="conj"]').textContent=`👥 Todos juntos (${nTot})`;
+  const cj=hd.querySelector(".gfc-cj");cj.hidden=!podeConj;{const ni=hd.querySelector(".gfc-n");if(ni&&document.activeElement!==ni)ni.value=Math.max(1,Math.round(+(q&&q.n)||1));const mn=hd.querySelector('[data-c="menos"]');if(mn)mn.disabled=!(q&&+q.n>1)}hd.querySelector('[data-c="um"]').setAttribute("aria-pressed",String(!Q));hd.querySelector('[data-c="conj"]').setAttribute("aria-pressed",String(!!Q));hd.querySelector('[data-c="conj"]').textContent=`👥 Todos juntos (${nTot})`;
   if(box.__ed&&box.__ed.on&&Q){box.__ed.on=false;box.classList.remove("gfe-on");const be=hd.querySelector('[data-c="edit"]');if(be)be.setAttribute("aria-pressed","false");gfEdBar(box)}
   if(modo==="3d"){const ch=!!box.__max;if(!body.__v3||body.__v3ch!==ch||!body.querySelector("canvas")||!body.querySelector("canvas").isConnected){if(body.__v3)body.__v3.destroy();body.__v3=gf3DView(body,ch?{fino:true,cheio:()=>window.innerHeight-(parseFloat(box.style.getPropertyValue("--gfh"))||150)}:undefined);body.__v3ch=ch}body.__v3.set(Q||q);if(box.__ed&&box.__ed.on&&!Q)gfEd3D(box);else body.__v3.setEdit(null)}
   else{if(body.__v3){body.__v3.destroy();body.__v3=null}body.innerHTML=Q?gfCADConj(Q,q):gfCAD(q);if(box.__ed&&box.__ed.on)gfEdHandles(box);else gfTxtOv(box)}
   if(!primeiro){box.classList.remove("mexeu");void box.offsetWidth;box.classList.add("mexeu")}}
 window.gfCAD=gfCAD;window.gfCADInto=gfCADInto;
+{const st=document.createElement("style");st.textContent=`.gfc-qt{display:inline-flex;align-items:center;gap:2px}.gfc-qt .gfc-n{width:58px;font:inherit;font-weight:700;text-align:center;padding:4px 2px;border:1px solid rgba(148,163,184,.55);border-radius:8px;background:rgba(255,255,255,.1);color:inherit}.gfc-qt button:disabled{opacity:.4}`;document.head.appendChild(st)}
 
 /* ===================== mapa do projeto em tempo real (v164: painel flutuante + mapa embutido na Calculadora) ===================== */
 function utm2ll(E0,N0,zona,sul){const a=6378137,f=1/298.257222101,k0=0.9996,e2=f*(2-f),ep2=e2/(1-e2),e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
