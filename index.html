@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v301";
+  it.querySelector("code").textContent=msg;const ver="ras-v302";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10789,7 +10789,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v301";
+  const APP_VERSAO="ras-v302";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -14467,6 +14467,8 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   SEC.splice(1,0,{k:"diag",ic:"📋",t:"Cadastro e diagnóstico da propriedade",d:"Ficha de cada propriedade e produto, com diagnóstico inicial e atualizado para a tomada de decisão.",app:["local","calc","bio","aqua","fin","merc","benef"],subs:[],html:()=>window.gfDiag?gfDiag.html():"",info:()=>window.gfDiag?gfDiag.info():""});
   /* v254: gestão de insumos (pedido, rótulo, estoque por propriedade/grupo/tanque e rastreabilidade) */
   SEC.splice(2,0,{k:"racao",ic:"🧾",t:"Gestão de insumos",d:"Ração, insumos do preparo e 🏛 agente fiscal (notas de entrada e de venda, tributos e emissão): pedido direcionado para a propriedade, um grupo ou um tanque, recebimento com foto do rótulo, controle de estoque automático pela ração do dia e rastreabilidade de cada lote.",app:["racao","bio","fin","benef"],subs:[],html:()=>window.gfRacaoHub?gfRacaoHub.html():"",info:()=>window.gfRacaoHub?gfRacaoHub.info():""});
+  /* v302: 📣 Marketing e vendas · TeleFish (videochamada para vender e atender) */
+  SEC.splice(3,0,{k:"mkt",ic:"📣",t:"Marketing e vendas",d:"🐟📹 TeleFish: videochamada com convite por link, sala de espera, tela compartilhada, chat, fundo, gravação, legendas e ata, para apresentar produtos, atender clientes e negociar com fornecedores.",app:["merc","benef"],subs:[],html:()=>window.gfTeleFish?gfTeleFish.hubHTML():"",info:()=>window.gfTeleFish?gfTeleFish.info():""});
   /* correlação: quais áreas cada aba alimenta */
   const AREAS_DE=v=>SEC.filter(s=>(s.app||[]).includes(v)||(s.tool||[]).includes(v));
   function vai(v){if(v==="@topografia"){window.gfTopoAbrir&&gfTopoAbrir();return}if(v==="@camera"){try{setView("bio")}catch(e){}setTimeout(()=>{window.gfBioCam&&gfBioCam()},300);return}try{setView(v)}catch(e){const t=document.querySelector(`[data-view="${v}"]`);t&&t.click()}scrollTo({top:0,behavior:"smooth"})}
@@ -16977,6 +16979,381 @@ function inicia(){if(typeof setView!=="function"||!window.abaPermitida){setTimeo
   embrulhaPerm();aplica(true);vigiaMenu();let papel="";
   setInterval(()=>{const p=!!sb()+"|"+dono()+"|"+uid();if(p!==papel){papel=p;carregaMeu();edCard()}aplica(false)},2000);setInterval(carregaMeu,300000)}
 inicia();
+})();
+</script>
+<script>
+/* ===================== v302: 📣 Marketing e vendas · 🐟📹 TeleFish — videochamada direta entre os aparelhos (WebRTC),
+   com convite por link, sala de espera, câmera e microfone, compartilhar a tela, chat, fundo desfocado ou com imagem,
+   gravação no aparelho, legendas ao vivo, mão levantada, reações, ata da reunião e agenda ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const K="greenfish-telefish-v1",SB_LIB="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm",MP="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14",
+  MODELO="https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite";
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const F=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const hm=ms=>new Date(ms).toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const dur=ms=>{const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+":":"")+String(m).padStart(h?2:1,"0")+":"+String(x).padStart(2,"0")};
+const iso=ms=>{const d=new Date(ms);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const rnd=n=>{const a="abcdefghjkmnpqrstuvwxyz23456789",b=new Uint8Array(n);crypto.getRandomValues(b);return [...b].map(x=>a[x%a.length]).join("")};
+const ini=n=>String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase()||"?";
+const cor=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))%360;return `hsl(${h} 55% 38%)`};
+let C=Object.assign({nome:"",hist:[],turn:{},fundo:"",img:"",dev:{},salas:{}},T(()=>JSON.parse(localStorage.getItem(K)),{})||{});
+const salva=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){C.img="";try{localStorage.setItem(K,JSON.stringify(C))}catch(_){}}};
+const codigoNovo=()=>`${rnd(3)}-${rnd(4)}-${rnd(3)}`;
+const limpaCod=s=>{const t=String(s||"").trim(),m=t.match(/telefish=([a-z0-9-]{6,40})/i);return (m?m[1]:t).toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,40)};
+const linkSala=c=>location.origin+location.pathname+"?telefish="+encodeURIComponent(c);
+const nomeUsuario=()=>C.nome||T(()=>{const t=(document.getElementById("auth-user")||document.querySelector(".au-nome-user")||{}).textContent;return t&&t.trim().length<40?t.trim():""},"")||"";
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+const podeTela=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia);
+
+/* ---------- canal da sala: Supabase Realtime (sem guardar nada) ou, sem nuvem, só entre as abas deste aparelho ---------- */
+let SBC=null;
+async function cliente(){if(SBC)return SBC;const CFG=window.RAS_CONFIG||{};const fab=window.TF_SB_FACTORY;
+  if(!fab&&!(CFG.supabaseUrl&&CFG.supabaseAnonKey))throw new Error("o app está sem a nuvem configurada");
+  const lib=fab?{createClient:fab}:await import(SB_LIB);SBC=lib.createClient(CFG.supabaseUrl||"x",CFG.supabaseAnonKey||"x",{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:"gf-telefish"}});return SBC}
+async function conecta(code,onMsg){
+  try{const sb=await cliente();const ch=sb.channel("telefish:"+code,{config:{broadcast:{self:false}}});ch.on("broadcast",{event:"m"},x=>onMsg(x&&x.payload));
+    await new Promise((ok,no)=>{const to=setTimeout(()=>no(new Error("a nuvem não respondeu")),12000);ch.subscribe(st=>{if(st==="SUBSCRIBED"){clearTimeout(to);ok()}else if(st==="CHANNEL_ERROR"||st==="TIMED_OUT"||st==="CLOSED"){clearTimeout(to);no(new Error(st))}})});
+    return {tipo:"nuvem",send:p=>{try{ch.send({type:"broadcast",event:"m",payload:p})}catch(e){}},close:()=>{try{sb.removeChannel(ch)}catch(e){}}}}
+  catch(e){const bc=new BroadcastChannel("telefish:"+code);bc.onmessage=x=>onMsg(x.data);return {tipo:"local",erro:String((e&&e.message)||e),send:p=>bc.postMessage(p),close:()=>bc.close()}}}
+const ICE=()=>{const L=[{urls:["stun:stun.l.google.com:19302","stun:stun1.l.google.com:19302"]}],t=C.turn||{};if(/^turns?:/.test(t.url||""))L.push({urls:t.url.split(/\s*,\s*/),username:t.user||"",credential:t.cred||""});return L};
+
+/* ---------- fundo: desfoque e imagem com a segmentação de pessoa (MediaPipe) ---------- */
+const FUNDOS=[["","🚫 Sem efeito"],["blur1","🌫 Desfocar leve"],["blur2","🌫 Desfocar forte"],["viveiro","🐟 Viveiro"],["marca","💚 Green Fish"],["escritorio","🏢 Escritório"],["foto","🖼 Sua imagem"]];
+let SEG=null,SEGp=null;
+async function segmentador(){if(SEG)return SEG;if(window.TF_SEG)return SEG=window.TF_SEG;if(!SEGp)SEGp=(async()=>{const v=await import(MP+"/vision_bundle.mjs");const fs=await v.FilesetResolver.forVisionTasks(MP+"/wasm");
+    return v.ImageSegmenter.createFromOptions(fs,{baseOptions:{modelAssetPath:MODELO,delegate:"GPU"},runningMode:"VIDEO",outputCategoryMask:false,outputConfidenceMasks:true})})();
+  try{SEG=await SEGp}catch(e){SEGp=null;throw e}return SEG}
+function fundoImg(k){const c=document.createElement("canvas");c.width=1280;c.height=720;const x=c.getContext("2d");
+  if(k==="foto"&&C.img){const im=new Image();im.src=C.img;return im}
+  if(k==="viveiro"){let g=x.createLinearGradient(0,0,0,720);g.addColorStop(0,"#9bd3f2");g.addColorStop(.45,"#d9f0fb");g.addColorStop(.46,"#2f8f83");g.addColorStop(1,"#155e63");x.fillStyle=g;x.fillRect(0,0,1280,720);
+    x.fillStyle="#fff7c2";x.beginPath();x.arc(1050,120,60,0,7);x.fill();x.fillStyle="#3f7d3a";for(let i=0;i<1280;i+=40){x.beginPath();x.ellipse(i,330,46,22,0,0,7);x.fill()}
+    x.strokeStyle="rgba(255,255,255,.35)";x.lineWidth=3;for(let y=380;y<720;y+=46){x.beginPath();for(let i=0;i<=1280;i+=20)x.lineTo(i,y+Math.sin(i/60+y)*6);x.stroke()}}
+  else if(k==="marca"){let g=x.createLinearGradient(0,0,1280,720);g.addColorStop(0,"#064e3b");g.addColorStop(1,"#10b981");x.fillStyle=g;x.fillRect(0,0,1280,720);
+    x.fillStyle="rgba(255,255,255,.12)";x.font="bold 150px system-ui,sans-serif";x.textAlign="center";x.fillText("🐟 Green Fish",640,420)}
+  else{let g=x.createLinearGradient(0,0,0,720);g.addColorStop(0,"#eef2f0");g.addColorStop(1,"#c8d6cf");x.fillStyle=g;x.fillRect(0,0,1280,720);
+    x.fillStyle="#b9c9c1";x.fillRect(0,470,1280,250);x.fillStyle="#e7efe9";for(let i=80;i<1280;i+=300){x.fillRect(i,90,190,260)}x.fillStyle="#7aa37f";x.beginPath();x.ellipse(1150,420,60,110,0,0,7);x.fill()}
+  return c}
+function efeito(trk,modo){const v=document.createElement("video");v.muted=true;v.playsInline=true;v.srcObject=new MediaStream([trk]);v.play().catch(()=>{});
+  const s=trk.getSettings?trk.getSettings():{},W=640,H=Math.round(640*((s.height||360)/(s.width||640)))||360,SW=256,SH=Math.round(SW*H/W);
+  const mk=(w,h)=>{const c=document.createElement("canvas");c.width=w;c.height=h;return c},out=mk(W,H),sm=mk(SW,SH),ms=mk(SW,SH),tmp=mk(W,H),bl=modo==="blur2"?mk(28,Math.round(28*H/W)):mk(80,Math.round(80*H/W));
+  const o=out.getContext("2d"),sx=sm.getContext("2d",{willReadFrequently:true}),mx=ms.getContext("2d"),tx=tmp.getContext("2d"),bx=bl.getContext("2d"),img=modo.startsWith("blur")?null:fundoImg(modo);let ts=0,vivo=true,tem=false;
+  const capa=(ctx,im,w,h)=>{const iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;if(!iw||!ih)return;const r=Math.max(w/iw,h/ih),dw=iw*r,dh=ih*r;ctx.drawImage(im,(w-dw)/2,(h-dh)/2,dw,dh)};
+  const passo=()=>{if(!vivo||v.readyState<2)return;sx.drawImage(v,0,0,SW,SH);
+    try{SEG.segmentForVideo(sm,ts=Math.max(ts+1,performance.now()),r=>{const m=r&&r.confidenceMasks&&r.confidenceMasks[0];if(!m)return;const a=m.getAsFloat32Array(),id=mx.createImageData(m.width||SW,m.height||SH);for(let i=0;i<a.length;i++){id.data[i*4+3]=Math.min(255,Math.max(0,(a[i]-.25)*1.6*255))}if(ms.width!==id.width){ms.width=id.width;ms.height=id.height}mx.putImageData(id,0,0);tem=true;T(()=>m.close())})}catch(e){}
+    if(img){o.fillStyle="#123";o.fillRect(0,0,W,H);capa(o,img,W,H)}else{bx.drawImage(v,0,0,bl.width,bl.height);o.imageSmoothingEnabled=true;o.imageSmoothingQuality="high";o.drawImage(bl,0,0,W,H)}
+    if(tem){tx.globalCompositeOperation="copy";tx.drawImage(v,0,0,W,H);tx.globalCompositeOperation="destination-in";tx.drawImage(ms,0,0,W,H);tx.globalCompositeOperation="source-over";o.drawImage(tmp,0,0)}else o.drawImage(v,0,0,W,H)};
+  const iv=setInterval(passo,1000/20),st=out.captureStream(20),t=st.getVideoTracks()[0];
+  return {track:t,parar:()=>{vivo=false;clearInterval(iv);T(()=>t.stop());v.srcObject=null}}}
+
+/* ---------- estado da chamada ---------- */
+let R=null;const ov=()=>document.getElementById("tf");
+const eu=()=>R&&R.me;
+function envia(m){if(!R||!R.tr)return;R.tr.send(Object.assign({from:R.me.id},m))}
+const meuSt=()=>({nome:R.me.nome,mic:R.mic,cam:R.cam,tela:!!R.tela,mao:R.mao||0,rec:!!R.rec,host:R.host,espera:R.host?!!R.espera:undefined,cc:!!R.ccOn});
+const somaPessoas=()=>1+[...R.peers.values()].filter(p=>!p.saiu).length;
+function nota(t,ms){const o=ov();if(!o)return;const d=document.createElement("div");d.className="tf-toast";d.textContent=t;o.querySelector(".tf-toasts").appendChild(d);setTimeout(()=>d.remove(),ms||4200)}
+function ata(l){if(R)R.ata.push(`[${hm(Date.now())}] ${l}`)}
+
+async function abreMidia(){const d=C.dev||{};R.raw=new MediaStream();
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,deviceId:d.mic?{ideal:d.mic}:undefined}});R.micT=s.getAudioTracks()[0]}catch(e){R.micT=null;R.micErr=String(e&&e.name||e)}
+  if(R.cam)await ligaCam();}
+async function ligaCam(){const d=C.dev||{};try{const s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24},deviceId:d.cam?{ideal:d.cam}:undefined,facingMode:d.cam?undefined:"user"}});
+    R.camT=s.getVideoTracks()[0];R.cam=true;await aplicaFundo(true);return true}catch(e){R.camT=null;R.cam=false;R.camErr=String(e&&e.name||e);return false}}
+function desligaCam(){if(R.fx){R.fx.parar();R.fx=null}if(R.camT){R.camT.stop();R.camT=null}R.cam=false}
+async function aplicaFundo(quieto){if(R.fx){R.fx.parar();R.fx=null}const m=C.fundo||"";if(m&&R.camT){try{await segmentador();R.fx=efeito(R.camT,m)}catch(e){if(!quieto)nota("O fundo não carregou (precisa de internet para baixar o recurso de recorte). Seguindo sem efeito.");R.fxErr=true}}trocaVideo()}
+const vidAtual=()=>R.tela?R.tela:!R.cam?null:R.fx?R.fx.track:R.camT;
+function trocaVideo(){if(!R)return;const v=vidAtual();R.peers.forEach(p=>{if(p.tv)T(()=>p.tv.sender.replaceTrack(v))});const me=R.tiles&&R.tiles.get(R.me.id);if(me){const vid=me.querySelector("video");const ms=new MediaStream(v?[v]:[]);vid.srcObject=ms;vid.classList.toggle("tf-esp",!R.tela);}desenhaEstado()}
+function micOn(on){R.mic=!!on&&!!R.micT;if(R.micT)R.micT.enabled=R.mic;envia({t:"st",st:meuSt()});desenhaEstado()}
+
+/* ---------- conexões com cada pessoa (WebRTC) ---------- */
+function novoPeer(id,nome,ofertante){const old=R.peers.get(id);if(old&&old.pc&&old.pc.connectionState!=="closed"){return old}
+  const pc=new RTCPeerConnection({iceServers:ICE()}),P={id,nome:nome||"Convidado",pc,stream:new MediaStream(),st:{},cand:[],t0:Date.now()};R.peers.set(id,P);
+  if(ofertante){P.ta=pc.addTransceiver(R.micT||"audio",{direction:"sendrecv"});P.tv=pc.addTransceiver(vidAtual()||"video",{direction:"sendrecv"})}
+  pc.onicecandidate=e=>{if(e.candidate)envia({t:"ice",to:id,c:e.candidate.toJSON()})};
+  pc.ontrack=e=>{const tr=e.track;P.stream.getTracks().filter(x=>x.kind===tr.kind&&x!==tr).forEach(x=>P.stream.removeTrack(x));if(!P.stream.getTracks().includes(tr))P.stream.addTrack(tr);
+    tr.onunmute=()=>tile(id);tile(id);if(tr.kind==="audio"){medidor(id,P.stream);if(R.rec)T(()=>R.rec.liga(P.stream))}};
+  pc.onconnectionstatechange=()=>{const s=pc.connectionState;P.cs=s;tile(id);
+    if(s==="connected"&&!P.ok){P.ok=true;ata(`${P.nome} entrou`);nota(`${P.nome} entrou na chamada`)}
+    if(s==="failed"&&ofertante){T(()=>pc.restartIce());oferta(P,true)}
+    if(s==="failed"||s==="disconnected"){clearTimeout(P.tm);P.tm=setTimeout(()=>{if(["failed","disconnected"].includes(pc.connectionState))sai(id,"perdeu a conexão")},20000)}};
+  return P}
+async function oferta(P,restart){try{const of=await P.pc.createOffer(restart?{iceRestart:true}:undefined);await P.pc.setLocalDescription(of);envia({t:"offer",to:P.id,sdp:P.pc.localDescription.toJSON?P.pc.localDescription.toJSON():{type:of.type,sdp:of.sdp},nome:R.me.nome,st:meuSt()})}catch(e){}}
+async function aoOferta(m){let P=R.peers.get(m.from);if(!P||P.saiu||P.pc.connectionState==="closed")P=novoPeer(m.from,m.nome,false);P.nome=m.nome||P.nome;if(m.st)P.st=m.st;
+  try{await P.pc.setRemoteDescription(m.sdp);const tv=P.pc.getTransceivers();if(!P.ta){P.ta=tv.find(t=>t.receiver.track&&t.receiver.track.kind==="audio");P.tv=tv.find(t=>t.receiver.track&&t.receiver.track.kind==="video");
+      if(P.ta){P.ta.direction="sendrecv";await P.ta.sender.replaceTrack(R.micT||null)}if(P.tv){P.tv.direction="sendrecv";await P.tv.sender.replaceTrack(vidAtual()||null)}}
+    const an=await P.pc.createAnswer();await P.pc.setLocalDescription(an);envia({t:"answer",to:m.from,sdp:P.pc.localDescription.toJSON?P.pc.localDescription.toJSON():{type:an.type,sdp:an.sdp},nome:R.me.nome,st:meuSt()});
+    for(const c of P.cand.splice(0))T(()=>P.pc.addIceCandidate(c))}catch(e){}tile(m.from)}
+async function aoResposta(m){const P=R.peers.get(m.from);if(!P)return;if(m.st)P.st=m.st;P.nome=m.nome||P.nome;try{await P.pc.setRemoteDescription(m.sdp);for(const c of P.cand.splice(0))T(()=>P.pc.addIceCandidate(c))}catch(e){}tile(m.from)}
+function sai(id,motivo){const P=R&&R.peers.get(id);if(!P||P.saiu)return;P.saiu=true;T(()=>P.pc.close());R.peers.delete(id);if(R.an)R.an.delete(id);const t=R.tiles.get(id);if(t){t.remove();R.tiles.delete(id)}
+  ata(`${P.nome} saiu${motivo?" ("+motivo+")":""}`);nota(`${P.nome} saiu${motivo?" · "+motivo:""}`);if(R.pin===id)R.pin=null;layout();desenhaEstado()}
+
+/* ---------- mensagens da sala ---------- */
+const travado=()=>R.host?!!R.espera:!!R.esperaHost,admitido=(id,st)=>!travado()||R.adm.has(id)||R.peers.has(id)||!!(st&&st.host);
+const hostSt=(id,st)=>{if(st&&st.host){R.hostId=id;R.esperaHost=!!st.espera}};
+async function msgSala(m){if(!R||!m||!m.from||m.from===R.me.id)return;if(m.to&&m.to!==R.me.id){if(m.t==="admit")R.adm.add(m.to);return}
+  const P=R.peers.get(m.from);
+  switch(m.t){
+   case "knock":if(R.host&&R.dentro){if(R.espera){R.fila.set(m.from,m.nome||"Convidado");envia({t:"wait",to:m.from});desenhaFila();nota(`🚪 ${m.nome||"Alguém"} quer entrar`);T(()=>navigator.vibrate&&navigator.vibrate(200))}else{R.adm.add(m.from);envia({t:"admit",to:m.from})}}break;
+   case "wait":R.aguarda=true;telaEspera();break;
+   case "admit":R.adm.add(R.me.id);if(!R.dentro)entraDeVez();break;
+   case "deny":if(!R.dentro){fecha();alert("O anfitrião não liberou a sua entrada nesta chamada.")}break;
+   case "hello":{if(!R.dentro)break;hostSt(m.from,m.st);if(!admitido(m.from,m.st))break;
+     if(R.me.id<m.from){const Q=novoPeer(m.from,m.nome,true);Q.st=m.st||{};tile(m.from);oferta(Q)}else if(!m.reply)envia({t:"hello",to:m.from,reply:true,nome:R.me.nome,st:meuSt()});
+     if(!m.reply&&(R.host||(!R.hostId&&[...R.peers.keys()].every(k=>k>R.me.id))))envia({t:"hist",to:m.from,chat:R.chat.slice(-60)});break}
+   case "offer":hostSt(m.from,m.st);if(R.dentro&&admitido(m.from,m.st))aoOferta(m);break;
+   case "answer":hostSt(m.from,m.st);aoResposta(m);break;
+   case "ice":if(P){if(P.pc.remoteDescription)T(()=>P.pc.addIceCandidate(m.c));else P.cand.push(m.c)}break;
+   case "st":if(P){const was=P.st||{};P.st=m.st||{};P.nome=P.st.nome||P.nome;hostSt(m.from,P.st);if(P.st.mao&&!was.mao)nota(`✋ ${P.nome} levantou a mão`);if(P.st.rec&&!was.rec)nota(`🔴 ${P.nome} começou a gravar a chamada`,6000);if(!P.st.rec&&was.rec)nota(`⏹ ${P.nome} parou de gravar`);tile(m.from);desenhaEstado()}break;
+   case "chat":addChat({id:m.from,nome:(P&&P.nome)||m.nome||"?",txt:String(m.txt||"").slice(0,2000),ts:m.ts||Date.now()});break;
+   case "hist":if(Array.isArray(m.chat)&&!R.chat.length){m.chat.forEach(x=>R.chat.push(x));desenhaChat()}break;
+   case "react":reage(m.from,String(m.e||"").slice(0,4));break;
+   case "cc":mostraCC(m.from,String(m.txt||"").slice(0,300),m.fim);if(m.fim&&P)ata(`${P.nome} (fala): ${m.txt}`);break;
+   case "mute":if(m.from===R.hostId){micOn(false);nota("🔇 O anfitrião pediu silêncio: seu microfone foi desligado. Toque em 🎤 para falar.")}break;
+   case "kick":if(m.from===R.hostId){nota("O anfitrião encerrou a sua participação.");setTimeout(()=>sair(true),800)}break;
+   case "bye":sai(m.from);break}}
+
+/* ---------- entrar, ficar e sair ---------- */
+async function abre(code,o){o=o||{};if(R){if(R.code===code){mostra();return}if(!confirm("Sair da chamada atual para entrar em outra?"))return;await sair(true)}
+  const sala=C.salas[code]||{};R={code,titulo:o.titulo||sala.titulo||"",host:!!(o.host||sala.host),espera:!!(o.espera??sala.espera),me:{id:Date.now().toString(36)+rnd(6),nome:nomeUsuario()},peers:new Map(),tiles:new Map(),adm:new Set(),fila:new Map(),
+    chat:[],ata:[],mic:true,cam:true,mao:0,layout:"grade",pin:null,t0:0,naoLidas:0,painel:"",guest:!!o.guest};
+  R.adm.add(R.me.id);monta();telaPre();await abreMidia();previa();desenhaPre()}
+function monta(){let o=ov();if(o)o.remove();o=document.createElement("div");o.id="tf";o.setAttribute("role","dialog");o.setAttribute("aria-label","TeleFish · videochamada");document.body.appendChild(o);document.documentElement.classList.add("tf-aberto")}
+function mostra(){const o=ov();if(o){o.classList.remove("tf-min");document.documentElement.classList.add("tf-aberto")}}
+function telaPre(){const o=ov();o.innerHTML=`<div class="tf-pre"><div class="tf-pre-c"><h2>🐟📹 TeleFish</h2><p class="tf-sub">${R.titulo?E(R.titulo)+" · ":""}sala <b>${E(R.code)}</b></p>
+   <div class="tf-prev"><video autoplay playsinline muted class="tf-esp"></video><div class="tf-av" style="--c:${cor(R.me.id)}">${E(ini(R.me.nome))}</div><div class="tf-vu"><i></i></div></div>
+   <div class="tf-pre-bt"><button type="button" class="tf-b" data-tf="mic" aria-label="Microfone"></button><button type="button" class="tf-b" data-tf="cam" aria-label="Câmera"></button><button type="button" class="tf-b" data-tf="fundos" aria-label="Fundo">🖼</button><button type="button" class="tf-b" data-tf="disp" aria-label="Dispositivos">⚙️</button></div>
+   <div class="tf-painel-pre"></div>
+   <label class="tf-f">Seu nome<input id="tf-nome" value="${E(R.me.nome)}" maxlength="40" placeholder="Como vão te ver na chamada" autocomplete="name"></label>
+   ${R.host?`<label class="tf-ck"><input type="checkbox" id="tf-espera"${R.espera?" checked":""}> Sala de espera: eu aceito quem entra</label>`:""}
+   <div class="tf-erros"></div>
+   <div class="tf-pre-go"><button type="button" class="tf-ok" data-tf="entrar">Entrar na chamada</button><button type="button" class="tf-x" data-tf="cancelar">Cancelar</button></div>
+   <p class="tf-nota">A chamada vai direto entre os aparelhos, criptografada. O link é o convite: mande só para quem vai participar. Funciona melhor com até 6 pessoas.</p></div></div><div class="tf-toasts"></div>`}
+function previa(){const o=ov();if(!o||!R)return;const v=o.querySelector(".tf-prev video");if(v){v.srcObject=new MediaStream(vidAtual()?[vidAtual()]:[])}if(R.micT)medidor(R.me.id,new MediaStream([R.micT]))}
+function desenhaPre(){const o=ov();if(!o||!R)return;const p=o.querySelector(".tf-prev");if(!p)return;p.classList.toggle("tf-semcam",!R.cam);const b=o.querySelector('.tf-pre [data-tf="mic"]'),c=o.querySelector('.tf-pre [data-tf="cam"]');
+  b.textContent=R.mic&&R.micT?"🎤":"🔇";b.classList.toggle("tf-off",!(R.mic&&R.micT));c.textContent=R.cam?"📷":"🚫";c.classList.toggle("tf-off",!R.cam);
+  o.querySelector(".tf-erros").innerHTML=[R.micErr?`🎤 Microfone indisponível (${E(R.micErr)}): você entra só ouvindo.`:"",R.camErr?`📷 Câmera indisponível (${E(R.camErr)}).`:""].filter(Boolean).map(x=>`<p>${x}</p>`).join("")}
+function telaEspera(){const o=ov();if(!o)return;const g=o.querySelector(".tf-pre-go");if(g)g.innerHTML=`<p class="tf-esperando">⏳ Aguardando o anfitrião liberar a sua entrada…</p><button type="button" class="tf-x" data-tf="cancelar">Desistir</button>`}
+async function entrar(){const n=(document.getElementById("tf-nome")||{}).value;R.me.nome=String(n||"").trim().slice(0,40)||"Convidado";C.nome=R.me.nome;const ce=document.getElementById("tf-espera");if(ce){R.espera=ce.checked;C.salas[R.code]=Object.assign(C.salas[R.code]||{},{espera:R.espera})}salva();
+  const g=ov().querySelector(".tf-pre-go");if(g)g.innerHTML=`<p class="tf-esperando">🔄 Conectando…</p>`;
+  R.tr=await conecta(R.code,msgSala);if(!R)return;
+  if(R.host){entraDeVez();return}
+  envia({t:"knock",nome:R.me.nome});setTimeout(()=>{if(R&&!R.dentro&&!R.aguarda)entraDeVez()},3500)}
+function entraDeVez(){if(!R||R.dentro)return;R.dentro=true;R.t0=Date.now();ata(`${R.me.nome} entrou (${R.tr.tipo==="nuvem"?"pela nuvem":"só neste aparelho"})`);telaCall();envia({t:"hello",nome:R.me.nome,st:meuSt()});
+  T(()=>navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>{if(R)R.wake=w}).catch(()=>{}));R.relogio=setInterval(()=>{const t=ov()&&ov().querySelector(".tf-tempo");if(t)t.textContent=dur(Date.now()-R.t0)},1000);
+  if(R.tr.tipo==="local")nota("☁️ A nuvem não respondeu: esta sala só funciona entre abas deste aparelho. Verifique a internet e entre de novo.",9000);
+  if(!new URLSearchParams(location.search).get("telefish")&&history.replaceState)T(()=>history.replaceState(null,"",location.pathname+"?telefish="+R.code+location.hash))}
+async function sair(sem){if(!R)return;if(!sem&&!confirm("Sair da chamada?"))return;const r=R;envia({t:"bye"});if(r.rec)await gravar(false);if(r.sr){r.ccOn=false;T(()=>r.sr.stop())}
+  r.peers.forEach(p=>T(()=>p.pc.close()));[r.micT,r.camT,r.tela].forEach(t=>t&&T(()=>t.stop()));if(r.fx)r.fx.parar();T(()=>r.tr&&r.tr.close());clearInterval(r.relogio);clearInterval(r.vu);T(()=>r.ac&&r.ac.close());T(()=>r.wake&&r.wake.release());
+  if(r.dentro){C.hist.unshift({code:r.code,titulo:r.titulo,ini:r.t0,fim:Date.now(),pessoas:[...new Set([r.me.nome,...r.ata.filter(l=>/ entrou/.test(l)).map(l=>l.replace(/^\[[^\]]+\] /,"").replace(/ entrou.*$/,""))])],rec:!!r.gravou,msgs:r.chat.length,ata:r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n").slice(0,40000)});C.hist=C.hist.slice(0,40);salva()}
+  R=null;fecha();if(new URLSearchParams(location.search).get("telefish"))T(()=>history.replaceState(null,"",location.pathname+location.hash));T(()=>window.gfTeleFish.redesenhaHub())}
+function fecha(){const o=ov();if(o)o.remove();document.documentElement.classList.remove("tf-aberto");if(R&&!R.dentro){[R.micT,R.camT].forEach(t=>t&&T(()=>t.stop()));if(R.fx)R.fx.parar();T(()=>R.tr&&R.tr.close());clearInterval(R.vu);T(()=>R.ac&&R.ac.close());R=null}}
+
+/* ---------- tela da chamada ---------- */
+const BAR=[["mic","🎤","Microfone"],["cam","📷","Câmera"],["tela","🖥","Compartilhar a tela"],["rec","⏺","Gravar"],["chat","💬","Chat"],["gente","👥","Pessoas"],["mao","✋","Levantar a mão"],["reacao","😀","Reações"],["fundos","🖼","Fundo"],["cc","CC","Legendas"],["layout","▦","Layout"],["mais","⋯","Mais"],["sair","📞","Sair"]];
+function telaCall(){const o=ov();o.innerHTML=`<div class="tf-call"><header class="tf-top"><b>🐟 TeleFish</b><span class="tf-tit">${E(R.titulo||"Sala "+R.code)}</span><span class="tf-tempo">0:00</span><span class="tf-recb" hidden>🔴 Gravando</span><span class="tf-rede" title="${R.tr.tipo==="nuvem"?"Conectado pela nuvem":"Sem nuvem: só neste aparelho"}">${R.tr.tipo==="nuvem"?"☁️":"💻"}</span>
+   <button type="button" class="tf-tb" data-tf="convite" aria-label="Convidar">🔗<span class="tf-tbl"> Convidar</span></button>${R.guest&&document.body.classList.contains("auth-lock")?"":`<button type="button" class="tf-tb" data-tf="min" aria-label="Minimizar">🗕</button>`}<button type="button" class="tf-tb" data-tf="cheia" aria-label="Tela cheia">⛶</button></header>
+  <div class="tf-mid"><main class="tf-grid" data-l="grade"></main><aside class="tf-side" hidden></aside></div>
+  <div class="tf-fila" hidden></div>
+  <nav class="tf-bar">${BAR.map(([k,ic,t])=>`<button type="button" class="tf-b" data-tf="${k}" aria-label="${t}" title="${t}"${k==="tela"&&!podeTela?' disabled':""}${k==="cc"&&!SR?' disabled':""}>${ic}<span>${t.split(" ")[0]}</span></button>`).join("")}</nav>
+  <div class="tf-pop" hidden></div></div><div class="tf-toasts"></div><div class="tf-mini"><span></span><button type="button" data-tf="max">⤢ Voltar</button><button type="button" data-tf="sair">📞</button></div>`;
+  tile(R.me.id);trocaVideo();layout();desenhaEstado()}
+function tile(id){if(!R||!R.dentro)return;const g=ov()&&ov().querySelector(".tf-grid");if(!g)return;let t=R.tiles.get(id);const self=id===R.me.id,P=self?null:R.peers.get(id);if(!self&&!P)return;
+  if(!t){t=document.createElement("div");t.className="tf-t";t.dataset.id=id;t.innerHTML=`<video autoplay playsinline${self?" muted":""}></video><div class="tf-av"></div><div class="tf-nm"></div><div class="tf-ic"></div><div class="tf-cc" hidden></div><div class="tf-rx"></div><button type="button" class="tf-pin" data-tf="pin" data-id="${E(id)}" aria-label="Fixar">📌</button>`;g.appendChild(t);R.tiles.set(id,t);
+    if(!self){const v=t.querySelector("video");v.srcObject=P.stream;if(C.dev&&C.dev.spk&&v.setSinkId)T(()=>v.setSinkId(C.dev.spk))}layout()}
+  const st=self?meuSt():P.st||{},nome=self?R.me.nome+" (você)":P.nome,camOn=self?!!vidAtual():st.cam!==false&&P.stream.getVideoTracks().some(x=>x.readyState==="live"&&!x.muted);
+  t.classList.toggle("tf-semcam",!camOn);t.classList.toggle("tf-tela",!!st.tela);const av=t.querySelector(".tf-av");av.textContent=ini(self?R.me.nome:P.nome);av.style.setProperty("--c",cor(id));
+  t.querySelector(".tf-nm").textContent=nome;t.querySelector(".tf-ic").textContent=[st.mic===false?"🔇":"",st.mao?"✋":"",st.rec?"🔴":"",st.host?"⭐":"",!self&&P.cs&&P.cs!=="connected"?(P.cs==="connecting"||P.cs==="new"?"⏳":"⚠️"):""].join(" ").trim();
+  t.classList.toggle("tf-pinado",R.pin===id)}
+function layout(){const o=ov();if(!o||!R)return;const g=o.querySelector(".tf-grid");if(!g)return;const ids=[R.me.id,...R.peers.keys()].filter(i=>R.tiles.has(i)),n=ids.length;
+  const share=[...R.peers.values()].find(p=>p.st&&p.st.tela),dest=R.pin||(share&&share.id)||(R.tela?R.me.id:null)||(R.layout==="destaque"?(R.fala||ids.find(i=>i!==R.me.id)||R.me.id):null);
+  const port=innerHeight>innerWidth*1.1;g.dataset.l=dest&&n>1?"destaque":"grade";g.style.setProperty("--n",n);g.style.setProperty("--cols",n<=1?1:port?(n<=3?1:2):n<=4?2:n<=9?3:4);ids.forEach(i=>{const t=R.tiles.get(i);t.classList.toggle("tf-dest",g.dataset.l==="destaque"&&i===dest)})}
+function desenhaEstado(){if(!R)return;const o=ov();if(!o)return;if(!R.dentro){desenhaPre();return}const set=(k,on,ic,off)=>{const b=o.querySelector(`.tf-bar [data-tf="${k}"]`);if(!b)return;b.classList.toggle("tf-off",!on);if(ic)b.firstChild.textContent=on?ic:off};
+  set("mic",R.mic&&!!R.micT,"🎤","🔇");set("cam",R.cam,"📷","🚫");const bt=o.querySelector('.tf-bar [data-tf="tela"]');if(bt)bt.classList.toggle("tf-on",!!R.tela);
+  const br=o.querySelector('.tf-bar [data-tf="rec"]');if(br)br.classList.toggle("tf-on",!!R.rec);const bm=o.querySelector('.tf-bar [data-tf="mao"]');if(bm)bm.classList.toggle("tf-on",!!R.mao);const bc=o.querySelector('.tf-bar [data-tf="cc"]');if(bc)bc.classList.toggle("tf-on",!!R.ccOn);
+  const ch=o.querySelector('.tf-bar [data-tf="chat"]');if(ch)ch.dataset.n=R.naoLidas||"";const gt=o.querySelector('.tf-bar [data-tf="gente"]');if(gt)gt.dataset.n=somaPessoas();
+  const rb=o.querySelector(".tf-recb");if(rb)rb.hidden=!(R.rec||[...R.peers.values()].some(p=>p.st&&p.st.rec));tile(R.me.id);R.peers.forEach((p,id)=>tile(id));layout();if(R.painel==="gente")painel("gente",true);
+  const mi=o.querySelector(".tf-mini span");if(mi)mi.textContent=`🐟 ${somaPessoas()} na chamada · ${dur(Date.now()-R.t0)}`}
+
+/* ---------- quem está falando ---------- */
+function medidor(id,stream){if(!R)return;try{R.ac=R.ac||new (window.AudioContext||window.webkitAudioContext)();if(R.ac.state==="suspended")R.ac.resume().catch(()=>{});R.an=R.an||new Map();
+    const src=R.ac.createMediaStreamSource(stream),an=R.ac.createAnalyser();an.fftSize=512;src.connect(an);R.an.set(id,{an,buf:new Uint8Array(an.fftSize)});
+    if(!R.vu)R.vu=setInterval(()=>{if(!R)return;let best=null,bv=0;R.an.forEach((x,k)=>{x.an.getByteTimeDomainData(x.buf);let s=0;for(const b of x.buf){const d=(b-128)/128;s+=d*d}const v=Math.sqrt(s/x.buf.length);
+        const t=R.tiles&&R.tiles.get(k);if(t)t.classList.toggle("tf-fala",v>0.04);if(k===R.me.id){const m=ov()&&ov().querySelector(".tf-vu i");if(m)m.style.width=Math.min(100,v*400)+"%"}if(v>bv&&v>0.04){bv=v;best=k}});
+      if(best&&best!==R.fala){R.fala=best;if(R.layout==="destaque"&&!R.pin)layout()}},180)}catch(e){}}
+
+/* ---------- compartilhar a tela ---------- */
+async function tela(on){if(on){try{const s=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15}},audio:false});R.tela=s.getVideoTracks()[0];R.tela.onended=()=>tela(false);T(()=>{R.tela.contentHint="detail"});nota("🖥 Você está mostrando a sua tela")}catch(e){return}}
+  else{if(R.tela)T(()=>R.tela.stop());R.tela=null}trocaVideo();envia({t:"st",st:meuSt()})}
+
+/* ---------- gravar (fica só neste aparelho) ---------- */
+async function gravar(on){if(!on){if(!R.rec)return;const r=R.rec;R.rec=null;await new Promise(ok=>{r.mr.onstop=ok;T(()=>r.mr.stop())});clearInterval(r.iv);T(()=>r.ac.close());
+    const tipo=r.mr.mimeType||"video/webm",b=new Blob(r.parts,{type:tipo}),a=document.createElement("a"),ext=/mp4/.test(tipo)?"mp4":"webm";a.href=URL.createObjectURL(b);a.download=`TeleFish_${R?R.code:"sala"}_${iso(Date.now())}_${hm(Date.now()).replace(":","h")}.${ext}`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000);
+    if(R){R.gravou=true;ata(`${R.me.nome} parou de gravar (arquivo ${a.download}, ${F(b.size/1048576,1)} MB)`);nota(`💾 Gravação salva: ${a.download}`,7000);envia({t:"st",st:meuSt()});desenhaEstado()}return}
+  if(!window.MediaRecorder){nota("Este aparelho não grava vídeo pelo navegador.");return}
+  if(!confirm("Gravar a chamada? Todos vão ver o aviso 🔴 Gravando. O arquivo fica salvo só neste aparelho. Peça a autorização de quem participa (LGPD).")) return;
+  const W=1280,H=720,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d"),ac=new (window.AudioContext||window.webkitAudioContext)(),dst=ac.createMediaStreamDestination(),lig=new Set();
+  const liga=s=>{if(!s||lig.has(s))return;const a=s.getAudioTracks();if(!a.length)return;try{ac.createMediaStreamSource(new MediaStream(a)).connect(dst);lig.add(s)}catch(e){}};if(R.micT)liga(new MediaStream([R.micT]));R.peers.forEach(p=>liga(p.stream));
+  const cel=(v,nome,X,Y,w,h,id)=>{x.fillStyle="#0b1f1a";x.fillRect(X,Y,w,h);const ok=v&&v.readyState>=2&&v.videoWidth&&!(R.tiles.get(id)||{classList:{contains:()=>true}}).classList.contains("tf-semcam");
+    if(ok){const r=Math.min(w/v.videoWidth,h/v.videoHeight),dw=v.videoWidth*r,dh=v.videoHeight*r;x.drawImage(v,X+(w-dw)/2,Y+(h-dh)/2,dw,dh)}else{x.fillStyle=cor(id);x.beginPath();x.arc(X+w/2,Y+h/2,Math.min(w,h)/5,0,7);x.fill();x.fillStyle="#fff";x.font=`bold ${Math.round(Math.min(w,h)/7)}px system-ui`;x.textAlign="center";x.textBaseline="middle";x.fillText(ini(nome),X+w/2,Y+h/2)}
+    x.textAlign="left";x.textBaseline="alphabetic";x.font="bold 18px system-ui";const tw=x.measureText(nome).width;x.fillStyle="rgba(0,0,0,.55)";x.fillRect(X+8,Y+h-34,tw+16,26);x.fillStyle="#fff";x.fillText(nome,X+16,Y+h-15)};
+  const desenha=()=>{if(!R)return;x.fillStyle="#06140f";x.fillRect(0,0,W,H);const ids=[R.me.id,...R.peers.keys()].filter(i=>R.tiles.has(i)),vid=i=>R.tiles.get(i).querySelector("video"),nm=i=>i===R.me.id?R.me.nome:(R.peers.get(i)||{}).nome||"";
+    const d=[...R.tiles.values()].find(t=>t.classList.contains("tf-dest"));if(d&&ids.length>1){const di=d.dataset.id,rest=ids.filter(i=>i!==di);cel(vid(di),nm(di),0,0,W*0.78,H,di);const h=H/Math.max(rest.length,4);rest.forEach((i,k)=>cel(vid(i),nm(i),W*0.78+4,k*h,W*0.22-4,h-4,i))}
+    else{const n=ids.length,c=n<=1?1:n<=4?2:n<=9?3:4,r=Math.ceil(n/c),w=W/c,h=H/r;ids.forEach((i,k)=>cel(vid(i),nm(i),(k%c)*w+2,Math.floor(k/c)*h+2,w-4,h-4,i))}
+    x.fillStyle="rgba(0,0,0,.5)";x.fillRect(W-250,10,240,30);x.fillStyle="#fff";x.font="16px system-ui";x.fillText(`🐟 TeleFish · ${new Date().toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}`,W-242,31)};
+  const vs=cv.captureStream(24),st=new MediaStream([...vs.getVideoTracks(),...dst.stream.getAudioTracks()]);const mt=["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm","video/mp4"].find(m=>T(()=>MediaRecorder.isTypeSupported(m),false));
+  let mr;try{mr=new MediaRecorder(st,mt?{mimeType:mt,videoBitsPerSecond:2500000}:undefined)}catch(e){nota("Não consegui começar a gravação neste aparelho.");T(()=>ac.close());return}
+  const parts=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};mr.start(1000);R.rec={mr,parts,ac,iv:setInterval(desenha,1000/24),liga};ata(`${R.me.nome} começou a gravar`);envia({t:"st",st:meuSt()});nota("🔴 Gravando. Toque em ⏺ de novo para parar e salvar.");desenhaEstado()}
+
+/* ---------- chat, reações, legendas ---------- */
+const linkifica=t=>E(t).replace(/(https?:\/\/[^\s<]+)/g,u=>`<a href="${u}" target="_blank" rel="noopener noreferrer">${u}</a>`);
+function addChat(m){R.chat.push(m);if(R.chat.length>500)R.chat.shift();if(R.painel!=="chat"){R.naoLidas=(R.naoLidas||0)+1;if(m.id!==R.me.id)nota(`💬 ${m.nome}: ${m.txt.slice(0,80)}`)}desenhaChat();desenhaEstado()}
+function desenhaChat(){if(!R||R.painel!=="chat")return;const l=ov().querySelector(".tf-msgs");if(!l)return;const fim=l.scrollTop+l.clientHeight>=l.scrollHeight-30;
+  l.innerHTML=R.chat.map(m=>`<div class="tf-m${m.id===R.me.id?" tf-eu":""}"><small>${E(m.nome)} · ${hm(m.ts)}</small><p>${linkifica(m.txt)}</p></div>`).join("")||`<p class="tf-nota">As mensagens aparecem para todos na chamada. Quem entrar depois recebe as últimas.</p>`;if(fim)l.scrollTop=l.scrollHeight}
+function mandaChat(){const i=ov().querySelector(".tf-chatin");const t=(i&&i.value||"").trim();if(!t)return;i.value="";const m={id:R.me.id,nome:R.me.nome,txt:t.slice(0,2000),ts:Date.now()};envia({t:"chat",txt:m.txt,ts:m.ts,nome:R.me.nome});addChat(m);i.focus()}
+function reage(id,e){const t=R.tiles.get(id);if(!t)return;const s=document.createElement("span");s.className="tf-emo";s.textContent=e;s.style.left=(10+Math.random()*70)+"%";t.querySelector(".tf-rx").appendChild(s);setTimeout(()=>s.remove(),2600)}
+function mostraCC(id,txt,fim){const t=R.tiles.get(id);if(!t)return;const c=t.querySelector(".tf-cc");c.hidden=!txt;c.textContent=txt;clearTimeout(c._t);c._t=setTimeout(()=>{c.hidden=true},fim?4000:7000)}
+function legendas(on){if(!SR)return;R.ccOn=on;if(on){const r=new SR();r.lang="pt-BR";r.continuous=true;r.interimResults=true;R.sr=r;
+    r.onresult=e=>{if(!R||!R.mic)return;let txt="",fim=false;for(let i=e.resultIndex;i<e.results.length;i++){txt+=e.results[i][0].transcript;if(e.results[i].isFinal)fim=true}txt=txt.trim();if(!txt)return;mostraCC(R.me.id,txt,fim);envia({t:"cc",txt,fim});if(fim)ata(`${R.me.nome} (fala): ${txt}`)};
+    r.onend=()=>{if(R&&R.ccOn)T(()=>r.start())};r.onerror=e=>{if(e.error==="not-allowed"){R.ccOn=false;nota("Legendas bloqueadas: libere o microfone para o reconhecimento de voz.");desenhaEstado()}};T(()=>r.start());nota("CC ligadas: sua fala vira legenda para todos e entra na ata (o reconhecimento de voz é do navegador).",6000)}
+  else{T(()=>R.sr&&R.sr.stop());R.sr=null}envia({t:"st",st:meuSt()});desenhaEstado()}
+function baixaAta(txt,nome){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain;charset=utf-8"}));a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},30000)}
+const ataTxt=()=>`TeleFish · ${R.titulo||"Sala "+R.code}\nData: ${new Date(R.t0||Date.now()).toLocaleString("pt-BR")}\nPessoas: ${[R.me.nome,...[...R.peers.values()].map(p=>p.nome)].join(", ")}\n\n`+R.ata.concat(R.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n");
+
+/* ---------- painéis ---------- */
+async function dispositivos(){const L=T(()=>navigator.mediaDevices.enumerateDevices(),null);const D=L?await L:[];const op=(k,sel)=>D.filter(d=>d.kind===k).map((d,i)=>`<option value="${E(d.deviceId)}"${d.deviceId===sel?" selected":""}>${E(d.label||({videoinput:"Câmera",audioinput:"Microfone",audiooutput:"Alto-falante"}[k])+" "+(i+1))}</option>`).join("");
+  const spk=D.some(d=>d.kind==="audiooutput")&&"setSinkId" in HTMLMediaElement.prototype;
+  return `<h3>⚙️ Dispositivos</h3><label class="tf-f">Câmera<select data-tfd="cam">${op("videoinput",C.dev.cam)}</select></label><label class="tf-f">Microfone<select data-tfd="mic">${op("audioinput",C.dev.mic)}</select></label>${spk?`<label class="tf-f">Alto-falante<select data-tfd="spk">${op("audiooutput",C.dev.spk)}</select></label>`:""}`}
+function fundosHTML(){return `<h3>🖼 Fundo</h3><div class="tf-fds">${FUNDOS.map(([k,t])=>`<button type="button" class="tf-fd${(C.fundo||"")===k?" on":""}" data-tf="fundo" data-k="${k}">${t}</button>`).join("")}</div>
+  <label class="tf-f">Sua imagem de fundo<input type="file" accept="image/*" data-tfimg="1"></label><p class="tf-nota">O recorte da pessoa roda no próprio aparelho. Na primeira vez baixa o recurso de recorte (precisa de internet). Em celulares mais simples pode pesar.</p>`}
+async function painel(k,so){const o=ov();if(!o)return;const pre=!R.dentro;const box=pre?o.querySelector(".tf-painel-pre"):o.querySelector(".tf-side");if(!box)return;if(!so&&R.painel===k){R.painel="";box.hidden=true;box.innerHTML="";return}R.painel=k;box.hidden=false;
+  let h="";if(k==="chat"){R.naoLidas=0;h=`<div class="tf-sh"><h3>💬 Chat</h3><button type="button" class="tf-x1" data-tf="fechap">✕</button></div><div class="tf-msgs"></div><div class="tf-chatbar"><input class="tf-chatin" maxlength="2000" placeholder="Escreva uma mensagem" enterkeyhint="send"><button type="button" class="tf-ok" data-tf="manda">Enviar</button></div>`}
+  else if(k==="gente"){const L=[[R.me.id,R.me.nome+" (você)",meuSt()],...[...R.peers.values()].map(p=>[p.id,p.nome,p.st||{}])].sort((a,b)=>(b[2].mao?1e13-b[2].mao:0)-(a[2].mao?1e13-a[2].mao:0));
+    h=`<div class="tf-sh"><h3>👥 Pessoas (${L.length})</h3><button type="button" class="tf-x1" data-tf="fechap">✕</button></div><ul class="tf-pl">${L.map(([id,n,s])=>`<li><span class="tf-avm" style="--c:${cor(id)}">${E(ini(n))}</span><b>${E(n)}</b><span>${s.host?"⭐":""}${s.mao?"✋":""}${s.mic===false?"🔇":"🎤"}${s.cam===false?"🚫":"📷"}${s.tela?"🖥":""}${s.rec?"🔴":""}</span>${R.host&&id!==R.me.id?`<span class="tf-pla"><button type="button" class="tf-mini2" data-tf="mutar" data-id="${E(id)}">🔇 Silenciar</button><button type="button" class="tf-mini2" data-tf="tirar" data-id="${E(id)}">Remover</button></span>`:""}</li>`).join("")}</ul>
+      ${R.host?`<label class="tf-ck"><input type="checkbox" data-tfesp="1"${R.espera?" checked":""}> Sala de espera: eu aceito quem entra</label>`:""}`}
+  else if(k==="convite"){const l=linkSala(R.code),txt=`Entre na chamada TeleFish${R.titulo?" · "+R.titulo:""}: ${l}`;h=`<div class="tf-sh"><h3>🔗 Convidar</h3><button type="button" class="tf-x1" data-tf="fechap">✕</button></div><p class="tf-nota">Quem abrir o link entra pelo navegador, sem instalar nada e sem conta.${R.espera?" Você aceita cada um na sala de espera.":""}</p><input class="tf-link" readonly value="${E(l)}">
+    <div class="tf-bts"><button type="button" class="tf-ok" data-tf="copiar">📋 Copiar o link</button><a class="tf-b2" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">📲 WhatsApp</a><a class="tf-b2" href="mailto:?subject=${encodeURIComponent("Convite TeleFish"+(R.titulo?" · "+R.titulo:""))}&body=${encodeURIComponent(txt)}">✉️ E-mail</a>${navigator.share?`<button type="button" class="tf-b2" data-tf="partilha">📤 Compartilhar</button>`:""}</div>`}
+  else if(k==="reacao"){h=`<div class="tf-sh"><h3>😀 Reações</h3><button type="button" class="tf-x1" data-tf="fechap">✕</button></div><div class="tf-emos">${["👍","👏","❤️","😂","😮","🎉","🐟","🤝","✅","🔥"].map(e=>`<button type="button" data-tf="emo" data-e="${e}">${e}</button>`).join("")}</div>`}
+  else if(k==="fundos"){h=(pre?"":`<div class="tf-sh"><span></span><button type="button" class="tf-x1" data-tf="fechap">✕</button></div>`)+fundosHTML()}
+  else if(k==="disp"||k==="mais"){h=(pre?"":`<div class="tf-sh"><span></span><button type="button" class="tf-x1" data-tf="fechap">✕</button></div>`)+await dispositivos()+(pre?"":`<h3>⋯ Mais</h3><div class="tf-bts"><button type="button" class="tf-b2" data-tf="pip">🗗 Janela flutuante (PiP)</button><button type="button" class="tf-b2" data-tf="ata">📝 Baixar a ata</button><button type="button" class="tf-b2" data-tf="convite">🔗 Convidar</button></div>
+    <p class="tf-nota">Rede: ${R.tr.tipo==="nuvem"?"☁️ sala pela nuvem":"💻 só neste aparelho ("+E(R.tr.erro||"")+")"}. ${(C.turn||{}).url?"Usando o servidor TURN configurado.":"Sem servidor TURN: em algumas redes (4G, empresas) a ligação pode não fechar; configure um TURN no TeleFish da Gestão."}</p>`)}
+  box.innerHTML=h;if(k==="chat"){desenhaChat();const i=box.querySelector(".tf-chatin");if(i&&!so)i.focus()}if(!so)desenhaEstado()}
+function desenhaFila(){const f=ov()&&ov().querySelector(".tf-fila");if(!f)return;f.hidden=!R.fila.size;f.innerHTML=[...R.fila].map(([id,n])=>`<div>🚪 <b>${E(n)}</b> quer entrar <button type="button" class="tf-ok" data-tf="aceita" data-id="${E(id)}">Aceitar</button><button type="button" class="tf-x" data-tf="recusa" data-id="${E(id)}">Recusar</button></div>`).join("")}
+
+/* ---------- cliques e campos da chamada ---------- */
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#tf [data-tf]");if(!b||!R)return;const k=b.dataset.tf,id=b.dataset.id;if(b.tagName==="A")return;e.preventDefault();
+  if(k==="mic"){if(!R.micT){await abreMidia();if(!R.micT){nota("Sem microfone liberado neste aparelho.");return}}micOn(!R.mic)}
+  else if(k==="cam"){if(R.cam)desligaCam();else if(!await ligaCam())nota("Não consegui ligar a câmera.");trocaVideo();envia({t:"st",st:meuSt()});if(!R.dentro){previa();desenhaPre()}}
+  else if(k==="entrar")entrar();else if(k==="cancelar"){envia({t:"bye"});fecha()}
+  else if(k==="sair")sair();else if(k==="tela")tela(!R.tela);else if(k==="rec")gravar(!R.rec);
+  else if(["chat","gente","convite","reacao","fundos","disp","mais"].includes(k))painel(k);else if(k==="fechap")painel(R.painel);
+  else if(k==="manda")mandaChat();else if(k==="emo"){reage(R.me.id,b.dataset.e);envia({t:"react",e:b.dataset.e})}
+  else if(k==="mao"){R.mao=R.mao?0:Date.now();envia({t:"st",st:meuSt()});desenhaEstado()}
+  else if(k==="cc")legendas(!R.ccOn);else if(k==="layout"){R.layout=R.layout==="grade"?"destaque":"grade";R.pin=null;layout();nota(R.layout==="grade"?"▦ Grade: todos do mesmo tamanho":"🗣 Destaque: quem está falando aparece grande")}
+  else if(k==="pin"){R.pin=R.pin===id?null:id;layout();desenhaEstado()}
+  else if(k==="fundo"){C.fundo=b.dataset.k;salva();b.parentNode.querySelectorAll(".tf-fd").forEach(x=>x.classList.toggle("on",x===b));if(C.fundo==="foto"&&!C.img){nota("Escolha a sua imagem logo abaixo.");return}if(C.fundo)nota("🖼 Preparando o fundo…",2500);await aplicaFundo();if(!R.dentro)previa()}
+  else if(k==="min"){ov().classList.add("tf-min");document.documentElement.classList.remove("tf-aberto")}else if(k==="max")mostra();
+  else if(k==="cheia"){const o=ov();T(()=>document.fullscreenElement?document.exitFullscreen():o.requestFullscreen())}
+  else if(k==="pip"){const t=R.tiles.get(R.fala||[...R.peers.keys()][0]||R.me.id);const v=t&&t.querySelector("video");if(v&&v.requestPictureInPicture)T(()=>v.requestPictureInPicture());else nota("Este navegador não tem janela flutuante.")}
+  else if(k==="ata")baixaAta(ataTxt(),`TeleFish_ata_${R.code}_${iso(Date.now())}.txt`);
+  else if(k==="copiar"){const l=linkSala(R.code);T(()=>navigator.clipboard.writeText(l).then(()=>nota("📋 Link copiado")),null)||nota(l)}
+  else if(k==="partilha"){T(()=>navigator.share({title:"TeleFish",text:"Entre na chamada TeleFish"+(R.titulo?" · "+R.titulo:""),url:linkSala(R.code)}))}
+  else if(k==="aceita"){const n=R.fila.get(id);R.fila.delete(id);R.adm.add(id);envia({t:"admit",to:id});desenhaFila();ata(`${R.me.nome} aceitou ${n}`)}
+  else if(k==="recusa"){R.fila.delete(id);envia({t:"deny",to:id});desenhaFila()}
+  else if(k==="mutar"){envia({t:"mute",to:id});nota("Pedido de silêncio enviado")}
+  else if(k==="tirar"){const P=R.peers.get(id);if(P&&confirm(`Remover ${P.nome} da chamada?`)){envia({t:"kick",to:id});setTimeout(()=>sai(id,"removido pelo anfitrião"),600)}}},true);
+document.addEventListener("keydown",e=>{if(e.target.classList&&e.target.classList.contains("tf-chatin")&&e.key==="Enter"&&!e.shiftKey){e.preventDefault();mandaChat()}},true);
+document.addEventListener("change",async e=>{const t=e.target;if(!t.closest||!t.closest("#tf")||!R)return;e.stopPropagation();
+  if(t.dataset.tfd){C.dev[t.dataset.tfd]=t.value;salva();if(t.dataset.tfd==="cam"&&R.cam){desligaCam();await ligaCam();trocaVideo();if(!R.dentro)previa()}
+    else if(t.dataset.tfd==="mic"){const old=R.micT;try{const s=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:t.value},echoCancellation:true,noiseSuppression:true,autoGainControl:true}});R.micT=s.getAudioTracks()[0];R.micT.enabled=R.mic;R.peers.forEach(p=>p.ta&&T(()=>p.ta.sender.replaceTrack(R.micT)));if(old)old.stop();medidor(R.me.id,new MediaStream([R.micT]))}catch(_){nota("Não consegui trocar o microfone.")}}
+    else if(t.dataset.tfd==="spk")R.tiles.forEach(x=>{const v=x.querySelector("video");if(v.setSinkId)T(()=>v.setSinkId(t.value))});return}
+  if(t.dataset.tfimg&&t.files&&t.files[0]){const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=async()=>{const c=document.createElement("canvas"),r=Math.min(1,1280/im.width);c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext("2d").drawImage(im,0,0,c.width,c.height);C.img=c.toDataURL("image/jpeg",0.8);C.fundo="foto";salva();await aplicaFundo();if(!R.dentro)previa();painel("fundos",true)};im.src=fr.result};fr.readAsDataURL(t.files[0]);return}
+  if(t.dataset.tfesp){R.espera=t.checked;C.salas[R.code]=Object.assign(C.salas[R.code]||{},{espera:R.espera});salva();envia({t:"st",st:meuSt()})}},true);
+document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf"))e.stopPropagation()},true);
+window.addEventListener("pagehide",()=>{if(R&&R.dentro)envia({t:"bye"})});window.addEventListener("resize",()=>{if(R&&R.dentro)layout()});
+
+/* ---------- a seção 📣 Marketing e vendas na Gestão ---------- */
+function hubHTML(){const ag=Object.entries(C.salas).filter(([,s])=>s.quando&&s.quando>Date.now()-6*36e5).sort((a,b)=>a[1].quando-b[1].quando);
+  return `<div id="tf-hub" class="tf-hub"><div class="tf-hero"><div class="tf-logo">🐟📹</div><div><h3>TeleFish</h3><p>Videochamadas para vender, atender clientes e falar com fornecedores: câmera, tela compartilhada, chat, fundo, gravação, legendas e ata. Quem você convida entra pelo link, sem instalar nada.</p></div></div>
+   ${R&&R.dentro?`<p class="tf-agora">🟢 Você está numa chamada (${E(R.titulo||R.code)}). <button type="button" class="btn solid" data-tfh="voltar">Voltar para a chamada</button></p>`:""}
+   <div class="mk-form tf-hgrid"><label class="jr-f">Seu nome na chamada<input data-tfhc="nome" value="${E(C.nome||nomeUsuario())}" maxlength="40"></label><label class="jr-f">Assunto<input id="tfh-tit" placeholder="Ex.: apresentação do filé de tilápia" maxlength="80"></label></div>
+   <label class="ct-ck"><input type="checkbox" id="tfh-esp"> Sala de espera: eu aceito quem entra</label>
+   <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="nova">📹 Nova chamada agora</button></div>
+   <div class="mk-form tf-hgrid"><label class="jr-f">Entrar com o código ou o link<input id="tfh-cod" placeholder="abc-defg-hij ou o link do convite"></label></div><div class="gfp-bt"><button type="button" class="btn" data-tfh="entrar">➡️ Entrar</button></div>
+   <details class="pp-sis"><summary>📅 Agendar uma chamada (${ag.length})</summary><div class="mk-form tf-hgrid"><label class="jr-f">Assunto<input id="tfh-at" maxlength="80"></label><label class="jr-f">Dia<input type="date" id="tfh-ad" value="${iso(Date.now()+864e5)}"></label><label class="jr-f">Hora<input type="time" id="tfh-ah" value="09:00"></label><label class="jr-f">Duração (min)<input id="tfh-am" inputmode="numeric" value="30"></label></div>
+    <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="agenda">📅 Criar a sala agendada</button></div>
+    ${ag.length?`<ul class="tf-hl">${ag.map(([c,s])=>{const l=linkSala(c),fim=s.quando+(s.min||30)*6e4,gc=`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent("TeleFish · "+(s.titulo||"Chamada"))}&dates=${gd(s.quando)}/${gd(fim)}&details=${encodeURIComponent("Entre pelo link: "+l)}&location=${encodeURIComponent(l)}`,wa=`https://wa.me/?text=${encodeURIComponent(`Convite: ${s.titulo||"chamada TeleFish"} em ${new Date(s.quando).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}. Entre pelo link: ${l}`)}`;
+      return `<li><b>${E(s.titulo||"Chamada")}</b> <small>${new Date(s.quando).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})} · ${s.min||30} min · ${E(c)}</small><span class="gfp-bt"><button type="button" class="btn solid" data-tfh="abrir" data-c="${E(c)}">📹 Entrar</button><a class="btn" href="${E(wa)}" target="_blank" rel="noopener">📲 Convidar</a><a class="btn" href="${E(gc)}" target="_blank" rel="noopener">🗓 Google Agenda</a><button type="button" class="btn" data-tfh="ics" data-c="${E(c)}">⬇ Convite .ics</button><button type="button" class="btn" data-tfh="copiar" data-c="${E(c)}">📋 Link</button><button type="button" class="btn" data-tfh="apaga" data-c="${E(c)}" aria-label="Apagar">🗑</button></span></li>`}).join("")}</ul>`:""}</details>
+   <details class="pp-sis"><summary>🕘 Chamadas feitas (${C.hist.length})</summary>${C.hist.length?`<ul class="tf-hl">${C.hist.map((h,i)=>`<li><b>${E(h.titulo||"Sala "+h.code)}</b> <small>${new Date(h.ini).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})} · ${dur(h.fim-h.ini)} · ${E((h.pessoas||[]).join(", "))}${h.rec?" · 🔴 gravada":""}${h.msgs?` · ${h.msgs} msg`:""}</small><span class="gfp-bt">${h.ata?`<button type="button" class="btn" data-tfh="ata" data-i="${i}">📝 Ata</button>`:""}<button type="button" class="btn" data-tfh="abrir" data-c="${E(h.code)}">↻ Mesma sala</button></span></li>`).join("")}</ul><div class="gfp-bt"><button type="button" class="btn" data-tfh="limpa">🗑 Limpar o histórico</button></div>`:`<p class="hint">Nenhuma chamada ainda.</p>`}</details>
+   <details class="pp-sis"><summary>🛰 Rede (servidor TURN, opcional)</summary><p class="hint">A chamada liga os aparelhos direto. Em algumas redes (4G, Wi-Fi de empresa) isso não fecha sem um servidor TURN de retransmissão. Se tiver um (contratado ou da empresa), informe aqui. Fica guardado só neste aparelho.</p>
+    <div class="mk-form tf-hgrid"><label class="jr-f">Endereço (turn: ou turns:)<input data-tfht="url" value="${E((C.turn||{}).url||"")}" placeholder="turns:turn.exemplo.com:443"></label><label class="jr-f">Usuário<input data-tfht="user" value="${E((C.turn||{}).user||"")}" autocomplete="off"></label><label class="jr-f">Senha do TURN<input data-tfht="cred" type="password" value="${E((C.turn||{}).cred||"")}" autocomplete="off"></label></div></details>
+   <p class="hint">Dicas de venda por vídeo: mostre o produto e a câmara fria ao vivo, compartilhe a tabela de preços e a ficha técnica na tela, grave (com autorização) para tirar dúvidas depois e mande a ata para o cliente. O compartilhamento de tela não existe no iPhone; a gravação fica salva só no aparelho de quem gravou.</p></div>`}
+const gd=ms=>new Date(ms).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+function ics(c,s){const l=linkSala(c),fim=s.quando+(s.min||30)*6e4;return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Green Fish//TeleFish//PT","BEGIN:VEVENT",`UID:${c}@telefish`,`DTSTAMP:${gd(Date.now())}`,`DTSTART:${gd(s.quando)}`,`DTEND:${gd(fim)}`,`SUMMARY:TeleFish · ${(s.titulo||"Chamada").replace(/[,;\n]/g," ")}`,`DESCRIPTION:Entre pelo link: ${l}`,`URL:${l}`,`LOCATION:${l}`,"END:VEVENT","END:VCALENDAR"].join("\r\n")}
+function redesenhaHub(){const h=document.getElementById("tf-hub");if(h){const a=document.activeElement;if(h.contains(a)&&/INPUT|SELECT/.test(a.tagName))return;h.outerHTML=hubHTML()}}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tf-hub [data-tfh]");if(!b)return;if(b.tagName==="A")return;e.preventDefault();e.stopPropagation();const k=b.dataset.tfh,c=b.dataset.c,v=id=>((document.getElementById(id)||{}).value||"").trim();
+  if(k==="nova"){const cod=codigoNovo();C.salas[cod]={host:true,titulo:v("tfh-tit"),espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};salva();abre(cod,{host:true})}
+  else if(k==="entrar"){const cod=limpaCod(v("tfh-cod"));if(cod.length<6){alert("Cole o código ou o link do convite.");return}abre(cod)}
+  else if(k==="voltar")mostra();
+  else if(k==="abrir")abre(c,{host:!!(C.salas[c]||{}).host});
+  else if(k==="agenda"){const d=v("tfh-ad"),h=v("tfh-ah")||"09:00";const q=new Date(d+"T"+h).getTime();if(!isFinite(q)){alert("Informe o dia e a hora.");return}const cod=codigoNovo();C.salas[cod]={host:true,titulo:v("tfh-at")||"Chamada",quando:q,min:Math.max(5,Math.min(600,+v("tfh-am")||30)),criada:Date.now()};salva();redesenhaHub()}
+  else if(k==="ics"){const s=C.salas[c];if(!s)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([ics(c,s)],{type:"text/calendar"}));a.download=`TeleFish_${c}.ics`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},30000)}
+  else if(k==="copiar"){const l=linkSala(c);T(()=>navigator.clipboard.writeText(l));b.textContent="✓ Copiado"}
+  else if(k==="apaga"){if(confirm("Apagar esta sala agendada?")){delete C.salas[c];salva();redesenhaHub()}}
+  else if(k==="ata"){const h=C.hist[+b.dataset.i];if(h)baixaAta(`TeleFish · ${h.titulo||"Sala "+h.code}\nData: ${new Date(h.ini).toLocaleString("pt-BR")}\nDuração: ${dur(h.fim-h.ini)}\nPessoas: ${(h.pessoas||[]).join(", ")}\n\n${h.ata||""}`,`TeleFish_ata_${h.code}_${iso(h.ini)}.txt`)}
+  else if(k==="limpa"){if(confirm("Apagar o histórico de chamadas deste aparelho?")){C.hist=[];salva();redesenhaHub()}}},true);
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#tf-hub"))return;e.stopPropagation();if(t.dataset.tfhc==="nome"){C.nome=t.value.trim().slice(0,40);salva()}if(t.dataset.tfht){C.turn=C.turn||{};C.turn[t.dataset.tfht]=t.value.trim();salva()}},true);
+document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf-hub"))e.stopPropagation()},true);
+
+window.gfTeleFish={hubHTML,redesenhaHub,abre,sair:()=>sair(true),estado:()=>R,info:()=>R&&R.dentro?`🟢 em chamada · ${somaPessoas()} pessoa(s)`:`${C.hist.length} chamada(s) · ${Object.values(C.salas).filter(s=>s.quando>Date.now()).length} agendada(s)`,_msg:msgSala,_cfg:()=>C};
+
+/* ---------- convite: o link ?telefish=código abre a chamada, mesmo para quem não tem conta ---------- */
+const q=new URLSearchParams(location.search).get("telefish");if(q){const cod=limpaCod(q);if(cod.length>=6)setTimeout(()=>abre(cod,{guest:!(C.salas[cod]||{}).host,host:!!(C.salas[cod]||{}).host}),900)}
+
+const st=document.createElement("style");st.textContent=`
+#tf{position:fixed;inset:0;z-index:2147483000;background:#06140f;color:#e8f5ef;font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
+html.tf-aberto,html.tf-aberto body{overflow:hidden}
+#tf button{font:inherit;color:inherit;cursor:pointer}#tf h2,#tf h3{margin:0}#tf h3{font-size:15px;margin:6px 0}#tf a{color:#6ee7b7}
+.tf-pre{flex:1;overflow:auto;display:flex;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 16px 16px}.tf-pre-c{width:min(560px,100%);display:grid;gap:10px;align-content:start}
+.tf-sub{margin:0;color:#a7c4b8}.tf-prev{position:relative;aspect-ratio:16/9;background:#0b2a22;border-radius:16px;overflow:hidden}.tf-prev video,.tf-t video{width:100%;height:100%;object-fit:cover;background:#0b2a22}
+.tf-esp{transform:scaleX(-1)}.tf-av{position:absolute;inset:0;margin:auto;width:84px;height:84px;border-radius:50%;background:var(--c,#0f766e);display:none;align-items:center;justify-content:center;font-size:30px;font-weight:700}
+.tf-semcam .tf-av{display:flex}.tf-semcam video{visibility:hidden}.tf-vu{position:absolute;left:12px;right:12px;bottom:10px;height:5px;border-radius:5px;background:rgba(255,255,255,.18)}.tf-vu i{display:block;height:100%;width:0;border-radius:5px;background:#34d399;transition:width .15s}
+.tf-pre-bt{display:flex;gap:10px;justify-content:center}.tf-b{min-width:52px;height:52px;border-radius:26px;border:0;background:#17382f;font-size:20px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0 10px;position:relative}
+.tf-b span{font-size:10.5px;color:#a7c4b8}.tf-b.tf-off{background:#7f1d1d}.tf-b.tf-on{background:#0f766e}.tf-b:disabled{opacity:.35;cursor:not-allowed}
+.tf-b[data-n]:not([data-n=""]):not([data-n="0"])::after{content:attr(data-n);position:absolute;top:2px;right:4px;background:#10b981;color:#fff;font-size:11px;border-radius:9px;padding:0 5px}
+.tf-f{display:grid;gap:4px;font-size:13px;color:#a7c4b8}.tf-f input,.tf-f select,.tf-link,.tf-chatin{font:inherit;color:#e8f5ef;background:#0b2a22;border:1px solid #23493e;border-radius:10px;padding:9px 10px;width:100%;box-sizing:border-box}
+.tf-ck{display:flex;gap:8px;align-items:center;font-size:14px}.tf-erros p{margin:0;color:#fca5a5;font-size:13px}
+.tf-pre-go{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.tf-ok{background:#10b981;border:0;border-radius:12px;padding:11px 18px;font-weight:700;color:#04221a!important}.tf-x{background:transparent;border:1px solid #2f5a4e;border-radius:12px;padding:10px 16px}
+.tf-nota{margin:0;font-size:12.5px;color:#8fb3a5}.tf-esperando{margin:0;font-weight:600}
+.tf-call{flex:1;display:flex;flex-direction:column;min-height:0}.tf-top{display:flex;gap:10px;align-items:center;padding:max(8px,env(safe-area-inset-top)) 12px 8px;background:#0a1e18;flex-wrap:wrap}
+.tf-tit{flex:1;min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#a7c4b8}.tf-tempo{font-variant-numeric:tabular-nums}.tf-recb{background:#b91c1c;border-radius:8px;padding:2px 8px;font-size:12.5px;animation:tfpis 1.4s infinite}
+@keyframes tfpis{50%{opacity:.55}}.tf-tb{background:#17382f;border:0;border-radius:10px;padding:6px 10px}
+.tf-mid{flex:1;display:flex;min-height:0}@media(max-width:420px){.tf-tbl{display:none}}.tf-grid{flex:1;display:grid;gap:8px;padding:8px;grid-template-columns:repeat(var(--cols,2),1fr);grid-auto-rows:1fr;min-height:0}
+.tf-grid[data-l="destaque"]{grid-template-columns:1fr 200px;grid-template-rows:repeat(max(1,calc(var(--n) - 1)),1fr)}.tf-grid[data-l="destaque"] .tf-dest{grid-column:1;grid-row:1/-1;order:-1}
+.tf-t{position:relative;background:#0b2a22;border-radius:14px;overflow:hidden;min-height:0;min-width:0;outline:3px solid transparent;transition:outline-color .15s}.tf-t.tf-fala{outline-color:#34d399}
+.tf-t.tf-tela video,.tf-dest video{object-fit:contain;background:#000}.tf-nm{position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.55);border-radius:8px;padding:2px 8px;font-size:13px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tf-ic{position:absolute;right:8px;top:8px;font-size:15px;text-shadow:0 1px 3px #000}.tf-cc{position:absolute;left:8%;right:8%;bottom:38px;background:rgba(0,0,0,.7);border-radius:8px;padding:4px 8px;text-align:center;font-size:15px}
+.tf-pin{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.45);border:0;border-radius:8px;opacity:0;transition:opacity .15s}.tf-t:hover .tf-pin,.tf-pinado .tf-pin{opacity:1}
+.tf-rx{position:absolute;inset:0;pointer-events:none;overflow:hidden}.tf-emo{position:absolute;bottom:10px;font-size:34px;animation:tfsob 2.6s ease-out forwards}@keyframes tfsob{to{transform:translateY(-220px);opacity:0}}
+.tf-side{width:330px;max-width:100%;background:#0a1e18;display:flex;flex-direction:column;padding:10px;gap:8px;min-height:0;overflow:auto}.tf-sh{display:flex;justify-content:space-between;align-items:center}.tf-x1{background:none;border:0;font-size:18px}
+.tf-msgs{flex:1;overflow:auto;display:grid;gap:6px;align-content:start;min-height:120px}.tf-m{background:#123229;border-radius:10px;padding:6px 9px}.tf-m.tf-eu{background:#0f4d3c}.tf-m small{color:#8fb3a5}.tf-m p{margin:2px 0 0;white-space:pre-wrap;word-break:break-word}
+.tf-chatbar{display:flex;gap:6px}.tf-pl{list-style:none;margin:0;padding:0;display:grid;gap:6px}.tf-pl li{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.tf-pl b{flex:1}.tf-avm{width:30px;height:30px;border-radius:50%;background:var(--c);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.tf-pla{display:flex;gap:4px;width:100%;padding-left:38px}.tf-mini2{background:#17382f;border:0;border-radius:8px;padding:4px 8px;font-size:12.5px}
+.tf-bts{display:flex;flex-wrap:wrap;gap:8px}.tf-b2{background:#17382f;border:0;border-radius:10px;padding:9px 12px;text-decoration:none;color:#e8f5ef!important}
+.tf-emos{display:flex;flex-wrap:wrap;gap:6px}.tf-emos button{font-size:28px;background:#123229;border:0;border-radius:12px;padding:6px 10px}.tf-fds{display:flex;flex-wrap:wrap;gap:6px}.tf-fd{background:#123229;border:1px solid #23493e;border-radius:10px;padding:7px 10px}.tf-fd.on{border-color:#34d399;background:#0f4d3c}
+.tf-bar{display:flex;gap:8px;justify-content:center;padding:8px 10px max(10px,env(safe-area-inset-bottom));background:#0a1e18;overflow-x:auto;scrollbar-width:none}.tf-bar .tf-b{flex:none}.tf-bar [data-tf="sair"]{background:#dc2626;min-width:64px}
+.tf-fila{position:absolute;top:56px;left:50%;transform:translateX(-50%);background:#fef3c7;color:#422006;border-radius:12px;padding:8px 12px;display:grid;gap:6px;z-index:3;box-shadow:0 6px 24px rgba(0,0,0,.4)}.tf-fila div{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.tf-fila .tf-x{border-color:#a16207;color:#422006}
+.tf-toasts{position:absolute;left:50%;transform:translateX(-50%);bottom:96px;display:grid;gap:6px;z-index:5;width:min(92vw,480px);pointer-events:none}.tf-toast{background:rgba(15,40,33,.95);border:1px solid #23493e;border-radius:12px;padding:8px 12px;font-size:14px;animation:tfin .2s}@keyframes tfin{from{opacity:0;transform:translateY(8px)}}
+.tf-painel-pre{display:grid;gap:8px}.tf-painel-pre:empty{display:none}
+.tf-mini{display:none}#tf.tf-min{inset:auto 12px calc(76px + env(safe-area-inset-bottom)) auto;width:290px;height:auto;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.45);overflow:hidden}
+#tf.tf-min .tf-call>*:not(.tf-mid),#tf.tf-min .tf-side,#tf.tf-min .tf-toasts{display:none!important}#tf.tf-min .tf-grid{height:160px;padding:4px;grid-template-columns:1fr!important}#tf.tf-min .tf-t:not(.tf-dest):not(:first-child){display:none}
+#tf.tf-min .tf-mini{display:flex;gap:6px;align-items:center;padding:6px 8px;font-size:13px}#tf.tf-min .tf-mini span{flex:1}#tf.tf-min .tf-mini button{background:#17382f;border:0;border-radius:8px;padding:5px 8px}
+@media(max-width:720px){.tf-side{position:absolute;inset:auto 0 0 0;width:auto;max-height:70%;border-radius:16px 16px 0 0;z-index:4;box-shadow:0 -10px 30px rgba(0,0,0,.4)}.tf-call{position:relative}
+ .tf-grid[data-l="destaque"]{grid-template-columns:1fr;grid-template-rows:3fr repeat(max(1,calc(var(--n) - 1)),1fr)}.tf-grid[data-l="destaque"] .tf-dest{grid-row:1}.tf-b{min-width:48px;height:48px}.tf-tb{padding:5px 8px}.tf-tit{display:none}.tf-top{flex-wrap:nowrap;gap:8px}.tf-top b{flex:1}}
+.tf-hub{display:grid;gap:10px}.tf-hero{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#064e3b,#10b981);color:#fff;border-radius:16px;padding:14px}.tf-hero h3{margin:0;font-size:20px}.tf-hero p{margin:2px 0 0;font-size:13.5px;opacity:.95}.tf-logo{font-size:34px}
+.tf-hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:8px 12px}.tf-hgrid input{width:100%}.tf-hl{margin:6px 0;padding-left:18px;display:grid;gap:8px}.tf-hl li{display:grid;gap:4px}.tf-agora{margin:0;padding:8px 10px;border-radius:10px;background:#dcfce7}`;
+document.head.appendChild(st);
 })();
 </script>
 <script>
