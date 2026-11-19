@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v296";
+  it.querySelector("code").textContent=msg;const ver="ras-v297";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10761,7 +10761,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v296";
+  const APP_VERSAO="ras-v297";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -18983,7 +18983,7 @@ table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinit
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr:not(.gfp-pisca){animation:none;box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) 35%,transparent)}}
 </style>
 <script>
-/* ===================== v294–v296: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
+/* ===================== v294–v297: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
    fábrica → propriedade (cadastro georreferenciado) → fábrica pela estrada (OSRM/OpenStreetMap) e o veículo pelo GPS
    (celular no veículo rastreando ao vivo ou posição enviada). O mapa fica vivo entre as atualizações da ordem ===================== */
 (function(){
@@ -19002,14 +19002,25 @@ const posOk=o=>o&&o.pos&&ok(o.pos)&&Date.now()-o.pos.em<30*60e3;
 
 /* ---------- rota pela estrada (OSRM, OpenStreetMap) com cache; sem internet: linha reta ---------- */
 const RC={};let rcLS={};try{rcLS=JSON.parse(sessionStorage.getItem("gf-osrm")||"{}")}catch(e){}
-const kR=(a,b)=>[a.lat,a.lon,b.lat,b.lon].map(x=>(+x).toFixed(4)).join(",");
+const kR=(a,b)=>"v2,"+[a.lat,a.lon,b.lat,b.lon].map(x=>(+x).toFixed(4)).join(",");
 const SRV=["https://router.project-osrm.org/route/v1/driving/","https://routing.openstreetmap.de/routed-car/route/v1/driving/"];
 function rota(a,b){const k=kR(a,b);if(RC[k])return RC[k];if(rcLS[k])return RC[k]=Promise.resolve(rcLS[k]);
-  const q=`${(+a.lon).toFixed(6)},${(+a.lat).toFixed(6)};${(+b.lon).toFixed(6)},${(+b.lat).toFixed(6)}?overview=full&geometries=geojson`;
+  const q=`${(+a.lon).toFixed(6)},${(+a.lat).toFixed(6)};${(+b.lon).toFixed(6)},${(+b.lat).toFixed(6)}?overview=full&geometries=geojson&steps=true`;
   const tenta=i=>i>=SRV.length?Promise.reject(new Error("sem rota")):fetch(SRV[i]+q).then(r=>r.ok?r.json():Promise.reject(new Error("rota "+r.status))).then(j=>{const r=j.routes&&j.routes[0];if(!r||!r.geometry)throw new Error("sem rota");return r}).catch(()=>tenta(i+1));
-  return RC[k]=tenta(0).then(r=>{const o={pts:r.geometry.coordinates.map(c=>[c[1],c[0]]),km:r.distance/1000,h:r.duration/3600,estrada:true};rcLS[k]=o;try{const ks=Object.keys(rcLS);if(ks.length>40)delete rcLS[ks[0]];sessionStorage.setItem("gf-osrm",JSON.stringify(rcLS))}catch(e){}return o})
+  return RC[k]=tenta(0).then(r=>{const o={pts:r.geometry.coordinates.map(c=>[c[1],c[0]]),km:r.distance/1000,h:r.duration/3600,estrada:true,passos:((r.legs||[])[0]||{steps:[]}).steps.map(st=>({ty:st.maneuver&&st.maneuver.type,mo:st.maneuver&&st.maneuver.modifier||"",ex:st.maneuver&&st.maneuver.exit,n:st.name||st.ref||"",d:st.distance,ll:st.maneuver&&st.maneuver.location?[st.maneuver.location[1],st.maneuver.location[0]]:null})).slice(0,80)};rcLS[k]=o;try{const ks=Object.keys(rcLS);if(ks.length>40)delete rcLS[ks[0]];sessionStorage.setItem("gf-osrm",JSON.stringify(rcLS))}catch(e){}return o})
     .catch(()=>{setTimeout(()=>{delete RC[k]},60000);const e=T(()=>API().estrada(a,b),null);return {pts:[[+a.lat,+a.lon],[+b.lat,+b.lon]],km:e?e.km:NaN,h:e?e.h:NaN,estrada:false}})}
 window.gfRmRota=rota;
+const MOD={left:"à esquerda",right:"à direita","slight left":"levemente à esquerda","slight right":"levemente à direita","sharp left":"acentuadamente à esquerda","sharp right":"acentuadamente à direita",straight:"em frente",uturn:"faça o retorno"};
+const ICO={left:"⬅️",right:"➡️","slight left":"↖️","slight right":"↗️","sharp left":"↙️","sharp right":"↘️",straight:"⬆️",uturn:"↩️"};
+function passoTxt(p){const via=p.n?` na ${p.n}`:"",m=MOD[p.mo]||"";
+  switch(p.ty){case "depart":return [`🚩`,`Saia${p.n?" pela "+p.n:""}`];case "arrive":return ["🏁","Chegada ao destino"];
+   case "roundabout":case "rotary":return ["🔄",`Na rotatória, pegue a ${p.ex||1}ª saída${via}`];case "roundabout turn":return ["🔄",`Na rotatória, vire ${m}${via}`];
+   case "merge":return ["⤵️",`Entre ${m}${via}`];case "on ramp":return ["⤴️",`Pegue o acesso ${m}${via}`];case "off ramp":return ["⤵️",`Pegue a saída ${m}${via}`];
+   case "fork":return ["🔀",`Na bifurcação, mantenha-se ${m}${via}`];case "end of road":return [ICO[p.mo]||"⬆️",`No fim da via, vire ${m}${via}`];
+   case "continue":case "new name":return [ICO[p.mo]||"⬆️",`Continue ${m||"em frente"}${via}`];
+   default:return [ICO[p.mo]||"⬆️",p.mo==="uturn"?`Faça o retorno${via}`:`Vire ${m}${via}`]}}
+const kmT=d=>d>=1000?`${F(d/1000,1)} km`:`${Math.round(d/10)*10} m`;
+
 
 /* ---------- pernas da rota conforme a situação da ordem ---------- */
 let AQUI=null,aquiPed=false;function aqui(){if(aquiPed||!navigator.geolocation)return;aquiPed=true;navigator.geolocation.getCurrentPosition(p=>{AQUI={lat:+p.coords.latitude.toFixed(6),lon:+p.coords.longitude.toFixed(6),em:Date.now()};for(const id in MAPS){const M=MAPS[id];M.k="";const ph=document.querySelector(`[data-rmap="${CSS.escape(id)}"]`);ph&&hidrata(ph)}},()=>{},{enableHighAccuracy:false,timeout:15000,maximumAge:300000})}
@@ -19021,12 +19032,14 @@ function plano(o){const Fb=fab(),G=ok(o.geo)?o.geo:null,V=posOk(o)?o.pos:null,st
   return {Fb,G,V,L,A:!V&&!Fb?AQUI:null}}
 
 /* ---------- HTML colocado dentro do quadro 🗺 Rota da despesca da ordem ---------- */
-const TRK={};/* id da ordem → watchPosition deste aparelho */
+const TRK={},SEG={},NAVAB={};/* id da ordem → watchPosition deste aparelho */
 window.gfRmHTML=o=>{if(!o||!ok(o.geo))return "";const Fb=fab(),V=posOk(o)?o.pos:null,trk=TRK[o.id]!=null,at=ATIVO.includes(o.status);
   return `<div class="rm-w"><div class="rm-map" data-rmap="${E(o.id)}" aria-label="Mapa da rota da despesca ${E(o.id)}"></div>
    <div class="rm-leg"><span><i style="background:#0f766e"></i>🏭 ${Fb?E(Fb.nome):"fábrica não marcada"}</span><span><i style="background:#2563eb"></i>📍 ${E(o.proj||"Propriedade")}${o.g?" · "+E(o.g):""}</span><span><i style="background:#ea580c"></i>🚚 ${E(o.veic||"veículo")}${V?` · GPS ${hm(V.em)}${V.prec?` (±${V.prec} m)`:""}`:" · sem GPS"}</span></div>
    <p class="hint rm-info" data-rminfo="${E(o.id)}">Traçando a rota…</p>
-   <div class="gfp-bt"><button type="button" class="btn${Fb?"":" solid"}" data-rmx="fab" data-id="${E(o.id)}">${Fb?"🏭 Mudar a fábrica de lugar":"🏭 Marcar a fábrica no mapa"}</button>${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button><button type="button" class="btn" data-rmx="tela" data-id="${E(o.id)}">⛶ Tela cheia</button></div>
+   <div class="rm-busca"><input data-rmq="${E(o.id)}" placeholder="🔎 Buscar cidade, endereço ou lugar no mapa" aria-label="Buscar lugar no mapa"><button type="button" class="btn" data-rmx="busca" data-id="${E(o.id)}">Buscar</button></div><div class="rm-res" data-rmres="${E(o.id)}"></div>
+   <div class="gfp-bt"><button type="button" class="btn${Fb?"":" solid"}" data-rmx="fab" data-id="${E(o.id)}">🏭 ${Fb?"Mudar a fábrica de lugar":"Marcar a fábrica no mapa"}</button>${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button><button type="button" class="btn" data-rmx="tela" data-id="${E(o.id)}">⛶ Tela cheia</button><button type="button" class="btn" data-rmx="eu" data-id="${E(o.id)}">📍 Onde estou</button>${V?`<button type="button" class="btn" data-rmx="seg" data-id="${E(o.id)}">${SEG[o.id]?"⏹ Parar de seguir o veículo":"🎯 Seguir o veículo"}</button>`:""}</div>
+   <details class="rm-navd"${NAVAB[o.id]?" open":""} data-rmnavd="${E(o.id)}"><summary>🧭 Navegação: passo a passo e abrir no GPS</summary><div class="rm-nav" data-rmnav="${E(o.id)}">Calculando…</div></details>
    ${at?`<details class="rm-trk"><summary>🛰 GPS do veículo por link (rastreador)</summary><p class="hint">Se o veículo tem rastreador que publica a posição num link (JSON com latitude e longitude), cole o link: o app lê a cada minuto enquanto a ordem estiver aberta.</p><div class="mk-form"><label class="jr-f">Link do rastreador<input data-rmlink="${E(o.id)}" value="${E(o.trkUrl||"")}" placeholder="https://…" inputmode="url"></label></div></details>`:""}</div>`};
 
 /* ---------- mapas vivos: o mesmo mapa é reaproveitado quando a ordem é redesenhada ---------- */
@@ -19051,24 +19064,30 @@ function camadas(Lf,map,extra){const b={},o={};BASES.forEach(([n,u,op])=>b[n]=Lf
   const sv=()=>{try{localStorage.setItem(LSO,JSON.stringify(SOBRE.map(x=>x[0]).filter(n=>map.hasLayer(o[n]))))}catch(_){}};map.on("overlayadd",sv);map.on("overlayremove",sv);
   try{Lf.control.scale({imperial:false}).addTo(map)}catch(e){}return c}
 window.gfMapaCamadas=camadas;
+const pinArr=(Lf,p,cor,txt,arr)=>{const m=Lf.marker([+p.lat,+p.lon],{draggable:true,autoPan:true,title:"Arraste para mudar de lugar",icon:Lf.divIcon({className:"rm-dico",html:`<span style="background:${cor}">🏭</span>`,iconSize:[30,30],iconAnchor:[15,15]})}).bindTooltip(txt+" · arraste para mudar",{permanent:true,direction:"top",offset:[0,-14]});m.on("dragend",()=>{const q=m.getLatLng();arr({lat:+q.lat.toFixed(6),lon:+q.lng.toFixed(6)})});return m};
 const pin=(Lf,p,cor,txt,r)=>Lf.circleMarker([+p.lat,+p.lon],{radius:r||8,color:"#fff",weight:2,fillColor:cor,fillOpacity:1}).bindTooltip(txt,{permanent:true,direction:"top",offset:[0,-6]});
 function chave(o){const P=plano(o);return JSON.stringify([o.status,P.Fb&&[P.Fb.lat,P.Fb.lon],P.G&&[P.G.lat,P.G.lon],P.V&&[P.V.lat,P.V.lon,P.V.em]])}
 async function hidrata(ph){const id=ph.dataset.rmap,o=ordem(id);if(!o)return;let M=MAPS[id];
   if(M&&M.el){if(M.el.parentNode!==ph){ph.appendChild(M.el);setTimeout(()=>M.map.invalidateSize(),60)}}
   else{let Lf;try{Lf=await leaf()}catch(e){ph.innerHTML=`<p class="hint">Sem internet para abrir o mapa.</p>`;return}
-    const el=document.createElement("div");el.className="rm-el";ph.appendChild(el);const map=Lf.map(el,{scrollWheelZoom:false});const gP=Lf.layerGroup().addTo(map),gR=Lf.layerGroup().addTo(map),gV=Lf.layerGroup().addTo(map);camadas(Lf,map,{"🧭 Rota":gR,"📍 Fábrica e propriedade":gP,"🚚 Veículo":gV});
+    const el=document.createElement("div");el.className="rm-el";ph.appendChild(el);const map=Lf.map(el,{scrollWheelZoom:false,tap:true});map.on("click focus",()=>{try{map.scrollWheelZoom.enable()}catch(e){}});map.on("mouseout",()=>{try{map.scrollWheelZoom.disable()}catch(e){}});const gP=Lf.layerGroup().addTo(map),gR=Lf.layerGroup().addTo(map),gV=Lf.layerGroup().addTo(map);camadas(Lf,map,{"🧭 Rota":gR,"📍 Fábrica e propriedade":gP,"🚚 Veículo":gV});
     M=MAPS[id]={el,map,Lf,gP,gR,gV,k:"",fit:false,pick:null};map.on("click",e=>{if(M.pick){const p={lat:+e.latlng.lat.toFixed(6),lon:+e.latlng.lng.toFixed(6)};const f=M.pick;M.pick=null;el.classList.remove("rm-pick");f(p)}});
     map.setView([+o.geo.lat,+o.geo.lon],12);setTimeout(()=>map.invalidateSize(),80)}
-  const k=chave(o);if(M.k===k){const i=document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);if(i&&M.info!=null&&i.innerHTML!==M.info)i.innerHTML=M.info;return}M.k=k;await pinta(o,M)}
+  const k=chave(o);if(M.k===k){const i=document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);if(i&&M.info!=null&&i.innerHTML!==M.info)i.innerHTML=M.info;const n=document.querySelector(`[data-rmnav="${CSS.escape(o.id)}"]`);if(n&&M.nav!=null&&n.innerHTML!==M.nav)n.innerHTML=M.nav;return}M.k=k;await pinta(o,M)}
 async function pinta(o,M){const {Lf,map,gP,gR,gV}=M,P=plano(o),info=()=>document.querySelector(`[data-rminfo="${CSS.escape(o.id)}"]`);[gP,gR,gV].forEach(x=>x.clearLayers());
-  if(P.Fb)pin(Lf,P.Fb,"#0f766e","🏭 "+E(P.Fb.nome||"Fábrica")).addTo(gP);pin(Lf,P.G,"#2563eb","📍 "+E(o.proj||"Propriedade")).addTo(gP);if(P.A)pin(Lf,P.A,"#7c3aed","📱 você",7).addTo(gP);
-  if(P.V)pin(Lf,P.V,"#ea580c",`🚚 ${E(o.veic||"veículo")} · ${hm(P.V.em)}`,9).addTo(gV);
+  if(P.Fb)pinArr(Lf,P.Fb,"#0f766e","🏭 "+E(P.Fb.nome||"Fábrica"),p=>{if(!confirm(`Mudar a fábrica para ${String(p.lat).replace(".",",")}, ${String(p.lon).replace(".",",")}? Vale para todas as rotas.`)){M.k="";pinta(o,M);return}T(()=>API().marcaFab(p),null);M.k="";M.fit=false;pinta(o,M)}).addTo(gP);pin(Lf,P.G,"#2563eb","📍 "+E(o.proj||"Propriedade")).addTo(gP);if(P.A)pin(Lf,P.A,"#7c3aed","📱 você",7).addTo(gP);
+  if(P.V){pin(Lf,P.V,"#ea580c",`🚚 ${E(o.veic||"veículo")} · ${hm(P.V.em)}`,9).addTo(gV);if(SEG[o.id])map.setView([+P.V.lat,+P.V.lon],Math.max(map.getZoom?map.getZoom():14,14))}
   const R=await Promise.all(P.L.map(l=>rota(l.a,l.b)));if(M.k!==chave(o))return;
   R.forEach((r,i)=>{const l=P.L[i];Lf.polyline(r.pts,{color:l.c,weight:r.estrada?5:4,opacity:.9,dashArray:l.d||(r.estrada?null:"4 8")}).addTo(gR).bindTooltip(`${l.t}: ${F(r.km,1)} km · ${isFinite(r.h)?hmD(r.h):"—"}`,{sticky:true})});
   const all=[P.Fb,P.G,P.V,P.A].filter(Boolean).map(p=>[+p.lat,+p.lon]).concat(...R.map(r=>r.pts));
   if(!M.fit&&all.length>1){map.fitBounds(all,{padding:[30,30]});M.fit=true}
   let h0;{if(!P.L.length)h0=P.Fb?"":"📍 Propriedade marcada pelo cadastro. Marque a fábrica (ou ligue o GPS do veículo) para o app traçar a rota.";
-    else h0=R.map((r,j)=>`<b style="color:${P.L[j].c}">■</b> ${E(P.L[j].t)}: <b>${F(r.km,1)} km</b> · ${isFinite(r.h)?hmD(r.h):"—"}${r.estrada?"":" <small>(linha reta estimada: sem acesso ao serviço de rotas)</small>"}`).join("<br>")+(R.some(r=>r.estrada)?`<br><small>Rota pelas estradas do OpenStreetMap (OSRM).</small>`:"")}M.info=h0;const i=info();if(i)i.innerHTML=h0}
+    else h0=R.map((r,j)=>`<b style="color:${P.L[j].c}">■</b> ${E(P.L[j].t)}: <b>${F(r.km,1)} km</b> · ${isFinite(r.h)?hmD(r.h):"—"}${r.estrada?"":" <small>(linha reta estimada: sem acesso ao serviço de rotas)</small>"}`).join("<br>")+(R.some(r=>r.estrada)?`<br><small>Rota pelas estradas do OpenStreetMap (OSRM).</small>`:"")}M.info=h0;const i=info();if(i)i.innerHTML=h0;
+  const li=P.L[0],r0=R[0];let nv="";if(li&&r0){const dst=li.b,gm=`https://www.google.com/maps/dir/?api=1&origin=${li.a.lat},${li.a.lon}&destination=${dst.lat},${dst.lon}&travelmode=driving`,wz=`https://waze.com/ul?ll=${dst.lat},${dst.lon}&navigate=yes`;
+    nv=`<p class="rm-nt"><b>${E(li.t)}</b> · ${F(r0.km,1)} km · ${isFinite(r0.h)?hmD(r0.h):"—"}</p><div class="gfp-bt"><a class="btn solid" href="${gm}" target="_blank" rel="noopener">🧭 Navegar no Google Maps</a><a class="btn" href="${wz}" target="_blank" rel="noopener">🚗 Abrir no Waze</a></div>`+
+    (r0.passos&&r0.passos.length?`<ol class="rm-steps">${r0.passos.map((p,j)=>{const [ic,tx]=passoTxt(p);return `<li><button type="button" data-rmstep="${j}" data-id="${E(o.id)}" ${p.ll?`data-ll="${p.ll[0]},${p.ll[1]}"`:""}><span class="rm-si">${ic}</span><span>${E(tx)}</span><small>${p.ty==="arrive"?"":kmT(p.d)}</small></button></li>`}).join("")}</ol>`:`<p class="hint">${r0.estrada?"Sem o passo a passo deste trecho.":"Sem o serviço de rotas agora: use o Google Maps ou o Waze para navegar."}</p>`)}
+  else nv=`<p class="hint">Marque a fábrica ou ligue o GPS do veículo para ver a navegação.</p>`;
+  M.nav=nv;const n=document.querySelector(`[data-rmnav="${CSS.escape(o.id)}"]`);if(n)n.innerHTML=nv}
 function varre(){document.querySelectorAll("[data-rmap]").forEach(ph=>{hidrata(ph)})}
 new MutationObserver(()=>{clearTimeout(varre.t);varre.t=setTimeout(varre,120)}).observe(document.body,{childList:true,subtree:true});
 document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.open&&d.querySelector&&d.querySelector("[data-rmap]"))setTimeout(()=>{d.querySelectorAll("[data-rmap]").forEach(ph=>{const M=MAPS[ph.dataset.rmap];if(M){M.map.invalidateSize();if(!M.fit){M.k="";hidrata(ph)}}else hidrata(ph)})},80)},true);
@@ -19085,12 +19104,24 @@ async function leLinks(){for(const o of T(()=>API().lista(),[])){if(!o.trkUrl||!
     const lat=+(x.lat??x.latitude),lon=+(x.lon??x.lng??x.longitude);if(ok({lat,lon})){o.pos={lat,lon,em:Date.now(),fonte:"rastreador do veículo"};grava()}}catch(e){}}}
 setInterval(()=>{if(!document.hidden)leLinks()},60000);
 document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||t.dataset.rmlink==null)return;const o=ordem(t.dataset.rmlink);if(!o)return;const v=t.value.trim();if(v&&!/^https:\/\//i.test(v)){alert("Use um link https.");return}o.trkUrl=v;grava();leLinks()},true);
+document.addEventListener("click",e=>{const s=e.target.closest&&e.target.closest("[data-rmstep]");if(!s)return;e.preventDefault();const M=MAPS[s.dataset.id];if(M&&s.dataset.ll){const [la,lo]=s.dataset.ll.split(",").map(Number);M.map.setView([la,lo],16);if(M.st)M.st.remove();M.st=M.Lf.circleMarker([la,lo],{radius:9,color:"#111",weight:3,fillColor:"#facc15",fillOpacity:1}).addTo(M.map);const w=M.el.closest(".rm-map");w&&w.scrollIntoView({block:"nearest",behavior:"smooth"})}},true);
+document.addEventListener("keydown",e=>{const t=e.target;if(e.key==="Enter"&&t.dataset&&t.dataset.rmq!=null){e.preventDefault();busca(t.dataset.rmq,t.value)}},true);
+document.addEventListener("toggle",e=>{const d=e.target;if(d&&d.dataset&&d.dataset.rmnavd)NAVAB[d.dataset.rmnavd]=d.open},true);
+/* busca de lugares (Nominatim/OpenStreetMap) para centralizar o mapa ou mudar a fábrica */
+async function busca(id,q){q=String(q||"").trim();const r=document.querySelector(`[data-rmres="${CSS.escape(id)}"]`);if(!r)return;if(q.length<3){r.innerHTML=`<p class="hint">Digite pelo menos 3 letras.</p>`;return}r.innerHTML=`<p class="hint">Buscando…</p>`;
+  try{const j=await (await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&countrycodes=br&accept-language=pt-BR&q=${encodeURIComponent(q)}`,{headers:{"Accept":"application/json"}})).json();
+    r.innerHTML=j&&j.length?`<ul>${j.map(x=>`<li><span>${E(x.display_name)}</span><span class="gfp-bt"><button type="button" class="btn" data-rmx="ver" data-id="${E(id)}" data-lat="${+x.lat}" data-lon="${+x.lon}">👁 Ver</button><button type="button" class="btn" data-rmx="usa" data-id="${E(id)}" data-lat="${+x.lat}" data-lon="${+x.lon}">🏭 Usar como fábrica</button></span></li>`).join("")}</ul>`:`<p class="hint">Nada encontrado. Tente o nome da cidade e do estado.</p>`}
+  catch(e){r.innerHTML=`<p class="hint">Sem acesso à busca agora. Arraste o 🏭 no mapa ou toque em “Mudar a fábrica de lugar”.</p>`}}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-rmx]");if(!b)return;e.preventDefault();e.stopPropagation();const id=b.dataset.id,a=b.dataset.rmx,M=MAPS[id];
   if(a==="trk"){if(TRK[id]!=null)para(id);else liga(id);return}
+  if(a==="busca"){const q=(document.querySelector(`[data-rmq="${CSS.escape(id)}"]`)||{}).value||"";busca(id,q);return}
+  if(a==="usa"||a==="ver"){const lat=+b.dataset.lat,lon=+b.dataset.lon;if(M)M.map.setView([lat,lon],15);if(a==="usa"&&confirm("Usar este lugar como a fábrica (saída e chegada dos caminhões)?")){T(()=>API().marcaFab({lat,lon}),null);if(M){M.k="";M.fit=false;pinta(ordem(id),M)}}const r=document.querySelector(`[data-rmres="${CSS.escape(id)}"]`);if(r&&a==="usa")r.innerHTML="";return}
+  if(a==="eu"){navigator.geolocation&&navigator.geolocation.getCurrentPosition(p=>{if(!M)return;const ll=[p.coords.latitude,p.coords.longitude];M.map.setView(ll,15);if(M.eu)M.eu.remove();M.eu=M.Lf.circleMarker(ll,{radius:7,color:"#fff",weight:2,fillColor:"#7c3aed",fillOpacity:1}).addTo(M.map).bindTooltip("📱 você",{permanent:true,direction:"top"})},()=>alert("Libere a localização para o app."),{enableHighAccuracy:true,timeout:15000});return}
+  if(a==="seg"){SEG[id]=!SEG[id];b.textContent=SEG[id]?"⏹ Parar de seguir o veículo":"🎯 Seguir o veículo";const o=ordem(id);if(SEG[id]&&M&&o&&posOk(o))M.map.setView([+o.pos.lat,+o.pos.lon],15);return}
   if(a==="tela"){const w=b.closest(".rm-w");if(w){const on=!w.classList.contains("rm-full");w.classList.toggle("rm-full",on);b.textContent=on?"✕ Sair da tela cheia":"⛶ Tela cheia";document.body.classList.toggle("rm-full-on",on);setTimeout(()=>M&&M.map.invalidateSize(),120)}return}
   if(a==="cen"){const o=ordem(id);if(M&&o){M.fit=false;M.k="";hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`))}return}
-  if(a==="fab"){if(!M){alert("O mapa ainda está abrindo.");return}M.el.classList.add("rm-pick");const i=document.querySelector(`[data-rminfo="${CSS.escape(id)}"]`);if(M.pick){M.pick=null;M.el.classList.remove("rm-pick");if(i&&M.info!=null)i.innerHTML=M.info;b.textContent=fab()?"🏭 Mudar a fábrica de lugar":"🏭 Marcar a fábrica no mapa";return}if(i)i.innerHTML="👆 <b>Toque no mapa no novo lugar da fábrica.</b> Para desistir, toque de novo no botão.";b.textContent="✕ Cancelar a mudança";
-    M.pick=p=>{T(()=>API().marcaFab(p),null);M.k="";M.fit=false;setTimeout(()=>hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`)),300)}}},true);
+  if(a==="fab"){if(!M){alert("O mapa ainda está abrindo.");return}M.el.classList.add("rm-pick");const i=document.querySelector(`[data-rminfo="${CSS.escape(id)}"]`);if(M.pick){M.pick=null;M.el.classList.remove("rm-pick");if(i&&M.info!=null)i.innerHTML=M.info;b.textContent=fab()?"🏭 Mudar a fábrica de lugar":"🏭 Marcar a fábrica no mapa";return}b.textContent="✕ Cancelar";if(i)i.innerHTML="👆 <b>Toque no mapa no novo lugar da fábrica</b> (ou arraste o 🏭).";
+    M.pick=p=>{b.textContent="🏭 Mudar a fábrica de lugar";T(()=>API().marcaFab(p),null);M.k="";M.fit=false;setTimeout(()=>hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`)),300)}}},true);
 })();
 </script>
 <style>
@@ -19104,5 +19135,14 @@ body.rm-full-on{overflow:hidden}
 .rm-leg{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px}.rm-leg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
 .rm-info{margin:0;font-size:12.5px;line-height:1.5}
 .rm-trk summary{cursor:pointer;font-size:13px}
+.rm-busca{display:flex;gap:6px}.rm-busca input{flex:1;min-width:0}
+.rm-res ul{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:12.5px}.rm-res li{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+.rm-dico span{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);font-size:16px;cursor:grab}
+.rm-navd{border:1px solid var(--line);border-radius:10px;padding:6px 10px}.rm-navd summary{cursor:pointer;font-weight:600;font-size:13.5px}
+.rm-nt{margin:6px 0;font-size:13px}
+.rm-steps{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:2px;max-height:320px;overflow:auto}
+.rm-steps button{width:100%;display:grid;grid-template-columns:26px 1fr auto;gap:6px;align-items:center;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:5px 2px;font:inherit;font-size:13px;color:inherit;cursor:pointer}
+.rm-steps button:hover{background:color-mix(in srgb,var(--accent) 8%,transparent)}.rm-si{font-size:16px;text-align:center}.rm-steps small{color:var(--muted);white-space:nowrap}
+
 @media (max-width:560px){.rm-map{height:260px}}
 </style>
