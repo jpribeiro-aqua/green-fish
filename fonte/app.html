@@ -12525,6 +12525,8 @@ window.gfExportUI=function(box,anchor){const q=box.__q,Q=box.__Q;if(!q)return;le
   SEC.splice(1,0,{k:"diag",ic:"📋",t:"Cadastro e diagnóstico da propriedade",d:"Ficha de cada propriedade e produto, com diagnóstico inicial e atualizado para a tomada de decisão.",app:["local","calc","bio","aqua","fin","merc","benef"],subs:[],html:()=>window.gfDiag?gfDiag.html():"",info:()=>window.gfDiag?gfDiag.info():""});
   /* v254: gestão de insumos (pedido, rótulo, estoque por propriedade/grupo/tanque e rastreabilidade) */
   SEC.splice(2,0,{k:"racao",ic:"🧾",t:"Gestão de insumos",d:"Ração, insumos do preparo e 🏛 agente fiscal (notas de entrada e de venda, tributos e emissão): pedido direcionado para a propriedade, um grupo ou um tanque, recebimento com foto do rótulo, controle de estoque automático pela ração do dia e rastreabilidade de cada lote.",app:["racao","bio","fin","benef"],subs:[],html:()=>window.gfRacaoHub?gfRacaoHub.html():"",info:()=>window.gfRacaoHub?gfRacaoHub.info():""});
+  /* v307: 🗂 Clientes, projetos e arquivos */
+  SEC.splice(3,0,{k:"arq",ic:"🗂",t:"Clientes, projetos e arquivos",d:"Cadastro de cada cliente ligado aos projetos dele e a todos os arquivos do projeto: gravações e atas do TeleFish, figuras, documentos e fotos, no aparelho e na nuvem (o dono do app vê os de todos os clientes).",app:["proj","merc"],subs:[],html:()=>window.gfArquivos?gfArquivos.hubHTML():"",info:()=>window.gfArquivos?gfArquivos.info():""});
   /* v302: 📣 Marketing e vendas · TeleFish (videochamada para vender e atender) */
   SEC.splice(3,0,{k:"mkt",ic:"📣",t:"Marketing e vendas",d:"🐟📹 TeleFish: videochamada com convite por link, sala de espera, tela compartilhada, chat, fundo, gravação, legendas e ata, para apresentar produtos, atender clientes e negociar com fornecedores.",app:["merc","benef"],subs:[],html:()=>window.gfTeleFish?gfTeleFish.hubHTML():"",info:()=>window.gfTeleFish?gfTeleFish.info():""});
   /* correlação: quais áreas cada aba alimenta */
@@ -15050,6 +15052,150 @@ inicia();
 })();
 </script>
 <script>
+/* ===================== v307: 🗂 Clientes, projetos e arquivos — cadastro do cliente ligado aos projetos e a todos os arquivos
+   de cada projeto (gravações do TeleFish, atas, figuras, documentos), guardados no aparelho e, se quiser, na nuvem do app
+   (pasta de cada usuário; o dono do app enxerga os arquivos de todos os clientes) ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const B="greenfish-arquivos",KC="greenfish-clientes-v1";
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const tam=b=>!isFinite(b)?"—":b<1024?b+" B":b<1048576?(b/1024).toFixed(0)+" KB":b<1073741824?(b/1048576).toFixed(1).replace(".",",")+" MB":(b/1073741824).toFixed(2).replace(".",",")+" GB";
+const dt=ms=>new Date(ms).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
+const rid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const slug=s=>String(s||"arquivo").normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^\w.\-]+/g,"_").replace(/_+/g,"_").slice(-90);
+const ICO=m=>/^video/.test(m)?"🎬":/^audio/.test(m)?"🎧":/^image/.test(m)?"🖼":/pdf/.test(m)?"📕":/sheet|excel|csv/.test(m)?"📊":/word|document/.test(m)?"📄":/^text/.test(m)?"📝":/zip/.test(m)?"🗜":"📎";
+const ORIG={telefish:"📹 TeleFish",ata:"📝 Ata",figura:"🖼 Figura",upload:"⬆ Enviado",nuvem:"☁️ Da nuvem"};
+
+/* ---------- banco de arquivos no aparelho (IndexedDB) ---------- */
+let dbp=null;const db=()=>dbp||(dbp=new Promise((ok,no)=>{const r=indexedDB.open(B,1);r.onupgradeneeded=()=>{const s=r.result.createObjectStore("f",{keyPath:"id"});s.createIndex("proj","projKey")};r.onsuccess=()=>ok(r.result);r.onerror=()=>{dbp=null;no(r.error)}}));
+const tx=async(m,f)=>{const d=await db();return new Promise((ok,no)=>{const t=d.transaction("f",m),s=t.objectStore("f");let out;const r=f(s);if(r)r.onsuccess=()=>{out=r.result};t.oncomplete=()=>ok(out);t.onerror=()=>no(t.error);t.onabort=()=>no(t.error||new Error("sem espaço no aparelho"))})};
+const todos=async()=>{const L=await tx("readonly",s=>s.getAll());return (L||[]).sort((a,b)=>b.em-a.em)};
+const um=id=>tx("readonly",s=>s.get(id));const poe=o=>tx("readwrite",s=>s.put(o));const tira=id=>tx("readwrite",s=>s.delete(id));
+const meta=f=>{const o=Object.assign({},f);delete o.blob;return o};
+
+/* ---------- projeto aberto e cadastro de clientes ---------- */
+const projAgora=()=>{const p=T(()=>projAtual(),null);if(!p)return null;const k=T(()=>projAtualKey(),null)||("me/"+p.id);return {id:p.id,nome:p.nome,key:k,uid:k.split("/")[0]}};
+let CL=T(()=>JSON.parse(localStorage.getItem(KC)),null)||{cli:[],lig:{}};CL.cli=CL.cli||[];CL.lig=CL.lig||{};
+const gravaCL=()=>{try{localStorage.setItem(KC,JSON.stringify(CL))}catch(e){}};
+const cliDe=projKey=>CL.cli.find(c=>c.id===CL.lig[projKey])||null;
+async function salvar(blob,o){o=o||{};const p=o.proj||projAgora(),f={id:rid(),nome:String(o.nome||"arquivo").slice(0,140),mime:o.mime||blob.type||"application/octet-stream",tam:blob.size,blob,em:Date.now(),origem:o.origem||"upload",projKey:p?p.key:"",projNome:p?p.nome:"Sem projeto",obs:o.obs||"",nuvem:null};
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}
+  await poe(f);setTimeout(redes,50);if(o.nuvem||CL.auto)nuvemEnvia(f.id,true).catch(()=>{});return f.id}
+
+/* ---------- nuvem: Supabase Storage, pasta <usuário>/<projeto>/ ---------- */
+const sb=()=>T(()=>gfMfa.sb(),null);
+let MEU=null;const meuId=async()=>{if(MEU)return MEU;const c=sb();if(!c)return null;const {data}=await c.auth.getUser();MEU=data&&data.user&&data.user.id;return MEU};
+const pastaDe=async key=>{const [u,id]=String(key||"me/sem-projeto").split("/");const dono=u==="me"||!u?await meuId():u;return `${dono}/${id||"sem-projeto"}`};
+const erroNuvem=e=>{const m=String(e&&(e.message||e.error)||e);return /bucket not found|not found/i.test(m)?"a pasta de arquivos ainda não existe na nuvem: rode o arquivo supabase_arquivos.sql no Supabase (SQL Editor) uma vez":/row-level|policy|unauthorized|403/i.test(m)?"a nuvem não deixou (permissão): confira se o supabase_arquivos.sql foi rodado":/payload too large|413|exceeded/i.test(m)?"arquivo grande demais para o limite da nuvem (no plano gratuito, 50 MB por arquivo)":m};
+async function nuvemEnvia(id,quieto){const c=sb();if(!c){if(!quieto)aviso("Entre na sua conta da nuvem para enviar arquivos.");return false}const f=await um(id);if(!f)return false;
+  try{const path=`${await pastaDe(f.projKey)}/${f.id}_${slug(f.nome)}`;UI.env[id]=1;redes();const {error}=await c.storage.from(B).upload(path,f.blob,{contentType:f.mime,upsert:true});if(error)throw error;
+    f.nuvem=path;f.nuvemEm=Date.now();await poe(f);delete UI.env[id];if(!quieto)aviso(`☁️ ${f.nome} está na nuvem do projeto.`);redes();return true}
+  catch(e){delete UI.env[id];aviso(`Não deu para enviar ${f.nome}: ${erroNuvem(e)}.`);redes();return false}}
+async function nuvemLista(key){const c=sb();if(!c)throw new Error("entre na sua conta da nuvem");const pasta=await pastaDe(key);const {data,error}=await c.storage.from(B).list(pasta,{limit:500,sortBy:{column:"created_at",order:"desc"}});if(error)throw error;return (data||[]).filter(o=>o.name&&o.id).map(o=>({path:pasta+"/"+o.name,nome:o.name.replace(/^[a-z0-9]{9,14}_/,""),tam:o.metadata&&o.metadata.size,mime:o.metadata&&o.metadata.mimetype||"",em:Date.parse(o.created_at||"")||0}))}
+async function nuvemUrl(path){const {data,error}=await sb().storage.from(B).createSignedUrl(path,3600);if(error)throw error;return data.signedUrl}
+async function nuvemTraz(path,key,nome,mime){const {data,error}=await sb().storage.from(B).download(path);if(error)throw error;const p=projPorKey(key);return salvar(data,{nome,mime:mime||data.type,origem:"nuvem",proj:p})}
+const projPorKey=key=>{const L=projetos(),p=L.find(x=>x.key===key);return p?{id:p.id,nome:p.nome,key:p.key,uid:p.uid}:{id:String(key).split("/")[1],nome:"Projeto",key,uid:String(key).split("/")[0]}};
+
+/* ---------- projetos conhecidos: os meus e, para o dono, os dos clientes ---------- */
+let TODOS=null;
+const projetos=()=>{const L=(T(()=>projLista(),[])||[]).map(p=>({id:p.id,nome:p.nome,key:"me/"+p.id,uid:"me",meu:true,em:p.atualizadoEm||0}));(TODOS||[]).forEach(p=>L.push({id:p.id,nome:p.nome||"Projeto",key:p.uid+"/"+p.id,uid:p.uid,cliente:p.cliente,email:p.email,em:p.atualizadoEm||0}));return L};
+async function trazClientesEquipe(){TODOS=await T(()=>projTodosClientes(),Promise.resolve([]))||[];let n=0;const por={};TODOS.forEach(p=>{(por[p.uid]=por[p.uid]||{nome:p.cliente,email:p.email,ps:[]}).ps.push(p)});
+  for(const uid in por){let c=CL.cli.find(x=>x.uid===uid)||CL.cli.find(x=>x.email&&x.email===por[uid].email);if(!c){c={id:rid(),nome:por[uid].nome||"Cliente",email:por[uid].email||"",uid,fone:"",doc:"",cidade:"",uf:"",prop:"",obs:"",em:Date.now()};CL.cli.push(c);n++}else c.uid=uid;
+    por[uid].ps.forEach(p=>{if(!CL.lig[uid+"/"+p.id])CL.lig[uid+"/"+p.id]=c.id})}gravaCL();return {n,clientes:Object.keys(por).length,projetos:TODOS.length}}
+
+/* ---------- tela (seção da Gestão) ---------- */
+const UI={aberto:{},busca:"",msg:"",env:{},ed:"",nv:{},lig:""};let ARQ=[];
+const aviso=t=>{UI.msg=t;redes()};
+function hubHTML(){setTimeout(carrega,0);return `<div id="arq-hub" class="arq">${corpo()}</div>`}
+async function carrega(){try{ARQ=(await todos()).map(meta)}catch(e){ARQ=[]}redes(true)}
+let pend=0;function redes(ja){const h=document.getElementById("arq-hub");if(!h)return;if(!ja&&!pend){pend=1;todos().then(L=>{ARQ=L.map(meta);pend=0;pinta()}).catch(()=>{pend=0});return}pinta()}
+function pinta(){const h=document.getElementById("arq-hub");if(!h)return;const a=document.activeElement;if(h.contains(a)&&/INPUT|TEXTAREA|SELECT/.test(a.tagName)&&a.type!=="file")return;h.innerHTML=corpo()}
+function corpo(){const P=projetos(),pa=projAgora(),q=UI.busca.trim().toLowerCase(),ok=x=>!q||String(x||"").toLowerCase().includes(q),dono=!!TODOS||T(()=>Auth.dono(),false);
+  const porProj={};ARQ.forEach(f=>{(porProj[f.projKey||""]=porProj[f.projKey||""]||[]).push(f)});const totB=ARQ.reduce((s,f)=>s+(f.tam||0),0);
+  const projCard=p=>{const fs=(porProj[p.key]||[]).filter(f=>ok(f.nome)||ok(p.nome)||ok(f.obs)),ab=UI.aberto[p.key],nv=UI.nv[p.key];
+    return `<div class="arq-p${pa&&pa.key===p.key?" on":""}"><div class="arq-ph"><button type="button" class="arq-tg" data-arq="tg" data-k="${E(p.key)}" aria-expanded="${!!ab}">${ab?"▾":"▸"} 📁 <b>${E(p.nome)}</b> <small>${(porProj[p.key]||[]).length} arquivo(s)${pa&&pa.key===p.key?" · aberto agora":""}</small></button>
+      <span class="gfp-bt">${p.meu?`<button type="button" class="pr-mini" data-arq="abrirp" data-k="${E(p.key)}">↗ Abrir projeto</button>`:p.uid&&p.uid!=="sem"?`<button type="button" class="pr-mini" data-arq="abrirc" data-k="${E(p.key)}">↗ Abrir (cliente)</button>`:""}<label class="pr-mini arq-up">⬆ Arquivo<input type="file" multiple hidden data-arqup="${E(p.key)}"></label><button type="button" class="pr-mini" data-arq="nv" data-k="${E(p.key)}">☁️ Nuvem</button><button type="button" class="pr-mini" data-arq="lig" data-k="${E(p.key)}">👤 Cliente</button></span></div>
+      ${UI.lig===p.key?`<div class="arq-lig"><label class="jr-f">Cliente deste projeto<select data-arqlig="${E(p.key)}"><option value="">— sem cliente —</option>${CL.cli.map(c=>`<option value="${E(c.id)}"${CL.lig[p.key]===c.id?" selected":""}>${E(c.nome)}</option>`).join("")}</select></label></div>`:""}
+      ${ab?`<div class="arq-fl">${fs.length?fs.map(f=>`<div class="arq-f"><span class="arq-i">${ICO(f.mime)}</span><div class="arq-fn"><b>${E(f.nome)}</b><small>${dt(f.em)} · ${tam(f.tam)} · ${ORIG[f.origem]||E(f.origem)}${f.nuvem?" · ☁️ na nuvem":UI.env[f.id]?" · ☁️ enviando…":""}${f.obs?" · "+E(f.obs):""}</small></div>
+        <span class="gfp-bt"><button type="button" class="pr-mini" data-arq="ver" data-id="${f.id}">▶ Ver</button><button type="button" class="pr-mini" data-arq="baixa" data-id="${f.id}">⬇</button>${f.nuvem?"":`<button type="button" class="pr-mini" data-arq="env" data-id="${f.id}"${UI.env[f.id]?" disabled":""}>☁️</button>`}<button type="button" class="pr-mini" data-arq="mv" data-id="${f.id}">↪</button><button type="button" class="pr-mini" data-arq="ren" data-id="${f.id}">✏️</button><button type="button" class="pr-mini" data-arq="del" data-id="${f.id}" aria-label="Apagar">🗑</button></span>
+        ${UI.ed===f.id?`<div class="arq-mv"><label class="jr-f">Mover para o projeto<select data-arqmv="${f.id}">${P.map(x=>`<option value="${E(x.key)}"${x.key===f.projKey?" selected":""}>${E(x.nome)}${x.cliente?" · "+E(x.cliente):""}</option>`).join("")}<option value=""${!f.projKey?" selected":""}>Sem projeto</option></select></label></div>`:""}</div>`).join(""):`<p class="hint" style="margin:4px 0">Nenhum arquivo neste projeto ainda.</p>`}
+        ${nv?`<div class="arq-nv"><b>☁️ Na nuvem</b>${nv.erro?`<p class="arq-err">${E(nv.erro)}</p>`:nv.L?nv.L.length?nv.L.map(o=>`<div class="arq-f"><span class="arq-i">${ICO(o.mime)}</span><div class="arq-fn"><b>${E(o.nome)}</b><small>${o.em?dt(o.em):""} · ${tam(o.tam)}</small></div><span class="gfp-bt"><button type="button" class="pr-mini" data-arq="nvver" data-p="${E(o.path)}" data-m="${E(o.mime)}">▶ Ver</button><button type="button" class="pr-mini" data-arq="nvtraz" data-p="${E(o.path)}" data-k="${E(p.key)}" data-n="${E(o.nome)}" data-m="${E(o.mime)}"${ARQ.some(f=>f.nuvem===o.path)?" disabled":""}>📥 Trazer</button></span></div>`).join(""):`<p class="hint" style="margin:4px 0">Nada deste projeto na nuvem.</p>`:`<p class="hint" style="margin:4px 0">Carregando…</p>`}</div>`:""}</div>`:""}</div>`};
+  const cliCard=c=>{const ps=P.filter(p=>CL.lig[p.key]===c.id);if(q&&!ok(c.nome)&&!ok(c.prop)&&!ok(c.cidade)&&!ps.some(p=>ok(p.nome)||(porProj[p.key]||[]).some(f=>ok(f.nome))))return "";const n=ps.reduce((s,p)=>s+(porProj[p.key]||[]).length,0);
+    return `<section class="arq-c"><div class="arq-ch"><div><b>👤 ${E(c.nome)}</b><small>${E([c.prop&&"🏞 "+c.prop,[c.cidade,c.uf].filter(Boolean).join(" - "),c.fone&&"📞 "+c.fone,c.email&&"✉️ "+c.email,c.doc&&"🪪 "+c.doc].filter(Boolean).join(" · "))||"sem dados de contato"}</small><small>${ps.length} projeto(s) · ${n} arquivo(s)</small></div><span class="gfp-bt"><button type="button" class="pr-mini" data-arq="edc" data-id="${c.id}">✏️ Dados</button><button type="button" class="pr-mini" data-arq="zip" data-id="${c.id}">🗜 Baixar tudo</button></span></div>
+      ${UI.ed==="c:"+c.id?formCli(c):""}${ps.map(projCard).join("")||`<p class="hint" style="margin:4px 0">Ligue projetos a este cliente pelo botão 👤 Cliente de cada projeto.</p>`}</section>`};
+  const semCli=P.filter(p=>!cliDe(p.key)&&(!q||ok(p.nome)||(porProj[p.key]||[]).some(f=>ok(f.nome))));const orfaos=(porProj[""]||[]).length;
+  return `<div class="arq-top"><input class="arq-q" placeholder="🔎 Buscar cliente, projeto ou arquivo" value="${E(UI.busca)}" data-arqq="1"><span class="gfp-bt"><button type="button" class="btn solid" data-arq="novoc">➕ Cliente</button>${dono?`<button type="button" class="btn" data-arq="equipe">👑 Trazer clientes da equipe</button>`:""}<label class="btn">⬆ Arquivo no projeto aberto<input type="file" multiple hidden data-arqup="${E(pa?pa.key:"")}"></label></span></div>
+   ${UI.msg?`<p class="ct-msg" role="status">${E(UI.msg)}</p>`:""}
+   <p class="hint" style="margin:0">${ARQ.length} arquivo(s) no aparelho · ${tam(totB)}${pa?` · projeto aberto: <b>${E(pa.nome)}</b>`:" · nenhum projeto aberto"}. Gravações do 📹 TeleFish e atas entram aqui sozinhas, no projeto escolhido na chamada. <label class="ct-ck" style="display:inline-flex"><input type="checkbox" data-arqauto="1"${CL.auto?" checked":""}> Enviar novos arquivos para a nuvem</label></p>
+   ${UI.ed==="novoc"?formCli({}):""}
+   ${CL.cli.map(cliCard).join("")}
+   ${semCli.length?`<section class="arq-c arq-sem"><div class="arq-ch"><div><b>📂 Projetos sem cliente</b><small>Toque em 👤 Cliente para ligar o projeto a um cadastro.</small></div></div>${semCli.map(projCard).join("")}</section>`:""}
+   ${orfaos?`<section class="arq-c arq-sem"><div class="arq-ch"><div><b>📎 Arquivos sem projeto</b></div></div>${projCard({key:"",nome:"Sem projeto",uid:"sem"})}</section>`:""}
+   <details class="pp-sis"><summary>☁️ Como ligar a nuvem dos arquivos</summary><p class="hint">Os arquivos ficam no aparelho (no navegador) até você tocar em ☁️. Na nuvem, cada usuário só vê a própria pasta; o dono do app vê as pastas de todos os clientes. Para ativar, rode uma vez o arquivo <b>supabase_arquivos.sql</b> (está na pasta do app) no Supabase › SQL Editor. No plano gratuito do Supabase cada arquivo pode ter até 50 MB e o total é 1 GB.</p></details>`}
+function formCli(c){const i=(k,l,ph,tp)=>`<label class="jr-f">${l}<input data-arqc="${k}" value="${E(c[k]||"")}"${ph?` placeholder="${E(ph)}"`:""}${tp?` type="${tp}"`:""}></label>`;
+  return `<div class="arq-form" id="arq-form" data-id="${E(c.id||"")}"><div class="mk-form ct-grid">${i("nome","Nome do cliente *","Pessoa ou empresa")}${i("prop","Propriedade / fazenda")}${i("cidade","Cidade")}${i("uf","UF")}${i("fone","Telefone / WhatsApp","","tel")}${i("email","E-mail","","email")}${i("doc","CPF / CNPJ (opcional)")}${i("obs","Observações")}</div>
+   <div class="gfp-bt"><button type="button" class="btn solid" data-arq="salvac">💾 Salvar</button><button type="button" class="btn" data-arq="cancc">Cancelar</button>${c.id?`<button type="button" class="btn" data-arq="delc" data-id="${E(c.id)}">🗑 Apagar o cadastro</button>`:""}</div><p class="hint" style="margin:0">O cadastro fica neste aparelho. Dados pessoais (CPF, telefone): guarde só o necessário e com a autorização do cliente (LGPD).</p></div>`}
+
+/* ---------- ver, baixar, zip ---------- */
+function baixaBlob(blob,nome){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000)}
+function ver(url,mime,nome,blobUrl){let o=document.getElementById("arq-ver");if(o)o.remove();o=document.createElement("div");o.id="arq-ver";const m=mime||"";
+  const corpo=/^video/.test(m)?`<video src="${E(url)}" controls autoplay playsinline></video>`:/^audio/.test(m)?`<audio src="${E(url)}" controls autoplay></audio>`:/^image/.test(m)?`<img src="${E(url)}" alt="${E(nome)}">`:/pdf/.test(m)?`<iframe src="${E(url)}" title="${E(nome)}"></iframe>`:/^text/.test(m)?`<iframe src="${E(url)}" title="${E(nome)}"></iframe>`:`<p>Este tipo de arquivo não abre aqui. Use ⬇ para baixar.</p>`;
+  o.innerHTML=`<div class="arq-vb"><div class="arq-vh"><b>${E(nome)}</b><button type="button" data-x="1" aria-label="Fechar">✕</button></div>${corpo}${/webm/.test(m)?`<p class="hint" style="margin:0">Vídeo .webm: se não tocar no iPhone ou no QuickTime, baixe e abra no Chrome ou no VLC.</p>`:""}</div>`;document.body.appendChild(o);
+  o.addEventListener("click",e=>{if(e.target===o||e.target.closest("[data-x]")){o.remove();if(blobUrl)URL.revokeObjectURL(url)}})}
+const crcT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=crcT[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
+async function zip(itens){const enc=new TextEncoder(),parts=[],cen=[];let off=0;const d=new Date(),dd=((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate(),tt=(d.getHours()<<11)|(d.getMinutes()<<5);
+  for(const it of itens){const nm=enc.encode(it.nome),u=new Uint8Array(await it.blob.arrayBuffer()),c=crc(u),h=new DataView(new ArrayBuffer(30));
+    [[0,0x04034b50,4],[4,20,2],[6,0x0800,2],[8,0,2],[10,tt,2],[12,dd,2],[14,c,4],[18,u.length,4],[22,u.length,4],[26,nm.length,2],[28,0,2]].forEach(([o,v,s])=>s===4?h.setUint32(o,v,true):h.setUint16(o,v,true));
+    parts.push(h.buffer,nm,u);const ce=new DataView(new ArrayBuffer(46));[[0,0x02014b50,4],[4,20,2],[6,20,2],[8,0x0800,2],[10,0,2],[12,tt,2],[14,dd,2],[16,c,4],[20,u.length,4],[24,u.length,4],[28,nm.length,2],[30,0,2],[32,0,2],[34,0,2],[36,0,2],[38,0,4],[42,off,4]].forEach(([o,v,s])=>s===4?ce.setUint32(o,v,true):ce.setUint16(o,v,true));
+    cen.push(ce.buffer,nm);off+=30+nm.length+u.length}
+  const cs=cen.reduce((s,x)=>s+(x.byteLength||x.length),0),fim=new DataView(new ArrayBuffer(22));[[0,0x06054b50,4],[8,itens.length,2],[10,itens.length,2],[12,cs,4],[16,off,4]].forEach(([o,v,s])=>s===4?fim.setUint32(o,v,true):fim.setUint16(o,v,true));
+  return new Blob([...parts,...cen,fim.buffer],{type:"application/zip"})}
+
+/* ---------- eventos ---------- */
+document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#arq-hub [data-arq]");if(!b)return;e.preventDefault();e.stopPropagation();const k=b.dataset.arq,id=b.dataset.id,key=b.dataset.k;UI.msg="";
+  if(k==="tg"){UI.aberto[key]=!UI.aberto[key];pinta();return}
+  if(k==="novoc"){UI.ed=UI.ed==="novoc"?"":"novoc";pinta();return}if(k==="edc"){UI.ed=UI.ed==="c:"+id?"":"c:"+id;pinta();return}if(k==="cancc"){UI.ed="";pinta();return}
+  if(k==="salvac"){const F=document.getElementById("arq-form"),o={};F.querySelectorAll("[data-arqc]").forEach(i=>o[i.dataset.arqc]=i.value.trim());if(!o.nome){alert("Informe o nome do cliente.");return}
+    const c=CL.cli.find(x=>x.id===F.dataset.id);if(c)Object.assign(c,o);else{const n=Object.assign({id:rid(),em:Date.now()},o);CL.cli.push(n);const pa=projAgora();if(pa&&!CL.lig[pa.key]&&confirm(`Ligar o projeto aberto (${pa.nome}) a ${o.nome}?`))CL.lig[pa.key]=n.id}gravaCL();UI.ed="";aviso(`Cliente ${o.nome} salvo.`);return}
+  if(k==="delc"){const c=CL.cli.find(x=>x.id===id);if(!c||!confirm(`Apagar o cadastro de ${c.nome}? Os projetos e os arquivos continuam, só ficam sem cliente.`))return;CL.cli=CL.cli.filter(x=>x!==c);for(const p in CL.lig)if(CL.lig[p]===id)delete CL.lig[p];gravaCL();UI.ed="";pinta();return}
+  if(k==="lig"){UI.lig=UI.lig===key?"":key;pinta();return}
+  if(k==="abrirp"){T(()=>projAbrir(key.split("/")[1]));return}if(k==="abrirc"){const [u,i]=key.split("/");T(()=>projAbrirCliente(u,i,true));return}
+  if(k==="equipe"){b.disabled=true;b.textContent="👑 Carregando…";try{const r=await trazClientesEquipe();aviso(`${r.projetos} projeto(s) de ${r.clientes} cliente(s) da equipe; ${r.n} cadastro(s) novo(s).`)}catch(er){aviso("Não deu para carregar os clientes: "+(er.message||er))}return}
+  if(k==="ver"){const f=await um(id);if(f)ver(URL.createObjectURL(f.blob),f.mime,f.nome,true);return}
+  if(k==="baixa"){const f=await um(id);if(f)baixaBlob(f.blob,f.nome);return}
+  if(k==="env"){nuvemEnvia(id);return}
+  if(k==="mv"){UI.ed=UI.ed===id?"":id;pinta();return}
+  if(k==="ren"){const f=await um(id);if(!f)return;const n=prompt("Novo nome do arquivo:",f.nome);if(n&&n.trim()){f.nome=n.trim().slice(0,140);await poe(f);redes()}return}
+  if(k==="del"){const f=await um(id);if(!f||!confirm(`Apagar ${f.nome} deste aparelho?${f.nuvem?" A cópia na nuvem continua.":" Ele não está na nuvem: não dá para recuperar."}`))return;await tira(id);redes();return}
+  if(k==="nv"){if(UI.nv[key]){delete UI.nv[key];pinta();return}UI.aberto[key]=true;UI.nv[key]={};pinta();try{UI.nv[key]={L:await nuvemLista(key)}}catch(er){UI.nv[key]={erro:erroNuvem(er)}}pinta();return}
+  if(k==="nvver"){try{ver(await nuvemUrl(b.dataset.p),b.dataset.m,b.dataset.p.split("/").pop())}catch(er){aviso(erroNuvem(er))}return}
+  if(k==="nvtraz"){b.disabled=true;try{const nid=await nuvemTraz(b.dataset.p,b.dataset.k,b.dataset.n,b.dataset.m);const f=await um(nid);if(f){f.nuvem=b.dataset.p;await poe(f)}aviso("📥 Arquivo trazido da nuvem para o aparelho.")}catch(er){aviso(erroNuvem(er))}return}
+  if(k==="zip"){const c=CL.cli.find(x=>x.id===id);const ks=projetos().filter(p=>CL.lig[p.key]===id).map(p=>p.key),L=(await todos()).filter(f=>ks.includes(f.projKey));if(!L.length){aviso("Nenhum arquivo deste cliente no aparelho.");return}
+    const usados={},it=L.map(f=>{let n=`${slug(f.projNome)}/${slug(f.nome)}`;while(usados[n])n=n.replace(/(\.\w+)?$/,"_"+f.id.slice(-3)+"$1");usados[n]=1;return {nome:n,blob:f.blob}});
+    const tot=L.reduce((s,f)=>s+f.tam,0);if(tot>400*1048576&&!confirm(`São ${tam(tot)}: o ZIP pode demorar ou faltar memória no celular. Continuar?`))return;baixaBlob(await zip(it),`Arquivos_${slug(c?c.nome:"cliente")}.zip`);return}},true);
+document.addEventListener("change",async e=>{const t=e.target;if(!t.closest||!t.closest("#arq-hub"))return;e.stopPropagation();
+  if(t.dataset.arqup!=null&&t.files&&t.files.length){const key=t.dataset.arqup,p=key?projPorKey(key):null;let n=0;for(const f of t.files){try{await salvar(f,{nome:f.name,mime:f.type,origem:"upload",proj:p});n++}catch(er){aviso("Sem espaço para guardar "+f.name+".")}}if(key)UI.aberto[key]=true;aviso(`${n} arquivo(s) guardado(s)${p?" em "+p.nome:""}.`);return}
+  if(t.dataset.arqlig!=null){if(t.value)CL.lig[t.dataset.arqlig]=t.value;else delete CL.lig[t.dataset.arqlig];gravaCL();UI.lig="";pinta();return}
+  if(t.dataset.arqmv){const f=await um(t.dataset.arqmv);if(!f)return;const p=t.value?projPorKey(t.value):null;f.projKey=p?p.key:"";f.projNome=p?p.nome:"Sem projeto";await poe(f);UI.ed="";redes();return}
+  if(t.dataset.arqauto){CL.auto=t.checked;gravaCL();return}},true);
+document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest("#arq-hub"))return;e.stopPropagation();if(t.dataset.arqq){UI.busca=t.value;clearTimeout(UI.tq);UI.tq=setTimeout(()=>{const h=document.getElementById("arq-hub");if(!h)return;const pos=t.selectionStart;h.innerHTML=corpo();const n=h.querySelector("[data-arqq]");if(n){n.focus();T(()=>n.setSelectionRange(pos,pos))}},250)}},true);
+window.addEventListener("proj-status",()=>setTimeout(()=>redes(),300));
+
+window.gfArquivos={salvar,todos:async()=>(await todos()).map(meta),hubHTML,info:()=>`${ARQ.length} arquivo(s)${CL.cli.length?" · "+CL.cli.length+" cliente(s)":""}`,projAgora,projetos,clientes:()=>CL.cli,ligacoes:()=>CL.lig,nuvemEnvia,redes:()=>redes()};
+todos().then(L=>{ARQ=L.map(meta)}).catch(()=>{});
+const st=document.createElement("style");st.textContent=`.arq{display:grid;gap:10px;min-width:0}.arq-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.arq-q{flex:1 1 220px;min-width:0;font:inherit;padding:9px 11px;border:1px solid var(--line,#d1d5db);border-radius:10px}
+.arq-c{border:1px solid var(--line,#e5e7eb);border-radius:14px;padding:10px 12px;display:grid;gap:8px;background:var(--surface,#fff);min-width:0}.arq-sem{background:#f8fafc}.arq-ch{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 10px}.arq-ch>div{display:grid;gap:2px;min-width:0}.arq-ch small{color:var(--muted,#64748b)}
+.arq-p{border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:6px 8px;display:grid;gap:6px;min-width:0}.arq-p.on{border-color:#10b981;box-shadow:inset 3px 0 0 #10b981}.arq-ph{display:flex;flex-wrap:wrap;gap:6px;align-items:center;justify-content:space-between}
+.arq-tg{background:none;border:0;font:inherit;cursor:pointer;text-align:left;padding:2px;color:inherit;min-width:0}.arq-tg small{color:var(--muted,#64748b)}.arq-up{cursor:pointer}
+.arq-fl,.arq-nv{display:grid;gap:4px}.arq-f{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:6px 8px;border-radius:10px;background:#f8fafc}.arq-i{font-size:20px}.arq-fn{flex:1 1 180px;min-width:0;display:grid}.arq-fn b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.arq-fn small{color:var(--muted,#64748b)}
+.arq-mv{flex-basis:100%}.arq-err{color:#b91c1c;margin:4px 0;font-size:13px}.arq-form{border:1px dashed #10b981;border-radius:12px;padding:10px;display:grid;gap:8px}
+#arq-ver{position:fixed;inset:0;z-index:2147482500;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;padding:12px}.arq-vb{background:var(--surface,#fff);border-radius:14px;padding:10px;display:grid;gap:8px;max-width:min(1100px,100%);max-height:100%;overflow:auto}
+.arq-vh{display:flex;justify-content:space-between;gap:10px}.arq-vh button{background:none;border:0;font-size:20px;cursor:pointer}.arq-vb video,.arq-vb img{max-width:100%;max-height:75vh;border-radius:10px;background:#000}.arq-vb iframe{width:min(1000px,90vw);height:75vh;border:0}`;document.head.appendChild(st);
+})();
+</script>
+<script>
 /* ===================== v305: 📐 Desenho técnico dos tanques da Calculadora (RAS) — cada grupo de tanques vira tanques circulares
    com o volume, a quantidade e a profundidade do projeto aberto; atualiza ao abrir outro projeto ou ao mudar os grupos ===================== */
 (function(){
@@ -15372,7 +15518,7 @@ async function msgSala(m){if(!R||!m||!m.from||m.from===R.me.id)return;if(m.to&&m
 
 /* ---------- entrar, ficar e sair ---------- */
 async function abre(code,o){o=o||{};if(R){if(R.code===code){mostra();return}if(!confirm("Sair da chamada atual para entrar em outra?"))return;await sair(true)}
-  const sala=C.salas[code]||{};R={code,titulo:o.titulo||sala.titulo||"",host:!!(o.host||sala.host),espera:!!(o.espera??sala.espera),me:{id:Date.now().toString(36)+rnd(6),nome:nomeUsuario()},peers:new Map(),tiles:new Map(),adm:new Set(),fila:new Map(),
+  const sala=C.salas[code]||{};const prj=o.proj||(sala.proj&&sala.proj.key?sala.proj:null)||T(()=>gfArquivos.projAgora(),null);R={code,proj:prj,titulo:o.titulo||sala.titulo||"",host:!!(o.host||sala.host),espera:!!(o.espera??sala.espera),me:{id:Date.now().toString(36)+rnd(6),nome:nomeUsuario()},peers:new Map(),tiles:new Map(),adm:new Set(),fila:new Map(),
     chat:[],ata:[],mic:true,cam:true,mao:0,layout:"grade",pin:null,t0:0,naoLidas:0,painel:"",guest:!!o.guest};
   R.adm.add(R.me.id);monta();telaPre();await abreMidia();previa();desenhaPre()}
 function monta(){let o=ov();if(o)o.remove();o=document.createElement("div");o.id="tf";o.setAttribute("role","dialog");o.setAttribute("aria-label","TeleFish · videochamada");document.body.appendChild(o);document.documentElement.classList.add("tf-aberto")}
@@ -15402,6 +15548,7 @@ function entraDeVez(){if(!R||R.dentro)return;R.dentro=true;R.t0=Date.now();ata(`
   if(!new URLSearchParams(location.search).get("telefish")&&history.replaceState)T(()=>history.replaceState(null,"",location.pathname+"?telefish="+R.code+location.hash))}
 async function sair(sem){if(!R)return;if(!sem&&!confirm("Sair da chamada?"))return;const r=R;envia({t:"bye"});if(r.rec)await gravar(false);if(r.sr){r.ccOn=false;T(()=>r.sr.stop())}
   r.peers.forEach(p=>T(()=>p.pc.close()));[r.micT,r.camT,r.tela].forEach(t=>t&&T(()=>t.stop()));if(r.fx)r.fx.parar();T(()=>r.tr&&r.tr.close());clearInterval(r.relogio);clearInterval(r.vu);T(()=>r.ac&&r.ac.close());T(()=>r.wake&&r.wake.release());
+  if(r.dentro&&window.gfArquivos&&r.ata.length+r.chat.length>2){const txt=`TeleFish · ${r.titulo||"Sala "+r.code}\nData: ${new Date(r.t0).toLocaleString("pt-BR")}\nDuração: ${dur(Date.now()-r.t0)}\n\n`+r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n");T(()=>gfArquivos.salvar(new Blob([txt],{type:"text/plain;charset=utf-8"}),{nome:`Ata_TeleFish_${r.code}_${iso(r.t0)}.txt`,mime:"text/plain",origem:"ata",proj:r.proj||null,obs:r.titulo||""}))}
   if(r.dentro){C.hist.unshift({code:r.code,titulo:r.titulo,ini:r.t0,fim:Date.now(),pessoas:[...new Set([r.me.nome,...r.ata.filter(l=>/ entrou/.test(l)).map(l=>l.replace(/^\[[^\]]+\] /,"").replace(/ entrou.*$/,""))])],rec:!!r.gravou,msgs:r.chat.length,ata:r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n").slice(0,40000)});C.hist=C.hist.slice(0,40);salva()}
   R=null;fecha();if(new URLSearchParams(location.search).get("telefish"))T(()=>history.replaceState(null,"",location.pathname+location.hash));T(()=>window.gfTeleFish.redesenhaHub())}
 function fecha(){const o=ov();if(o)o.remove();document.documentElement.classList.remove("tf-aberto");if(R&&!R.dentro){[R.micT,R.camT].forEach(t=>t&&T(()=>t.stop()));if(R.fx)R.fx.parar();T(()=>R.tr&&R.tr.close());clearInterval(R.vu);T(()=>R.ac&&R.ac.close());R=null}}
@@ -15445,8 +15592,11 @@ async function tela(on){if(on){try{const s=await navigator.mediaDevices.getDispl
 
 /* ---------- gravar (fica só neste aparelho) ---------- */
 async function gravar(on){if(!on){if(!R.rec)return;const r=R.rec;R.rec=null;await new Promise(ok=>{r.mr.onstop=ok;T(()=>r.mr.stop())});clearInterval(r.iv);T(()=>r.ac.close());
-    const tipo=r.mr.mimeType||"video/webm",b=new Blob(r.parts,{type:tipo}),a=document.createElement("a"),ext=/mp4/.test(tipo)?"mp4":"webm";a.href=URL.createObjectURL(b);a.download=`TeleFish_${R?R.code:"sala"}_${iso(Date.now())}_${hm(Date.now()).replace(":","h")}.${ext}`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000);
-    if(R){R.gravou=true;ata(`${R.me.nome} parou de gravar (arquivo ${a.download}, ${F(b.size/1048576,1)} MB)`);nota(`💾 Gravação salva: ${a.download}`,7000);envia({t:"st",st:meuSt()});desenhaEstado()}return}
+    const tipo=r.mr.mimeType||"video/webm",b=new Blob(r.parts,{type:tipo}),a=document.createElement("a"),ext=/mp4/.test(tipo)?"mp4":"webm";a.href=URL.createObjectURL(b);a.download=`TeleFish_${R&&R.titulo?R.titulo.replace(/[^\wÀ-ú -]+/g,"").trim().replace(/\s+/g,"_").slice(0,40)+"_":""}${R?R.code:"sala"}_${iso(Date.now())}_${hm(Date.now()).replace(":","h")}.${ext}`;
+    /* v307: a gravação vai para os arquivos do projeto da chamada (🗂 Clientes, projetos e arquivos) */
+    let guardou=false;if(window.gfArquivos){try{await gfArquivos.salvar(b,{nome:a.download,mime:tipo,origem:"telefish",proj:R&&R.proj||null,obs:R&&R.titulo?"Chamada: "+R.titulo:"Chamada "+(R?R.code:"")});guardou=true}catch(er){}}
+    if(!guardou||C.baixa){document.body.appendChild(a);a.click()}setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000);
+    if(R){R.gravou=true;ata(`${R.me.nome} parou de gravar (arquivo ${a.download}, ${F(b.size/1048576,1)} MB)`);nota(guardou?`💾 Gravação guardada em 🗂 Arquivos${R.proj?" do projeto "+R.proj.nome:" (sem projeto)"}: ${a.download}`:`💾 Gravação salva: ${a.download}`,8000);envia({t:"st",st:meuSt()});desenhaEstado()}return}
   if(!window.MediaRecorder){nota("Este aparelho não grava vídeo pelo navegador.");return}
   if(!confirm("Gravar a chamada? Todos vão ver o aviso 🔴 Gravando. O arquivo fica salvo só neste aparelho. Peça a autorização de quem participa (LGPD).")) return;
   const W=1280,H=720,cv=document.createElement("canvas");cv.width=W;cv.height=H;const x=cv.getContext("2d"),ac=new (window.AudioContext||window.webkitAudioContext)(),dst=ac.createMediaStreamDestination(),lig=new Set();
@@ -15535,6 +15685,8 @@ function hubHTML(){const ag=Object.entries(C.salas).filter(([,s])=>s.quando&&s.q
    ${R&&R.dentro?`<p class="tf-agora">🟢 Você está numa chamada (${E(R.titulo||R.code)}). <button type="button" class="btn solid" data-tfh="voltar">Voltar para a chamada</button></p>`:""}
    <div class="mk-form tf-hgrid"><label class="jr-f">Seu nome na chamada<input data-tfhc="nome" value="${E(C.nome||nomeUsuario())}" maxlength="40"></label><label class="jr-f">Assunto<input id="tfh-tit" placeholder="Ex.: apresentação do filé de tilápia" maxlength="80"></label></div>
    <label class="ct-ck"><input type="checkbox" id="tfh-esp"> Sala de espera: eu aceito quem entra</label>
+   ${window.gfArquivos?(()=>{const pa=T(()=>gfArquivos.projAgora(),null),L=T(()=>gfArquivos.projetos(),[])||[];return `<div class="mk-form tf-hgrid"><label class="jr-f">Projeto da chamada (gravação e ata vão para os arquivos dele)<select id="tfh-proj"><option value="">— sem projeto —</option>${L.map(p=>`<option value="${E(p.key)}"${pa&&pa.key===p.key?" selected":""}>${E(p.nome)}${p.cliente?" · "+E(p.cliente):""}</option>`).join("")}</select></label></div>
+   <label class="ct-ck"><input type="checkbox" data-tfhb="1"${C.baixa?" checked":""}> Baixar também a gravação no aparelho (além de guardar no projeto)</label>`})():""}
    <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="nova">📹 Nova chamada agora</button></div>
    <div class="mk-form tf-hgrid"><label class="jr-f">Entrar com o código ou o link<input id="tfh-cod" placeholder="abc-defg-hij ou o link do convite"></label></div><div class="gfp-bt"><button type="button" class="btn" data-tfh="entrar">➡️ Entrar</button></div>
    <details class="pp-sis"><summary>📅 Agendar uma chamada (${ag.length})</summary><div class="mk-form tf-hgrid"><label class="jr-f">Assunto<input id="tfh-at" maxlength="80"></label><label class="jr-f">Dia<input type="date" id="tfh-ad" value="${iso(Date.now()+864e5)}"></label><label class="jr-f">Hora<input type="time" id="tfh-ah" value="09:00"></label><label class="jr-f">Duração (min)<input id="tfh-am" inputmode="numeric" value="30"></label></div>
@@ -15549,7 +15701,8 @@ const gd=ms=>new Date(ms).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,""
 function ics(c,s){const l=linkSala(c),fim=s.quando+(s.min||30)*6e4;return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Green Fish//TeleFish//PT","BEGIN:VEVENT",`UID:${c}@telefish`,`DTSTAMP:${gd(Date.now())}`,`DTSTART:${gd(s.quando)}`,`DTEND:${gd(fim)}`,`SUMMARY:TeleFish · ${(s.titulo||"Chamada").replace(/[,;\n]/g," ")}`,`DESCRIPTION:Entre pelo link: ${l}`,`URL:${l}`,`LOCATION:${l}`,"END:VEVENT","END:VCALENDAR"].join("\r\n")}
 function redesenhaHub(){const h=document.getElementById("tf-hub");if(h){const a=document.activeElement;if(h.contains(a)&&/INPUT|SELECT/.test(a.tagName))return;h.outerHTML=hubHTML()}}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tf-hub [data-tfh]");if(!b)return;if(b.tagName==="A")return;e.preventDefault();e.stopPropagation();const k=b.dataset.tfh,c=b.dataset.c,v=id=>((document.getElementById(id)||{}).value||"").trim();
-  if(k==="nova"){const cod=codigoNovo();C.salas[cod]={host:true,titulo:v("tfh-tit"),espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};salva();abre(cod,{host:true})}
+  const prjSel=()=>{const kk=v("tfh-proj");if(!kk)return null;const L=T(()=>gfArquivos.projetos(),[])||[],p=L.find(x=>x.key===kk);return p?{id:p.id,nome:p.nome,key:p.key,uid:p.uid}:null};
+  if(k==="nova"){const cod=codigoNovo();C.salas[cod]={host:true,proj:prjSel(),titulo:v("tfh-tit"),espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};salva();abre(cod,{host:true,proj:C.salas[cod].proj})}
   else if(k==="entrar"){const cod=limpaCod(v("tfh-cod"));if(cod.length<6){alert("Cole o código ou o link do convite.");return}abre(cod)}
   else if(k==="voltar")mostra();
   else if(k==="abrir")abre(c,{host:!!(C.salas[c]||{}).host});
@@ -15559,7 +15712,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
   else if(k==="apaga"){if(confirm("Apagar esta sala agendada?")){delete C.salas[c];salva();redesenhaHub()}}
   else if(k==="ata"){const h=C.hist[+b.dataset.i];if(h)baixaAta(`TeleFish · ${h.titulo||"Sala "+h.code}\nData: ${new Date(h.ini).toLocaleString("pt-BR")}\nDuração: ${dur(h.fim-h.ini)}\nPessoas: ${(h.pessoas||[]).join(", ")}\n\n${h.ata||""}`,`TeleFish_ata_${h.code}_${iso(h.ini)}.txt`)}
   else if(k==="limpa"){if(confirm("Apagar o histórico de chamadas deste aparelho?")){C.hist=[];salva();redesenhaHub()}}},true);
-document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#tf-hub"))return;e.stopPropagation();if(t.dataset.tfhc==="nome"){C.nome=t.value.trim().slice(0,40);salva()}if(t.dataset.tfht){C.turn=C.turn||{};C.turn[t.dataset.tfht]=t.value.trim();salva()}},true);
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#tf-hub"))return;e.stopPropagation();if(t.dataset.tfhb){C.baixa=t.checked;salva();return}if(t.dataset.tfhc==="nome"){C.nome=t.value.trim().slice(0,40);salva()}if(t.dataset.tfht){C.turn=C.turn||{};C.turn[t.dataset.tfht]=t.value.trim();salva()}},true);
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf-hub"))e.stopPropagation()},true);
 
 window.gfTeleFish={hubHTML,redesenhaHub,abre,sair:()=>sair(true),estado:()=>R,info:()=>R&&R.dentro?`🟢 em chamada · ${somaPessoas()} pessoa(s)`:`${C.hist.length} chamada(s) · ${Object.values(C.salas).filter(s=>s.quando>Date.now()).length} agendada(s)`,_msg:msgSala,_cfg:()=>C};
