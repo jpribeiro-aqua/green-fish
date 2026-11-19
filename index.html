@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v310";
+  it.querySelector("code").textContent=msg;const ver="ras-v311";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10825,7 +10825,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v310";
+  const APP_VERSAO="ras-v311";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -16430,7 +16430,7 @@ function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activ
 for(const id of ["view-benef","view-merc"]){const v=document.getElementById(id);if(v)new MutationObserver(()=>{if(!v.hidden)poe()}).observe(v,{childList:true,attributes:true,attributeFilter:["hidden"]})}
 /* ---- relógio: ao vivo a cada minuto ---- */
 function tick(){try{S.live=aoVivo()||[]}catch(e){S.live=[]}const A=todos();try{const R=semanas(A);oferta(A,R)}catch(e){}badge(A);avisos(A);poe();desenhaTudo()}
-window.gfPrevToast=t=>toast(t);window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()},grava:()=>{gravaO();try{if(boxO)desenha(boxO,odHTML)}catch(e){}},fab:()=>fab(),estrada:(a,b)=>estrada(a,b),marcaFab:p=>{O.fab=Object.assign(O.fab||{},{lat:p.lat,lon:p.lon,fonte:"marcado no mapa da rota"});gravaO();try{if(boxO)desenha(boxO,odHTML);if(box)desenha(box,htmlBenef)}catch(e){}}};window.gfPrev={valor:(l,ms)=>valor(l,ms),cache:()=>S.cache,todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
+window.gfPrevToast=t=>toast(t);window.gfOrdens={lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()},grava:()=>{gravaO();try{if(boxO)desenha(boxO,odHTML)}catch(e){}},fab:()=>fab(),estrada:(a,b)=>estrada(a,b),marcaFab:p=>{O.fab=Object.assign(O.fab||{},{lat:p.lat,lon:p.lon,fonte:"marcado no mapa da rota"});gravaO();try{if(boxO)desenha(boxO,odHTML);if(box)desenha(box,htmlBenef)}catch(e){}}};window.gfPrev={geo:l=>{try{return geoLote(l)}catch(e){return null}},valor:(l,ms)=>valor(l,ms),cache:()=>S.cache,todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
 setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);
 setTimeout(()=>processa(false),7000);setInterval(()=>{if(!document.hidden)processa(false)},15*60000);
 window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
@@ -20192,15 +20192,33 @@ function aplica(){const v=document.getElementById("view-benef");if(!v)return;con
   /* linha do tempo da despesca: cada período tem uma só cor — meses na horizontal (por semanas), semanas do último mês na horizontal (por dias) e a última semana dia a dia na vertical */
   const h0=sod(agora),porDia={};L.forEach(l=>{let t=sod(l.h);if(t<h0)t=h0;(porDia[t]=porDia[t]||[]).push(l)});
   const pj=ls=>ls.map(l=>`<b>${esc(l.proj||"Projeto")}</b>${l.g?" · "+esc(l.g):""}${isFinite(l.bF)?` · ${Math.round(l.bF).toLocaleString("pt-BR")} kg`:""}`).join("<br>");
+  /* v311: ficha completa da propriedade e da despesca (para o dia da despesca e cada dia da última semana) */
+  const nf=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d}):"—";
+  const km=(a,b)=>{const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+  const ST={aceita:"✅ aceita",captura:"🎣 captura",encerrada:"🏁 despesca encerrada",transporte:"🚚 em transporte",chegou:"🏭 chegou à fábrica",conferida:"🔎 rastreabilidade conferida",reprovada:"⛔ reprovada"};
+  const ficha=l=>{const g=(()=>{try{return gfPrev.geo&&gfPrev.geo(l)}catch(e){return null}})(),Fb=(()=>{try{return gfOrdens.fab()}catch(e){return null}})(),
+     od=(()=>{try{return (gfOrdens.lista()||[]).find(o=>String(o.lid)===String(l.id)&&!["cancelada","reprovada"].includes(o.status))}catch(e){return null}})(),at=dd(l.h,agora),
+     ok=x=>x&&isFinite(+x.lat)&&isFinite(+x.lon),d=ok(g)&&ok(Fb)?km({lat:+g.lat,lon:+g.lon},{lat:+Fb.lat,lon:+Fb.lon}):NaN,
+     dens=l.cap>0&&isFinite(l.bF)?l.bF/l.cap*100:NaN,
+     L=[["🏡 Propriedade",`${esc(l.proj||"Projeto")}${l.cli?` · cliente <b>${esc(l.cli)}</b>`:""}`],
+      ["📍 Local",ok(g)?`${g.nome?esc(g.nome)+" · ":""}${(+g.lat).toFixed(5).replace(".",",")}, ${(+g.lon).toFixed(5).replace(".",",")} <a href="https://www.google.com/maps?q=${+g.lat},${+g.lon}" target="_blank" rel="noopener">abrir no mapa</a>`:`<span class="muted">sem coordenadas (cadastre na aba Local e viabilidade do projeto ou na ordem)</span>`],
+      ["🏭 Até a fábrica",isFinite(d)?`≈ ${nf(d,1)} km em linha reta${Fb.nome?` até ${esc(Fb.nome)}`:""}`:`<span class="muted">${ok(Fb)?"—":"marque a fábrica no Beneficiamento"}</span>`],
+      ["🐟 Lote",`${esc(l.g||"—")}${l.q?` · ${l.q} tanque(s)/viveiro(s)`:""} · ${esc(l.spn||l.sp||"")}`],
+      ["📅 Data",`${wd(l.h)} ${dBR(l.h)}${at<0?` · <b class="tl-atr">atrasada ${-at} dia(s)</b>`:at===0?" · <b>hoje</b>":` · em ${at} dia(s)`}`],
+      ["⚖️ Peso médio",`${nf(l.wF)} g${isFinite(l.alvo)&&l.alvo>0?` (alvo do abate ${nf(l.alvo)} g)`:""}`],
+      ["🔢 Peixes",`${nf(l.nF)} peixes`],
+      ["📦 Biomassa",`<b>${nf(l.bF)} kg</b> · ${nf(l.bF/1000,2)} t${isFinite(dens)?` · ${nf(dens)} % da capacidade (${nf(l.cap)} kg)`:""}`],
+      ["🧾 Ordem",od?`<b>${esc(od.id)}</b> · ${esc(ST[od.status]||od.status||"")}${od.resp?` · resp. ${esc(od.resp)}`:""}${od.veic?` · 🚚 ${esc(od.veic)}`:""}${od.mot?` · motorista ${esc(od.mot)}`:""}${isFinite(+od.kgPrev)?` · ${nf(+od.kgPrev)} kg previstos`:""} <button type="button" class="linkbtn" data-tl-od="${esc(od.id)}">abrir ordem</button>`:`<span class="muted">sem ordem ainda</span> <button type="button" class="linkbtn" data-tl-aceita="${esc(l.id)}">✅ aceitar despesca</button>`]];
+    return `<div class="tl-fx"><div class="tl-fxh"><em><b>${esc(l.proj||"Projeto")}</b>${l.g?" · "+esc(l.g):""}</em><span>${nf(l.bF)} kg</span></div><dl>${L.map(([a,b])=>`<dt>${a}</dt><dd>${b}</dd>`).join("")}</dl></div>`};
   const lotesEntre=(t0,t1)=>{let r=[];for(let t=t0;t<=t1;t+=DAY)r=r.concat(porDia[sod(t+3*3600e3)]||[]);return r};
   const wd=t=>new Date(t).toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","");
   const bloco=k=>{const [hi,rot,cor]=ETAPAS[k],lo=k<N-1?ETAPAS[k+1][0]:-1,t0=h0+(lo+1)*DAY,t1=h0+hi*DAY,ls=lotesEntre(t0,t1),kg=ls.reduce((a,l)=>a+(isFinite(l.bF)?l.bF:0),0);
-    const cab=`<div class="tl-h"><span class="tl-c">${rot}</span><span>${k===N-1?`hoje ${dBR(h0)} (e atrasadas)`:t0===t1?`${wd(t0)} ${dBR(t0)}`:`${dBR(t0)} a ${dBR(t1)}`}</span><span class="tl-n">${ls.length?`${ls.length} lote(s) · ${Math.round(kg).toLocaleString("pt-BR")} kg`:"sem despesca"}</span></div>`;
+    const cab=`<div class="tl-h"><span class="tl-c">${rot}</span><span>${k===N-1?`${wd(h0)} ${dBR(h0)} · hoje (e atrasadas)`:t0===t1?`${wd(t0)} ${dBR(t0)}`:`${dBR(t0)} a ${dBR(t1)}`}</span><span class="tl-n">${ls.length?`${ls.length} lote(s) · ${Math.round(kg).toLocaleString("pt-BR")} kg`:"sem despesca"}</span></div>`;
     let corpo="";
     if(k<5){const P=[];for(let a=t0;a<=t1;a+=7*DAY){const z=Math.min(t1,a+6*DAY),x=lotesEntre(a,z);P.push(`<div class="tl-p${x.length?" tem":""}"><small>${dBR(a)}–${dBR(z)}</small><div>${x.length?pj(x):"—"}</div></div>`)}corpo=`<div class="tl-hz">${P.join("")}</div>`}
     else if(k<8){const P=[];for(let a=t0;a<=t1;a+=DAY){const x=porDia[a]||[];P.push(`<div class="tl-p tl-d${x.length?" tem":""}"><small>${wd(a)} ${dBR(a)}</small><div>${x.length?pj(x):"—"}</div></div>`)}corpo=`<div class="tl-hz">${P.join("")}</div>`}
-    else{const x=k===N-1?ls:(porDia[t0]||[]);corpo=`<div class="tl-vd">${x.length?pj(x):"<span class=\"muted\">—</span>"}</div>`}
-    return `<div class="tl-b${k>=8?" tl-dia":""}${sel===k?" sel":""}${sel>=0&&sel!==k?" esc":""}${ls.length?" tem":""}" style="--c:${cor}" data-k="${k}">${cab}${corpo}</div>`};
+    else{const x=k===N-1?ls:(porDia[t0]||[]);corpo=x.length?`<div class="tl-vd tl-fxs">${x.map(ficha).join("")}</div>`:""}
+    return `<div class="tl-b${k>=8?" tl-dia":""}${k>=8&&ls.length?" tl-cfx":""}${sel===k?" sel":""}${sel>=0&&sel!==k?" esc":""}${ls.length?" tem":""}" style="--c:${cor}" data-k="${k}">${cab}${corpo}</div>`};
   const tl=`<details class="tl"${tlAb()?" open":""}><summary>🗓 Linha do tempo da despesca · meses e semanas na horizontal, última semana dia a dia</summary><div class="tl-in">${ETAPAS.slice(0,5).map((e,i)=>bloco(i)).join("")}<div class="tl-sub">Último mês</div>${[5,6,7].map(bloco).join("")}<div class="tl-sub">Última semana, dia a dia</div><div class="tl-v">${[8,9,10,11,12,13,14,15].map(bloco).join("")}</div></div></details>`;
   /* legenda: a régua de cores clicável */
   const av=v.querySelector(".gfp-av");let lg=document.getElementById("gfp-crleg");
@@ -20214,7 +20232,10 @@ function aplica(){const v=document.getElementById("view-benef");if(!v)return;con
   if(aplica.rola){aplica.rola=false;const t=prim||primW;if(t)try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(e){}}
   /* a aba do Beneficiamento ganha a cor do aviso mais urgente */
   document.querySelectorAll('.tab[data-view="benef"],#gf-side [data-view="benef"]').forEach(t=>{if(pior>=0){t.style.setProperty("--cr",ETAPAS[pior][2]);t.classList.add("gfp-crtab")}else t.classList.remove("gfp-crtab")})}
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#gfp-crleg [data-cr-sel]");if(!b)return;e.preventDefault();const k=+b.dataset.crSel,cur=selG();selS(k<0||k===cur?-1:k);if(k>=0){try{sessionStorage.setItem("gf-tl-ab","1")}catch(_){}}aplica.rola=k>=0&&k!==cur;aplica()});
+document.addEventListener("click",e=>{const o=e.target.closest&&e.target.closest("#gfp-crtl [data-tl-od],#gfp-crtl [data-tl-aceita]");if(o){e.preventDefault();
+  if(o.dataset.tlOd){try{gfOrdens.abrir(o.dataset.tlOd)}catch(_){}}else{const v=document.getElementById("view-benef"),bt=v&&[...v.querySelectorAll("[data-gfp='aceitar'][data-id]")].find(x=>x.dataset.id===o.dataset.tlAceita);
+    if(bt){bt.scrollIntoView({block:"center",behavior:"smooth"});bt.click()}else try{gfPrevToast("Abra o aviso desse lote no Beneficiamento para aceitar a despesca.")}catch(_){}}return}
+  const b=e.target.closest&&e.target.closest("#gfp-crleg [data-cr-sel]");if(!b)return;e.preventDefault();const k=+b.dataset.crSel,cur=selG();selS(k<0||k===cur?-1:k);if(k>=0){try{sessionStorage.setItem("gf-tl-ab","1")}catch(_){}}aplica.rola=k>=0&&k!==cur;aplica()});
 window.gfCoresDespesca={etapa,ETAPAS,aplica};
 function inicia(){const v=document.getElementById("view-benef");if(!v){setTimeout(inicia,400);return}
   new MutationObserver(()=>{clearTimeout(inicia.t);inicia.t=setTimeout(aplica,150)}).observe(v,{childList:true,subtree:true});
@@ -20266,7 +20287,14 @@ table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinit
 .tl-v{display:grid;gap:4px}
 .tl-dia{grid-template-columns:minmax(0,260px) minmax(0,1fr);align-items:center}
 .tl-vd{font-size:12.5px}
-@media (max-width:560px){.tl-dia{grid-template-columns:1fr}.tl-n{margin-left:0}}
+.tl-h{flex-wrap:nowrap}.tl-h>span:nth-child(2){white-space:nowrap}
+.tl-dia.tl-cfx{grid-template-columns:1fr}
+.tl-fxs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:6px}
+.tl-fx{background:var(--surface);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-top:4px solid var(--c);border-radius:8px;padding:6px 9px;display:grid;gap:4px;min-width:0}
+.tl-fxh{display:flex;gap:6px;align-items:baseline;font-size:13.5px}.tl-fxh em{font-style:normal;min-width:0}.tl-fxh span{margin-left:auto;font-weight:700;color:var(--c);white-space:nowrap}
+.tl-fx dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;margin:0;font-size:12.5px}.tl-fx dt{color:var(--muted);white-space:nowrap}.tl-fx dd{margin:0;overflow-wrap:anywhere}
+.tl-atr{color:#b91c1c}
+@media (max-width:560px){.tl-dia{grid-template-columns:1fr}.tl-n{margin-left:0}.tl-h{flex-wrap:wrap}.tl-fx dl{gap:3px 8px}.tl-fx dt{font-size:11.5px}}
 @media (prefers-reduced-motion:reduce){.tl-b.sel{animation:none}}
 .gfp-crhide{display:none!important}
 .gfp-crd{display:flex;flex-direction:column;gap:2px;margin-top:6px;min-width:230px}
