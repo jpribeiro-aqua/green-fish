@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v295";
+  it.querySelector("code").textContent=msg;const ver="ras-v296";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10761,7 +10761,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v295";
+  const APP_VERSAO="ras-v296";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -18983,7 +18983,7 @@ table.gfp-tab tr.gfp-crw td{animation:gfpCrW var(--crp,1.2s) ease-in-out infinit
 @media (prefers-reduced-motion:reduce){.gfp-it.gfp-cr:not(.gfp-pisca){animation:none;box-shadow:0 0 0 var(--crs,3px) color-mix(in srgb,var(--cr) 35%,transparent)}}
 </style>
 <script>
-/* ===================== v294/v295: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
+/* ===================== v294–v296: 🗺 Rota da despesca no mapa — aparece na ordem assim que a despesca é aceita:
    fábrica → propriedade (cadastro georreferenciado) → fábrica pela estrada (OSRM/OpenStreetMap) e o veículo pelo GPS
    (celular no veículo rastreando ao vivo ou posição enviada). O mapa fica vivo entre as atualizações da ordem ===================== */
 (function(){
@@ -19026,7 +19026,7 @@ window.gfRmHTML=o=>{if(!o||!ok(o.geo))return "";const Fb=fab(),V=posOk(o)?o.pos:
   return `<div class="rm-w"><div class="rm-map" data-rmap="${E(o.id)}" aria-label="Mapa da rota da despesca ${E(o.id)}"></div>
    <div class="rm-leg"><span><i style="background:#0f766e"></i>🏭 ${Fb?E(Fb.nome):"fábrica não marcada"}</span><span><i style="background:#2563eb"></i>📍 ${E(o.proj||"Propriedade")}${o.g?" · "+E(o.g):""}</span><span><i style="background:#ea580c"></i>🚚 ${E(o.veic||"veículo")}${V?` · GPS ${hm(V.em)}${V.prec?` (±${V.prec} m)`:""}`:" · sem GPS"}</span></div>
    <p class="hint rm-info" data-rminfo="${E(o.id)}">Traçando a rota…</p>
-   <div class="gfp-bt">${Fb?"":`<button type="button" class="btn solid" data-rmx="fab" data-id="${E(o.id)}">🏭 Marcar a fábrica no mapa</button>`}${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button><button type="button" class="btn" data-rmx="tela" data-id="${E(o.id)}">⛶ Tela cheia</button></div>
+   <div class="gfp-bt"><button type="button" class="btn${Fb?"":" solid"}" data-rmx="fab" data-id="${E(o.id)}">${Fb?"🏭 Mudar a fábrica de lugar":"🏭 Marcar a fábrica no mapa"}</button>${at?`<button type="button" class="btn${trk?" solid":""}" data-rmx="trk" data-id="${E(o.id)}">${trk?"⏹ Parar o rastreio deste celular":"📡 Este celular está no veículo: rastrear ao vivo"}</button>`:""}<button type="button" class="btn" data-rmx="cen" data-id="${E(o.id)}">🎯 Centralizar</button><button type="button" class="btn" data-rmx="tela" data-id="${E(o.id)}">⛶ Tela cheia</button></div>
    ${at?`<details class="rm-trk"><summary>🛰 GPS do veículo por link (rastreador)</summary><p class="hint">Se o veículo tem rastreador que publica a posição num link (JSON com latitude e longitude), cole o link: o app lê a cada minuto enquanto a ordem estiver aberta.</p><div class="mk-form"><label class="jr-f">Link do rastreador<input data-rmlink="${E(o.id)}" value="${E(o.trkUrl||"")}" placeholder="https://…" inputmode="url"></label></div></details>`:""}</div>`};
 
 /* ---------- mapas vivos: o mesmo mapa é reaproveitado quando a ordem é redesenhada ---------- */
@@ -19089,7 +19089,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
   if(a==="trk"){if(TRK[id]!=null)para(id);else liga(id);return}
   if(a==="tela"){const w=b.closest(".rm-w");if(w){const on=!w.classList.contains("rm-full");w.classList.toggle("rm-full",on);b.textContent=on?"✕ Sair da tela cheia":"⛶ Tela cheia";document.body.classList.toggle("rm-full-on",on);setTimeout(()=>M&&M.map.invalidateSize(),120)}return}
   if(a==="cen"){const o=ordem(id);if(M&&o){M.fit=false;M.k="";hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`))}return}
-  if(a==="fab"){if(!M){alert("O mapa ainda está abrindo.");return}M.el.classList.add("rm-pick");const i=document.querySelector(`[data-rminfo="${CSS.escape(id)}"]`);if(i)i.innerHTML="👆 <b>Toque no mapa onde fica a fábrica.</b>";
+  if(a==="fab"){if(!M){alert("O mapa ainda está abrindo.");return}M.el.classList.add("rm-pick");const i=document.querySelector(`[data-rminfo="${CSS.escape(id)}"]`);if(M.pick){M.pick=null;M.el.classList.remove("rm-pick");if(i&&M.info!=null)i.innerHTML=M.info;b.textContent=fab()?"🏭 Mudar a fábrica de lugar":"🏭 Marcar a fábrica no mapa";return}if(i)i.innerHTML="👆 <b>Toque no mapa no novo lugar da fábrica.</b> Para desistir, toque de novo no botão.";b.textContent="✕ Cancelar a mudança";
     M.pick=p=>{T(()=>API().marcaFab(p),null);M.k="";M.fit=false;setTimeout(()=>hidrata(document.querySelector(`[data-rmap="${CSS.escape(id)}"]`)),300)}}},true);
 })();
 </script>
