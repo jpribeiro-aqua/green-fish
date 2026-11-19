@@ -235,7 +235,15 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 .bar .vl{font-family:var(--f-display);font-weight:600;font-size:16px;white-space:nowrap}
 .bar .vl small{font:11px var(--f-mono);color:var(--muted);margin-left:4px}
 .bar .fill:hover,.bar .fill:focus-visible,.stack div:hover,.stack div:focus-visible{filter:brightness(1.12);outline:none}
-.rp-gv{display:grid;gap:6px;margin-top:4px;--ax:92px}
+.rp-gv{display:grid;gap:6px;margin-top:4px;--ax:178px}
+.rp-gva .rp-gve{position:absolute;right:6px;left:0;transform:translateY(50%);display:grid;gap:1px;text-align:right;line-height:1.2;white-space:normal}
+.rp-gve b{font:600 11px var(--f-mono);color:var(--ink)}.rp-gve em{font-style:normal;font-family:var(--f-body);font-size:11.5px;color:var(--c);font-weight:600}.rp-gve.feito b,.rp-gve.feito em{opacity:.6}
+.rp-gvl{position:absolute;left:calc(var(--ax) - 4px);right:0;height:0;border-bottom:2px dashed var(--c);opacity:.85;pointer-events:none;z-index:1}.rp-gvl.feito{border-bottom-style:solid;opacity:.45}
+.rp-gvl::before{content:"";position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--c)}
+.rp-gpas{list-style:none;margin:2px 0 0;padding:0;display:grid;gap:4px;font-size:13px}.rp-gpas li{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:8px;align-items:center;padding:5px 8px;border-left:4px solid var(--c);border-radius:6px;background:var(--bg)}
+.rp-gpas li.feito{opacity:.6}.rp-gpd{font:12px var(--f-mono);color:var(--muted)}.rp-gpq{font-size:12px;font-weight:600;white-space:nowrap}
+@media(max-width:560px){.rp-gv{--ax:104px!important}.rp-gve b{font-size:9px}.rp-gve em{font-size:9.5px}.rp-gpas li{grid-template-columns:1fr auto}.rp-gpd{grid-column:1/-1}}
+
 .rp-gvh{display:grid;grid-template-columns:var(--ax) repeat(var(--n),minmax(0,1fr));gap:8px;align-items:end;font-size:12.5px;line-height:1.2}
 .rp-gvh>span{text-align:center;overflow-wrap:normal;hyphens:auto;-webkit-hyphens:auto;padding-bottom:4px;border-bottom:3px solid var(--c,transparent)}.rp-gvh0{color:var(--muted);border-bottom-color:transparent!important}
 .rp-gvb{position:relative;display:grid;grid-template-columns:var(--ax) repeat(var(--n),minmax(0,1fr));gap:8px;height:clamp(300px,52vh,460px);margin:6px 0 10px}
@@ -245,7 +253,7 @@ footer{font-size:12px;color:var(--muted);max-width:90ch}
 .rp-gvc i{position:absolute;left:18%;right:18%;border-radius:5px;box-shadow:0 1px 2px rgba(0,0,0,.15)}.rp-gvc i:hover,.rp-gvc i:focus-visible{filter:brightness(1.12);outline:none}
 .rp-gvc i small{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font:600 9.5px var(--f-mono);color:#fff;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.6);pointer-events:none}
 .rp-gvn{position:absolute;left:calc(var(--ax) + 4px);right:0;height:0;border-bottom:2px solid var(--ink);z-index:2;pointer-events:none}.rp-gvn span{position:absolute;left:-80px;top:-7px;font:700 11px var(--f-mono);color:var(--ink);background:var(--surface,#fff);padding:0 3px}
-@media(max-width:560px){.rp-gv{--ax:46px}.rp-gva i{display:none}.rp-gvh{gap:4px;font-size:10.5px}.rp-gvb{gap:4px}.rp-gva{font-size:10px}.rp-gvc i{left:12%;right:12%}.rp-gvc i small{font-size:8.5px}.rp-gvn span{left:-48px;font-size:9.5px}}
+@media(max-width:560px){.rp-gva i{display:none}.rp-gvh{gap:4px;font-size:10.5px}.rp-gvb{gap:4px}.rp-gva{font-size:10px}.rp-gvc i{left:12%;right:12%}.rp-gvc i small{font-size:8.5px}.rp-gvn span{left:-48px;font-size:9.5px}}
 .rp-gantt{display:grid;gap:6px;margin-top:4px}
 .rp-gl{display:grid;grid-template-columns:minmax(0,170px) minmax(0,1fr);gap:10px;align-items:center;font-size:13px}
 .rp-gl>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -5774,17 +5782,28 @@ function estado(fases,agora){
 }
 function linha(fases,agora){
   if(!fases.length)return "";
-  /* v308–v309: cronograma na vertical — o tempo sobe de baixo para cima, uma coluna por etapa */
+  /* v308–v310: cronograma na vertical — o tempo sobe de baixo para cima, uma coluna por etapa, e cada ação (doses, desova, eclosão)
+     vira uma linha que atravessa o gráfico, com a data, a hora e o que fazer */
   const t0=Math.min(...fases.map(f=>f[1])),t1=Math.max(...fases.map(f=>f[2])),sp=Math.max(1,t1-t0),y=t=>(t-t0)/sp*100;
-  const now=agora>=t0&&agora<=t1,curta=sp<5*D,fm=t=>curta?hora(t):dia(t),nT=6,ticks=[...Array(nT)].map((_,k)=>t0+sp*k/(nT-1));
+  const now=agora>=t0&&agora<=t1,curta=sp<5*D,fm=t=>curta?hora(t):dia(t),p2=v=>String(v).padStart(2,"0");
+  const cur=t=>{const d=new Date(t);return `${d.toLocaleDateString("pt-BR",{weekday:"short"}).replace(".","")} ${p2(d.getDate())}/${p2(d.getMonth()+1)} · ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+  const EV=f=>{const n=f[0];if(/1ª.*2ª dose/i.test(n))return [["💉 1ª dose nas fêmeas",f[1],"💉 1ª dose"],["💉 2ª dose nas fêmeas + dose dos machos",f[2],"💉 2ª dose"]];if(/dose única/i.test(n))return [["💉 Dose única",f[1],"💉 Dose"]];if(/^lat[êe]ncia/i.test(n))return [];
+    if(/janela de desova/i.test(n))return [["🥚 Começa a desova: observar e extrusar",f[1],"🥚 Desova"],["⏹ Fim da janela de desova",f[2],"⏹ Fim desova"]];if(/^incuba[çc][ãa]o$/i.test(n))return [["🌊 Ovos fertilizados na incubadora",f[1],"🌊 Incubar"]];
+    if(/^eclos[ãa]o$/i.test(n))return [["🐣 Primeiras larvas",f[1],"🐣 Larvas"],["✅ Fim da eclosão",f[2],"✅ Fim eclosão"]];const cu=n.replace(/\s*\(.*\)/,"");return [["▶ Início: "+n,f[1],"▶ "+cu],["■ Fim: "+n,f[2],"■ "+cu]]};
+  let ev=[];fases.forEach(f=>EV(f).forEach(([t,x,a])=>ev.push({t,x,a,c:f[3]})));ev.sort((a,b)=>a.x-b.x);
+  const M=[];ev.forEach(e=>{const u=M[M.length-1];if(u&&Math.abs(u.x-e.x)<2*6e4){if(!u.t.includes(e.t)){u.t+=" · "+e.t;u.a+=" · "+e.a}}else M.push(Object.assign({},e))});
+  const gap=12;M.forEach((e,k)=>{e.p=y(e.x);e.l=k?Math.max(e.p,M[k-1].l+gap):e.p});for(let k=M.length-1;k>=0;k--){const lim=k===M.length-1?100:M[k+1].l-gap;if(M[k].l>lim)M[k].l=lim}
+  const st=e=>e.x<=agora?"feito":"vem";
   return `<div class="rp-gv" style="--n:${fases.length}">
-   <div class="rp-gvh"><span class="rp-gvh0">⏱</span>${fases.map(f=>`<span style="--c:${f[3]}">${E(f[0])}</span>`).join("")}</div>
+   <div class="rp-gvh"><span class="rp-gvh0">Data · ação</span>${fases.map(f=>`<span style="--c:${f[3]}">${E(f[0])}</span>`).join("")}</div>
    <div class="rp-gvb">
-    <div class="rp-gva">${ticks.map((t,k)=>{const d=new Date(t),p2=v=>String(v).padStart(2,"0");return `<span style="bottom:${y(t).toFixed(2)}%" class="${k===0?"pri":k===nT-1?"ult":""}"><i>${d.toLocaleDateString("pt-BR",{weekday:"short"})}</i> ${p2(d.getDate())}/${p2(d.getMonth()+1)}<br>${p2(d.getHours())}:${p2(d.getMinutes())}</span>`}).join("")}</div>
-    ${fases.map(f=>{const d=new Date(f[1]),p2=v=>String(v).padStart(2,"0");return `<div class="rp-gvc">${ticks.map(t=>`<em style="bottom:${y(t).toFixed(2)}%"></em>`).join("")}<i style="bottom:${y(f[1]).toFixed(2)}%;height:max(5px,${(y(f[2])-y(f[1])).toFixed(2)}%);background:${f[3]}" ${tt(f[0],fm(f[1])+" → "+fm(f[2]))}><small>${p2(d.getHours())}:${p2(d.getMinutes())}</small></i></div>`}).join("")}
+    <div class="rp-gva">${M.map(e=>`<span class="rp-gve ${st(e)}" title="${E(e.t)}" style="bottom:${e.l.toFixed(2)}%;--c:${e.c}"><b>${st(e)==="feito"?"✓ ":""}${cur(e.x)}</b><em>${E(e.a)}</em></span>`).join("")}</div>
+    ${fases.map(f=>`<div class="rp-gvc"><i style="bottom:${y(f[1]).toFixed(2)}%;height:max(5px,${(y(f[2])-y(f[1])).toFixed(2)}%);background:${f[3]}" ${tt(f[0],fm(f[1])+" → "+fm(f[2])+" · "+dur(f[2]-f[1]))}><small>${dur(f[2]-f[1])}</small></i></div>`).join("")}
+    ${M.map(e=>`<s class="rp-gvl ${st(e)}" style="bottom:${e.p.toFixed(2)}%;--c:${e.c}" aria-hidden="true"></s>`).join("")}
     ${now?`<b class="rp-gvn" style="bottom:${y(agora).toFixed(2)}%"><span>▶ agora</span></b>`:""}
    </div></div>
-   <p class="rp-gst"><b>${E(estado(fases,agora))}</b></p>`;
+   <p class="rp-gst"><b>${E(estado(fases,agora))}</b></p>
+   <ol class="rp-gpas">${M.map(e=>{const d=e.x-agora;return `<li class="${st(e)}" style="--c:${e.c}"><span class="rp-gpd">${cur(e.x)}</span><span class="rp-gpt">${E(e.t)}</span><span class="rp-gpq">${d<=0?(d>-60*6e4&&now?"agora há pouco":"✓ feito"):"em "+dur(d)}</span></li>`}).join("")}</ol>`;
 }
 /* parâmetros e etapas de cada espécie: {kpis, fases, graf:[[título, subtítulo, html]], prot} */
 function dadosEsp(esp){
