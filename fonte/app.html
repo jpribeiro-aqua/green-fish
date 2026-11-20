@@ -15602,7 +15602,7 @@ function entraDeVez(){if(!R||R.dentro)return;R.dentro=true;R.t0=Date.now();ata(`
   T(()=>navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>{if(R)R.wake=w}).catch(()=>{}));R.relogio=setInterval(()=>{const t=ov()&&ov().querySelector(".tf-tempo");if(t)t.textContent=dur(Date.now()-R.t0)},1000);
   if(R.tr.tipo==="local")nota("☁️ A nuvem não respondeu: esta sala só funciona entre abas deste aparelho. Verifique a internet e entre de novo.",9000);
   if(!new URLSearchParams(location.search).get("telefish")&&history.replaceState)T(()=>history.replaceState(null,"",location.pathname+"?telefish="+R.code+location.hash))}
-async function sair(sem){if(!R)return;if(!sem&&!confirm("Sair da chamada?"))return;const r=R;envia({t:"bye"});if(r.rec)await gravar(false);if(r.sr){r.ccOn=false;T(()=>r.sr.stop())}
+async function sair(sem){if(!R)return;if(!sem&&!confirm("Sair da chamada?"))return;const r=R;if(r.doc){clearInterval(r.doc.iv);clearInterval(r.doc.lz)}envia({t:"bye"});if(r.rec)await gravar(false);if(r.sr){r.ccOn=false;T(()=>r.sr.stop())}
   r.peers.forEach(p=>T(()=>p.pc.close()));[r.micT,r.camT,r.tela].forEach(t=>t&&T(()=>t.stop()));if(r.fx)r.fx.parar();T(()=>r.tr&&r.tr.close());clearInterval(r.relogio);clearInterval(r.vu);T(()=>r.ac&&r.ac.close());T(()=>r.wake&&r.wake.release());
   if(r.dentro&&window.gfArquivos&&r.ata.length+r.chat.length>2){const txt=`TeleFish · ${r.titulo||"Sala "+r.code}\nData: ${new Date(r.t0).toLocaleString("pt-BR")}\nDuração: ${dur(Date.now()-r.t0)}\n\n`+r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n");T(()=>gfArquivos.salvar(new Blob([txt],{type:"text/plain;charset=utf-8"}),{nome:`Ata_TeleFish_${r.code}_${iso(r.t0)}.txt`,mime:"text/plain",origem:"ata",proj:r.proj||null,obs:r.titulo||""}))}
   if(r.dentro){C.hist.unshift({code:r.code,titulo:r.titulo,ini:r.t0,fim:Date.now(),pessoas:[...new Set([r.me.nome,...r.ata.filter(l=>/ entrou/.test(l)).map(l=>l.replace(/^\[[^\]]+\] /,"").replace(/ entrou.*$/,""))])],rec:!!r.gravou,msgs:r.chat.length,ata:r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n").slice(0,40000)});C.hist=C.hist.slice(0,40);salva()}
@@ -15610,12 +15610,12 @@ async function sair(sem){if(!R)return;if(!sem&&!confirm("Sair da chamada?"))retu
 function fecha(cod0){const cod=cod0||(R&&R.code);const o=ov();if(o)o.remove();document.documentElement.classList.remove("tf-aberto");if(cod&&document.body.classList.contains("auth-lock"))setTimeout(()=>fimConvidado(cod),0);if(R&&!R.dentro){[R.micT,R.camT].forEach(t=>t&&T(()=>t.stop()));if(R.fx)R.fx.parar();T(()=>R.tr&&R.tr.close());clearInterval(R.vu);T(()=>R.ac&&R.ac.close());R=null}}
 
 /* ---------- tela da chamada ---------- */
-const BAR=[["mic","🎤","Microfone"],["cam","📷","Câmera"],["tela","🖥","Compartilhar a tela"],["rec","⏺","Gravar"],["chat","💬","Chat"],["gente","👥","Pessoas"],["mao","✋","Levantar a mão"],["reacao","😀","Reações"],["fundos","🖼","Fundo"],["cc","CC","Legendas"],["layout","▦","Layout"],["mais","⋯","Mais"],["sair","📞","Sair"]];
+const BAR=[["mic","🎤","Microfone"],["cam","📷","Câmera"],["tela","🖥","Compartilhar a tela"],["doc","📄","Mostrar arquivo"],["rec","⏺","Gravar"],["chat","💬","Chat"],["gente","👥","Pessoas"],["mao","✋","Levantar a mão"],["reacao","😀","Reações"],["fundos","🖼","Fundo"],["cc","CC","Legendas"],["layout","▦","Layout"],["mais","⋯","Mais"],["sair","📞","Sair"]];
 function telaCall(){const o=ov();o.innerHTML=`<div class="tf-call"><header class="tf-top"><b>🐟 TeleFish</b><span class="tf-tit">${E(R.titulo||"Sala "+R.code)}</span><span class="tf-tempo">0:00</span><span class="tf-recb" hidden>🔴 Gravando</span><span class="tf-rede" title="${R.tr.tipo==="nuvem"?"Conectado pela nuvem":"Sem nuvem: só neste aparelho"}">${R.tr.tipo==="nuvem"?"☁️":"💻"}</span>
    <button type="button" class="tf-tb" data-tf="convite" aria-label="Convidar">🔗<span class="tf-tbl"> Convidar</span></button>${R.guest&&document.body.classList.contains("auth-lock")?"":`<button type="button" class="tf-tb" data-tf="min" aria-label="Minimizar">🗕</button>`}<button type="button" class="tf-tb" data-tf="cheia" aria-label="Tela cheia">⛶</button></header>
   <div class="tf-mid"><main class="tf-grid" data-l="grade"></main><aside class="tf-side" hidden></aside></div>
   <div class="tf-fila" hidden></div>
-  <nav class="tf-bar">${BAR.map(([k,ic,t])=>`<button type="button" class="tf-b" data-tf="${k}" aria-label="${t}" title="${t}"${k==="tela"&&!podeTela?' disabled':""}${k==="cc"&&!SR?' disabled':""}>${ic}<span>${t.split(" ")[0]}</span></button>`).join("")}</nav>
+  <nav class="tf-bar">${BAR.map(([k,ic,t])=>`<button type="button" class="tf-b" data-tf="${k}" aria-label="${t}" title="${t}"${k==="tela"&&!podeTela?' disabled title="O iPhone não permite compartilhar a tela pelo navegador: use 📄 Mostrar arquivo"':""}${k==="cc"&&!SR?' disabled':""}>${ic}<span>${t.split(" ")[0]}</span></button>`).join("")}</nav>
   <div class="tf-pop" hidden></div></div><div class="tf-toasts"></div><div class="tf-mini"><span></span><button type="button" data-tf="max">⤢ Voltar</button><button type="button" data-tf="sair">📞</button></div>`;
   tile(R.me.id);trocaVideo();layout();desenhaEstado()}
 function tile(id){if(!R||!R.dentro)return;const g=ov()&&ov().querySelector(".tf-grid");if(!g)return;let t=R.tiles.get(id);const self=id===R.me.id,P=self?null:R.peers.get(id);if(!self&&!P)return;
@@ -15629,7 +15629,7 @@ function layout(){const o=ov();if(!o||!R)return;const g=o.querySelector(".tf-gri
   const share=[...R.peers.values()].find(p=>p.st&&p.st.tela),dest=R.pin||(share&&share.id)||(R.tela?R.me.id:null)||(R.layout==="destaque"?(R.fala||ids.find(i=>i!==R.me.id)||R.me.id):null);
   const port=innerHeight>innerWidth*1.1;g.dataset.l=dest&&n>1?"destaque":"grade";g.style.setProperty("--n",n);g.style.setProperty("--cols",n<=1?1:port?(n<=3?1:2):n<=4?2:n<=9?3:4);ids.forEach(i=>{const t=R.tiles.get(i);t.classList.toggle("tf-dest",g.dataset.l==="destaque"&&i===dest)})}
 function desenhaEstado(){if(!R)return;const o=ov();if(!o)return;if(!R.dentro){desenhaPre();return}const set=(k,on,ic,off)=>{const b=o.querySelector(`.tf-bar [data-tf="${k}"]`);if(!b)return;b.classList.toggle("tf-off",!on);if(ic)b.firstChild.textContent=on?ic:off};
-  set("mic",R.mic&&!!R.micT,"🎤","🔇");set("cam",R.cam,"📷","🚫");const bt=o.querySelector('.tf-bar [data-tf="tela"]');if(bt)bt.classList.toggle("tf-on",!!R.tela);
+  set("mic",R.mic&&!!R.micT,"🎤","🔇");set("cam",R.cam,"📷","🚫");const bt=o.querySelector('.tf-bar [data-tf="tela"]');if(bt)bt.classList.toggle("tf-on",!!R.tela&&!R.doc);const bdo=o.querySelector('.tf-bar [data-tf="doc"]');if(bdo)bdo.classList.toggle("tf-on",!!R.doc);
   const br=o.querySelector('.tf-bar [data-tf="rec"]');if(br)br.classList.toggle("tf-on",!!R.rec);const bm=o.querySelector('.tf-bar [data-tf="mao"]');if(bm)bm.classList.toggle("tf-on",!!R.mao);const bc=o.querySelector('.tf-bar [data-tf="cc"]');if(bc)bc.classList.toggle("tf-on",!!R.ccOn);
   const ch=o.querySelector('.tf-bar [data-tf="chat"]');if(ch)ch.dataset.n=R.naoLidas||"";const gt=o.querySelector('.tf-bar [data-tf="gente"]');if(gt)gt.dataset.n=somaPessoas();
   const rb=o.querySelector(".tf-recb");if(rb)rb.hidden=!(R.rec||[...R.peers.values()].some(p=>p.st&&p.st.rec));tile(R.me.id);R.peers.forEach((p,id)=>tile(id));layout();if(R.painel==="gente")painel("gente",true);
@@ -15645,6 +15645,41 @@ function medidor(id,stream){if(!R)return;try{R.ac=R.ac||new (window.AudioContext
 /* ---------- compartilhar a tela ---------- */
 async function tela(on){if(on){try{const s=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15}},audio:false});R.tela=s.getVideoTracks()[0];R.tela.onended=()=>tela(false);T(()=>{R.tela.contentHint="detail"});nota("🖥 Você está mostrando a sua tela")}catch(e){return}}
   else{if(R.tela)T(()=>R.tela.stop());R.tela=null}trocaVideo();envia({t:"st",st:meuSt()})}
+
+/* ---------- v319: 📄 mostrar arquivo — foto, print ou PDF vira a "tela compartilhada" (funciona no iPhone, que não deixa o navegador capturar a tela) ---------- */
+let pdfP=null;const pdfLib=()=>window.pdfjsLib?Promise.resolve(window.pdfjsLib):pdfP||(pdfP=new Promise((ok,err)=>{const s=document.createElement("script");s.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";s.onload=()=>{try{window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";ok(window.pdfjsLib)}catch(e){err(e)}};s.onerror=()=>{pdfP=null;err(new Error("sem internet para abrir o PDF"))};document.head.appendChild(s)}));
+function escolheDoc(){const i=document.createElement("input");i.type="file";i.accept="image/*,application/pdf,.pdf";i.style.display="none";document.body.appendChild(i);i.onchange=()=>{const f=i.files&&i.files[0];i.remove();if(f)abreDoc(f)};i.click();setTimeout(()=>{if(i.isConnected)i.remove()},120000)}
+async function abreDoc(f){if(!R||!R.dentro)return;if(!(window.HTMLCanvasElement&&HTMLCanvasElement.prototype.captureStream)){nota("Este navegador não consegue transmitir o arquivo.");return}
+  const W=1600,H=900,cv=document.createElement("canvas");cv.width=W;cv.height=H;const D={f,nome:f.name||"arquivo",cv,pg:1,n:1,img:null,pdf:null,zoom:1,cx:.5,cy:.5,laser:null,pinta:null};
+  nota("📄 Abrindo "+D.nome+"…");
+  try{if(/pdf$/i.test(f.type)||/\.pdf$/i.test(D.nome)){const L=await pdfLib();D.pdf=await L.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;D.n=D.pdf.numPages}
+    else{const u=URL.createObjectURL(f);D.img=await new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=()=>no(new Error("não consegui abrir essa imagem"));im.src=u});D.u=u}}
+  catch(e){nota("⚠️ "+((e&&e.message)||e),6000);return}
+  if(!R||!R.dentro)return;if(R.tela&&!R.doc)await tela(false);R.doc=D;await pagina(1);
+  const st=cv.captureStream(12),tr=st.getVideoTracks()[0];T(()=>{tr.contentHint="detail"});R.tela=tr;
+  D.iv=setInterval(()=>desenhaDoc(),400);/* mantém o vídeo vivo mesmo com a imagem parada */
+  trocaVideo();envia({t:"st",st:meuSt()});painelDoc();nota(`📄 Todos estão vendo: ${D.nome}${D.n>1?` (${D.n} páginas)`:""}`);ata(`${R.me.nome} mostrou o arquivo ${D.nome}`)}
+async function pagina(p){const D=R&&R.doc;if(!D)return;D.pg=Math.max(1,Math.min(D.n,p));D.zoom=1;D.cx=.5;D.cy=.5;
+  if(D.pdf){const pg=await D.pdf.getPage(D.pg),v0=pg.getViewport({scale:1}),sc=Math.min(2600/v0.width,2600/v0.height,4),vp=pg.getViewport({scale:sc}),c=document.createElement("canvas");c.width=Math.round(vp.width);c.height=Math.round(vp.height);
+    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);await pg.render({canvasContext:x,viewport:vp}).promise;D.pinta=c}else D.pinta=D.img;desenhaDoc();painelDoc()}
+function desenhaDoc(){const D=R&&R.doc;if(!D||!D.pinta)return;const c=D.cv,x=c.getContext("2d"),W=c.width,H=c.height,sw=D.pinta.naturalWidth||D.pinta.width,sh=D.pinta.naturalHeight||D.pinta.height;
+  x.fillStyle="#1f2937";x.fillRect(0,0,W,H);const base=Math.min(W/sw,H/sh),e=base*D.zoom,dw=sw*e,dh=sh*e;let dx=W/2-D.cx*dw,dy=H/2-D.cy*dh;if(dw<=W)dx=(W-dw)/2;else dx=Math.min(0,Math.max(W-dw,dx));if(dh<=H)dy=(H-dh)/2;else dy=Math.min(0,Math.max(H-dh,dy));
+  x.imageSmoothingQuality="high";x.drawImage(D.pinta,dx,dy,dw,dh);D.geo={dx,dy,dw,dh};
+  if(D.laser&&Date.now()-D.laser.t<2500){const lx=dx+D.laser.x*dw,ly=dy+D.laser.y*dh,a=1-(Date.now()-D.laser.t)/2500;x.beginPath();x.arc(lx,ly,22,0,7);x.fillStyle=`rgba(239,68,68,${.35*a})`;x.fill();x.beginPath();x.arc(lx,ly,9,0,7);x.fillStyle=`rgba(239,68,68,${a})`;x.fill()}
+  x.fillStyle="rgba(0,0,0,.55)";x.fillRect(0,H-34,W,34);x.fillStyle="#fff";x.font="600 18px system-ui,sans-serif";x.textBaseline="middle";x.fillText(`📄 ${D.nome}${D.n>1?` · página ${D.pg} de ${D.n}`:""} · ${R.me.nome}`,14,H-17);
+  const pv=ov()&&ov().querySelector(".tf-docpv");if(pv){const px=pv.getContext("2d");px.drawImage(c,0,0,pv.width,pv.height)}}
+function painelDoc(){const o=ov();if(!o)return;let p=o.querySelector(".tf-doc");const D=R&&R.doc;if(!D){if(p)p.remove();return}
+  if(!p){p=document.createElement("div");p.className="tf-doc";(o.querySelector(".tf-call")||o).appendChild(p);
+    p.addEventListener("click",e=>{const b=e.target.closest("[data-dc]");if(!b)return;const k=b.dataset.dc,DD=R&&R.doc;if(!DD)return;
+      if(k==="ant")pagina(DD.pg-1);else if(k==="prox")pagina(DD.pg+1);else if(k==="mais"){DD.zoom=Math.min(5,DD.zoom*1.4);desenhaDoc()}else if(k==="menos"){DD.zoom=Math.max(1,DD.zoom/1.4);desenhaDoc()}else if(k==="troca")escolheDoc();else if(k==="parar")pararDoc();else if(k==="min"){p.classList.toggle("min")}});
+    p.addEventListener("pointerdown",e=>{const cvp=e.target.closest(".tf-docpv");if(!cvp||!R||!R.doc||!R.doc.geo)return;const r=cvp.getBoundingClientRect(),DD=R.doc,G=DD.geo,X=(e.clientX-r.left)/r.width*DD.cv.width,Y=(e.clientY-r.top)/r.height*DD.cv.height;
+      const u=(X-G.dx)/G.dw,v=(Y-G.dy)/G.dh;if(u<0||u>1||v<0||v>1)return;DD.laser={x:u,y:v,t:Date.now()};if(DD.zoom>1){DD.cx=u;DD.cy=v}desenhaDoc();
+      clearInterval(DD.lz);DD.lz=setInterval(()=>{desenhaDoc();if(!DD.laser||Date.now()-DD.laser.t>2600)clearInterval(DD.lz)},80)})}
+  p.innerHTML=`<div class="tf-doch"><b>📄 ${E(D.nome)}</b><span>todos estão vendo · toque na imagem para apontar</span><button type="button" data-dc="min" aria-label="Recolher">▾</button></div>
+   <canvas class="tf-docpv" width="480" height="270" aria-label="Prévia do arquivo mostrado"></canvas>
+   <div class="tf-docb">${D.n>1?`<button type="button" data-dc="ant"${D.pg<=1?" disabled":""}>◀</button><span>${D.pg}/${D.n}</span><button type="button" data-dc="prox"${D.pg>=D.n?" disabled":""}>▶</button>`:""}<button type="button" data-dc="menos" aria-label="Diminuir">🔍−</button><button type="button" data-dc="mais" aria-label="Aumentar">🔍+</button><button type="button" data-dc="troca">📂 Outro</button><button type="button" data-dc="parar" class="tf-docx">✕ Parar</button></div>`;
+  desenhaDoc()}
+function pararDoc(){const D=R&&R.doc;if(!D)return;clearInterval(D.iv);clearInterval(D.lz);if(D.u)T(()=>URL.revokeObjectURL(D.u));T(()=>D.pdf&&D.pdf.destroy());R.doc=null;if(R.tela)T(()=>R.tela.stop());R.tela=null;trocaVideo();envia({t:"st",st:meuSt()});painelDoc();nota("📄 Você parou de mostrar o arquivo")}
 
 /* ---------- gravar (fica só neste aparelho) ---------- */
 async function gravar(on){if(!on){if(!R.rec)return;const r=R.rec;R.rec=null;await new Promise(ok=>{r.mr.onstop=ok;T(()=>r.mr.stop())});clearInterval(r.iv);T(()=>r.ac.close());
@@ -15699,7 +15734,7 @@ async function painel(k,so){const o=ov();if(!o)return;const pre=!R.dentro;const 
   else if(k==="reacao"){h=`<div class="tf-sh"><h3>😀 Reações</h3><button type="button" class="tf-x1" data-tf="fechap">✕</button></div><div class="tf-emos">${["👍","👏","❤️","😂","😮","🎉","🐟","🤝","✅","🔥"].map(e=>`<button type="button" data-tf="emo" data-e="${e}">${e}</button>`).join("")}</div>`}
   else if(k==="fundos"){h=(pre?"":`<div class="tf-sh"><span></span><button type="button" class="tf-x1" data-tf="fechap">✕</button></div>`)+fundosHTML()}
   else if(k==="disp"||k==="mais"){h=(pre?"":`<div class="tf-sh"><span></span><button type="button" class="tf-x1" data-tf="fechap">✕</button></div>`)+await dispositivos()+(pre?"":`<h3>⋯ Mais</h3><div class="tf-bts"><button type="button" class="tf-b2" data-tf="pip">🗗 Janela flutuante (PiP)</button><button type="button" class="tf-b2" data-tf="ata">📝 Baixar a ata</button><button type="button" class="tf-b2" data-tf="convite">🔗 Convidar</button></div>
-    <p class="tf-nota">Rede: ${R.tr.tipo==="nuvem"?"☁️ sala pela nuvem":"💻 só neste aparelho ("+E(R.tr.erro||"")+")"}. ${(C.turn||{}).url?"Usando o servidor TURN configurado.":"Sem servidor TURN: em algumas redes (4G, empresas) a ligação pode não fechar; configure um TURN no TeleFish da Gestão."}</p>`)}
+    <p class="tf-nota">Rede: ${R.tr.tipo==="nuvem"?"☁️ sala pela nuvem":"💻 só neste aparelho ("+E(R.tr.erro||"")+")"}. ${okTurn(NT)?"Usando o TURN da equipe.":okTurn(C.turn)?"Usando o servidor TURN deste aparelho.":"Sem servidor TURN: em algumas redes (4G, empresas) a ligação pode não fechar."}</p>`)}
   box.innerHTML=h;if(k==="chat"){desenhaChat();const i=box.querySelector(".tf-chatin");if(i&&!so)i.focus()}if(!so)desenhaEstado()}
 function desenhaFila(){const f=ov()&&ov().querySelector(".tf-fila");if(!f)return;f.hidden=!R.fila.size;f.innerHTML=[...R.fila].map(([id,n])=>`<div>🚪 <b>${E(n)}</b> quer entrar <button type="button" class="tf-ok" data-tf="aceita" data-id="${E(id)}">Aceitar</button><button type="button" class="tf-x" data-tf="recusa" data-id="${E(id)}">Recusar</button></div>`).join("")}
 
@@ -15708,7 +15743,7 @@ document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.c
   if(k==="mic"){if(!R.micT){await abreMidia();if(!R.micT){nota("Sem microfone liberado neste aparelho.");return}}micOn(!R.mic)}
   else if(k==="cam"){if(R.cam)desligaCam();else if(!await ligaCam())nota("Não consegui ligar a câmera.");trocaVideo();envia({t:"st",st:meuSt()});if(!R.dentro){previa();desenhaPre()}}
   else if(k==="entrar")entrar();else if(k==="cancelar"){envia({t:"bye"});fecha()}
-  else if(k==="sair")sair();else if(k==="tela")tela(!R.tela);else if(k==="rec")gravar(!R.rec);
+  else if(k==="sair")sair();else if(k==="tela"){if(R.doc)pararDoc();else tela(!R.tela)}else if(k==="doc"){if(R.doc)pararDoc();else escolheDoc()}else if(k==="rec")gravar(!R.rec);
   else if(["chat","gente","convite","reacao","fundos","disp","mais"].includes(k))painel(k);else if(k==="fechap")painel(R.painel);
   else if(k==="manda")mandaChat();else if(k==="emo"){reage(R.me.id,b.dataset.e);envia({t:"react",e:b.dataset.e})}
   else if(k==="mao"){R.mao=R.mao?0:Date.now();envia({t:"st",st:meuSt()});desenhaEstado()}
@@ -15804,6 +15839,11 @@ T(()=>{const st=document.createElement("style");st.textContent=`
 #tf .tf-lg{margin:4px 0;font-size:13.5px;color:#fcd34d}#tf .tf-lg.tf-lg0{color:#93c5fd}
 #tf-lgav{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483001;background:#0f3d31;color:#ecfdf5;border-radius:10px;padding:10px 40px 10px 14px;display:grid;gap:2px;width:min(520px,calc(100% - 24px));box-shadow:0 6px 24px rgba(0,0,0,.3);font-size:14px}#tf-lgav button{position:absolute;right:8px;top:8px;background:none;border:0;color:inherit;font-size:16px;cursor:pointer}
 .tf-turn{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;display:grid;gap:4px}.tf-turn p{margin:2px 0}.tf-turn code{font-size:12px}
+#tf .tf-doc{position:absolute;right:10px;bottom:84px;z-index:6;width:min(360px,calc(100% - 20px));background:rgba(6,20,15,.94);border:1px solid #2b5c4c;border-radius:12px;padding:8px;display:grid;gap:6px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#tf .tf-doc.min .tf-docpv,#tf .tf-doc.min .tf-docb{display:none}
+#tf .tf-doch{display:flex;gap:6px;align-items:baseline;flex-wrap:wrap;font-size:13px}#tf .tf-doch span{opacity:.75;font-size:11.5px;flex:1}#tf .tf-doch button{background:none;border:0;font-size:16px}
+#tf .tf-docpv{width:auto;max-width:100%;max-height:30vh;justify-self:center;height:auto;border-radius:8px;background:#111;touch-action:none;cursor:crosshair}
+#tf .tf-docb{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#tf .tf-docb button{background:#16362c;border:1px solid #2b5c4c;border-radius:8px;padding:5px 9px}#tf .tf-docb button:disabled{opacity:.4}#tf .tf-docb .tf-docx{margin-left:auto;background:#7f1d1d;border-color:#991b1b}
 #tf-fim{position:fixed;inset:0;z-index:10060;background:#04130f;color:#e6f4ef;display:grid;place-items:center;padding:20px;text-align:center}.tf-fimb{display:grid;gap:10px;justify-items:center;max-width:420px}.tf-fimb h2{margin:0}#tf-fim .btn:not(.solid){color:#e6f4ef;border-color:#3b6b5c;background:transparent}.tf-fimb .gfp-bt{justify-content:center}
 `;document.head.appendChild(st)});
 window.gfTeleFish={hubHTML,redesenhaHub,abre,sair:()=>sair(true),estado:()=>R,info:()=>R&&R.dentro?`🟢 em chamada · ${somaPessoas()} pessoa(s)`:`${C.hist.length} chamada(s) · ${Object.values(C.salas).filter(s=>s.quando>Date.now()).length} agendada(s)`,_msg:msgSala,_cfg:()=>C};
