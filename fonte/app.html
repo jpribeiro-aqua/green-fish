@@ -19252,11 +19252,24 @@ function pdf(o){const w=window.open("","_blank");if(!w){toast("Libere as janelas
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Despesca ${E(o.id)}</title><style>body{font:13px system-ui,sans-serif;margin:14mm;color:#111}h1{font-size:19px;margin:0 0 6px}${CSS}.fo-bts{display:none}</style></head><body><h1>🎯 Despesca em foco</h1>${corpo(o,"print")}<p style="margin-top:14px;font-size:11px;color:#555">Gerado pelo Green Fish em ${new Date().toLocaleString("pt-BR")} · somente os dados desta propriedade.</p><script>setTimeout(()=>print(),400)<\/script></body></html>`);w.document.close()}
 
 /* ---------- quadro no Beneficiamento ---------- */
-function seletor(L,o){if(!L.length)return "";return `<div class="fo-sel" role="tablist" aria-label="Escolha a propriedade">${L.map(x=>`<button type="button" role="tab" data-fo-sel="${E(x.id)}" aria-selected="${x.id===o.id}" style="--fc:${COR[x.status]||"#0f766e"}"><b>${E(x.proj||"Propriedade")}</b><small>${E(x.g||"")} · ${dBR(x.data)}</small><i>${E((ST[x.status]||x.status).split(" · ")[0])}</i></button>`).join("")}</div>`}
-function htmlCard(){const L=ords();if(!L.length)return `<p class="hint" style="margin:0">Nenhuma despesca em processo. Quando um aviso da aba Biomassa for aceito (📨 Aceitar e enviar a ordem), a propriedade aparece aqui com todos os dados dela, do aceite até o fim.</p>`;
-  let o=L.find(x=>x.id===SEL)||L[0];return seletor(L,o)+`<div class="fo-box">${corpo(o,"card")}</div>`}
+/* v326: cada propriedade é um quadro próprio (cartão com a cor da etapa); aberto, a tela mostra SÓ aquela propriedade */
+const LA="gf-foco-ab";let AB=T(()=>localStorage.getItem(LA),"")||"";
+const setAB=id=>{AB=id||"";if(id){SEL=id;T(()=>localStorage.setItem(LS,id))}T(()=>localStorage.setItem(LA,AB))};
+function mini(o){const f=ETS.map(([s])=>!!quando(o,s));return `<div class="fo-mini" aria-label="Etapas">${ETS.map(([s,ic,t],i)=>`<span class="${f[i]?"ok":f.lastIndexOf(true)+1===i&&!FIM.includes(o.status)?"agora":""}" title="${E(t)}">${f[i]?"✓":ic}</span>`).join("")}</div>`}
+function tile(o){const c=COR[o.status]||"#0f766e",kC=N(o.kgCap),kH=N(o.kgCheg);
+  return `<article class="fo-tile" style="--fc:${c}" data-fo-ab="${E(o.id)}" tabindex="0" role="button" aria-label="Abrir o quadro de ${E(o.proj||"Propriedade")}">
+   <div class="fo-th"><b>🏡 ${E(o.proj||"Propriedade")}</b><span class="fo-od">${E(o.id)}</span></div>
+   <small>${E(o.g||"")}${o.spn?" · "+E(o.spn):""} · despesca ${dBR(o.data)}</small>
+   <i class="fo-badge">${E(ST[o.status]||o.status)}</i>${mini(o)}
+   <div class="fo-tn"><span>Previsto<b>${F(N(o.kgPrev))} kg</b></span>${isFinite(kC)?`<span>Capturado<b>${F(kC)} kg</b></span>`:""}${isFinite(kH)?`<span>Chegada<b>${F(kH)} kg</b></span>`:""}</div>
+   <small>${o.resp?"👷 "+E(o.resp):""}${o.veic?" · 🚚 "+E(o.veic):""}</small>
+   <span class="btn solid fo-abre">Abrir o quadro desta propriedade ›</span></article>`}
+function htmlCard(){const L=ords();if(!L.length){setAB("");return `<p class="hint" style="margin:0">Nenhuma despesca em processo. Quando um aviso da aba Biomassa for aceito (📨 Aceitar e enviar a ordem), a propriedade ganha aqui um quadro próprio com todos os dados dela, do aceite até o fim.</p>`}
+  const o=AB?L.find(x=>x.id===AB):null;
+  if(!o){if(AB)setAB("");return `<p class="hint fo-lh">${L.length} propriedade(s) em despesca. Cada uma tem o seu quadro: toque para abrir e ver só os dados dela.</p><div class="fo-tiles">${L.map(tile).join("")}</div>`}
+  return `<div class="fo-nav"><button type="button" class="btn" data-fo-volta>‹ Todas as propriedades (${L.length})</button><button type="button" class="btn" data-fo-tela="${E(o.id)}">⛶ Tela cheia</button></div><div class="fo-box fo-so" style="--fc:${COR[o.status]||"#0f766e"}">${corpo(o,"card")}</div>`}
 function card(){const v=document.getElementById("view-benef");if(!v)return null;let c=document.getElementById("gf-foco-card");
-  if(!c){c=document.createElement("section");c.className="card wide";c.id="gf-foco-card";c.innerHTML=`<div class="card-head"><h2>🎯 Despesca em foco<span>Uma propriedade por vez, do aceite do aviso da Biomassa até o fim: etapas assinadas, quantidades, equipe, fotos e o lote no mercado</span></h2></div><div class="body" id="gf-foco-body"></div>`;
+  if(!c){c=document.createElement("section");c.className="card wide";c.id="gf-foco-card";c.innerHTML=`<div class="card-head"><h2>🎯 Despesca em foco<span>Cada propriedade em despesca tem o seu quadro, do aceite do aviso da Biomassa até o fim. Aberto, só ela fica na tela</span></h2></div><div class="body" id="gf-foco-body"></div>`;
     const a=[...v.children].find(x=>x.matches&&x.matches("section.card")&&x.id!=="rota-card");if(a)a.after(c);else v.appendChild(c)}return c}
 function desenha(){const v=document.getElementById("view-benef");if(!v||v.hidden)return;const c=card();if(!c)return;if(c.classList.contains("gf-row-x")&&c.__ok)return;
   const b=document.getElementById("gf-foco-body"),h=T(htmlCard,"");if(b.__h!==h){const y=window.scrollY;b.innerHTML=h;b.__h=h;c.__ok=1;if(Math.abs(window.scrollY-y)>2)window.scrollTo(0,y)}}
@@ -19267,9 +19280,13 @@ function ovDesenha(){if(!OV)return;const lk=document.body.classList.contains("au
 function abreOv(id){if(OV&&OV.id===id){ovDesenha();return}fechaOv();const el=document.createElement("div");el.id="gf-foco-ov";el.setAttribute("role","dialog");el.setAttribute("aria-label","Despesca em foco");
   el.innerHTML=`<div class="fo-ovc"><div class="fo-ovh"><b>🎯 Despesca em foco</b><span>somente esta propriedade</span><button type="button" class="btn" data-fo="fecha">✕ Fechar</button></div><div class="fo-ovb"></div></div>`;document.body.appendChild(el);OV={id,el};ovDesenha()}
 function fechaOv(){if(OV){OV.el.remove();OV=null}if(QF)T(()=>history.replaceState(null,"",location.pathname+location.hash))}
-window.gfFoco={abrir:id=>{SEL=id;T(()=>localStorage.setItem(LS,id));abreOv(id)},lista:ords,texto:id=>{const o=ordem(id);return o?texto(o):""},html:id=>{const o=ordem(id);return o?corpo(o,"card"):""}};
+function topo(){const c=document.getElementById("gf-foco-card");if(c)T(()=>c.scrollIntoView({block:"start",behavior:"smooth"}))}
+document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest&&e.target.closest(".fo-tile")){e.preventDefault();e.target.click()}});
+window.gfFoco={abrir:id=>{setAB(id);abreOv(id)},abrirAqui:id=>{setAB(id);desenha()},lista:ords,texto:id=>{const o=ordem(id);return o?texto(o):""},html:id=>{const o=ordem(id);return o?corpo(o,"card"):""}};
 
-document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-gr]"))setTimeout(tic,60);const s=e.target.closest&&e.target.closest("[data-fo-sel]");if(s){SEL=s.dataset.foSel;T(()=>localStorage.setItem(LS,SEL));desenha();return}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-gr]"))setTimeout(tic,60);const s=e.target.closest&&e.target.closest("[data-fo-ab],[data-fo-sel]");if(s){setAB(s.dataset.foAb||s.dataset.foSel);desenha();topo();return}
+  if(e.target.closest&&e.target.closest("[data-fo-volta]")){setAB("");desenha();topo();return}
+  {const t=e.target.closest&&e.target.closest("[data-fo-tela]");if(t){abreOv(t.dataset.foTela);return}}
   const b=e.target.closest&&e.target.closest("[data-fo]");if(!b)return;const k=b.dataset.fo,o=b.dataset.id?ordem(b.dataset.id):null;
   if(k==="fecha"){fechaOv();return}if(!o)return;
   if(k==="abrir"){if(OV)fechaOv();T(()=>{setView("benef")});setTimeout(()=>T(()=>API().abrir(o.id)),120);return}
@@ -19287,7 +19304,18 @@ const CSS=`.fo-cab{display:flex;justify-content:space-between;gap:10px;flex-wrap
 .fo-bom{color:#15803d}.fo-ruim{color:#b91c1c}
 .fo-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.fo-g>div{display:grid;gap:2px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:10px}.fo-g small{font-size:11.5px;opacity:.75}.fo-g b{font-size:13.5px;overflow-wrap:anywhere}
 .fo-regs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.fo-regs figure{margin:0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}.fo-regs img{width:100%;height:90px;object-fit:cover;display:block}.fo-sf{height:60px;display:grid;place-items:center;background:#f1f5f9;font-size:22px}.fo-regs figcaption{padding:5px 7px;display:grid;font-size:12px}.fo-regs small{opacity:.75}`;
-const CSS2=`.fo-sel{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px}.fo-sel button{flex:none;display:grid;gap:1px;text-align:left;font:inherit;padding:7px 11px;border-radius:12px;border:1px solid #cbd5e1;border-left:5px solid var(--fc);background:var(--surface,#fff);cursor:pointer;max-width:230px}
+const CSS2=`.fo-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.fo-lh{margin:0 0 10px}
+.fo-tile{display:grid;gap:6px;align-content:start;padding:12px 14px;border-radius:14px;border:2px solid color-mix(in srgb,var(--fc) 45%,#cbd5e1);border-top:8px solid var(--fc);background:var(--surface,#fff);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);transition:transform .12s,box-shadow .12s}
+.fo-tile:hover,.fo-tile:focus-visible{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.12);outline:none}
+.fo-th{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.fo-th b{font-size:16px;overflow-wrap:anywhere}.fo-od{font:700 12px ui-monospace,monospace;opacity:.75;white-space:nowrap}.fo-tile small{font-size:12.5px;opacity:.8}
+.fo-badge{justify-self:start;font-style:normal;font-size:12px;font-weight:700;color:#fff;background:var(--fc);padding:2px 9px;border-radius:999px}
+.fo-mini{display:flex;gap:4px}.fo-mini span{flex:1;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;background:#e2e8f0}.fo-mini .ok{background:#16a34a;color:#fff;font-weight:700}.fo-mini .agora{background:#f59e0b;color:#fff}
+.fo-tn{display:flex;gap:6px;flex-wrap:wrap}.fo-tn span{display:grid;font-size:11.5px;opacity:.85;padding:4px 8px;border-radius:8px;background:color-mix(in srgb,var(--fc) 8%,transparent)}.fo-tn b{font-size:14px;opacity:1}
+.fo-abre{justify-self:start;margin-top:2px;pointer-events:none}
+#gf-foco-body{grid-template-columns:minmax(0,1fr)!important;min-width:0}#gf-foco-body>*{min-width:0}.fo-so,.fo-box{min-width:0;max-width:100%;box-sizing:border-box}.fo-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.fo-so{border:3px solid var(--fc);border-radius:16px;padding:12px;background:color-mix(in srgb,var(--fc) 3%,var(--surface,#fff))}
+@media (max-width:600px){.fo-so{padding:8px;border-width:2px}}
+.fo-sel{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px}.fo-sel button{flex:none;display:grid;gap:1px;text-align:left;font:inherit;padding:7px 11px;border-radius:12px;border:1px solid #cbd5e1;border-left:5px solid var(--fc);background:var(--surface,#fff);cursor:pointer;max-width:230px}
 .fo-sel button b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fo-sel button small{font-size:11.5px;opacity:.75}.fo-sel button i{font-style:normal;font-size:11.5px;color:var(--fc);font-weight:700}.fo-sel button[aria-selected="true"]{box-shadow:0 0 0 2px var(--fc);background:color-mix(in srgb,var(--fc) 8%,var(--surface,#fff))}
 .fo-bts{margin-top:14px}
 #gf-foco-ov{position:fixed;inset:0;z-index:2147483000;background:rgba(2,20,16,.55);display:grid;grid-template-columns:minmax(0,980px);justify-content:center;align-content:start;overflow:auto;padding:max(12px,env(safe-area-inset-top)) 10px 20px}
