@@ -18635,8 +18635,14 @@ function plano(o){const Fb=fab(),G=ok(o.geo)?o.geo:null,V=posOk(o)?o.pos:null,st
 
 /* ---------- HTML colocado dentro do quadro 🗺 Rota da despesca da ordem ---------- */
 const TRK={},SEG={},NAVAB={};/* id da ordem → watchPosition deste aparelho */
+function rmVis(){try{return localStorage.getItem("gf-rm-vis")||""}catch(_){return ""}}
+function rmAplica(){const vs=rmVis();document.querySelectorAll("[data-rmw]").forEach(w=>{const mi=vs==="min",bg=vs==="big";if(w.classList.contains("rm-min")!==mi)w.classList.toggle("rm-min",mi);if(w.classList.contains("rm-big")!==bg)w.classList.toggle("rm-big",bg);
+  const b1=w.querySelector('[data-rmvis="min"]'),b2=w.querySelector('[data-rmvis="big"]');if(b1){const t=mi?"▾ Expandir mapa":"▴ Encolher mapa";if(b1.textContent!==t)b1.textContent=t;b1.setAttribute("aria-pressed",String(mi))}
+  if(b2){const t=bg?"↙ Tamanho normal":"⤢ Ampliar";if(b2.textContent!==t)b2.textContent=t;b2.setAttribute("aria-pressed",String(bg));if(b2.hidden!==mi)b2.hidden=mi}
+  const M=MAPS[w.dataset.rmw];if(M&&!mi)setTimeout(()=>{try{M.map.invalidateSize();if(M.fit){const ph=w.querySelector("[data-rmap]");M.fit=false;M.k="";ph&&hidrata(ph)}}catch(_){}},90)})}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-rmvis]");if(!b)return;e.preventDefault();e.stopPropagation();const k=b.dataset.rmvis,cur=rmVis(),nv=cur===k?"":k;try{localStorage.setItem("gf-rm-vis",nv)}catch(_){}rmAplica()},true);
 window.gfRmHTML=o=>{if(!o||!ok(o.geo))return "";const Fb=fab(),V=posOk(o)?o.pos:null,trk=TRK[o.id]!=null,at=ATIVO.includes(o.status);
-  return `<div class="rm-w"><div class="rm-map" data-rmap="${E(o.id)}" aria-label="Mapa da rota da despesca ${E(o.id)}"></div>
+  const vs=rmVis();return `<div class="rm-w${vs==="min"?" rm-min":vs==="big"?" rm-big":""}" data-rmw="${E(o.id)}"><div class="rm-top"><b>🗺 Mapa da rota</b><span class="rm-tb"><button type="button" class="btn rm-tg" data-rmvis="min" aria-pressed="${vs==="min"}">${vs==="min"?"▾ Expandir mapa":"▴ Encolher mapa"}</button><button type="button" class="btn rm-tg" data-rmvis="big" aria-pressed="${vs==="big"}"${vs==="min"?" hidden":""}>${vs==="big"?"↙ Tamanho normal":"⤢ Ampliar"}</button></span></div><div class="rm-map" data-rmap="${E(o.id)}" aria-label="Mapa da rota da despesca ${E(o.id)}"></div>
    <div class="rm-leg"><span><i style="background:#0f766e"></i>🏭 ${Fb?E(Fb.nome):"fábrica não marcada"}</span><span><i style="background:#2563eb"></i>📍 ${E(o.proj||"Propriedade")}${o.g?" · "+E(o.g):""}</span><span><i style="background:#ea580c"></i>🚚 ${E(o.veic||"veículo")}${V?` · GPS ${hm(V.em)}${V.prec?` (±${V.prec} m)`:""}`:" · sem GPS"}</span></div>
    <p class="hint rm-info" data-rminfo="${E(o.id)}">Traçando a rota…</p>
    <div class="rm-busca"><input data-rmq="${E(o.id)}" placeholder="🔎 Buscar cidade, endereço ou lugar no mapa" aria-label="Buscar lugar no mapa"><button type="button" class="btn" data-rmx="busca" data-id="${E(o.id)}">Buscar</button></div><div class="rm-res" data-rmres="${E(o.id)}"></div>
@@ -18727,7 +18733,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 })();
 </script>
 <style>
-.rm-w{display:grid;gap:6px;margin-top:8px}
+.rm-w{display:grid;gap:6px;margin-top:8px}.rm-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.rm-top>b{flex:1;min-width:0;font-size:14px}.rm-tb{display:flex;gap:6px;flex-wrap:wrap}.rm-tg{font-size:12.5px;padding:4px 10px}.rm-w.rm-min .rm-map,.rm-w.rm-min .rm-busca,.rm-w.rm-min .rm-res{display:none!important}.rm-w.rm-big .rm-map{height:78vh!important;min-height:78vh!important}
 .rm-map{position:relative;height:320px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#e5ecea}
 .rm-el{position:absolute;inset:0}
 .rm-el.rm-pick{cursor:crosshair;outline:3px solid #0f766e}
