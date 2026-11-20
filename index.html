@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v314";
+  it.querySelector("code").textContent=msg;const ver="ras-v315";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10825,7 +10825,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v314";
+  const APP_VERSAO="ras-v315";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17547,8 +17547,8 @@ async function sair(sem){if(!R)return;if(!sem&&!confirm("Sair da chamada?"))retu
   r.peers.forEach(p=>T(()=>p.pc.close()));[r.micT,r.camT,r.tela].forEach(t=>t&&T(()=>t.stop()));if(r.fx)r.fx.parar();T(()=>r.tr&&r.tr.close());clearInterval(r.relogio);clearInterval(r.vu);T(()=>r.ac&&r.ac.close());T(()=>r.wake&&r.wake.release());
   if(r.dentro&&window.gfArquivos&&r.ata.length+r.chat.length>2){const txt=`TeleFish · ${r.titulo||"Sala "+r.code}\nData: ${new Date(r.t0).toLocaleString("pt-BR")}\nDuração: ${dur(Date.now()-r.t0)}\n\n`+r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n");T(()=>gfArquivos.salvar(new Blob([txt],{type:"text/plain;charset=utf-8"}),{nome:`Ata_TeleFish_${r.code}_${iso(r.t0)}.txt`,mime:"text/plain",origem:"ata",proj:r.proj||null,obs:r.titulo||""}))}
   if(r.dentro){C.hist.unshift({code:r.code,titulo:r.titulo,ini:r.t0,fim:Date.now(),pessoas:[...new Set([r.me.nome,...r.ata.filter(l=>/ entrou/.test(l)).map(l=>l.replace(/^\[[^\]]+\] /,"").replace(/ entrou.*$/,""))])],rec:!!r.gravou,msgs:r.chat.length,ata:r.ata.concat(r.chat.map(c=>`[${hm(c.ts)}] ${c.nome} (chat): ${c.txt}`)).sort().join("\n").slice(0,40000)});C.hist=C.hist.slice(0,40);salva()}
-  R=null;fecha();if(new URLSearchParams(location.search).get("telefish"))T(()=>history.replaceState(null,"",location.pathname+location.hash));T(()=>window.gfTeleFish.redesenhaHub())}
-function fecha(){const o=ov();if(o)o.remove();document.documentElement.classList.remove("tf-aberto");if(R&&!R.dentro){[R.micT,R.camT].forEach(t=>t&&T(()=>t.stop()));if(R.fx)R.fx.parar();T(()=>R.tr&&R.tr.close());clearInterval(R.vu);T(()=>R.ac&&R.ac.close());R=null}}
+  R=null;fecha(r.code);if(new URLSearchParams(location.search).get("telefish"))T(()=>history.replaceState(null,"",location.pathname+location.hash));T(()=>window.gfTeleFish.redesenhaHub())}
+function fecha(cod0){const cod=cod0||(R&&R.code);const o=ov();if(o)o.remove();document.documentElement.classList.remove("tf-aberto");if(cod&&document.body.classList.contains("auth-lock"))setTimeout(()=>fimConvidado(cod),0);if(R&&!R.dentro){[R.micT,R.camT].forEach(t=>t&&T(()=>t.stop()));if(R.fx)R.fx.parar();T(()=>R.tr&&R.tr.close());clearInterval(R.vu);T(()=>R.ac&&R.ac.close());R=null}}
 
 /* ---------- tela da chamada ---------- */
 const BAR=[["mic","🎤","Microfone"],["cam","📷","Câmera"],["tela","🖥","Compartilhar a tela"],["rec","⏺","Gravar"],["chat","💬","Chat"],["gente","👥","Pessoas"],["mao","✋","Levantar a mão"],["reacao","😀","Reações"],["fundos","🖼","Fundo"],["cc","CC","Legendas"],["layout","▦","Layout"],["mais","⋯","Mais"],["sair","📞","Sair"]];
@@ -17677,6 +17677,14 @@ document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf
 window.addEventListener("pagehide",()=>{if(R&&R.dentro)envia({t:"bye"})});window.addEventListener("resize",()=>{if(R&&R.dentro)layout()});
 
 /* ---------- a seção 📣 Marketing e vendas na Gestão ---------- */
+/* v315: link de convidado — cria a sala e o link sem entrar na chamada; quem recebe entra pelo navegador, sem login */
+function linksHTML(){const L=Object.entries(C.salas).filter(([,s])=>s.link&&!s.quando&&Date.now()-(s.criada||0)<30*864e5).sort((a,b)=>b[1].criada-a[1].criada).slice(0,8);if(!L.length)return "";
+  return `<div class="tf-lks"><b>🔗 Links de convidado</b><small>Quem recebe o link entra pelo navegador, sem instalar nada e <b>sem login</b>: digita o nome e entra. Você entra pela mesma sala quando quiser.</small>${L.map(([c,s])=>{const l=linkSala(c),txt=`Convite para a chamada TeleFish${s.titulo?" · "+s.titulo:""}. Entre pelo link (não precisa de conta): ${l}`;
+    return `<div class="tf-lk${C.ultLink===c?" novo":""}"><div><b>${E(s.titulo||"Chamada")}</b> <small>${E(c)} · criado ${new Date(s.criada).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}${s.espera?" · com sala de espera":""}</small>${C.ultLink===c?'<span class="tf-cp">✓ link copiado</span>':""}</div><input class="tf-link" readonly value="${E(l)}" aria-label="Link do convite">
+     <span class="gfp-bt"><button type="button" class="btn" data-tfh="copiar" data-c="${E(c)}">📋 Copiar</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">📲 WhatsApp</a><a class="btn" href="mailto:?subject=${encodeURIComponent("Convite TeleFish"+(s.titulo?" · "+s.titulo:""))}&body=${encodeURIComponent(txt)}">✉️ E-mail</a>${navigator.share?`<button type="button" class="btn" data-tfh="share" data-c="${E(c)}">↗ Compartilhar</button>`:""}<button type="button" class="btn solid" data-tfh="abrir" data-c="${E(c)}">📹 Entrar na sala</button><button type="button" class="btn" data-tfh="apaga" data-c="${E(c)}" aria-label="Apagar o link">🗑</button></span></div>`}).join("")}</div>`}
+function fimConvidado(cod){if(document.getElementById("tf-fim")||(R&&R.code===cod))return;const d=document.createElement("div");d.id="tf-fim";
+  d.innerHTML=`<div class="tf-fimb"><div class="tf-logo">🐟📹</div><h2>Você saiu da chamada</h2><p>Sala <b>${E(cod)}</b>. Obrigado por participar!</p><div class="gfp-bt"><button type="button" class="btn solid" data-tff="volta">↩ Entrar de novo</button><button type="button" class="btn" data-tff="login">Tenho conta no Green Fish</button></div></div>`;
+  d.addEventListener("click",e=>{const b=e.target.closest("[data-tff]");if(!b)return;d.remove();if(b.dataset.tff==="volta")abre(cod,{guest:true})});document.body.appendChild(d)}
 function hubHTML(){const ag=Object.entries(C.salas).filter(([,s])=>s.quando&&s.quando>Date.now()-6*36e5).sort((a,b)=>a[1].quando-b[1].quando);
   return `<div id="tf-hub" class="tf-hub"><div class="tf-hero"><div class="tf-logo">🐟📹</div><div><h3>TeleFish</h3><p>Videochamadas para vender, atender clientes e falar com fornecedores: câmera, tela compartilhada, chat, fundo, gravação, legendas e ata. Quem você convida entra pelo link, sem instalar nada.</p></div></div>
    ${R&&R.dentro?`<p class="tf-agora">🟢 Você está numa chamada (${E(R.titulo||R.code)}). <button type="button" class="btn solid" data-tfh="voltar">Voltar para a chamada</button></p>`:""}
@@ -17684,7 +17692,7 @@ function hubHTML(){const ag=Object.entries(C.salas).filter(([,s])=>s.quando&&s.q
    <label class="ct-ck"><input type="checkbox" id="tfh-esp"> Sala de espera: eu aceito quem entra</label>
    ${window.gfArquivos?(()=>{const pa=T(()=>gfArquivos.projAgora(),null),L=T(()=>gfArquivos.projetos(),[])||[];return `<div class="mk-form tf-hgrid"><label class="jr-f">Projeto da chamada (gravação e ata vão para os arquivos dele)<select id="tfh-proj"><option value="">— sem projeto —</option>${L.map(p=>`<option value="${E(p.key)}"${pa&&pa.key===p.key?" selected":""}>${E(p.nome)}${p.cliente?" · "+E(p.cliente):""}</option>`).join("")}</select></label></div>
    <label class="ct-ck"><input type="checkbox" data-tfhb="1"${C.baixa?" checked":""}> Baixar também a gravação no aparelho (além de guardar no projeto)</label>`})():""}
-   <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="nova">📹 Nova chamada agora</button></div>
+   <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="nova">📹 Nova chamada agora</button><button type="button" class="btn" data-tfh="link">🔗 Criar link para convidado</button></div>${linksHTML()}
    <div class="mk-form tf-hgrid"><label class="jr-f">Entrar com o código ou o link<input id="tfh-cod" placeholder="abc-defg-hij ou o link do convite"></label></div><div class="gfp-bt"><button type="button" class="btn" data-tfh="entrar">➡️ Entrar</button></div>
    <details class="pp-sis"><summary>📅 Agendar uma chamada (${ag.length})</summary><div class="mk-form tf-hgrid"><label class="jr-f">Assunto<input id="tfh-at" maxlength="80"></label><label class="jr-f">Dia<input type="date" id="tfh-ad" value="${iso(Date.now()+864e5)}"></label><label class="jr-f">Hora<input type="time" id="tfh-ah" value="09:00"></label><label class="jr-f">Duração (min)<input id="tfh-am" inputmode="numeric" value="30"></label></div>
     <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="agenda">📅 Criar a sala agendada</button></div>
@@ -17700,18 +17708,26 @@ function redesenhaHub(){const h=document.getElementById("tf-hub");if(h){const a=
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tf-hub [data-tfh]");if(!b)return;if(b.tagName==="A")return;e.preventDefault();e.stopPropagation();const k=b.dataset.tfh,c=b.dataset.c,v=id=>((document.getElementById(id)||{}).value||"").trim();
   const prjSel=()=>{const kk=v("tfh-proj");if(!kk)return null;const L=T(()=>gfArquivos.projetos(),[])||[],p=L.find(x=>x.key===kk);return p?{id:p.id,nome:p.nome,key:p.key,uid:p.uid}:null};
   if(k==="nova"){const cod=codigoNovo();C.salas[cod]={host:true,proj:prjSel(),titulo:v("tfh-tit"),espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};salva();abre(cod,{host:true,proj:C.salas[cod].proj})}
+  else if(k==="link"){const cod=codigoNovo();C.salas[cod]={host:true,link:true,proj:prjSel(),titulo:v("tfh-tit")||"",espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};C.ultLink=cod;salva();T(()=>navigator.clipboard.writeText(linkSala(cod)).catch(()=>{}));redesenhaHub();setTimeout(()=>T(()=>document.querySelector(".tf-lk.novo").scrollIntoView({block:"center",behavior:"smooth"})),60)}
   else if(k==="entrar"){const cod=limpaCod(v("tfh-cod"));if(cod.length<6){alert("Cole o código ou o link do convite.");return}abre(cod)}
   else if(k==="voltar")mostra();
   else if(k==="abrir")abre(c,{host:!!(C.salas[c]||{}).host});
   else if(k==="agenda"){const d=v("tfh-ad"),h=v("tfh-ah")||"09:00";const q=new Date(d+"T"+h).getTime();if(!isFinite(q)){alert("Informe o dia e a hora.");return}const cod=codigoNovo();C.salas[cod]={host:true,titulo:v("tfh-at")||"Chamada",quando:q,min:Math.max(5,Math.min(600,+v("tfh-am")||30)),criada:Date.now()};salva();redesenhaHub()}
   else if(k==="ics"){const s=C.salas[c];if(!s)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([ics(c,s)],{type:"text/calendar"}));a.download=`TeleFish_${c}.ics`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},30000)}
-  else if(k==="copiar"){const l=linkSala(c);T(()=>navigator.clipboard.writeText(l));b.textContent="✓ Copiado"}
-  else if(k==="apaga"){if(confirm("Apagar esta sala agendada?")){delete C.salas[c];salva();redesenhaHub()}}
+  else if(k==="copiar"){const l=linkSala(c);T(()=>navigator.clipboard.writeText(l).catch(()=>{}));b.textContent="✓ Copiado"}
+  else if(k==="share"){const s=C.salas[c]||{};T(()=>navigator.share({title:"Convite TeleFish",text:`Entre na chamada TeleFish${s.titulo?" · "+s.titulo:""} (não precisa de conta):`,url:linkSala(c)}).catch(()=>{}))}
+  else if(k==="apaga"){if(confirm(C.salas[c]&&C.salas[c].link?"Apagar este link de convidado? Quem tiver o link ainda consegue abrir a sala vazia.":"Apagar esta sala agendada?")){delete C.salas[c];salva();redesenhaHub()}}
   else if(k==="ata"){const h=C.hist[+b.dataset.i];if(h)baixaAta(`TeleFish · ${h.titulo||"Sala "+h.code}\nData: ${new Date(h.ini).toLocaleString("pt-BR")}\nDuração: ${dur(h.fim-h.ini)}\nPessoas: ${(h.pessoas||[]).join(", ")}\n\n${h.ata||""}`,`TeleFish_ata_${h.code}_${iso(h.ini)}.txt`)}
   else if(k==="limpa"){if(confirm("Apagar o histórico de chamadas deste aparelho?")){C.hist=[];salva();redesenhaHub()}}},true);
 document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#tf-hub"))return;e.stopPropagation();if(t.dataset.tfhb){C.baixa=t.checked;salva();return}if(t.dataset.tfhc==="nome"){C.nome=t.value.trim().slice(0,40);salva()}if(t.dataset.tfht){C.turn=C.turn||{};C.turn[t.dataset.tfht]=t.value.trim();salva()}},true);
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf-hub"))e.stopPropagation()},true);
 
+T(()=>{const st=document.createElement("style");st.textContent=`
+.tf-lks{display:grid;gap:6px;margin:6px 0;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.tf-lks>small{color:var(--muted)}
+.tf-lk{display:grid;gap:5px;border-top:1px dashed var(--line);padding-top:6px}.tf-lk.novo{border:2px solid #10b981;border-radius:8px;padding:6px 8px;background:color-mix(in srgb,#10b981 8%,transparent)}
+.tf-lk small{color:var(--muted)}.tf-cp{margin-left:8px;color:#059669;font-weight:700;font-size:12.5px}.tf-lk .tf-link{width:100%;font:12.5px var(--f-mono,monospace);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit}
+#tf-fim{position:fixed;inset:0;z-index:10060;background:#04130f;color:#e6f4ef;display:grid;place-items:center;padding:20px;text-align:center}.tf-fimb{display:grid;gap:10px;justify-items:center;max-width:420px}.tf-fimb h2{margin:0}#tf-fim .btn:not(.solid){color:#e6f4ef;border-color:#3b6b5c;background:transparent}.tf-fimb .gfp-bt{justify-content:center}
+`;document.head.appendChild(st)});
 window.gfTeleFish={hubHTML,redesenhaHub,abre,sair:()=>sair(true),estado:()=>R,info:()=>R&&R.dentro?`🟢 em chamada · ${somaPessoas()} pessoa(s)`:`${C.hist.length} chamada(s) · ${Object.values(C.salas).filter(s=>s.quando>Date.now()).length} agendada(s)`,_msg:msgSala,_cfg:()=>C};
 
 /* ---------- convite: o link ?telefish=código abre a chamada, mesmo para quem não tem conta ---------- */
