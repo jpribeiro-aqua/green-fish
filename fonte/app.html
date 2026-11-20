@@ -4071,7 +4071,7 @@ window.gfBenefResumo=()=>{const e=ESP[B.esp]||ESP.outro,pw=pesoAnimal();let est=
 })();
 
 /* ---------- Guarda a última configuração neste navegador ---------- */
-function save(){if(window.__grpSwap)return;try{localStorage.setItem(KEY,JSON.stringify({tanks,bio:{rit:bioRitmo,mort:bioMort,plan:planDays,pmode:planMode,pw:planW,feed:{met:feedMet,sp:feedSp,t:FEEDT}},p:Object.fromEntries(ids.map(i=>[i,document.getElementById(i).value])),round:document.getElementById("round").checked,perEsp:document.getElementById("perEsp").checked}))}catch(e){}}
+function save(){if(window.__grpSwap)return;try{localStorage.setItem(KEY,JSON.stringify({tanks,bio:{rit:bioRitmo,mort:bioMort,plan:planDays,pmode:planMode,pw:planW,feed:{met:feedMet,sp:feedSp,t:FEEDT}},p:Object.fromEntries(ids.map(i=>[i,document.getElementById(i).value])),round:document.getElementById("round").checked,perEsp:document.getElementById("perEsp").checked}))}catch(e){}try{window.__gfLotesSalvo&&window.__gfLotesSalvo()}catch(e){}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(!s)return;
   // configurações salvas antes de id/cor existirem recebem os valores na ordem da lista
   if(Array.isArray(s.tanks)) tanks=s.tanks.map((t,i)=>({id:Number.isInteger(t.id)?t.id:i,c:Number.isInteger(t.c)?t.c:Math.min(i,MAXC),name:String(t.name??""),q:String(t.q??""),v:String(t.v??""),
@@ -14480,7 +14480,7 @@ window.gfPrevToast=t=>toast(t);window.gfOrdens={ver:()=>{try{if(boxO)desenha(box
     const e=F0&&G?estrada(F0,G):null;
     abreMapa({t:`Rota da despesca · ${l.proj||"Projeto"}${l.g?" · "+l.g:""}`,sub:e?`🏭 Fábrica → 📍 propriedade ≈ ${F(e.km,1)} km pela estrada (estimado) · ${hmD(e.h)} de ida (a volta com o pescado faz o mesmo caminho)`:!F0?"Fábrica não cadastrada: marque no quadro 🚚 Despesca e transporte":"Propriedade sem coordenadas: cadastre na aba Local e viabilidade",pontos:pts,linhas:lin})},
   rotaLote:l=>{try{const G=geoLote(l),F0=fab();return G&&F0?Object.assign(estrada(F0,G),{gmaps:gmaps(F0,G)}):null}catch(e){return null}},lista:()=>O.L,abrir:id=>{ui.ab=id;irOD()},grava:()=>{gravaO();try{if(boxO)desenha(boxO,odHTML)}catch(e){}},fab:()=>fab(),estrada:(a,b)=>estrada(a,b),marcaFab:p=>{O.fab=Object.assign(O.fab||{},{lat:p.lat,lon:p.lon,fonte:"marcado no mapa da rota"});gravaO();try{if(boxO)desenha(boxO,odHTML);if(box)desenha(box,htmlBenef)}catch(e){}}};window.gfPrev={geo:l=>{try{return geoLote(l)}catch(e){return null}},valor:(l,ms)=>valor(l,ms),cache:()=>S.cache,todos,semanas:()=>semanas(todos()),processa,resumo:()=>{const A=todos();return {lotes:A.length,avisos:A.filter(l=>l.s.n>=2).length,projetos:Object.keys(S.cache).length+1}},oferta:()=>rd(OF,null)};
-setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);
+setTimeout(tick,2500);setInterval(()=>{if(!document.hidden)tick()},60000);window.addEventListener("gf-lotes",()=>{try{tick()}catch(e){}});
 setTimeout(()=>processa(false),7000);setInterval(()=>{if(!document.hidden)processa(false)},15*60000);
 window.addEventListener("proj-status",()=>setTimeout(()=>processa(false),3000));
 })();
@@ -16974,7 +16974,7 @@ function inicia(){if(typeof setView!=="function"){setTimeout(inicia,300);return}
   const o=setView;setView=function(v){o(v);if(v==="racao"||v==="gest")setTimeout(desenha,80);if(v==="bio")setTimeout(desenhaNec,120)};
   if(typeof drawBio==="function"){const d1=drawBio;drawBio=function(){d1.apply(this,arguments);clearTimeout(desenhaNec.t);desenhaNec.t=setTimeout(desenhaNec,60)}}
   if(typeof drawFeedDash==="function"){const d0=drawFeedDash;drawFeedDash=function(){d0.apply(this,arguments);setTimeout(desenha,0)}}
-  setInterval(()=>{desenha();desenhaNec()},60000);new MutationObserver(()=>{const b=document.getElementById("rg-box");if(b&&!b.__h){b.__h="x";setTimeout(()=>{b.__h="";desenha()},0)}}).observe(document.body,{childList:true,subtree:true});desenha()}
+  setInterval(()=>{desenha();desenhaNec()},60000);window.addEventListener("gf-lotes",()=>setTimeout(()=>{try{desenha();desenhaNec()}catch(e){}},80));new MutationObserver(()=>{const b=document.getElementById("rg-box");if(b&&!b.__h){b.__h="x";setTimeout(()=>{b.__h="";desenha()},0)}}).observe(document.body,{childList:true,subtree:true});desenha()}
 inicia();
 })();
 </script>
@@ -17204,7 +17204,7 @@ function inicia(){if(typeof setView!=="function"||!document.getElementById("view
 @media print{html.lt-imprime body>*:not(#lt-print){display:none!important}html.lt-imprime #lt-print{position:static;background:none;padding:0}html.lt-imprime .lt-pbar{display:none}html.lt-imprime .lt-pbox{max-height:none;box-shadow:none;padding:0}}`;document.head.appendChild(st);
   const o=setView;setView=function(v){o(v);if(v==="bio")setTimeout(()=>desenha(),150)};
   if(typeof drawBio==="function"){const d=drawBio;drawBio=function(){d.apply(this,arguments);clearTimeout(desenha.t);desenha.t=setTimeout(()=>desenha(),80)}}
-  setInterval(()=>{if(!document.hidden)desenha()},60000);setTimeout(()=>desenha(),1500);hash()}
+  setInterval(()=>{if(!document.hidden)desenha()},60000);window.addEventListener("gf-lotes",()=>setTimeout(()=>{try{desenha()}catch(e){}},60));setTimeout(()=>desenha(),1500);hash()}
 inicia();
 })();
 </script>
@@ -17695,7 +17695,7 @@ function inicia(){if(typeof setView!=="function"||!document.getElementById("view
   const o=setView;setView=function(v){o(v);if(v==="benef")setTimeout(desenha,200)};
   if(typeof window.drawBenef==="function"){const d=window.drawBenef;window.drawBenef=function(){const r=d.apply(this,arguments);setTimeout(desenha,0);return r}}
   {const vb=document.getElementById("view-benef");new MutationObserver(()=>{if(!document.getElementById("rota-card")||!vb.contains(document.getElementById("rota-card"))){clearTimeout(inicia.t);inicia.t=setTimeout(desenha,60)}}).observe(vb,{childList:true})}
-  setInterval(()=>{if(!document.hidden)desenha()},30000);setTimeout(desenha,1800)}
+  setInterval(()=>{if(!document.hidden)desenha()},30000);window.addEventListener("gf-lotes",()=>setTimeout(()=>{try{desenha()}catch(e){}},300));setTimeout(desenha,1800)}
 inicia();
 })();
 </script>
@@ -18484,7 +18484,7 @@ document.addEventListener("click",e=>{const o=e.target.closest&&e.target.closest
 window.gfCoresDespesca={etapa,ETAPAS,aplica};
 function inicia(){const v=document.getElementById("view-benef");if(!v){setTimeout(inicia,400);return}
   new MutationObserver(()=>{clearTimeout(inicia.t);inicia.t=setTimeout(aplica,150)}).observe(v,{childList:true,subtree:true});
-  setTimeout(aplica,2500);setInterval(aplica,60000)}
+  setTimeout(aplica,2500);setInterval(aplica,60000);window.addEventListener("gf-lotes",()=>setTimeout(()=>{try{aplica()}catch(e){}},250))}
 inicia();
 })();
 </script>
@@ -18898,6 +18898,35 @@ const st=document.createElement("style");st.textContent=`
 .cap-of{display:grid;gap:6px;padding:10px 12px}.cap-arq{cursor:pointer}
 .cap-zb{display:grid;gap:8px;max-width:min(1000px,100%);max-height:100%}.cap-zb img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px}
 `;document.head.appendChild(st);
+})();
+</script>
+<script>
+/* ===================== v321: 🔗 "Lotes nos tanques" correlacionados em tempo real — mudou espécie, povoamento, peso, animais, despesca,
+   ritmo ou mortalidade: o app recalcula a aba Biomassa inteira, o Painel, o Arraçoamento, os avisos e o cronograma do Beneficiamento,
+   as ordens de despesca, a Gestão de insumos, a rastreabilidade, o painel do aviso ao mercado e a AquaGestão; e as outras janelas abertas do app ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const KEY="ras-multitanques-v1",T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const assin=()=>T(()=>{const s=JSON.parse(localStorage.getItem(KEY)||"{}");return JSON.stringify([(s.tanks||[]).map(t=>[t.id,t.name,t.q,t.v,t.lot]),s.bio&&s.bio.rit,s.bio&&s.bio.mort])},"");
+let ult=assin(),tm=0,n=0;
+const PARTES=["Biomassa (todas as partes)","Painel","Arraçoamento","Beneficiamento: avisos, cronograma e cores","Ordens de despesca","Gestão de insumos","Rastreabilidade dos animais","Do aviso ao mercado","AquaGestão"];
+function chip(origem){const head=T(()=>document.getElementById("lots").closest("section").querySelector(".card-head"),null);if(!head)return;let c=document.getElementById("lt-sync");
+  if(!c){c=document.createElement("span");c.id="lt-sync";c.setAttribute("aria-live","polite");head.appendChild(c)}const d=new Date();
+  c.textContent=`🔗 ${origem==="outra"?"Atualizado de outra janela":"Correlacionado com todas as abas"} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+  c.title="Recalculado agora: "+PARTES.join(", ");c.classList.remove("on");void c.offsetWidth;c.classList.add("on")}
+function propaga(origem){n++;const ae=document.activeElement,id=ae&&ae.id,pos=T(()=>ae.selectionStart,null),fim=T(()=>ae.selectionEnd,null);
+  if(origem==="outra")T(()=>load());
+  T(()=>render());/* recalcula tudo do projeto: Calculadora, Biomassa, Painel e Arraçoamento */
+  if(id){const ne=document.getElementById(id);if(ne&&ne!==document.activeElement){T(()=>ne.focus({preventScroll:true}));T(()=>{if(pos!=null)ne.setSelectionRange(pos,fim)})}}
+  T(()=>window.pushAqua&&window.pushAqua());
+  T(()=>window.dispatchEvent(new CustomEvent("gf-lotes",{detail:{origem,n}})));
+  T(()=>window.gfOrdens&&window.gfOrdens.ver());
+  chip(origem)}
+window.__gfLotesSalvo=()=>{const a=assin();if(a===ult)return;ult=a;clearTimeout(tm);tm=setTimeout(()=>propaga("aqui"),600)};
+/* outra janela/aba do navegador com o app aberto salvou os lotes: esta janela acompanha */
+window.addEventListener("storage",e=>{if(e.key!==KEY)return;const a=assin();if(a===ult)return;ult=a;clearTimeout(tm);tm=setTimeout(()=>propaga("outra"),250)});
+window.gfLotesSync={assin,propaga:()=>propaga("aqui"),n:()=>n};
+const st=document.createElement("style");st.textContent=`#lt-sync{font-size:12px;font-weight:600;color:var(--muted);margin-left:auto;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}#lt-sync.on{animation:ltSync 1.6s ease-out}@keyframes ltSync{0%{background:color-mix(in srgb,#16a34a 35%,transparent);color:#15803d}100%{background:transparent}}`;document.head.appendChild(st);
 })();
 </script>
 
