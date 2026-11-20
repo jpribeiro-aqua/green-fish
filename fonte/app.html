@@ -13777,7 +13777,7 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
   function aplicaView(v){const vid=v.id.replace("view-","");if(v.hidden&&vid!=="gest")return;const CD=cardsDe(v);let I=itens(v,CD);try{window.gfRowVisto&&gfRowVisto(vid,I)}catch(e){}const okP=k=>!window.gfParteOk||gfParteOk(vid,k);CD.forEach(c=>{const b=!okP(chave(v,c));if(c.classList.contains("gf-pk-x")!==b)c.classList.toggle("gf-pk-x",b)});I=I.filter(i=>okP(i.k));if(!I.length)return;
     /* v228: no Beneficiamento a linha segue a sequência do lote (a mesma da Rastreabilidade), com setas; os demais quadros vêm depois */
     /* v322: primeiro o processo do lote (com setas), depois as aulas e referências, separadas */
-    if(vid==="benef"){const SEQ=[/Avisos da Biomassa/i,/Despesca e transporte/i,/Rastreabilidade/i,/Do lote ao produto/i,/Decisão/i,/Do aviso ao mercado/i],AUL=[/Beneficiamento do pescado/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i,/Fontes/i];
+    if(vid==="benef"){const SEQ=[/Avisos da Biomassa/i,/Despesca em foco/i,/Despesca e transporte/i,/Rastreabilidade/i,/Do lote ao produto/i,/Decisão/i,/Do aviso ao mercado/i],AUL=[/Beneficiamento do pescado/i,/Rendimento corporal/i,/Fluxograma/i,/Salga/i,/Secagem/i,/Derivados/i,/Defumação/i,/Qualidade/i,/Fontes/i];
       const pos=i=>{const j=SEQ.findIndex(r=>r.test(i.t));if(j>=0)return j;const a=AUL.findIndex(r=>r.test(i.t));return a>=0?50+a:99};I=I.map((i,j)=>{const p=pos(i);return Object.assign({},i,{seq:p<50,grp:p<50?"p":p<99?"a":"o",o:p*1000+j})}).sort((a,b)=>a.o-b.o)}
     let sel=SEL[vid];if(sel&&sel!=="*"&&!I.some(i=>i.k===sel))sel=null;if(!sel)sel=I[0].k;
     const gest=vid==="gest",hub=gest&&window.gfGestHub?gfGestHub.caixa():null;
@@ -17667,7 +17667,7 @@ function ir(k){const X=dados(),s=etapas(X).find(x=>x.k===k);if(!s)return;
   const c=T(()=>[...document.querySelectorAll("#view-benef section.card")].find(c=>s.ir.test(c.innerText.slice(0,200))),null);if(c)try{c.scrollIntoView({block:"start",behavior:"smooth"})}catch(e){}}
 
 /* v275: os botões do alto do Beneficiamento seguem a mesma ordem do fluxo (do aviso ao mercado), com o número da etapa */
-const ORDEM=[[/Avisos da Biomassa/,"1-2"],[/Despesca e transporte/,"3-5"],[/Rastreabilidade por lote/,"6·9·10"],[/Do lote ao produto/,"7"],[/Rendimento corporal/,"7"],[/Fluxograma e destino/,"7"],[/Salga/,"7"],[/Secagem/,"7"],[/Derivados do pescado/,"7"],[/Defuma/,"7"],[/Qualidade e legisla/,"8"],[/Decisão: Beneficiamento/,"11"],[/Beneficiamento do pescado/,""],[/Correla/,""],[/Fontes/,""]];
+const ORDEM=[[/Avisos da Biomassa/,"1-2"],[/Despesca em foco/,"2-10"],[/Despesca e transporte/,"3-5"],[/Rastreabilidade por lote/,"6·9·10"],[/Do lote ao produto/,"7"],[/Rendimento corporal/,"7"],[/Fluxograma e destino/,"7"],[/Salga/,"7"],[/Secagem/,"7"],[/Derivados do pescado/,"7"],[/Defuma/,"7"],[/Qualidade e legisla/,"8"],[/Decisão: Beneficiamento/,"11"],[/Beneficiamento do pescado/,""],[/Correla/,""],[/Fontes/,""]];
 const pos=t=>{const i=ORDEM.findIndex(([rx])=>rx.test(t||""));return i<0?ORDEM.length:i};
 window.gfOrdemBenef=L=>L.map((x,i)=>({x,i})).sort((a,b)=>pos(a.x.t)-pos(b.x.t)||a.i-b.i).map(o=>o.x);
 function numera(){document.querySelectorAll("#view-benef .gf-row button").forEach(b=>{const t=b.innerText||"";const o=ORDEM.find(([rx])=>rx.test(t));const n=o?o[1]:"";if(n){if(b.dataset.etapa!==n)b.dataset.etapa=n}else if(b.dataset.etapa)delete b.dataset.etapa})}
@@ -19135,7 +19135,7 @@ setInterval(()=>T(()=>{(API().lista()||[]).forEach(o=>{if(o.status==="conferida"
 setInterval(()=>T(()=>{if(!window.qrcode&&(API().lista()||[]).some(o=>o.pub))qrLib().catch(()=>{})}),6000);
 const st=document.createElement("style");st.textContent=`.ds-box{border:1px solid var(--line);border-left:4px solid #0f766e;border-radius:8px;padding:8px 10px;margin:8px 0;display:grid;gap:6px}.ds-box small{color:var(--muted)}
 #ds-qr{position:fixed;inset:0;z-index:10070;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:12px}.ds-qrb{background:var(--surface,#fff);border-radius:12px;padding:14px;display:grid;gap:8px;justify-items:center;max-width:360px;text-align:center}.ds-qrb svg{width:240px;height:240px}.ds-qrb small{word-break:break-all;color:var(--muted)}`;document.head.appendChild(st);
-window.gfDossie={gerar:(id,ab)=>{const o=ordem(id);return o?gerar(o,ab):null},publicar:id=>{const o=ordem(id);return o?publicar(o):null},dados:id=>{const o=ordem(id);return o?dados(o):null}};
+window.gfDossie={dados:id=>{const o=ordem(id);return o?dados(o):null},gerar:(id,ab)=>{const o=ordem(id);return o?gerar(o,ab):null},publicar:id=>{const o=ordem(id);return o?publicar(o):null},dados:id=>{const o=ordem(id);return o?dados(o):null}};
 })();
 </script>
 <script>
@@ -19161,4 +19161,146 @@ async function busca(){const C=window.RAS_CONFIG||{};if(!C.supabaseUrl||!C.supab
 setTimeout(busca,300);
 })();
 </script>
+<script>
+/* ===================== v325: 🎯 Despesca em foco — um quadro só com os dados de UMA propriedade em despesca,
+   do aceite do aviso da Biomassa até o fim (captura, transporte, chegada, conferência, matéria-prima, produtos e pedidos).
+   Dá para enviar à equipe (WhatsApp, link que abre só essa despesca, PDF) sem misturar as outras propriedades ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const P=v=>{const n=parseFloat(String(v??"").replace(/\./g,"").replace(",","."));return isFinite(n)?n:NaN};
+const N=v=>{const n=typeof v==="number"?v:P(v);return isFinite(n)?n:NaN};
+const F=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d,minimumFractionDigits:0}):"—";
+const p2=v=>String(v).padStart(2,"0");
+const dt=ms=>{if(!ms)return "";const d=new Date(ms);return `${p2(d.getDate())}/${p2(d.getMonth()+1)} ${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const dBR=s=>{if(!s)return "—";const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:String(s)};
+const API=()=>window.gfOrdens||{};
+const lista=()=>T(()=>API().lista(),[])||[];
+const ordem=id=>lista().find(o=>o.id===id)||null;
+const toast=t=>T(()=>window.gfPrevToast?gfPrevToast(t):null);
+const ATIVO=["aceita","captura","encerrada","transporte","chegou"],FIM=["conferida","reprovada"];
+const ST={aceita:"✅ Aceita · aguardando a captura",captura:"🎣 Captura em andamento",encerrada:"🏁 Captura encerrada · aguardando o embarque",transporte:"🚚 Em transporte para a fábrica",chegou:"🏭 Chegou à fábrica · aguardando a conferência",conferida:"🔎 Rastreabilidade conferida",reprovada:"⛔ Carga reprovada"};
+const COR={aceita:"#2563eb",captura:"#0891b2",encerrada:"#0d9488",transporte:"#ea580c",chegou:"#7c3aed",conferida:"#15803d",reprovada:"#b91c1c"};
+const ETS=[["aceita","✅","Aceite do aviso"],["captura","🎣","Início da captura"],["encerrada","🏁","Fim da captura"],["transporte","🚚","Embarque e transporte"],["chegou","🏭","Chegada à fábrica"],["conferida","🔎","Conferência"]];
+const LS="gf-foco-od";let SEL=T(()=>localStorage.getItem(LS),"")||"";
+const quando=(o,s)=>{const h=(o.hist||[]).filter(x=>x.s===s).pop();return h?h.em:null};
+const lote=o=>T(()=>(gfPrev.todos()||[]).find(l=>String(l.id)===String(o.lid)),null);
+const ok=g=>!!g&&isFinite(+g.lat)&&isFinite(+g.lon)&&!(+g.lat===0&&+g.lon===0);
+const gmaps=(a,b)=>`https://www.google.com/maps/dir/?api=1${a?`&origin=${a.lat},${a.lon}`:""}&destination=${b.lat},${b.lon}&travelmode=driving`;
+const pct=(a,b)=>isFinite(a)&&isFinite(b)&&b>0?(a-b)/b*100:NaN;
+const sinal=v=>isFinite(v)?(v>=0?"+":"")+F(v,1)+"%":"—";
+/* despescas que entram no quadro: do aceite em diante (ativas primeiro, depois as concluídas dos últimos 60 dias) */
+function ords(){const lim=Date.now()-60*864e5;return lista().filter(o=>ATIVO.includes(o.status)||(FIM.includes(o.status)&&(quando(o,o.status)||o.em||0)>lim))
+  .sort((a,b)=>(ATIVO.includes(b.status)-ATIVO.includes(a.status))||String(a.data||"").localeCompare(String(b.data||""))*(ATIVO.includes(a.status)?1:-1))}
+function cadeia(o){return T(()=>window.gfDossie&&gfDossie.dados?(gfDossie.dados(o.id)||{}).cd:null,null)}
 
+/* ---------- conteúdo do quadro de UMA despesca ---------- */
+function corpo(o,modo){const pr=modo==="print",l=lote(o),fb=T(()=>API().fab(),null),G=ok(o.geo)?o.geo:null,A=o.ass||{},r=o.rasc||{};
+  const est=fb&&G?T(()=>API().estrada(fb,G),null):null;
+  /* linha das etapas, com hora e quem assinou */
+  const feitos=ETS.map(([s])=>!!quando(o,s)),rep=o.status==="reprovada";let atual=feitos.lastIndexOf(true)+1;if(FIM.includes(o.status))atual=-1;
+  const passos=ETS.map(([s,ic,t],i)=>{const em=quando(o,s),a=A[s],cls=feitos[i]?"ok":i===atual?"agora":"";
+    return `<li class="fo-e ${cls}"><span class="fo-ic">${feitos[i]?"✓":ic}</span><div><b>${ic} ${E(t)}</b><small>${em?dt(em):i===atual?"⏳ em processamento":"aguardando"}</small>${a?`<small class="fo-ass">✍️ ${E(a.nome||"")}${a.fun?" · "+E(a.fun):""}</small>`:s==="aceita"&&em?`<small class="fo-ass">Beneficiamento (aceite do aviso)</small>`:""}</div></li>`}).join("")+(rep?`<li class="fo-e rep"><span class="fo-ic">⛔</span><div><b>Carga reprovada</b><small>${dt(quando(o,"reprovada"))}${o.motivo?" · "+E(o.motivo):""}</small></div></li>`:"");
+  /* números: do aviso (aceite) até a chegada */
+  const kgP=N(o.kgPrev),ag=o.agora||null,agC=o.agoraCap||null,eF=o.estFim||null,kC=N(o.kgCap),kH=N(o.kgCheg),tq=N(o.tempC);
+  const lin=(t,v,s)=>`<tr><th>${t}</th><td>${v}</td>${s!=null?`<td class="fo-s">${s}</td>`:"<td></td>"}</tr>`;
+  const nums=[
+    lin("📡 Aviso aceito (previsto)",`<b>${F(kgP)} kg</b>${isFinite(N(o.peso))?` · ${F(N(o.peso))} g/peixe`:""}${isFinite(N(o.nAnim))?` · ${F(N(o.nAnim))} peixes`:""}`,`para ${dBR(o.data)}`),
+    ag?lin("📊 Biomassa no aceite",`${F(N(ag.kg))} kg · ${F(N(ag.w))} g · ${F(N(ag.n))} peixes`,ag.fonte?E(ag.fonte):""):"",
+    l&&ATIVO.slice(0,2).includes(o.status)&&isFinite(l.bF)?lin("🐟 Biomassa agora no tanque",`<b>${F(l.bF)} kg</b>${isFinite(l.wF)?` · ${F(l.wF)} g`:""}${isFinite(l.nF)?` · ${F(l.nF)} peixes`:""}`,`${sinal(pct(l.bF,kgP))} do previsto`):"",
+    agC?lin("🎣 No início da captura",`${F(N(agC.kg))} kg · ${F(N(agC.w))} g · ${F(N(agC.n))} peixes`,agC.em?dt(agC.em):""):"",
+    isFinite(kC)?lin("🏁 Capturado",`<b>${F(kC)} kg</b>${o.nCap?` · ${F(N(o.nCap))} peixes (${F(kC/N(o.nCap)*1000)} g)`:""}${o.cx?` · ${E(o.cx)} caixas`:""}${o.gelo?` · ${E(o.gelo)} kg de gelo`:""}`,eF&&isFinite(N(eF.kg))?`${sinal(pct(kC,N(eF.kg)))} da estimativa`:`${sinal(pct(kC,kgP))} do previsto`):(r.kgCap&&o.status==="captura"?lin("🎣 Em captura (parcial)",`${E(r.kgCap)} kg${r.cx?` · ${E(r.cx)} caixas`:""}`,""):""),
+    isFinite(kH)?lin("🏭 Chegada à fábrica",`<b>${F(kH)} kg</b> na balança${isFinite(tq)?` · <b class="${tq>4?"fo-ruim":"fo-bom"}">${F(tq,1)} °C</b>`:""}`,isFinite(kC)?`${sinal(pct(kH,kC))} no transporte`:""):"",
+    o.status==="conferida"?lin("🔎 Conferência",`${o.nf?"GTA/NF "+E(o.nf)+" · ":""}${o.mp?`lote de matéria-prima <b>${E(o.mp)}</b>`:"aprovada"}`,o.obsC?E(o.obsC):""):""].join("");
+  /* logística */
+  const logi=`<div class="fo-g">
+    <div><small>Data da despesca</small><b>${dBR(o.data)}</b></div>
+    <div><small>Responsável pela captura</small><b>${E(o.resp||"—")}</b></div>
+    <div><small>Veículo</small><b>${E(o.veic||"—")}</b></div>
+    <div><small>Motorista</small><b>${E(o.mot||"—")}</b></div>
+    <div><small>Até a fábrica</small><b>${est?`≈ ${F(est.km,1)} km · ${(m=>m<60?m+" min":Math.floor(m/60)+" h "+p2(m%60))(Math.round(est.h*60))}`:"—"}</b></div>
+    <div><small>Local da propriedade</small><b>${G?`${(+G.lat).toFixed(5).replace(".",",")}, ${(+G.lon).toFixed(5).replace(".",",")}`:"sem coordenadas"}</b></div></div>`;
+  /* registros de campo (fotos com GPS) */
+  const R=(o.reg||[]).slice().sort((a,b)=>a.em-b.em),RT={inicio:"Aceite na propriedade",embarque:"Embarque",captura:"Captura",chegada:"Chegada",foto:"Registro"};
+  const regs=R.length?`<div class="fo-regs">${R.slice(-6).map(x=>`<figure>${x.foto&&!pr?`<img src="${E(x.foto)}" alt="" loading="lazy">`:`<div class="fo-sf">${x.foto?"📷":"—"}</div>`}<figcaption><b>${E(RT[x.tipo]||x.tipo||"Registro")}</b><small>${dt(x.em)}${x.geo&&ok(x.geo)?" · GPS ✓":""}</small></figcaption></figure>`).join("")}</div>${R.length>6?`<p class="hint">+ ${R.length-6} registro(s) na ordem.</p>`:""}`:`<p class="hint" style="margin:0">Nenhum registro de campo ainda (o aceite na propriedade com foto e GPS aparece aqui).</p>`;
+  /* do lote ao mercado */
+  const cd=cadeia(o);const bene=cd?`<table class="fo-t"><tbody>${lin("📥 Matéria-prima",`<b>${E(cd.m.id)}</b> · ${F(N(cd.m.kg))} kg · ${dBR(cd.m.data)}`,"")}
+    ${cd.pr.length?lin("🔪 Produtos",cd.pr.map(p=>`${E(p.prod)} ${F(N(p.kg),1)} kg`).join(" · "),`${cd.pr.length} lote(s)`):""}
+    ${cd.cx.length?lin("📦 Caixas",`${cd.cx.length} caixa(s) · ${F(cd.cx.reduce((s,c)=>s+(N(c.kg)||0),0),1)} kg`,""):""}
+    ${cd.pd.length?lin("🛒 Pedidos",cd.pd.map(p=>`${E(p.id)}${pr?"":" · "+E(p.cli||"")}`).join(" · "),""):""}</tbody></table>`:`<p class="hint" style="margin:0">${o.status==="conferida"?"Matéria-prima ainda não encontrada na Rastreabilidade.":"Depois da conferência, o lote de matéria-prima, os produtos, as caixas e os pedidos desta despesca aparecem aqui."}</p>`;
+  const cab=`<div class="fo-cab" style="--fc:${COR[o.status]||"#0f766e"}"><div><b class="fo-pr">🏡 ${E(o.proj||"Propriedade")}</b><span>${E(o.g||"")}${o.q?` · ${o.q} tanque(s)`:""}${o.spn?` · ${E(o.spn)}`:""}${o.fase?` · fase ${E(o.fase)}`:""}</span></div><div class="fo-st"><b>${E(o.id)}</b><span>${E(ST[o.status]||o.status)}</span></div></div>`;
+  const bts=pr?"":`<div class="gfp-bt fo-bts"><button type="button" class="btn" data-fo="abrir" data-id="${E(o.id)}">🧾 Abrir a ordem completa</button>${G?`<a class="btn" href="${gmaps(fb&&ok(fb)?fb:null,G)}" target="_blank" rel="noopener">🧭 Rota no Google Maps</a>`:""}<button type="button" class="btn solid" data-fo="zap" data-id="${E(o.id)}">📤 Enviar à equipe (WhatsApp)</button><button type="button" class="btn" data-fo="link" data-id="${E(o.id)}">🔗 Copiar link só desta despesca</button><button type="button" class="btn" data-fo="pdf" data-id="${E(o.id)}">🖨 PDF</button></div>`;
+  return `${cab}<ol class="fo-lin">${passos}</ol>
+   <h4 class="fo-h">⚖️ Quantidades, do aviso à fábrica</h4><div class="scroll"><table class="fo-t"><tbody>${nums}</tbody></table></div>
+   <h4 class="fo-h">🚚 Equipe e logística</h4>${logi}
+   <h4 class="fo-h">📷 Registros de campo</h4>${regs}
+   <h4 class="fo-h">🔪 Do lote ao mercado</h4>${bene}${bts}`}
+
+/* ---------- texto para a equipe (só esta propriedade) ---------- */
+function texto(o){const fb=T(()=>API().fab(),null),G=ok(o.geo)?o.geo:null,L=[];
+  L.push(`🎯 DESPESCA EM FOCO · ${o.id}`,`🏡 ${o.proj||"Propriedade"}${o.g?" · "+o.g:""}${o.spn?" · "+o.spn:""}`,`📅 ${dBR(o.data)} · ${ST[o.status]||o.status}`);
+  L.push(`⚖️ Previsto: ${F(N(o.kgPrev))} kg${isFinite(N(o.peso))?` (${F(N(o.peso))} g/peixe)`:""}`);
+  if(isFinite(N(o.kgCap)))L.push(`🏁 Capturado: ${F(N(o.kgCap))} kg${o.cx?` · ${o.cx} caixas`:""}`);
+  if(isFinite(N(o.kgCheg)))L.push(`🏭 Chegada: ${F(N(o.kgCheg))} kg${o.tempC?` · ${o.tempC} °C`:""}`);
+  if(o.resp)L.push(`👷 Captura: ${o.resp}`);if(o.veic||o.mot)L.push(`🚚 ${o.veic||""}${o.mot?" · motorista "+o.mot:""}`);
+  ETS.forEach(([s,ic,t])=>{const em=quando(o,s);if(em){const a=(o.ass||{})[s];L.push(`${ic} ${t}: ${dt(em)}${a&&a.nome?" · "+a.nome:""}`)}});
+  if(G)L.push(`🧭 Rota: ${gmaps(fb&&ok(fb)?fb:null,G)}`);
+  L.push(`🔗 Acompanhe no app: ${link(o)}`);return L.join("\n")}
+const link=o=>location.origin+location.pathname+"?foco="+encodeURIComponent(o.id);
+function pdf(o){const w=window.open("","_blank");if(!w){toast("Libere as janelas do navegador para gerar o PDF.");return}
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Despesca ${E(o.id)}</title><style>body{font:13px system-ui,sans-serif;margin:14mm;color:#111}h1{font-size:19px;margin:0 0 6px}${CSS}.fo-bts{display:none}</style></head><body><h1>🎯 Despesca em foco</h1>${corpo(o,"print")}<p style="margin-top:14px;font-size:11px;color:#555">Gerado pelo Green Fish em ${new Date().toLocaleString("pt-BR")} · somente os dados desta propriedade.</p><script>setTimeout(()=>print(),400)<\/script></body></html>`);w.document.close()}
+
+/* ---------- quadro no Beneficiamento ---------- */
+function seletor(L,o){if(!L.length)return "";return `<div class="fo-sel" role="tablist" aria-label="Escolha a propriedade">${L.map(x=>`<button type="button" role="tab" data-fo-sel="${E(x.id)}" aria-selected="${x.id===o.id}" style="--fc:${COR[x.status]||"#0f766e"}"><b>${E(x.proj||"Propriedade")}</b><small>${E(x.g||"")} · ${dBR(x.data)}</small><i>${E((ST[x.status]||x.status).split(" · ")[0])}</i></button>`).join("")}</div>`}
+function htmlCard(){const L=ords();if(!L.length)return `<p class="hint" style="margin:0">Nenhuma despesca em processo. Quando um aviso da aba Biomassa for aceito (📨 Aceitar e enviar a ordem), a propriedade aparece aqui com todos os dados dela, do aceite até o fim.</p>`;
+  let o=L.find(x=>x.id===SEL)||L[0];return seletor(L,o)+`<div class="fo-box">${corpo(o,"card")}</div>`}
+function card(){const v=document.getElementById("view-benef");if(!v)return null;let c=document.getElementById("gf-foco-card");
+  if(!c){c=document.createElement("section");c.className="card wide";c.id="gf-foco-card";c.innerHTML=`<div class="card-head"><h2>🎯 Despesca em foco<span>Uma propriedade por vez, do aceite do aviso da Biomassa até o fim: etapas assinadas, quantidades, equipe, fotos e o lote no mercado</span></h2></div><div class="body" id="gf-foco-body"></div>`;
+    const a=[...v.children].find(x=>x.matches&&x.matches("section.card")&&x.id!=="rota-card");if(a)a.after(c);else v.appendChild(c)}return c}
+function desenha(){const v=document.getElementById("view-benef");if(!v||v.hidden)return;const c=card();if(!c)return;if(c.classList.contains("gf-row-x")&&c.__ok)return;
+  const b=document.getElementById("gf-foco-body"),h=T(htmlCard,"");if(b.__h!==h){const y=window.scrollY;b.innerHTML=h;b.__h=h;c.__ok=1;if(Math.abs(window.scrollY-y)>2)window.scrollTo(0,y)}}
+
+/* ---------- link ?foco=ID: abre só aquela despesca, em tela própria ---------- */
+const QF=T(()=>new URLSearchParams(location.search).get("foco"),"");let OV=null,tOv=0;
+function ovDesenha(){if(!OV)return;const lk=document.body.classList.contains("auth-lock");if(OV.el.hidden!==lk)OV.el.hidden=lk;const o=ordem(OV.id),b=OV.el.querySelector(".fo-ovb");const h=o?corpo(o,"ov"):`<p class="hint">⏳ Procurando a despesca <b>${E(OV.id)}</b>… Entre na sua conta (da equipe ou do Beneficiamento) para ver os dados desta propriedade.</p>`;if(b.__h!==h){b.innerHTML=h;b.__h=h}}
+function abreOv(id){if(OV&&OV.id===id){ovDesenha();return}fechaOv();const el=document.createElement("div");el.id="gf-foco-ov";el.setAttribute("role","dialog");el.setAttribute("aria-label","Despesca em foco");
+  el.innerHTML=`<div class="fo-ovc"><div class="fo-ovh"><b>🎯 Despesca em foco</b><span>somente esta propriedade</span><button type="button" class="btn" data-fo="fecha">✕ Fechar</button></div><div class="fo-ovb"></div></div>`;document.body.appendChild(el);OV={id,el};ovDesenha()}
+function fechaOv(){if(OV){OV.el.remove();OV=null}if(QF)T(()=>history.replaceState(null,"",location.pathname+location.hash))}
+window.gfFoco={abrir:id=>{SEL=id;T(()=>localStorage.setItem(LS,id));abreOv(id)},lista:ords,texto:id=>{const o=ordem(id);return o?texto(o):""},html:id=>{const o=ordem(id);return o?corpo(o,"card"):""}};
+
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-gr]"))setTimeout(tic,60);const s=e.target.closest&&e.target.closest("[data-fo-sel]");if(s){SEL=s.dataset.foSel;T(()=>localStorage.setItem(LS,SEL));desenha();return}
+  const b=e.target.closest&&e.target.closest("[data-fo]");if(!b)return;const k=b.dataset.fo,o=b.dataset.id?ordem(b.dataset.id):null;
+  if(k==="fecha"){fechaOv();return}if(!o)return;
+  if(k==="abrir"){if(OV)fechaOv();T(()=>{setView("benef")});setTimeout(()=>T(()=>API().abrir(o.id)),120);return}
+  if(k==="zap"){window.open("https://wa.me/?text="+encodeURIComponent(texto(o)),"_blank","noopener");return}
+  if(k==="link"){const u=link(o);(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>toast("🔗 Link copiado: abre só a despesca "+o.id+" (quem abrir precisa entrar na conta da equipe)."),()=>{prompt("Copie o link desta despesca:",u)});return}
+  if(k==="pdf"){pdf(o);return}});
+
+const CSS=`.fo-cab{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;padding:10px 12px;border-radius:12px;border-left:6px solid var(--fc);background:color-mix(in srgb,var(--fc) 9%,transparent)}
+.fo-cab>div{display:grid;gap:2px;min-width:0}.fo-pr{font-size:17px}.fo-cab span{font-size:13px;opacity:.85}.fo-st{text-align:right}.fo-st b{font:700 15px ui-monospace,monospace;letter-spacing:.5px}.fo-st span{color:var(--fc);font-weight:700;opacity:1}
+.fo-lin{list-style:none;margin:10px 0 4px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.fo-e{display:flex;gap:8px;align-items:flex-start;padding:8px;border:1px solid #d6e2df;border-radius:10px;background:rgba(255,255,255,.55)}.fo-e>div{display:grid;gap:1px;min-width:0}.fo-e b{font-size:13px}.fo-e small{font-size:11.5px;opacity:.8}
+.fo-ic{flex:none;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:#e2e8f0;color:#334155;font-weight:700}
+.fo-e.ok{border-color:#86efac}.fo-e.ok .fo-ic{background:#16a34a;color:#fff}.fo-e.agora{border-color:#f59e0b;box-shadow:0 0 0 2px #fde68a}.fo-e.agora .fo-ic{background:#f59e0b;color:#fff}.fo-e.rep{border-color:#fca5a5}.fo-ass{color:#166534;opacity:1!important}
+.fo-h{margin:14px 0 6px;font-size:14px}.fo-t{width:100%;border-collapse:collapse;font-size:13.5px}.fo-t th,.fo-t td{text-align:left!important;text-transform:none!important;letter-spacing:0!important;background:transparent!important}.fo-t th{text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid #e2e8f0;white-space:nowrap;vertical-align:top}.fo-t td{padding:6px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}.fo-s{font-size:12px;opacity:.8;white-space:nowrap}
+.fo-bom{color:#15803d}.fo-ruim{color:#b91c1c}
+.fo-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}.fo-g>div{display:grid;gap:2px;padding:8px 10px;border:1px solid #e2e8f0;border-radius:10px}.fo-g small{font-size:11.5px;opacity:.75}.fo-g b{font-size:13.5px;overflow-wrap:anywhere}
+.fo-regs{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}.fo-regs figure{margin:0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}.fo-regs img{width:100%;height:90px;object-fit:cover;display:block}.fo-sf{height:60px;display:grid;place-items:center;background:#f1f5f9;font-size:22px}.fo-regs figcaption{padding:5px 7px;display:grid;font-size:12px}.fo-regs small{opacity:.75}`;
+const CSS2=`.fo-sel{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin-bottom:6px}.fo-sel button{flex:none;display:grid;gap:1px;text-align:left;font:inherit;padding:7px 11px;border-radius:12px;border:1px solid #cbd5e1;border-left:5px solid var(--fc);background:var(--surface,#fff);cursor:pointer;max-width:230px}
+.fo-sel button b{font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fo-sel button small{font-size:11.5px;opacity:.75}.fo-sel button i{font-style:normal;font-size:11.5px;color:var(--fc);font-weight:700}.fo-sel button[aria-selected="true"]{box-shadow:0 0 0 2px var(--fc);background:color-mix(in srgb,var(--fc) 8%,var(--surface,#fff))}
+.fo-bts{margin-top:14px}
+#gf-foco-ov{position:fixed;inset:0;z-index:2147483000;background:rgba(2,20,16,.55);display:grid;grid-template-columns:minmax(0,980px);justify-content:center;align-content:start;overflow:auto;padding:max(12px,env(safe-area-inset-top)) 10px 20px}
+.fo-ovc{min-width:0;box-sizing:border-box;background:var(--bg,#f4f7f6);color:var(--ink,#0f172a);border-radius:16px;padding:12px 14px 16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.fo-ovh{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}.fo-ovh b{font-size:17px}.fo-ovh span{flex:1;font-size:12.5px;opacity:.7}
+@media (max-width:600px){.fo-lin{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fo-t,.fo-t tbody,.fo-t tr,.fo-t th,.fo-t td{display:block;width:auto}.fo-t tr{padding:6px 0;border-bottom:1px solid #e2e8f0}.fo-t th,.fo-t td{border:0!important;padding:1px 4px!important}.fo-g{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.fo-st{text-align:left}.fo-t th{white-space:normal}}`;
+{const st=document.createElement("style");st.textContent=CSS+CSS2;document.head.appendChild(st)}
+
+/* atualiza em tempo real sem redesenhar à toa (só quando o conteúdo muda) */
+const tic=()=>{T(desenha);T(ovDesenha)};
+setInterval(tic,2500);window.addEventListener("storage",tic);
+new MutationObserver(()=>{clearTimeout(tic.t);tic.t=setTimeout(tic,300)}).observe(document.documentElement,{attributes:true,attributeFilter:["data-view"],subtree:false});
+const ini=()=>{tic();if(QF){abreOv(QF);let n=0;tOv=setInterval(()=>{ovDesenha();if(++n>150)clearInterval(tOv)},2000)}};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(ini,600));else setTimeout(ini,600);
+})();
+</script>
