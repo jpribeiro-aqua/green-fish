@@ -14367,7 +14367,7 @@ function odHTML0(){const A=O.L.filter(o=>!["conferida","cancelada","reprovada"].
     return `<details class="gfp-od gfp-od-${o.status}" data-odbox="${o.id}"${ab?" open":""}><summary><b class="gfp-odid">${E(o.id)}</b> ${E(o.proj)} · ${E(o.g)} · ${E(o.spn)} · ${dBR(msD(o.data))} · ${F(o.kgPrev)} kg <span class="gfp-ch">${OSTn(o.status)}</span></summary>
       <ol class="gfp-steps">${OST.map(([s,t],j)=>`<li class="${o.status==="cancelada"||o.status==="reprovada"?(quandoS(o,s)?"ok":""):j<i?"ok":j===i?"at":""}">${t}<small>${quandoS(o,s)}</small></li>`).join("")}</ol>
       ${o.est&&["aceita","captura"].includes(o.status)?`<div class="gfp-agora gfp-viva2">📡 <b>Estimativa ao vivo para a despesca de ${dBR(Math.max(Date.now(),msD(o.data)))}:</b> ${agoraTxt(o.est)}<small>${E(o.est.fonte)} · atualizada às ${hm(o.est.em)}${o.kgManual?" · quantidade da ordem fixada por você (despesca parcial)":" · a quantidade da ordem acompanha"}</small></div>`:o.estFim?`<div class="gfp-agora gfp-fim">⏹ <b>Estimativa encerrada em ${dBR(o.estFim.em)} ${hm(o.estFim.em)}:</b> ${agoraTxt(o.estFim)}<small>a partir daqui valem só os dados reais: captura, balança e checagem da fábrica</small></div>`:""}${o.agora?`<div class="gfp-agora">📡 <b>No aceite (${dBR(o.agora.em)} ${hm(o.agora.em)}):</b> ${agoraTxt(o.agora)}<small>${o.agora.real?"📏 ":""}${E(o.agora.fonte)}${o.agoraCap?` · na captura: ${F(o.agoraCap.kg)} kg, ${F(o.agoraCap.w)} g/animal (${hm(o.agoraCap.em)})`:""}</small></div>`:""}<div class="gfp-odd">Despesca prevista em <b>${dBRa(msD(o.data))}</b> · ${F(o.kgPrev)} kg · ${F(o.peso)} g/animal${o.nAnim?` · ≈ ${F(o.nAnim)} animais`:""} · responsável ${E(o.resp||"—")} · veículo ${E(o.veic||"—")} · motorista ${E(o.mot||"—")}${o.obs?` · ${E(o.obs)}`:""}${o.kgCap>0?` · capturado ${F(o.kgCap)} kg${o.cx?` em ${E(o.cx)} caixas`:""}`:""}${o.kgCheg>0?` · recebido ${F(o.kgCheg)} kg${isFinite(P(o.tempC))?` a ${F(P(o.tempC),1)} °C`:""}`:""}${isFinite(tempo)?` · ${F(tempo,1)} h da captura à fábrica`:""}</div>
-      ${acao}
+      ${window.gfCapHTML?gfCapHTML(o):""}${acao}
       ${!["cancelada","reprovada"].includes(o.status)?rotaOD(o)+mercOD(o):""}
       <div class="gfp-bt gfp-od-ex"><button type="button" class="btn" data-gfp="od-imp" data-id="${o.id}">🖨 Imprimir a ordem</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent(txtOrdem(o))}" target="_blank" rel="noopener">📲 Enviar pelo WhatsApp</a>${ativo?`<button type="button" class="btn" data-gfp="od-canc" data-id="${o.id}">✖ Cancelar a ordem</button>`:""}</div></details>`};
   return `<div class="gfh-kpis bx-kpis"><div class="hk hk-warn"><div><span class="hk-l">Ordens em andamento</span><b>${A.length}</b><small>${F(A.reduce((s,o)=>s+o.kgPrev,0))} kg a caminho da fábrica</small></div></div><div class="hk"><div><span class="hk-l">Em captura / transporte</span><b>${A.filter(o=>o.status==="captura"||o.status==="transporte").length}</b><small>${A.filter(o=>o.status==="chegou").length} aguardando checagem</small></div></div><div class="hk hk-ok"><div><span class="hk-l">Conferidas</span><b>${O.L.filter(o=>o.status==="conferida").length}</b><small>viraram lotes de matéria-prima na Rastreabilidade</small></div></div></div>
@@ -14474,7 +14474,7 @@ function desenhaTudo(){try{if(box&&box.isConnected&&!box.contains(document.activ
 for(const id of ["view-benef","view-merc"]){const v=document.getElementById(id);if(v)new MutationObserver(()=>{if(!v.hidden)poe()}).observe(v,{childList:true,attributes:true,attributeFilter:["hidden"]})}
 /* ---- relógio: ao vivo a cada minuto ---- */
 function tick(){try{S.live=aoVivo()||[]}catch(e){S.live=[]}const A=todos();try{const R=semanas(A);oferta(A,R)}catch(e){}badge(A);avisos(A);poe();desenhaTudo()}
-window.gfPrevToast=t=>toast(t);window.gfOrdens={mapaLote:id=>{const l=todos().find(x=>String(x.id)===String(id));if(!l)return;const G=geoLote(l),F0=fab(),pts=[],lin=[];
+window.gfPrevToast=t=>toast(t);window.gfOrdens={ver:()=>{try{if(boxO)desenha(boxO,odHTML)}catch(e){}},mapa:op=>abreMapa(op),mapaLote:id=>{const l=todos().find(x=>String(x.id)===String(id));if(!l)return;const G=geoLote(l),F0=fab(),pts=[],lin=[];
     if(F0)pts.push({...F0,t:"🏭 "+F0.nome,c:"#0f766e"});if(G)pts.push({...G,t:"📍 "+(l.proj||"Propriedade")+(l.g?" · "+l.g:""),c:"#2563eb"});
     if(F0&&G)lin.push({p:[F0,G],c:"#2563eb",d:"8 6"});
     const e=F0&&G?estrada(F0,G):null;
@@ -18542,4 +18542,173 @@ body.rm-full-on{overflow:hidden}
 .fxh-r h2{font-size:18px;margin:4px 0}.fxh-r h3{font-size:15px;margin:12px 0 4px}.fxh-r p{margin:4px 0;font-size:13.5px}
 .fxh-t{width:100%;font-size:13px}.fx-hb{display:flex;gap:4px;justify-content:flex-end}
 @media print{body.fxh-imp>*:not(#fxh-ov){display:none!important}body.fxh-imp #fxh-ov{position:static;background:none;padding:0}body.fxh-imp .fxh-b{box-shadow:none;max-height:none}body.fxh-imp .fxh-h{display:none}}
-</style>
+</style><script>
+/* ===================== v314: 📸 Aceite do início da captura com foto georreferenciada (data, hora, GPS) e registros da captura até o embarque,
+   enviados ao Beneficiamento ao vivo junto com a ordem; 📹 câmeras ao vivo do caminhão: link da câmera IP/DVR e celular preso no caminhão (TeleFish) ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const F=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+const API=()=>window.gfOrdens||{};
+const ordem=id=>T(()=>API().lista().find(o=>o.id===id),null);
+const grava=()=>T(()=>API().grava());
+const toast=t=>T(()=>window.gfPrevToast?gfPrevToast(t):alert(t));
+const ok=g=>g&&isFinite(+g.lat)&&isFinite(+g.lon)&&!(+g.lat===0&&+g.lon===0);
+const km=(a,b)=>{const R=6371,r=Math.PI/180,dl=(b.lat-a.lat)*r,dn=(b.lon-a.lon)*r,x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+const p2=v=>String(v).padStart(2,"0");
+const dt=ms=>{const d=new Date(ms);return `${p2(d.getDate())}/${p2(d.getMonth()+1)}/${d.getFullYear()} ${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`};
+const hm=ms=>{const d=new Date(ms);return `${p2(d.getHours())}:${p2(d.getMinutes())}`};
+const crd=g=>`${(+g.lat).toFixed(5).replace(".",",")}, ${(+g.lon).toFixed(5).replace(".",",")}`;
+const rid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const ATIVO=["aceita","captura","encerrada","transporte"];
+const TIPOS={inicio:["✅","Aceite do início da captura"],captura:["🎣","Captura em andamento"],pesagem:["⚖️","Pesagem"],fim:["🏁","Encerramento da captura"],embarque:["📦","Embarque / carga lacrada"],estrada:["🚚","Na estrada"],outro:["📷","Registro"]};
+const BOT={aceita:[],captura:["captura","pesagem","fim"],encerrada:["embarque","pesagem"],transporte:["estrada"]};
+const RAIO=0.5;/* km: até aqui a foto conta como tirada na propriedade */
+
+/* ---------- registros já vistos neste aparelho (para avisar quando chega um novo da equipe) ---------- */
+const VK="greenfish-capreg-vistos-v1";let VISTOS=new Set(T(()=>JSON.parse(localStorage.getItem(VK)||"[]"),[]));const NOVOS=new Set();
+const salvaV=()=>T(()=>localStorage.setItem(VK,JSON.stringify([...VISTOS].slice(-600))));
+let iniciou=false;
+function vigia(){const L=T(()=>API().lista(),[])||[];let mud=false;
+  L.forEach(o=>(o.reg||[]).forEach(r=>{if(VISTOS.has(r.id))return;VISTOS.add(r.id);mud=true;if(iniciou&&Date.now()-r.em<6*36e5){NOVOS.add(r.id);setTimeout(()=>T(()=>API().ver()),50);const t=TIPOS[r.tipo]||TIPOS.outro;
+    toast(`📸 ${o.id}: ${t[1]} às ${hm(r.em)}${ok(r)?` · ${isFinite(r.dist)?(r.dist<=RAIO?"na propriedade":F(r.dist,1)+" km da propriedade"):"com GPS"}`:" · sem GPS"}`);try{navigator.vibrate&&navigator.vibrate(120)}catch(e){}
+    const b=document.querySelector(`[data-cap="${CSS.escape(o.id)}"]`);if(b)b.classList.add("cap-pisca")}}));
+  if(mud)salvaV();iniciou=true}
+setInterval(()=>T(vigia),2500);setTimeout(()=>T(vigia),1500);
+
+/* ---------- HTML colocado em cada ordem ---------- */
+function regCard(o,r){const t=TIPOS[r.tipo]||TIPOS.outro,dist=isFinite(r.dist)?r.dist:NaN;
+  const lugar=ok(r)?`📍 ${crd(r)}${r.prec?` ±${F(r.prec)} m`:""}${isFinite(dist)?` · ${dist<=RAIO?`<b class="cap-ok">✓ na propriedade</b> (${F(dist*1000)} m)`:`<b class="cap-av">⚠️ ${F(dist,dist<10?1:0)} km da propriedade</b>`}`:""}`:`<b class="cap-av">⚠️ sem GPS</b>`;
+  return `<figure class="cap-r${NOVOS.has(r.id)?" novo":""}">${r.foto?`<button type="button" class="cap-im" data-capv="${E(o.id)}|${E(r.id)}" aria-label="Ampliar a foto"><img src="${r.foto}" alt="${E(t[1])} ${dt(r.em)}" loading="lazy"></button>`:`<div class="cap-sf">${r.ori==="sem foto"?"sem foto":"…"}</div>`}
+   <figcaption><b>${t[0]} ${E(t[1])}</b>${NOVOS.has(r.id)?' <span class="cap-nv">novo</span>':""}<span>🕒 ${dt(r.em)}</span><span>${lugar}${ok(r)?` <button type="button" class="linkbtn" data-capm="${E(o.id)}|${E(r.id)}">mapa</button>`:""}</span>${r.obs?`<span>📝 ${E(r.obs)}</span>`:""}${r.ori==="arquivo"?'<span class="muted">foto escolhida do aparelho (sem a câmera ao vivo)</span>':""}${r.kg?`<span>⚖️ ${F(r.kg)} kg</span>`:""}</figcaption></figure>`}
+window.gfCapHTML=o=>{if(!o)return "";const R=(o.reg||[]).slice().sort((a,b)=>b.em-a.em),ini=R.find(r=>r.tipo==="inicio"),at=ATIVO.includes(o.status);
+  if(!at&&!R.length)return "";
+  let topo="";
+  if(o.status==="aceita")topo=`<div class="cap-ac"><p><b>A equipe chegou à propriedade?</b> Dê o aceite do início da captura com uma foto tirada agora: o app grava a <b>data, a hora e o GPS</b> na foto, confere se ela foi tirada na propriedade e manda para o Beneficiamento na hora.</p>
+    <div class="cap-w gfp-bt"><button type="button" class="btn solid" data-capf="inicio" data-id="${E(o.id)}">📸 Dar o aceite e iniciar a captura</button><button type="button" class="linkbtn" data-capf="inicio-sf" data-id="${E(o.id)}">sem câmera? iniciar sem foto</button></div></div>`;
+  else if(at)topo=`<div class="cap-w gfp-bt">${(BOT[o.status]||[]).map(k=>`<button type="button" class="btn${k==="embarque"?" solid":""}" data-capf="${k}" data-id="${E(o.id)}">${TIPOS[k][0]} ${k==="captura"?"Registrar momento da captura":k==="fim"?"Foto do encerramento":k==="estrada"?"Registro na estrada":TIPOS[k][1]}</button>`).join("")}</div>${o.status==="encerrada"&&!R.some(r=>r.tipo==="embarque")?`<p class="hint">📦 Antes de liberar a carga, registre a foto do embarque com as caixas lacradas e identificadas.</p>`:""}`;
+  return `<section class="cap" data-cap="${E(o.id)}"><div class="cap-h"><b>📸 Registros da captura</b><small>fotos georreferenciadas com data e hora · enviadas ao Beneficiamento ao vivo${ini?` · início aceito às ${hm(ini.em)}`:""}</small></div>
+   ${topo}${R.length?`<div class="cap-g">${R.map(r=>regCard(o,r)).join("")}</div>`:at&&o.status!=="aceita"?'<p class="hint">Nenhuma foto registrada ainda.</p>':""}${at?camHTML(o):""}</section>`};
+
+/* ---------- câmeras ao vivo ---------- */
+function tipoCam(u){const s=String(u||"").toLowerCase();if(/\.m3u8(\?|#|$)/.test(s))return "hls";if(/\.(mp4|webm|ogg)(\?|#|$)/.test(s))return "vid";
+  if(/mjpe?g|video\.cgi|faststream|mjpg/.test(s))return "mjpeg";if(/\.(jpe?g|png|webp|gif)(\?|#|$)|snapshot|snap\.|image|still|jpg\.cgi|picture/.test(s))return "snap";return "pag"}
+const TN={hls:"vídeo ao vivo (HLS)",vid:"vídeo",mjpeg:"imagem ao vivo (MJPEG)",snap:"foto atualizada a cada 3 s",pag:"página da câmera/plataforma"};
+function camHTML(o){const C=o.cams||[],tf=!!window.gfTeleFish;
+  return `<details class="cam" data-camd="${E(o.id)}"${C.length||o.camSala?" open":""}><summary>📹 Câmeras ao vivo do caminhão${C.length?` · ${C.length}`:""}${o.camSala?" · 📱 celular":""}</summary>
+   <p class="hint">Acompanhe a captura e o embarque até a saída para a fábrica. Use a câmera IP / DVR do caminhão (cole o link de imagem ao vivo que o aparelho ou a plataforma fornece) e/ou um celular preso no caminhão transmitindo pelo TeleFish.</p>
+   ${C.length?`<div class="cam-g">${C.map((c,i)=>`<div class="cam-c"><div class="cam-t"><b>${E(c.nome||"Câmera "+(i+1))}</b><small>${E(TN[tipoCam(c.url)])}</small><a href="${E(c.url)}" target="_blank" rel="noopener" class="linkbtn">abrir ↗</a><button type="button" class="linkbtn cap-w" data-camx="${E(o.id)}|${i}">remover</button></div><div class="cam-v" data-gfcam="${E(o.id)}|${E(c.url)}"></div></div>`).join("")}</div>`:""}
+   <div class="cam-cel"><b>📱 Celular no caminhão</b> ${o.camSala?`<span class="muted">sala ${E(o.camSala)}</span>`:""}
+    <div class="gfp-bt cam-btv">${o.camSala?`<button type="button" class="btn" data-camf="ver" data-id="${E(o.id)}">👁 Assistir ao vivo</button>`:""}<span class="cap-w"><button type="button" class="btn" data-camf="tx" data-id="${E(o.id)}">📡 Transmitir a câmera deste aparelho</button></span></div>
+    ${tf?"":'<small class="muted">O TeleFish ainda não carregou neste aparelho.</small>'}<small class="muted">Deixe o celular carregando e com a tela ligada; quem está no Beneficiamento toca em “Assistir ao vivo”.</small></div>
+   <div class="cam-add cap-w"><label class="jr-f">Nome<input data-camn="${E(o.id)}" placeholder="ex.: Câmera da carroceria"></label><label class="jr-f">Link da imagem ao vivo<input data-camu="${E(o.id)}" placeholder="https://… (.m3u8, .mjpg, snapshot .jpg ou página)" inputmode="url"></label><button type="button" class="btn" data-camf="add" data-id="${E(o.id)}">＋ Adicionar câmera</button>
+    <small class="muted">O link precisa começar com <b>https</b> (o app é seguro e o navegador bloqueia imagens <b>http</b>). Não cole senha no link: ele fica salvo na ordem e a equipe vê.</small></div></details>`}
+/* elementos de vídeo/imagem vivos: o mesmo elemento volta para o lugar quando a ordem é redesenhada */
+const VIVOS=new Map();let hlsP=null;
+const hlsJs=()=>window.Hls?Promise.resolve(window.Hls):hlsP||(hlsP=new Promise((ok,err)=>{const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js";s.onload=()=>ok(window.Hls);s.onerror=()=>{hlsP=null;err(new Error("sem hls"))};document.head.appendChild(s)}));
+function criaVivo(url){const w=document.createElement("div");w.className="cam-in";const tp=tipoCam(url),msg=t=>{w.innerHTML=`<div class="cam-msg">${t}</div>`};
+  if(/^http:\/\//i.test(url)&&location.protocol==="https:"){msg(`🔒 Link <b>http</b>: o navegador bloqueia dentro do app. Toque em <b>abrir ↗</b> ou use o link <b>https</b> da câmera/plataforma.`);return w}
+  if(tp==="hls"||tp==="vid"){const v=document.createElement("video");v.muted=true;v.autoplay=true;v.playsInline=true;v.controls=true;v.setAttribute("playsinline","");w.appendChild(v);
+    v.onerror=()=>msg("Sem vídeo agora: confira o link e a internet do caminhão.");
+    if(tp==="vid"||v.canPlayType("application/vnd.apple.mpegurl"))v.src=url;else hlsJs().then(H=>{if(H&&H.isSupported()){const h=new H({lowLatencyMode:true});h.loadSource(url);h.attachMedia(v);h.on(H.Events.ERROR,(e,d)=>{if(d&&d.fatal)msg("Sem vídeo agora: confira o link e a internet do caminhão.")})}else v.src=url}).catch(()=>msg("Sem internet para carregar o player de vídeo."));
+    return w}
+  if(tp==="mjpeg"||tp==="snap"){const im=document.createElement("img");im.alt="Câmera ao vivo";im.decoding="async";let ult=0;const st=document.createElement("small");st.className="cam-st";
+    const set=()=>{im.src=tp==="snap"?url+(url.includes("?")?"&":"?")+"_t="+Date.now():url};im.onload=()=>{ult=Date.now();st.textContent="● ao vivo · "+hm(ult)};im.onerror=()=>{st.textContent="sem imagem agora: confira o link e a internet do caminhão"};
+    set();if(tp==="snap")w.__iv=setInterval(()=>{if(document.hidden||!w.isConnected)return;set()},3000);w.append(im,st);return w}
+  const f=document.createElement("iframe");f.src=url;f.loading="lazy";f.referrerPolicy="no-referrer";f.setAttribute("allow","autoplay; fullscreen");f.title="Câmera ao vivo";w.appendChild(f);
+  const n=document.createElement("small");n.className="cam-st";n.textContent="Se a plataforma não aparecer aqui (algumas bloqueiam), toque em abrir ↗.";w.appendChild(n);return w}
+function monta(){document.querySelectorAll("[data-gfcam]").forEach(ph=>{const k=ph.dataset.gfcam,url=k.slice(k.indexOf("|")+1);let el=VIVOS.get(k);if(!el){el=criaVivo(url);VIVOS.set(k,el)}if(el.parentNode!==ph){ph.innerHTML="";ph.appendChild(el)}});
+  for(const [k,el] of VIVOS)if(!el.isConnected&&!document.querySelector(`[data-gfcam="${CSS.escape(k)}"]`)){if(el.__iv)clearInterval(el.__iv);const v=el.querySelector("video");if(v){try{v.pause();v.removeAttribute("src");v.load()}catch(e){}}VIVOS.delete(k)}}
+let mt=0;new MutationObserver(()=>{if(mt)return;mt=setTimeout(()=>{mt=0;T(monta)},150)}).observe(document.documentElement,{childList:true,subtree:true});
+
+/* ---------- câmera para a foto do registro ---------- */
+function carimbo(cv,o,tp,g,em){const c=cv.getContext("2d"),W=cv.width,H=cv.height,fs=Math.max(14,Math.round(W/46)),t=TIPOS[tp]||TIPOS.outro;
+  const L=[`${o.id} · ${t[1]}`,`${dt(em)}${ok(g)?` · ${crd(g)}${g.prec?` ±${Math.round(g.prec)} m`:""}`:" · sem GPS"}`,`${o.proj||""}${o.g?" · "+o.g:""}${ok(g)&&isFinite(g.dist)?` · ${g.dist<=RAIO?"na propriedade":F(g.dist,1)+" km da propriedade"}`:""} · Green Fish`];
+  const h=L.length*fs*1.35+fs*.8;c.fillStyle="rgba(0,0,0,.58)";c.fillRect(0,H-h,W,h);c.fillStyle="#fff";c.font=`600 ${fs}px system-ui,-apple-system,sans-serif`;c.textBaseline="top";
+  L.forEach((s,i)=>c.fillText(s,fs*.6,H-h+fs*.4+i*fs*1.35,W-fs*1.2))}
+function paraFoto(src,o,tp,g,em){const MAX=1024,w0=src.videoWidth||src.naturalWidth||src.width,h0=src.videoHeight||src.naturalHeight||src.height,s=Math.min(1,MAX/Math.max(w0,h0)),cv=document.createElement("canvas");
+  cv.width=Math.round(w0*s);cv.height=Math.round(h0*s);cv.getContext("2d").drawImage(src,0,0,cv.width,cv.height);carimbo(cv,o,tp,g,em);return cv.toDataURL("image/jpeg",.68)}
+function salvaReg(o,reg){o.reg=(o.reg||[]).concat(reg);VISTOS.add(reg.id);salvaV();
+  if(reg.tipo==="inicio"&&o.status==="aceita"){o.rasc=o.rasc||{};o.rasc.hIni=hm(reg.em);o.fotoIni=reg.id;grava();
+    const b=document.querySelector(`[data-odbox="${CSS.escape(o.id)}"] [data-gfp="od-cap"][data-id="${CSS.escape(o.id)}"]`);if(b)b.click();else{o.status="captura";(o.hist=o.hist||[]).push({s:"captura",em:reg.em});grava()}
+    toast(`✅ ${o.id}: início da captura aceito às ${hm(reg.em)} e enviado ao Beneficiamento.`)}
+  else{if(reg.tipo==="pesagem"&&reg.kg>0){o.rasc=o.rasc||{};o.rasc.kgCap=String(reg.kg)}grava();toast(`📸 ${o.id}: ${(TIPOS[reg.tipo]||TIPOS.outro)[1]} registrado e enviado.`)}
+  T(()=>{const d=document.querySelector(`[data-odbox="${CSS.escape(o.id)}"]`);if(d)d.open=true})}
+function dist(o,g){return ok(g)&&ok(o.geo)?km({lat:+g.lat,lon:+g.lon},{lat:+o.geo.lat,lon:+o.geo.lon}):NaN}
+function captura(id,tp){const o=ordem(id);if(!o)return;const t=TIPOS[tp]||TIPOS.outro;let ov=document.getElementById("cap-ov");if(ov)ov.remove();
+  ov=document.createElement("div");ov.id="cap-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-label",t[1]);
+  ov.innerHTML=`<div class="cap-ob"><div class="cap-oh"><b>${t[0]} ${E(t[1])}</b><span>${E(o.id)} · ${E(o.proj||"")}${o.g?" · "+E(o.g):""}</span><button type="button" class="btn" data-x>✕</button></div>
+   <div class="cap-cam"><video playsinline muted autoplay></video><div class="cap-gps">📡 procurando o GPS…</div></div>
+   <div class="cap-of">${tp==="pesagem"?`<label class="jr-f">Kg pesados<input data-k inputmode="decimal" placeholder="ex.: 1250"></label>`:""}<label class="jr-f">Observação (opcional)<input data-obs placeholder="${tp==="inicio"?"ex.: equipe com 4 pessoas, jejum ok":"ex.: 2ª rede, 30 caixas"}"></label>
+    <div class="gfp-bt"><button type="button" class="btn solid" data-snap disabled>📸 Tirar a foto${tp==="inicio"?" e dar o aceite":""}</button><label class="btn cap-arq">🖼 Usar a câmera do celular<input type="file" accept="image/*" capture="environment" hidden data-arq></label></div>
+    <small class="muted">A foto sai com a data, a hora, as coordenadas e a distância até a propriedade gravadas na imagem.</small></div></div>`;
+  document.body.appendChild(ov);const v=ov.querySelector("video"),gl=ov.querySelector(".cap-gps"),bt=ov.querySelector("[data-snap]");let st=null,wid=null,g=null,fim=false;
+  const fecha=()=>{fim=true;T(()=>st&&st.getTracks().forEach(x=>x.stop()));T(()=>wid!=null&&navigator.geolocation.clearWatch(wid));ov.remove()};
+  const gTxt=()=>{if(!g){gl.textContent="📡 procurando o GPS… (libere a localização para o app)";return}const d=dist(o,g);g.dist=d;
+    gl.innerHTML=`📍 ${crd(g)} ±${Math.round(g.prec)} m${isFinite(d)?` · ${d<=RAIO?'<b class="cap-ok">✓ na propriedade</b>':`<b class="cap-av">⚠️ ${F(d,d<10?1:0)} km da propriedade cadastrada</b>`}`:" · propriedade sem coordenadas na ordem"}`};
+  if(navigator.geolocation)wid=navigator.geolocation.watchPosition(p=>{if(fim)return;const n={lat:+p.coords.latitude.toFixed(6),lon:+p.coords.longitude.toFixed(6),prec:p.coords.accuracy||0};if(!g||n.prec<=g.prec+5||Date.now()-(g.t||0)>8000){g=Object.assign(n,{t:Date.now()});gTxt()}},()=>{gl.textContent="⚠️ Sem GPS: libere a localização para o app (a foto sai marcada “sem GPS”)."},{enableHighAccuracy:true,maximumAge:5000,timeout:30000});
+  else gl.textContent="⚠️ Este aparelho não oferece GPS ao navegador.";
+  const fecha2=reg=>{fecha();salvaReg(o,reg)};
+  const mk=(foto,ori)=>{const em=Date.now(),kg=+(String((ov.querySelector("[data-k]")||{}).value||"").replace(/\./g,"").replace(",","."));return {id:rid(),tipo:tp,em,foto,ori,obs:String(ov.querySelector("[data-obs]").value||"").trim().slice(0,200),...(g?{lat:g.lat,lon:g.lon,prec:Math.round(g.prec),dist:isFinite(g.dist)?+g.dist.toFixed(3):null}:{}),...(kg>0?{kg}:{})}};
+  if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"},width:{ideal:1920},height:{ideal:1080}},audio:false}).then(s=>{if(fim){s.getTracks().forEach(x=>x.stop());return}st=s;v.srcObject=s;v.play().catch(()=>{});bt.disabled=false})
+    .catch(()=>{ov.querySelector(".cap-cam").classList.add("sem");v.remove();const m=document.createElement("div");m.className="cap-msg";m.innerHTML="Sem acesso à câmera ao vivo aqui: toque em <b>🖼 Usar a câmera do celular</b>.";ov.querySelector(".cap-cam").prepend(m)});
+  else{v.remove()}
+  ov.addEventListener("click",e=>{if(e.target.closest("[data-x]"))fecha();else if(e.target.closest("[data-snap]")&&st&&v.videoWidth){const em=Date.now();const foto=paraFoto(v,o,tp,g?Object.assign({},g,{dist:dist(o,g)}):null,em);const r=mk(foto,"camera");r.em=em;fecha2(r)}});
+  ov.querySelector("[data-arq]").addEventListener("change",e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const u=URL.createObjectURL(f),im=new Image();im.onload=()=>{const em=Date.now(),foto=paraFoto(im,o,tp,g?Object.assign({},g,{dist:dist(o,g)}):null,em);URL.revokeObjectURL(u);const r=mk(foto,Date.now()-(f.lastModified||0)<5*60e3?"camera":"arquivo");r.em=em;fecha2(r)};im.onerror=()=>toast("Não consegui abrir essa foto.");im.src=u})}
+function amplia(oid,id){const o=ordem(oid),r=o&&(o.reg||[]).find(x=>x.id===id);if(!r||!r.foto)return;const ov=document.createElement("div");ov.id="cap-zoom";
+  ov.innerHTML=`<div class="cap-zb"><img src="${r.foto}" alt=""><div class="gfp-bt"><a class="btn" download="${E(o.id)}_${E(r.tipo)}_${new Date(r.em).toISOString().slice(0,16).replace(/[:T]/g,"-")}.jpg" href="${r.foto}">⬇ Baixar a foto</a><button type="button" class="btn" data-x>✕ Fechar</button></div></div>`;
+  ov.addEventListener("click",e=>{if(e.target===ov||e.target.closest("[data-x]"))ov.remove()});document.body.appendChild(ov)}
+function mapaReg(oid,id){const o=ordem(oid),r=o&&(o.reg||[]).find(x=>x.id===id);if(!r||!ok(r))return;const F0=T(()=>API().fab(),null);
+  const pts=[{lat:+r.lat,lon:+r.lon,t:`${(TIPOS[r.tipo]||TIPOS.outro)[0]} ${hm(r.em)}`,c:"#f97316"}];if(ok(o.geo))pts.push({lat:+o.geo.lat,lon:+o.geo.lon,t:"📍 propriedade cadastrada",c:"#2563eb"});if(F0)pts.push({...F0,t:"🏭 "+(F0.nome||"Fábrica"),c:"#0f766e"});
+  T(()=>API().mapa({t:`Onde a foto foi tirada · ${o.id}`,sub:`${dt(r.em)}${isFinite(r.dist)?` · ${F(r.dist,2)} km da propriedade cadastrada`:""}`,pontos:pts,linhas:[]}))}
+
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-capf],[data-capv],[data-capm],[data-camf],[data-camx]");if(!b)return;e.preventDefault();
+  if(b.dataset.capv){const [a,c]=b.dataset.capv.split("|");amplia(a,c);return}
+  if(b.dataset.capm){const [a,c]=b.dataset.capm.split("|");mapaReg(a,c);return}
+  if(b.dataset.camx){const [a,i]=b.dataset.camx.split("|"),o=ordem(a);if(o&&o.cams&&confirm("Remover esta câmera da ordem?")){o.cams.splice(+i,1);grava()}return}
+  const id=b.dataset.id,o=ordem(id);if(!o)return;
+  if(b.dataset.capf==="inicio-sf"){if(!confirm("Iniciar a captura sem a foto georreferenciada? O Beneficiamento verá o aceite marcado “sem foto”."))return;const reg={id:rid(),tipo:"inicio",em:Date.now(),ori:"sem foto",obs:"aceite sem foto"};
+    if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{reg.lat=+p.coords.latitude.toFixed(6);reg.lon=+p.coords.longitude.toFixed(6);reg.prec=Math.round(p.coords.accuracy||0);const d=dist(o,reg);if(isFinite(d))reg.dist=+d.toFixed(3);salvaReg(o,reg)},()=>salvaReg(o,reg),{enableHighAccuracy:true,timeout:12000,maximumAge:60000});else salvaReg(o,reg);return}
+  if(b.dataset.capf){captura(id,b.dataset.capf);return}
+  const k=b.dataset.camf;
+  if(k==="add"){const u=String((document.querySelector(`[data-camu="${CSS.escape(id)}"]`)||{}).value||"").trim(),n=String((document.querySelector(`[data-camn="${CSS.escape(id)}"]`)||{}).value||"").trim();
+    if(!/^https?:\/\/\S+$/i.test(u)){toast("Cole o link completo da câmera, começando com https://");return}if(/\/\/[^/@\s]+:[^/@\s]+@/.test(u)&&!confirm("Esse link tem usuário e senha dentro dele e vai ficar salvo na ordem. Continuar mesmo assim?"))return;
+    o.cams=(o.cams||[]).concat({nome:n.slice(0,60),url:u.slice(0,800),em:Date.now()});T(()=>{const L=JSON.parse(localStorage.getItem("greenfish-cams-veic-v1")||"{}");if(o.veic){L[o.veic]=o.cams;localStorage.setItem("greenfish-cams-veic-v1",JSON.stringify(L))}});grava();return}
+  if(k==="tx"||k==="ver"){if(!window.gfTeleFish){toast("O TeleFish ainda não carregou: tente de novo em alguns segundos.");return}
+    if(!o.camSala){if(k==="ver")return;const a="abcdefghjkmnpqrstuvwxyz23456789",r=n=>[...crypto.getRandomValues(new Uint8Array(n))].map(x=>a[x%a.length]).join("");o.camSala=`${r(3)}-${r(4)}-${r(3)}`;grava()}
+    T(()=>gfTeleFish.abre(o.camSala,{titulo:`📹 Câmera ao vivo · ${o.id} · ${o.veic||"caminhão"}`,host:k==="tx"}))}},true);
+/* a ordem nova já vem com as câmeras usadas antes no mesmo veículo */
+setInterval(()=>T(()=>{const L=JSON.parse(localStorage.getItem("greenfish-cams-veic-v1")||"{}");(API().lista()||[]).forEach(o=>{if(o.status==="aceita"&&!o.cams&&o.veic&&L[o.veic]&&!document.querySelector("#gfp-od.gfp-so")){o.cams=L[o.veic].slice();grava()}})}),5000);
+
+const st=document.createElement("style");st.textContent=`
+.cap{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0;display:grid;gap:8px;background:var(--surface)}
+.cap.cap-pisca{animation:capP 1s ease-in-out 4}@keyframes capP{50%{box-shadow:0 0 0 5px color-mix(in srgb,#f97316 45%,transparent)}}
+.cap-h{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.cap-h small{color:var(--muted)}
+.cap-ac{border-left:4px solid #16a34a;background:color-mix(in srgb,#16a34a 8%,transparent);border-radius:6px;padding:6px 10px}.cap-ac p{margin:0 0 6px;font-size:13.5px}
+.gfp-od-aceita [data-gfp="od-cap"]{display:none}
+.cap-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:8px}
+.cap-r{margin:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:grid;background:var(--bg)}.cap-r.novo{outline:2px solid #f97316}
+.cap-im{display:block;padding:0;border:0;background:#000;cursor:zoom-in}.cap-im img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.cap-sf{display:grid;place-items:center;aspect-ratio:4/3;color:var(--muted);font-size:13px;background:color-mix(in srgb,var(--line) 40%,transparent)}
+.cap-r figcaption{display:grid;gap:2px;padding:6px 8px;font-size:12.5px}.cap-nv{background:#f97316;color:#fff;border-radius:999px;padding:0 6px;font-size:11px}
+.cap-ok{color:#15803d}.cap-av{color:#b45309}
+.cam{border-top:1px dashed var(--line);padding-top:6px}.cam>summary{cursor:pointer;font-weight:600}
+.cam-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:8px;margin:6px 0}
+.cam-c{border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#000}.cam-t{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;padding:5px 8px;background:var(--surface);font-size:12.5px}.cam-t small{color:var(--muted)}
+.cam-in{position:relative}.cam-in video,.cam-in img,.cam-in iframe{display:block;width:100%;aspect-ratio:16/9;object-fit:contain;border:0;background:#000}
+.cam-st{display:block;padding:3px 8px;color:#e5e7eb;font-size:11.5px;background:#111}.cam-msg{padding:16px;color:#e5e7eb;font-size:13px;background:#111}
+.cam-cel{display:grid;gap:4px;margin:6px 0;font-size:13px}.cam-add{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:6px;align-items:end;margin-top:6px}.cam-add small{grid-column:1/-1}
+@media(max-width:560px){.cam-add{grid-template-columns:1fr}.cap-g{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.cap-r figcaption{font-size:11.5px;padding:4px 6px}}
+.gfp-so .cap-w{display:none!important}
+#cap-ov,#cap-zoom{position:fixed;inset:0;z-index:10050;background:rgba(0,0,0,.72);display:grid;place-items:center;padding:12px}
+.cap-ob{background:var(--surface,#fff);border-radius:12px;width:min(720px,100%);max-height:100%;overflow:auto;display:grid}
+.cap-oh{display:flex;gap:8px;align-items:center;padding:8px 12px;flex-wrap:wrap}.cap-oh span{color:var(--muted);font-size:12.5px;flex:1}
+.cap-cam{position:relative;background:#000}.cap-cam video{display:block;width:100%;max-height:60vh;object-fit:contain}.cap-cam.sem{min-height:80px}
+.cap-gps{position:absolute;left:0;right:0;bottom:0;padding:6px 10px;background:rgba(0,0,0,.6);color:#fff;font-size:12.5px}.cap-cam.sem .cap-gps{position:static}
+.cap-of{display:grid;gap:6px;padding:10px 12px}.cap-arq{cursor:pointer}
+.cap-zb{display:grid;gap:8px;max-width:min(1000px,100%);max-height:100%}.cap-zb img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px}
+`;document.head.appendChild(st);
+})();
+</script>
+
