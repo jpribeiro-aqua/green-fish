@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v315";
+  it.querySelector("code").textContent=msg;const ver="ras-v316";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10825,7 +10825,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v315";
+  const APP_VERSAO="ras-v316";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -17401,7 +17401,8 @@ let C=Object.assign({nome:"",hist:[],turn:{},fundo:"",img:"",dev:{},salas:{}},T(
 const salva=()=>{try{localStorage.setItem(K,JSON.stringify(C))}catch(e){C.img="";try{localStorage.setItem(K,JSON.stringify(C))}catch(_){}}};
 const codigoNovo=()=>`${rnd(3)}-${rnd(4)}-${rnd(3)}`;
 const limpaCod=s=>{const t=String(s||"").trim(),m=t.match(/telefish=([a-z0-9-]{6,40})/i);return (m?m[1]:t).toLowerCase().replace(/[^a-z0-9-]/g,"").slice(0,40)};
-const linkSala=c=>location.origin+location.pathname+"?telefish="+encodeURIComponent(c);
+const linkSala=c=>location.origin+location.pathname+"?telefish="+encodeURIComponent(c)+((C.salas[c]||{}).login?"&acesso=login":"");
+const contaOk=()=>!document.body.classList.contains("auth-lock");
 const nomeUsuario=()=>C.nome||T(()=>{const t=(document.getElementById("auth-user")||document.querySelector(".au-nome-user")||{}).textContent;return t&&t.trim().length<40?t.trim():""},"")||"";
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 const podeTela=!!(navigator.mediaDevices&&navigator.mediaDevices.getDisplayMedia);
@@ -17450,7 +17451,7 @@ function efeito(trk,modo){const v=document.createElement("video");v.muted=true;v
 let R=null;const ov=()=>document.getElementById("tf");
 const eu=()=>R&&R.me;
 function envia(m){if(!R||!R.tr)return;R.tr.send(Object.assign({from:R.me.id},m))}
-const meuSt=()=>({nome:R.me.nome,mic:R.mic,cam:R.cam,tela:!!R.tela,mao:R.mao||0,rec:!!R.rec,host:R.host,espera:R.host?!!R.espera:undefined,cc:!!R.ccOn});
+const meuSt=()=>({conta:contaOk(),login:!!R.login,nome:R.me.nome,mic:R.mic,cam:R.cam,tela:!!R.tela,mao:R.mao||0,rec:!!R.rec,host:R.host,espera:R.host?!!R.espera:undefined,cc:!!R.ccOn});
 const somaPessoas=()=>1+[...R.peers.values()].filter(p=>!p.saiu).length;
 function nota(t,ms){const o=ov();if(!o)return;const d=document.createElement("div");d.className="tf-toast";d.textContent=t;o.querySelector(".tf-toasts").appendChild(d);setTimeout(()=>d.remove(),ms||4200)}
 function ata(l){if(R)R.ata.push(`[${hm(Date.now())}] ${l}`)}
@@ -17489,15 +17490,15 @@ function sai(id,motivo){const P=R&&R.peers.get(id);if(!P||P.saiu)return;P.saiu=t
   ata(`${P.nome} saiu${motivo?" ("+motivo+")":""}`);nota(`${P.nome} saiu${motivo?" · "+motivo:""}`);if(R.pin===id)R.pin=null;layout();desenhaEstado()}
 
 /* ---------- mensagens da sala ---------- */
-const travado=()=>R.host?!!R.espera:!!R.esperaHost,admitido=(id,st)=>!travado()||R.adm.has(id)||R.peers.has(id)||!!(st&&st.host);
-const hostSt=(id,st)=>{if(st&&st.host){R.hostId=id;R.esperaHost=!!st.espera}};
+const travado=()=>R.host?!!R.espera:!!R.esperaHost,admitido=(id,st)=>!(R.login&&st&&!st.host&&st.conta===false)&&(!travado()||R.adm.has(id)||R.peers.has(id)||!!(st&&st.host));
+const hostSt=(id,st)=>{if(st&&st.host){R.hostId=id;R.esperaHost=!!st.espera;if(st.login)R.login=true}};
 async function msgSala(m){if(!R||!m||!m.from||m.from===R.me.id)return;if(m.to&&m.to!==R.me.id){if(m.t==="admit")R.adm.add(m.to);return}
   const P=R.peers.get(m.from);
   switch(m.t){
-   case "knock":if(R.host&&R.dentro){if(R.espera){R.fila.set(m.from,m.nome||"Convidado");envia({t:"wait",to:m.from});desenhaFila();nota(`🚪 ${m.nome||"Alguém"} quer entrar`);T(()=>navigator.vibrate&&navigator.vibrate(200))}else{R.adm.add(m.from);envia({t:"admit",to:m.from})}}break;
+   case "knock":if(R.host&&R.dentro&&R.login&&!m.conta){envia({t:"deny",to:m.from,why:"login"});nota(`🔐 ${m.nome||"Alguém"} tentou entrar sem login e foi recusado`);break}if(R.host&&R.dentro){if(R.espera){R.fila.set(m.from,m.nome||"Convidado");envia({t:"wait",to:m.from});desenhaFila();nota(`🚪 ${m.nome||"Alguém"} quer entrar`);T(()=>navigator.vibrate&&navigator.vibrate(200))}else{R.adm.add(m.from);envia({t:"admit",to:m.from})}}break;
    case "wait":R.aguarda=true;telaEspera();break;
    case "admit":R.adm.add(R.me.id);if(!R.dentro)entraDeVez();break;
-   case "deny":if(!R.dentro){fecha();alert("O anfitrião não liberou a sua entrada nesta chamada.")}break;
+   case "deny":if(!R.dentro){const cod=R.code;if(m.why==="login"){R.login=true;pedeLogin(cod)}else{fecha();alert("O anfitrião não liberou a sua entrada nesta chamada.")}}break;
    case "hello":{if(!R.dentro)break;hostSt(m.from,m.st);if(!admitido(m.from,m.st))break;
      if(R.me.id<m.from){const Q=novoPeer(m.from,m.nome,true);Q.st=m.st||{};tile(m.from);oferta(Q)}else if(!m.reply)envia({t:"hello",to:m.from,reply:true,nome:R.me.nome,st:meuSt()});
      if(!m.reply&&(R.host||(!R.hostId&&[...R.peers.keys()].every(k=>k>R.me.id))))envia({t:"hist",to:m.from,chat:R.chat.slice(-60)});break}
@@ -17515,9 +17516,9 @@ async function msgSala(m){if(!R||!m||!m.from||m.from===R.me.id)return;if(m.to&&m
 
 /* ---------- entrar, ficar e sair ---------- */
 async function abre(code,o){o=o||{};if(R){if(R.code===code){mostra();return}if(!confirm("Sair da chamada atual para entrar em outra?"))return;await sair(true)}
-  const sala=C.salas[code]||{};const prj=o.proj||(sala.proj&&sala.proj.key?sala.proj:null)||T(()=>gfArquivos.projAgora(),null);R={code,proj:prj,titulo:o.titulo||sala.titulo||"",host:!!(o.host||sala.host),espera:!!(o.espera??sala.espera),me:{id:Date.now().toString(36)+rnd(6),nome:nomeUsuario()},peers:new Map(),tiles:new Map(),adm:new Set(),fila:new Map(),
+  const sala=C.salas[code]||{};const login0=!!(o.login||sala.login);const prj=o.proj||(sala.proj&&sala.proj.key?sala.proj:null)||T(()=>gfArquivos.projAgora(),null);R={code,proj:prj,titulo:o.titulo||sala.titulo||"",host:!!(o.host||sala.host),espera:!!(o.espera??sala.espera),me:{id:Date.now().toString(36)+rnd(6),nome:nomeUsuario()},peers:new Map(),tiles:new Map(),adm:new Set(),fila:new Map(),
     chat:[],ata:[],mic:true,cam:true,mao:0,layout:"grade",pin:null,t0:0,naoLidas:0,painel:"",guest:!!o.guest};
-  R.adm.add(R.me.id);monta();telaPre();await abreMidia();previa();desenhaPre()}
+  R.login=login0;R.adm.add(R.me.id);monta();telaPre();await abreMidia();previa();desenhaPre()}
 function monta(){let o=ov();if(o)o.remove();o=document.createElement("div");o.id="tf";o.setAttribute("role","dialog");o.setAttribute("aria-label","TeleFish · videochamada");document.body.appendChild(o);document.documentElement.classList.add("tf-aberto")}
 function mostra(){const o=ov();if(o){o.classList.remove("tf-min");document.documentElement.classList.add("tf-aberto")}}
 function telaPre(){const o=ov();o.innerHTML=`<div class="tf-pre"><div class="tf-pre-c"><h2>🐟📹 TeleFish</h2><p class="tf-sub">${R.titulo?E(R.titulo)+" · ":""}sala <b>${E(R.code)}</b></p>
@@ -17527,18 +17528,18 @@ function telaPre(){const o=ov();o.innerHTML=`<div class="tf-pre"><div class="tf-
    <label class="tf-f">Seu nome<input id="tf-nome" value="${E(R.me.nome)}" maxlength="40" placeholder="Como vão te ver na chamada" autocomplete="name"></label>
    ${R.host?`<label class="tf-ck"><input type="checkbox" id="tf-espera"${R.espera?" checked":""}> Sala de espera: eu aceito quem entra</label>`:""}
    <div class="tf-erros"></div>
-   <div class="tf-pre-go"><button type="button" class="tf-ok" data-tf="entrar">Entrar na chamada</button><button type="button" class="tf-x" data-tf="cancelar">Cancelar</button></div>
+   ${R.login?`<p class="tf-lg">🔐 Chamada só para quem tem conta no Green Fish${contaOk()?" · você está logado":" · faça login para entrar"}</p>`:`<p class="tf-lg tf-lg0">🌐 Chamada aberta: entra com ou sem login</p>`}<div class="tf-pre-go"><button type="button" class="tf-ok" data-tf="entrar">Entrar na chamada</button><button type="button" class="tf-x" data-tf="cancelar">Cancelar</button></div>
    <p class="tf-nota">A chamada vai direto entre os aparelhos, criptografada. O link é o convite: mande só para quem vai participar. Funciona melhor com até 6 pessoas.</p></div></div><div class="tf-toasts"></div>`}
 function previa(){const o=ov();if(!o||!R)return;const v=o.querySelector(".tf-prev video");if(v){v.srcObject=new MediaStream(vidAtual()?[vidAtual()]:[])}if(R.micT)medidor(R.me.id,new MediaStream([R.micT]))}
 function desenhaPre(){const o=ov();if(!o||!R)return;const p=o.querySelector(".tf-prev");if(!p)return;p.classList.toggle("tf-semcam",!R.cam);const b=o.querySelector('.tf-pre [data-tf="mic"]'),c=o.querySelector('.tf-pre [data-tf="cam"]');
   b.textContent=R.mic&&R.micT?"🎤":"🔇";b.classList.toggle("tf-off",!(R.mic&&R.micT));c.textContent=R.cam?"📷":"🚫";c.classList.toggle("tf-off",!R.cam);
   o.querySelector(".tf-erros").innerHTML=[R.micErr?`🎤 Microfone indisponível (${E(R.micErr)}): você entra só ouvindo.`:"",R.camErr?`📷 Câmera indisponível (${E(R.camErr)}).`:""].filter(Boolean).map(x=>`<p>${x}</p>`).join("")}
 function telaEspera(){const o=ov();if(!o)return;const g=o.querySelector(".tf-pre-go");if(g)g.innerHTML=`<p class="tf-esperando">⏳ Aguardando o anfitrião liberar a sua entrada…</p><button type="button" class="tf-x" data-tf="cancelar">Desistir</button>`}
-async function entrar(){const n=(document.getElementById("tf-nome")||{}).value;R.me.nome=String(n||"").trim().slice(0,40)||"Convidado";C.nome=R.me.nome;const ce=document.getElementById("tf-espera");if(ce){R.espera=ce.checked;C.salas[R.code]=Object.assign(C.salas[R.code]||{},{espera:R.espera})}salva();
+async function entrar(){if(R&&R.login&&!contaOk()){pedeLogin(R.code);return}const n=(document.getElementById("tf-nome")||{}).value;R.me.nome=String(n||"").trim().slice(0,40)||"Convidado";C.nome=R.me.nome;const ce=document.getElementById("tf-espera");if(ce){R.espera=ce.checked;C.salas[R.code]=Object.assign(C.salas[R.code]||{},{espera:R.espera})}salva();
   const g=ov().querySelector(".tf-pre-go");if(g)g.innerHTML=`<p class="tf-esperando">🔄 Conectando…</p>`;
   R.tr=await conecta(R.code,msgSala);if(!R)return;
   if(R.host){entraDeVez();return}
-  envia({t:"knock",nome:R.me.nome});setTimeout(()=>{if(R&&!R.dentro&&!R.aguarda)entraDeVez()},3500)}
+  envia({t:"knock",nome:R.me.nome,conta:contaOk()});setTimeout(()=>{if(R&&!R.dentro&&!R.aguarda)entraDeVez()},3500)}
 function entraDeVez(){if(!R||R.dentro)return;R.dentro=true;R.t0=Date.now();ata(`${R.me.nome} entrou (${R.tr.tipo==="nuvem"?"pela nuvem":"só neste aparelho"})`);telaCall();envia({t:"hello",nome:R.me.nome,st:meuSt()});
   T(()=>navigator.wakeLock&&navigator.wakeLock.request("screen").then(w=>{if(R)R.wake=w}).catch(()=>{}));R.relogio=setInterval(()=>{const t=ov()&&ov().querySelector(".tf-tempo");if(t)t.textContent=dur(Date.now()-R.t0)},1000);
   if(R.tr.tipo==="local")nota("☁️ A nuvem não respondeu: esta sala só funciona entre abas deste aparelho. Verifique a internet e entre de novo.",9000);
@@ -17679,8 +17680,8 @@ window.addEventListener("pagehide",()=>{if(R&&R.dentro)envia({t:"bye"})});window
 /* ---------- a seção 📣 Marketing e vendas na Gestão ---------- */
 /* v315: link de convidado — cria a sala e o link sem entrar na chamada; quem recebe entra pelo navegador, sem login */
 function linksHTML(){const L=Object.entries(C.salas).filter(([,s])=>s.link&&!s.quando&&Date.now()-(s.criada||0)<30*864e5).sort((a,b)=>b[1].criada-a[1].criada).slice(0,8);if(!L.length)return "";
-  return `<div class="tf-lks"><b>🔗 Links de convidado</b><small>Quem recebe o link entra pelo navegador, sem instalar nada e <b>sem login</b>: digita o nome e entra. Você entra pela mesma sala quando quiser.</small>${L.map(([c,s])=>{const l=linkSala(c),txt=`Convite para a chamada TeleFish${s.titulo?" · "+s.titulo:""}. Entre pelo link (não precisa de conta): ${l}`;
-    return `<div class="tf-lk${C.ultLink===c?" novo":""}"><div><b>${E(s.titulo||"Chamada")}</b> <small>${E(c)} · criado ${new Date(s.criada).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}${s.espera?" · com sala de espera":""}</small>${C.ultLink===c?'<span class="tf-cp">✓ link copiado</span>':""}</div><input class="tf-link" readonly value="${E(l)}" aria-label="Link do convite">
+  return `<div class="tf-lks"><b>🔗 Links de convidado</b><small>Quem recebe o link entra pelo navegador, sem instalar nada. 🌐 <b>Sem login</b>: digita o nome e entra. 🔐 <b>Com login</b>: só entra quem tem conta no Green Fish (quem não tem vê a tela de login). Você entra pela mesma sala quando quiser.</small>${L.map(([c,s])=>{const l=linkSala(c),txt=`Convite para a chamada TeleFish${s.titulo?" · "+s.titulo:""}. Entre pelo link${s.login?" (entre com a sua conta do Green Fish)":" (não precisa de conta)"}: ${l}`;
+    return `<div class="tf-lk${C.ultLink===c?" novo":""}"><div><b>${E(s.titulo||"Chamada")}</b> <small>${E(c)} · criado ${new Date(s.criada).toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}${s.espera?" · com sala de espera":""}</small> <span class="tf-acb${s.login?" on":""}">${s.login?"🔐 só com login":"🌐 sem login"}</span> <button type="button" class="linkbtn" data-tfh="acs" data-c="${E(c)}">mudar para ${s.login?"sem login":"com login"}</button>${C.ultLink===c?'<span class="tf-cp">✓ link copiado</span>':""}</div><input class="tf-link" readonly value="${E(l)}" aria-label="Link do convite">
      <span class="gfp-bt"><button type="button" class="btn" data-tfh="copiar" data-c="${E(c)}">📋 Copiar</button><a class="btn" href="https://wa.me/?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener">📲 WhatsApp</a><a class="btn" href="mailto:?subject=${encodeURIComponent("Convite TeleFish"+(s.titulo?" · "+s.titulo:""))}&body=${encodeURIComponent(txt)}">✉️ E-mail</a>${navigator.share?`<button type="button" class="btn" data-tfh="share" data-c="${E(c)}">↗ Compartilhar</button>`:""}<button type="button" class="btn solid" data-tfh="abrir" data-c="${E(c)}">📹 Entrar na sala</button><button type="button" class="btn" data-tfh="apaga" data-c="${E(c)}" aria-label="Apagar o link">🗑</button></span></div>`}).join("")}</div>`}
 function fimConvidado(cod){if(document.getElementById("tf-fim")||(R&&R.code===cod))return;const d=document.createElement("div");d.id="tf-fim";
   d.innerHTML=`<div class="tf-fimb"><div class="tf-logo">🐟📹</div><h2>Você saiu da chamada</h2><p>Sala <b>${E(cod)}</b>. Obrigado por participar!</p><div class="gfp-bt"><button type="button" class="btn solid" data-tff="volta">↩ Entrar de novo</button><button type="button" class="btn" data-tff="login">Tenho conta no Green Fish</button></div></div>`;
@@ -17690,6 +17691,7 @@ function hubHTML(){const ag=Object.entries(C.salas).filter(([,s])=>s.quando&&s.q
    ${R&&R.dentro?`<p class="tf-agora">🟢 Você está numa chamada (${E(R.titulo||R.code)}). <button type="button" class="btn solid" data-tfh="voltar">Voltar para a chamada</button></p>`:""}
    <div class="mk-form tf-hgrid"><label class="jr-f">Seu nome na chamada<input data-tfhc="nome" value="${E(C.nome||nomeUsuario())}" maxlength="40"></label><label class="jr-f">Assunto<input id="tfh-tit" placeholder="Ex.: apresentação do filé de tilápia" maxlength="80"></label></div>
    <label class="ct-ck"><input type="checkbox" id="tfh-esp"> Sala de espera: eu aceito quem entra</label>
+   <fieldset class="tf-acs"><legend>Quem pode entrar pelo link</legend><label><input type="radio" name="tfh-acs" value="0"${C.acs?"":" checked"}> 🌐 <b>Sem login</b> · qualquer pessoa com o link (clientes, fornecedores)</label><label><input type="radio" name="tfh-acs" value="1"${C.acs?" checked":""}> 🔐 <b>Com login</b> · só quem tem conta no Green Fish (equipe, sócios)</label></fieldset>
    ${window.gfArquivos?(()=>{const pa=T(()=>gfArquivos.projAgora(),null),L=T(()=>gfArquivos.projetos(),[])||[];return `<div class="mk-form tf-hgrid"><label class="jr-f">Projeto da chamada (gravação e ata vão para os arquivos dele)<select id="tfh-proj"><option value="">— sem projeto —</option>${L.map(p=>`<option value="${E(p.key)}"${pa&&pa.key===p.key?" selected":""}>${E(p.nome)}${p.cliente?" · "+E(p.cliente):""}</option>`).join("")}</select></label></div>
    <label class="ct-ck"><input type="checkbox" data-tfhb="1"${C.baixa?" checked":""}> Baixar também a gravação no aparelho (além de guardar no projeto)</label>`})():""}
    <div class="gfp-bt"><button type="button" class="btn solid" data-tfh="nova">📹 Nova chamada agora</button><button type="button" class="btn" data-tfh="link">🔗 Criar link para convidado</button></div>${linksHTML()}
@@ -17705,33 +17707,46 @@ function hubHTML(){const ag=Object.entries(C.salas).filter(([,s])=>s.quando&&s.q
 const gd=ms=>new Date(ms).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
 function ics(c,s){const l=linkSala(c),fim=s.quando+(s.min||30)*6e4;return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Green Fish//TeleFish//PT","BEGIN:VEVENT",`UID:${c}@telefish`,`DTSTAMP:${gd(Date.now())}`,`DTSTART:${gd(s.quando)}`,`DTEND:${gd(fim)}`,`SUMMARY:TeleFish · ${(s.titulo||"Chamada").replace(/[,;\n]/g," ")}`,`DESCRIPTION:Entre pelo link: ${l}`,`URL:${l}`,`LOCATION:${l}`,"END:VEVENT","END:VCALENDAR"].join("\r\n")}
 function redesenhaHub(){const h=document.getElementById("tf-hub");if(h){const a=document.activeElement;if(h.contains(a)&&/INPUT|SELECT/.test(a.tagName))return;h.outerHTML=hubHTML()}}
+const acs=()=>!!(document.querySelector('#tf-hub input[name="tfh-acs"]:checked')||{value:C.acs?"1":"0"}).value.match(/1/);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#tf-hub [data-tfh]");if(!b)return;if(b.tagName==="A")return;e.preventDefault();e.stopPropagation();const k=b.dataset.tfh,c=b.dataset.c,v=id=>((document.getElementById(id)||{}).value||"").trim();
   const prjSel=()=>{const kk=v("tfh-proj");if(!kk)return null;const L=T(()=>gfArquivos.projetos(),[])||[],p=L.find(x=>x.key===kk);return p?{id:p.id,nome:p.nome,key:p.key,uid:p.uid}:null};
-  if(k==="nova"){const cod=codigoNovo();C.salas[cod]={host:true,proj:prjSel(),titulo:v("tfh-tit"),espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};salva();abre(cod,{host:true,proj:C.salas[cod].proj})}
-  else if(k==="link"){const cod=codigoNovo();C.salas[cod]={host:true,link:true,proj:prjSel(),titulo:v("tfh-tit")||"",espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};C.ultLink=cod;salva();T(()=>navigator.clipboard.writeText(linkSala(cod)).catch(()=>{}));redesenhaHub();setTimeout(()=>T(()=>document.querySelector(".tf-lk.novo").scrollIntoView({block:"center",behavior:"smooth"})),60)}
+  if(k==="nova"){const cod=codigoNovo();C.salas[cod]={host:true,login:acs(),proj:prjSel(),titulo:v("tfh-tit"),espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};salva();abre(cod,{host:true,proj:C.salas[cod].proj})}
+  else if(k==="link"){const cod=codigoNovo();C.salas[cod]={host:true,link:true,login:acs(),proj:prjSel(),titulo:v("tfh-tit")||"",espera:!!(document.getElementById("tfh-esp")||{}).checked,criada:Date.now()};C.ultLink=cod;salva();T(()=>navigator.clipboard.writeText(linkSala(cod)).catch(()=>{}));redesenhaHub();setTimeout(()=>T(()=>document.querySelector(".tf-lk.novo").scrollIntoView({block:"center",behavior:"smooth"})),60)}
   else if(k==="entrar"){const cod=limpaCod(v("tfh-cod"));if(cod.length<6){alert("Cole o código ou o link do convite.");return}abre(cod)}
   else if(k==="voltar")mostra();
   else if(k==="abrir")abre(c,{host:!!(C.salas[c]||{}).host});
-  else if(k==="agenda"){const d=v("tfh-ad"),h=v("tfh-ah")||"09:00";const q=new Date(d+"T"+h).getTime();if(!isFinite(q)){alert("Informe o dia e a hora.");return}const cod=codigoNovo();C.salas[cod]={host:true,titulo:v("tfh-at")||"Chamada",quando:q,min:Math.max(5,Math.min(600,+v("tfh-am")||30)),criada:Date.now()};salva();redesenhaHub()}
+  else if(k==="agenda"){const d=v("tfh-ad"),h=v("tfh-ah")||"09:00";const q=new Date(d+"T"+h).getTime();if(!isFinite(q)){alert("Informe o dia e a hora.");return}const cod=codigoNovo();C.salas[cod]={host:true,login:acs(),titulo:v("tfh-at")||"Chamada",quando:q,min:Math.max(5,Math.min(600,+v("tfh-am")||30)),criada:Date.now()};salva();redesenhaHub()}
   else if(k==="ics"){const s=C.salas[c];if(!s)return;const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([ics(c,s)],{type:"text/calendar"}));a.download=`TeleFish_${c}.ics`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},30000)}
   else if(k==="copiar"){const l=linkSala(c);T(()=>navigator.clipboard.writeText(l).catch(()=>{}));b.textContent="✓ Copiado"}
+  else if(k==="acs"){const s=C.salas[c];if(!s)return;s.login=!s.login;salva();redesenhaHub()}
   else if(k==="share"){const s=C.salas[c]||{};T(()=>navigator.share({title:"Convite TeleFish",text:`Entre na chamada TeleFish${s.titulo?" · "+s.titulo:""} (não precisa de conta):`,url:linkSala(c)}).catch(()=>{}))}
   else if(k==="apaga"){if(confirm(C.salas[c]&&C.salas[c].link?"Apagar este link de convidado? Quem tiver o link ainda consegue abrir a sala vazia.":"Apagar esta sala agendada?")){delete C.salas[c];salva();redesenhaHub()}}
   else if(k==="ata"){const h=C.hist[+b.dataset.i];if(h)baixaAta(`TeleFish · ${h.titulo||"Sala "+h.code}\nData: ${new Date(h.ini).toLocaleString("pt-BR")}\nDuração: ${dur(h.fim-h.ini)}\nPessoas: ${(h.pessoas||[]).join(", ")}\n\n${h.ata||""}`,`TeleFish_ata_${h.code}_${iso(h.ini)}.txt`)}
   else if(k==="limpa"){if(confirm("Apagar o histórico de chamadas deste aparelho?")){C.hist=[];salva();redesenhaHub()}}},true);
-document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#tf-hub"))return;e.stopPropagation();if(t.dataset.tfhb){C.baixa=t.checked;salva();return}if(t.dataset.tfhc==="nome"){C.nome=t.value.trim().slice(0,40);salva()}if(t.dataset.tfht){C.turn=C.turn||{};C.turn[t.dataset.tfht]=t.value.trim();salva()}},true);
+document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closest("#tf-hub"))return;e.stopPropagation();if(t.name==="tfh-acs"){C.acs=t.value==="1";salva()}if(t.dataset.tfhb){C.baixa=t.checked;salva();return}if(t.dataset.tfhc==="nome"){C.nome=t.value.trim().slice(0,40);salva()}if(t.dataset.tfht){C.turn=C.turn||{};C.turn[t.dataset.tfht]=t.value.trim();salva()}},true);
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf-hub"))e.stopPropagation()},true);
 
 T(()=>{const st=document.createElement("style");st.textContent=`
 .tf-lks{display:grid;gap:6px;margin:6px 0;border:1px solid var(--line);border-radius:10px;padding:8px 10px}.tf-lks>small{color:var(--muted)}
 .tf-lk{display:grid;gap:5px;border-top:1px dashed var(--line);padding-top:6px}.tf-lk.novo{border:2px solid #10b981;border-radius:8px;padding:6px 8px;background:color-mix(in srgb,#10b981 8%,transparent)}
 .tf-lk small{color:var(--muted)}.tf-cp{margin-left:8px;color:#059669;font-weight:700;font-size:12.5px}.tf-lk .tf-link{width:100%;font:12.5px var(--f-mono,monospace);padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:inherit}
+.tf-acs{border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0;display:grid;gap:4px;font-size:13.5px}.tf-acs legend{font-weight:600;padding:0 4px}
+.tf-acb{font-size:12px;font-weight:600;border-radius:999px;padding:1px 8px;background:color-mix(in srgb,#0ea5e9 14%,transparent);color:#0369a1}.tf-acb.on{background:color-mix(in srgb,#f59e0b 18%,transparent);color:#92400e}
+#tf .tf-lg{margin:4px 0;font-size:13.5px;color:#fcd34d}#tf .tf-lg.tf-lg0{color:#93c5fd}
+#tf-lgav{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483001;background:#0f3d31;color:#ecfdf5;border-radius:10px;padding:10px 40px 10px 14px;display:grid;gap:2px;width:min(520px,calc(100% - 24px));box-shadow:0 6px 24px rgba(0,0,0,.3);font-size:14px}#tf-lgav button{position:absolute;right:8px;top:8px;background:none;border:0;color:inherit;font-size:16px;cursor:pointer}
 #tf-fim{position:fixed;inset:0;z-index:10060;background:#04130f;color:#e6f4ef;display:grid;place-items:center;padding:20px;text-align:center}.tf-fimb{display:grid;gap:10px;justify-items:center;max-width:420px}.tf-fimb h2{margin:0}#tf-fim .btn:not(.solid){color:#e6f4ef;border-color:#3b6b5c;background:transparent}.tf-fimb .gfp-bt{justify-content:center}
 `;document.head.appendChild(st)});
 window.gfTeleFish={hubHTML,redesenhaHub,abre,sair:()=>sair(true),estado:()=>R,info:()=>R&&R.dentro?`🟢 em chamada · ${somaPessoas()} pessoa(s)`:`${C.hist.length} chamada(s) · ${Object.values(C.salas).filter(s=>s.quando>Date.now()).length} agendada(s)`,_msg:msgSala,_cfg:()=>C};
 
 /* ---------- convite: o link ?telefish=código abre a chamada, mesmo para quem não tem conta ---------- */
-const q=new URLSearchParams(location.search).get("telefish");if(q){const cod=limpaCod(q);if(cod.length>=6)setTimeout(()=>abre(cod,{guest:!(C.salas[cod]||{}).host,host:!!(C.salas[cod]||{}).host}),900)}
+/* v316: sala que exige login — quem não tem conta vê a tela de login com o aviso; depois de entrar, a chamada abre sozinha */
+function pedeLogin(cod){T(()=>{if(R&&!R.dentro)fecha()});const vai=()=>{const a=document.getElementById("tf-lgav");if(a)a.remove();abre(cod,{login:true,guest:!(C.salas[cod]||{}).host,host:!!(C.salas[cod]||{}).host})};
+  if(contaOk()){vai();return}
+  let d=document.getElementById("tf-lgav");if(!d){d=document.createElement("div");d.id="tf-lgav";document.body.appendChild(d)}
+  d.innerHTML=`<b>🔐 Chamada TeleFish só com login</b><span>Sala <b>${E(cod)}</b>: entre com a sua conta do Green Fish e a chamada abre sozinha.</span><button type="button" data-tflg="x" aria-label="Fechar">✕</button>`;
+  d.onclick=e=>{if(e.target.closest("[data-tflg]"))d.remove()};
+  clearInterval(pedeLogin.iv);pedeLogin.iv=setInterval(()=>{if(!document.getElementById("tf-lgav")){clearInterval(pedeLogin.iv);return}if(contaOk()){clearInterval(pedeLogin.iv);setTimeout(vai,600)}},1000)}
+const q=new URLSearchParams(location.search).get("telefish"),qLogin=new URLSearchParams(location.search).get("acesso")==="login";if(q){const cod=limpaCod(q);if(cod.length>=6)setTimeout(()=>{const s=C.salas[cod]||{};if((qLogin||s.login)&&!contaOk()){pedeLogin(cod);return}abre(cod,{login:qLogin||!!s.login,guest:!s.host,host:!!s.host})},900)}
 
 const st=document.createElement("style");st.textContent=`
 #tf{position:fixed;inset:0;z-index:2147483000;background:#06140f;color:#e8f5ef;font:15px/1.35 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column}
