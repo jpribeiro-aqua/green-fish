@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v328";
+  it.querySelector("code").textContent=msg;const ver="ras-v329";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10840,7 +10840,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v328";
+  const APP_VERSAO="ras-v329";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -19597,7 +19597,7 @@ function lista(k,X){const O=X.O,D=X.D,odOf=id=>O.find(o=>o.lid===id&&!["cancelad
   const it=(a,b,btn)=>`<li><div><b>${a}</b><small>${b}</small></div>${btn||""}</li>`,mx=(L,f)=>L.length?`<ul class="rota-l">${L.slice(0,8).map(f).join("")}</ul>${L.length>8?`<p class="hint" style="margin:2px 0 0">… e mais ${L.length-8}. Abra a etapa para ver todos.</p>`:""}`:`<p class="hint" style="margin:4px 0 0">Nada nesta etapa agora.</p>`;
   const odBtn=o=>`<button type="button" class="pr-mini" data-rota-od="${E(o.id)}">🚚 Abrir a ordem</button>`,rtBtn=id=>`<button type="button" class="pr-mini" data-rota-rt="${E(id)}">🔎 Rastrear</button>`;
   const ods=st=>mx(O.filter(o=>st.includes(o.status)).sort((a,b)=>String(a.data).localeCompare(String(b.data))),o=>it(`${E(o.id)} · ${E(o.g||"")}`,`${E(o.proj||"")} · despesca ${dBR(o.data)} · ${F(o.kgPrev)} kg · ${E(o.status)}`,odBtn(o)));
-  if(k==="aviso")return mx(X.av.slice().sort((a,b)=>a.h-b.h),l=>{const o=odOf(l.id);return it(`${NIVc[l.s.n]||""} ${E(l.proj)} · ${E(l.g)}`,`${E(l.spn||"")} · despesca ${dBR(l.h)} · ≈ ${F(l.bF)} kg${o?` · ordem ${E(o.id)} (${E(o.status)})`:" · <b>sem ordem</b>"}`,o?odBtn(o):`<button type="button" class="pr-mini" data-rota-lote="${E(l.id)}">✅ Ver e aceitar</button>`)});
+  if(k==="aviso")return mx(X.av.slice().sort((a,b)=>a.h-b.h),l=>{const o=odOf(l.id);return it(`${NIVc[l.s.n]||""} ${E(l.proj)} · ${E(l.g)}`,`${E(l.spn||"")} · despesca ${dBR(l.h)} · ≈ ${F(l.bF)} kg${o?` · ordem ${E(o.id)} (${E(o.status)})`:" · <b>sem ordem</b>"}`,o?odBtn(o):`<button type="button" class="pr-mini" data-rota-lote="${E(l.id)}">${l.s&&l.s.n>=4?"✅ Ver e aceitar":"👀 Ver o aviso"}</button>`)});
   if(k==="aceite")return ods(["aceita"]);if(k==="captura")return ods(["captura","encerrada"]);if(k==="transp")return ods(["transporte"]);if(k==="chegada")return ods(["chegou","conferida","reprovada"]);
   if(k==="mp")return mx(X.mpSaldo,x=>it(`${E(x.m.id)} · ${E(x.m.esp||"")}`,`${E(x.m.forn||"")} · recebido ${dBR(x.m.data)} · ${F(+x.m.kg,1)} kg · <b>${F(x.s,1)} kg a processar</b>`,rtBtn(x.m.id)));
   if(k==="proc")return mx((D.pr||[]).slice().reverse(),p=>it(`${E(p.id)} · ${E(p.prod)}`,`${F(+p.kg,1)} kg · ${dBR(p.data)}${p.val?" · validade "+dBR(p.val):""}`,rtBtn(p.id)));
@@ -19647,12 +19647,21 @@ function vai(k){const X=dados(),O=X.O;
   if(k==="emb"){rt("emb");return}
   if(k==="exp"){rt("exp");return}
   ir(k);const s=etapas(X).find(x=>x.k===k);if(s)alvo(()=>[...document.querySelectorAll("#view-benef section.card")].find(c=>c.id!=="rota-card"&&c.offsetParent&&s.ir.test(c.innerText.slice(0,200))))}
-window.gfRota={dados,etapas:()=>etapas(dados()),ir,vai};
+function irLote(id){try{sessionStorage.removeItem("gf-cr-sel")}catch(_){}try{window.gfPisca&&gfPisca([id])}catch(_){}ir("aviso");
+  const acha=()=>[...document.querySelectorAll("#view-benef .gfp-av [data-id]")].find(x=>x.dataset.id===id);let n=0;
+  const t=setInterval(()=>{const b=acha();if(!b&&++n<30)return;clearInterval(t);
+    if(!b){try{window.gfPrevToast&&gfPrevToast("Não encontrei esse aviso agora: confira o quadro 📡 Avisos da Biomassa.")}catch(_){}return}
+    let it=b.closest(".gfp-it")||b;for(let d=it.parentElement;d;d=d.parentElement)if(d.tagName==="DETAILS"&&!d.open)d.open=true;
+    if(it.classList.contains("gfp-crhide"))it.classList.remove("gfp-crhide");
+    const ac=it.querySelector('[data-gfp="aceitar"]');if(ac)ac.click();
+    setTimeout(()=>{const b2=acha(),it2=b2?(b2.closest(".gfp-it")||b2):it,f=it2.querySelector(".gfp-acf")||it2;
+      try{const rw=document.querySelector("#view-benef>.gf-row"),off=(rw&&getComputedStyle(rw).position==="sticky"?rw.getBoundingClientRect().height:0)+14;window.scrollTo({top:Math.max(0,it2.getBoundingClientRect().top+scrollY-off),behavior:"smooth"})}catch(_){}f.classList.remove("rota-alvo");void f.offsetWidth;f.classList.add("rota-alvo");setTimeout(()=>f.classList.remove("rota-alvo"),2800)},ac?320:60)},130)}
+window.gfRota={dados,etapas:()=>etapas(dados()),ir,vai,irLote};
 document.addEventListener("click",e=>{
   {const m=e.target.closest&&e.target.closest("#rota-card [data-rota-min]");if(m){const on=!minLe();try{localStorage.setItem("gf-rota-min",on?"1":"0")}catch(_){}if(on)aberto=null;const b=document.getElementById("rota-body");if(b)b.__h="";const c=document.getElementById("rota-card");if(c)minAplica(c);desenha();return}}
   {const t=e.target.closest&&e.target.closest("#rota-card [data-rota-od],#rota-card [data-rota-rt],#rota-card [data-rota-lote]");if(t){
     if(t.dataset.rotaOd){try{gfOrdens.abrir(t.dataset.rotaOd)}catch(_){ir("captura")}return}
-    if(t.dataset.rotaLote){try{window.gfPisca&&gfPisca([t.dataset.rotaLote])}catch(_){}ir("aviso");return}
+    if(t.dataset.rotaLote){irLote(t.dataset.rotaLote);return}
     if(t.dataset.rotaRt){ir("mp");setTimeout(()=>{try{gfRastreio.abrir(t.dataset.rotaRt)}catch(_){}},250);return}}}
   {const f=e.target.closest&&e.target.closest("#rota-card [data-rota-fecha]");if(f){aberto=null;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();return}}
   {const q=e.target.closest&&e.target.closest("#rota-card .rota-e>button[data-rota]");if(q){aberto=q.dataset.rota;const b=document.getElementById("rota-body");if(b)b.__h="";desenha();vai(q.dataset.rota);return}}
