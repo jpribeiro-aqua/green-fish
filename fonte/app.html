@@ -19610,16 +19610,29 @@ const toast=t=>T(()=>window.gfPrevToast?gfPrevToast(t):null);
 
 /* ---- estado salvo ---- */
 const vazio=()=>({estrutura:"viveiro",esp:"tilapia",area:"",prof:"1.2",vol:"",solo_ph:"",solo_tex:"franco",prnt:"85",mat:"dolomitico",
-  agua_ph:"",agua_alk:"",agua_dur:"",fazer_cal:true,fazer_adu:false,fazer_des:false,orgDose:"1500",ureiaDose:"300",em:0});
+  agua_ph:"",agua_alk:"",agua_dur:"",fase:"engorda",fazer_cal:true,fazer_adu:false,fazer_des:false,orgDose:"1500",ureiaDose:"300",em:0});
 let S=T(()=>Object.assign(vazio(),JSON.parse(localStorage.getItem(LS)||"{}")),vazio());
 const salva=()=>{S.em=Date.now();T(()=>localStorage.setItem(LS,JSON.stringify(S)))};
 
 /* ---- espécies do app + metas de água por espécie ---- */
 const ESP=T(()=>window.ESP,null)||{tilapia:["Tilápia"],tambaqui:["Tambaqui"],camarao:["Camarão"],pl:["Pós-larva de camarão"]};
 const espNome=k=>T(()=>ESP[k][0],k)||k;
-/* alcalinidade-alvo (mg/L CaCO₃): camarão exige mais; peixes toleram a partir de 20, ideal 60–150 */
-const META=k=>/camar|pl/.test(k)?{alk:120,dur:120}:{alk:60,dur:60};
-const FAIXA={ph:[6.5,9],alk:[60,150],dur:[60,150]}; /* Cartilha Qualidade da Água */
+/* faixas por espécie (Embrapa, SENAR 209). camarão = L. vannamei (Embrapa carcinicultura: pH 7,5–8,0; alcalinidade 100–150). */
+const SPEC={
+  tilapia: {ph:[6.5,8.5],alk:60,dur:50,temp:[25,30],nota:"Peixe tropical tolerante: alcalinidade e dureza ≥ 30 mg/L (SENAR), ideal 60–150."},
+  tambaqui:{ph:[5.5,8.0],alk:40,dur:30,temp:[25,30],nota:"Espécie amazônica: tolera água mais mole e ácida; manter alcalinidade ≥ 20–30 mg/L."},
+  camarao: {ph:[7.5,8.0],alk:120,dur:100,temp:[25,32],nota:"L. vannamei: exige alcalinidade 100–150 mg/L e pH 7,5–8,0 (Embrapa carcinicultura)."},
+  pl:      {ph:[7.5,8.0],alk:120,dur:100,temp:[25,32],nota:"Pós-larva/berçário: mais sensível à amônia e ao nitrito; manter a alcalinidade estável em 100–150 mg/L."}
+};
+/* fase do camarão (a meta de água é a mesma; muda a sensibilidade e a orientação) */
+const FASES={bercario:"Pós-larva / berçário",engorda:"Engorda"};
+function META(k){const s=SPEC[k]||SPEC.tilapia;let alk=s.alk,dur=s.dur;
+  if(/camar|pl/.test(k)&&S.fase==="bercario"){alk=Math.max(alk,130);dur=Math.max(dur,110)}
+  return {alk,dur}}
+function faixaPh(k){return (SPEC[k]||SPEC.tilapia).ph}
+function notaEsp(k){const s=SPEC[k]||SPEC.tilapia;let n=s.nota;
+  if(/camar|pl/.test(k)&&S.fase)n+=S.fase==="bercario"?" Nesta fase, priorize estabilidade: alcalinidade ≥ 130 mg/L e trocas suaves.":" Na engorda, mantenha a alcalinidade entre 100 e 150 mg/L (as bactérias consomem alcalinidade).";
+  return n}
 
 /* ---- dimensões vindas das abas (proporcional ao tamanho) ---- */
 function volDasAbas(){let v=0;const G=T(()=>window.gfRasCad&&gfRasCad.grupos&&gfRasCad.grupos(),null);
@@ -19681,7 +19694,7 @@ function itens(){const d=dims(),L=[];
 window.gfCorrecao={
   dados:()=>S, itens,
   status:()=>{const a=aguaDasAbas()||{ph:num(S.agua_ph),alk:num(S.agua_alk),dur:num(S.agua_dur)};
-    const f=[];if(isFinite(a.ph)&&(a.ph<FAIXA.ph[0]||a.ph>FAIXA.ph[1]))f.push(`pH ${F(a.ph,1)}`);
+    const ph0=faixaPh(S.esp);const f=[];if(isFinite(a.ph)&&(a.ph<ph0[0]||a.ph>ph0[1]))f.push(`pH ${F(a.ph,1)}`);
     if(isFinite(a.alk)&&a.alk<META(S.esp).alk)f.push(`alcalinidade ${F(a.alk)} mg/L (ideal ≥ ${META(S.esp).alk})`);
     if(isFinite(a.dur)&&a.dur<META(S.esp).dur)f.push(`dureza ${F(a.dur)} mg/L (ideal ≥ ${META(S.esp).dur})`);
     return {fora:f,ok:f.length===0,tem:isFinite(a.ph)||isFinite(a.alk)||isFinite(a.dur)}}
@@ -19714,11 +19727,12 @@ function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
   if(S.fazer_des&&ev){const x=desinfeccao(d);out+=`<h4 class="cor-h">🧯 Desinfecção do fundo (viveiro vazio)</h4><p>Calcário/cal: <b>${F(x.kg)} kg</b> (1.500 kg/ha). Aplicar com o fundo úmido, entre ciclos.</p>`}
 
   const L=itens(),temItens=L.length>0;
-  const faixa=`<div class="cor-metas"><b>Metas para ${espNome(S.esp)}:</b> pH ${FAIXA.ph[0]}–${FAIXA.ph[1]} · alcalinidade ≥ ${m.alk} mg/L (ideal 60–150) · dureza ≥ ${m.dur} mg/L</div>`;
+  const ph0=faixaPh(S.esp);const faixa=`<div class="cor-metas"><b>Metas para ${espNome(S.esp)}${/camar|pl/.test(S.esp)&&S.fase?" · "+FASES[S.fase]:""}:</b> pH ${ph0[0]}–${ph0[1]} · alcalinidade ≥ ${m.alk} mg/L${/camar|pl/.test(S.esp)?" (100–150)":" (ideal 60–150)"} · dureza ≥ ${m.dur} mg/L<small style="display:block;margin-top:3px">${E(notaEsp(S.esp))}</small></div>`;
 
   return `<div class="cor-grid">
     <label class="cor-f"><span>Estrutura</span>${sel("estrutura",[["viveiro","🏞 Viveiro escavado (solo)"],["geomembrana","🟦 Tanque de geomembrana"],["alvenaria","🧱 Tanque de alvenaria"]])}</label>
     <label class="cor-f"><span>Espécie</span>${sel("esp",Object.keys(ESP).filter(k=>k!=="outro").map(k=>[k,espNome(k)]))}</label>
+    ${/camar|pl/.test(S.esp)?`<label class="cor-f"><span>Fase do cultivo</span>${sel("fase",Object.entries(FASES))}</label>`:""}
     ${ev?`<label class="cor-f"><span>Área do viveiro (m²)</span>${inp("area",d.area?F(d.area):"ex.: 1000")}</label>
       <label class="cor-f"><span>Profundidade média (m)</span>${inp("prof","1,2")}</label>`
      :`<label class="cor-f"><span>Volume do tanque (m³)</span>${inp("vol",d.volAbas?F(d.volAbas)+" (das abas)":"ex.: 50")}</label>`}
@@ -19736,7 +19750,7 @@ function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
   <div class="cor-out">${out||`<p class="hint">Marque o que deseja calcular acima.</p>`}</div>
   ${temItens?`<h4 class="cor-h">📦 Lista de insumos</h4><div class="scroll"><table class="cor-t"><tbody>${L.map(x=>`<tr><th>${E(x.n)}</th><td><b>${F(x.un)} ${E(x.emb)}</b></td><td class="cor-s">${E(x.fonte)}</td></tr>`).join("")}</tbody></table></div>
     <div class="gfp-bt cor-bt"><button type="button" class="btn solid" data-corx="insumos">📦 Enviar para a Gestão de Insumos</button><button type="button" class="btn" data-corx="zap">📲 Enviar por WhatsApp</button></div>`:""}
-  <p class="cor-fonte">Base técnica: Embrapa — Circular Técnica 14 (2006), Boas Práticas Aquícolas / Visão Agrícola 11 (2012) e Cartilha de Qualidade da Água na Piscicultura (2018). As doses de tanque revestido são calculadas pela química da água. Confira sempre com análise local e um responsável técnico.</p>`}
+  <p class="cor-fonte">Base técnica: Embrapa — Circular Técnica 14 (2006), Boas Práticas Aquícolas / Visão Agrícola 11 (2012), Cartilha de Qualidade da Água na Piscicultura (2018) e Manejo na carcinicultura (2022); SENAR 209 — Construção de viveiros escavados (2018). As doses de tanque revestido são calculadas pela química da água. Confira sempre com análise local e um responsável técnico.</p>`}
 
 function desenha(){const v=document.getElementById("view-correcao");if(!v||v.hidden)return;const c=card();if(!c)return;
   const b=document.getElementById("gf-corr-body");if(!b)return;const foco=document.activeElement,ed=foco&&foco.closest&&foco.closest("#gf-corr-card");if(ed)return;/* não redesenha enquanto digita */
