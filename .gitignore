@@ -1,2 +1,4 @@
 # pedidos e anotações locais (não vão para o GitHub)
 pedidos/
+node_modules/
+package-lock.json
