@@ -19640,13 +19640,18 @@ function volDasAbas(){let v=0;const G=T(()=>window.gfRasCad&&gfRasCad.grupos&&gf
   return v>0?Math.round(v):0}
 function aguaDasAbas(){return T(()=>{const r=window.aquaCadResumo&&aquaCadResumo();if(!r)return null;
   const g=x=>{const n=num(x);return isFinite(n)?n:null};return {ph:g(r.ph),alk:g(r.alk||r.alcalinidade),dur:g(r.dur||r.dureza)}},null)}
-function dims(){const ev=S.estrutura==="viveiro";
+function dims(){const temSolo=S.estrutura==="viveiro",porArea=S.estrutura==="viveiro"||S.estrutura==="viveiro_geo";
   let area=num(S.area),prof=num(S.prof)||1.2,vol=num(S.vol);
   const volAbas=volDasAbas();
-  if(!isFinite(vol)||vol<=0)vol=volAbas||(isFinite(area)?area*prof:0);
-  if(ev&&(!isFinite(area)||area<=0))area=isFinite(vol)&&vol>0&&prof>0?vol/prof:0;
+  if(porArea){ /* viveiro escavado (com ou sem revestimento): medir por área; volume = área × profundidade */
+    if((!isFinite(area)||area<=0)&&isFinite(vol)&&vol>0&&prof>0)area=vol/prof;
+    vol=(isFinite(area)&&area>0)?area*prof:(volAbas||0);
+  }else{ /* tanque (geomembrana apoiado / alvenaria): medir por volume */
+    if(!isFinite(vol)||vol<=0)vol=volAbas||0;
+    area=0;
+  }
   const ha=isFinite(area)?area/10000:0;
-  return {ev,area:isFinite(area)?area:0,ha,vol:isFinite(vol)?vol:0,prof,volAbas}}
+  return {ev:temSolo,temSolo,porArea,area:isFinite(area)?area:0,ha,vol:isFinite(vol)?vol:0,prof,volAbas}}
 
 /* ====================== CÁLCULOS ====================== */
 /* Calcário em viveiro — Tabela 1 Embrapa (Visão Agrícola 11, 2012): kg/ha de CaCO₃ por pH da lama e textura */
@@ -19709,7 +19714,7 @@ const inp=(k,ph,extra="")=>`<input data-cor="${k}" value="${E(S[k])}" placeholde
 const sel=(k,ops)=>`<select data-cor="${k}">${ops.map(([v,t])=>`<option value="${v}"${S[k]===v?" selected":""}>${E(t)}</option>`).join("")}</select>`;
 const chk=(k,t)=>`<label class="cor-ck"><input type="checkbox" data-cor="${k}" ${S[k]?"checked":""}> ${E(t)}</label>`;
 
-function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
+function corpo(){const d=dims(),m=META(S.esp),ev=d.ev,pa=d.porArea;
   const linha=(t,v,s)=>`<tr><th>${t}</th><td>${v}</td><td class="cor-s">${s||""}</td></tr>`;
   /* saídas */
   let out="",tot=0;
@@ -19720,7 +19725,7 @@ function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
   if(S.fazer_cal&&!ev){const c=calagemTanque(d),du=durezaTanque(d);out+=`<h4 class="cor-h">💧 Correção da água do tanque</h4>`;
     if(!c)out+=`<p class="hint">Informe a <b>alcalinidade</b> atual (mg/L) para calcular a correção.</p>`;
     else if(c.ok)out+=`<p class="cor-ok">✓ Alcalinidade ${F(c.atual)} mg/L já atinge a meta de ${F(c.meta)} para ${espNome(S.esp)}.</p>`;
-    else out+=`<div class="scroll"><table class="cor-t"><tbody>${linha("Elevar alcalinidade",`de ${F(c.atual)} para ${F(c.meta)} mg/L`,`+${F(c.dA)} mg/L`)}${linha("Bicarbonato de sódio",`<b>${F(c.bic_kg,1)} kg</b>`,`${F(c.bic_gm3,1)} g/m³ · ${F(d.vol)} m³`)}${linha("ou Calcário (alcalinidade + dureza)",`${F(c.carb_kg,1)} kg`,`dissolve mais devagar`)}${du&&!du.ok?linha("Gesso agrícola (dureza)",`${F(du.kg,1)} kg`,`de ${F(du.atual)} para ${F(du.meta)} mg/L`):""}</tbody></table></div><p class="hint">Em tanque de geomembrana/alvenaria não há solo: a correção é feita na água. Dissolver e aplicar aos poucos, medindo de novo em 1–2 dias.</p>`}
+    else out+=`<div class="scroll"><table class="cor-t"><tbody>${linha("Elevar alcalinidade",`de ${F(c.atual)} para ${F(c.meta)} mg/L`,`+${F(c.dA)} mg/L`)}${linha("Bicarbonato de sódio",`<b>${F(c.bic_kg,1)} kg</b>`,`${F(c.bic_gm3,1)} g/m³ · ${F(d.vol)} m³`)}${linha("ou Calcário (alcalinidade + dureza)",`${F(c.carb_kg,1)} kg`,`dissolve mais devagar`)}${du&&!du.ok?linha("Gesso agrícola (dureza)",`${F(du.kg,1)} kg`,`de ${F(du.atual)} para ${F(du.meta)} mg/L`):""}</tbody></table></div><p class="hint">Em estrutura revestida (geomembrana ou alvenaria) não há contato com o solo: a correção é feita na água${pa?`, sobre o volume estimado (área × profundidade = ${F(d.vol)} m³)`:""}. Dissolver e aplicar aos poucos, medindo de novo em 1–2 dias.</p>`}
   if(S.fazer_adu){const a=adubacao(d);out+=`<h4 class="cor-h">🌱 Adubação</h4>`;
     if(!a)out+=`<p class="hint">Informe a área para calcular a adubação.</p>`;
     else out+=`<div class="scroll"><table class="cor-t"><tbody>${linha("Adubo orgânico",`<b>${F(a.org)} kg</b>`,`${F(num(S.orgDose))} kg/ha · cama de aviário/esterco`)}${linha("Ureia",`${F(a.ureia)} kg`,`${F(num(S.ureiaDose))} kg/ha`)}</tbody></table></div><p class="hint">Adubar para produzir plâncton quando a água estiver clara (transparência acima de 50 cm no disco de Secchi). Encher 10–20 cm de água antes e esperar 1–2 semanas para povoar.</p>`}
@@ -19730,10 +19735,10 @@ function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
   const ph0=faixaPh(S.esp);const faixa=`<div class="cor-metas"><b>Metas para ${espNome(S.esp)}${/camar|pl/.test(S.esp)&&S.fase?" · "+FASES[S.fase]:""}:</b> pH ${ph0[0]}–${ph0[1]} · alcalinidade ≥ ${m.alk} mg/L${/camar|pl/.test(S.esp)?" (100–150)":" (ideal 60–150)"} · dureza ≥ ${m.dur} mg/L<small style="display:block;margin-top:3px">${E(notaEsp(S.esp))}</small></div>`;
 
   return `<div class="cor-grid">
-    <label class="cor-f"><span>Estrutura</span>${sel("estrutura",[["viveiro","🏞 Viveiro escavado (solo)"],["geomembrana","🟦 Tanque de geomembrana"],["alvenaria","🧱 Tanque de alvenaria"]])}</label>
+    <label class="cor-f"><span>Estrutura</span>${sel("estrutura",[["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro escavado revestido (geomembrana)"],["geomembrana","🟦 Tanque de geomembrana"],["alvenaria","🧱 Tanque de alvenaria"]])}</label>
     <label class="cor-f"><span>Espécie</span>${sel("esp",Object.keys(ESP).filter(k=>k!=="outro").map(k=>[k,espNome(k)]))}</label>
     ${/camar|pl/.test(S.esp)?`<label class="cor-f"><span>Fase do cultivo</span>${sel("fase",Object.entries(FASES))}</label>`:""}
-    ${ev?`<label class="cor-f"><span>Área do viveiro (m²)</span>${inp("area",d.area?F(d.area):"ex.: 1000")}</label>
+    ${pa?`<label class="cor-f"><span>Área do viveiro (m²)</span>${inp("area",d.area?F(d.area):"ex.: 1000")}</label>
       <label class="cor-f"><span>Profundidade média (m)</span>${inp("prof","1,2")}</label>`
      :`<label class="cor-f"><span>Volume do tanque (m³)</span>${inp("vol",d.volAbas?F(d.volAbas)+" (das abas)":"ex.: 50")}</label>`}
     ${ev?`<label class="cor-f"><span>pH do solo/lama</span>${inp("solo_ph","ex.: 5,5")}</label>
@@ -19746,7 +19751,7 @@ function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
   </div>
   ${faixa}
   <div class="cor-opc">${chk("fazer_cal",ev?"Calagem do solo":"Correção da água")} ${chk("fazer_adu","Adubação (plâncton)")} ${ev?chk("fazer_des","Desinfecção do fundo"):""}</div>
-  ${d.vol>0||d.area>0?`<p class="cor-dim">📐 ${ev?`${F(d.area)} m² (${F(d.ha,3)} ha)`:`${F(d.vol)} m³`}${d.volAbas?` · ${F(d.volAbas)} m³ somados dos tanques das abas`:""}</p>`:`<p class="hint">Preencha as dimensões (ou cadastre os tanques nas abas) para o cálculo ser proporcional ao tamanho.</p>`}
+  ${d.vol>0||d.area>0?`<p class="cor-dim">📐 ${pa?`${F(d.area)} m² (${F(d.ha,3)} ha)${!ev&&d.vol>0?` · ~${F(d.vol)} m³ de água`:""}`:`${F(d.vol)} m³`}${d.volAbas?` · ${F(d.volAbas)} m³ somados dos tanques das abas`:""}</p>`:`<p class="hint">Preencha as dimensões (ou cadastre os tanques nas abas) para o cálculo ser proporcional ao tamanho.</p>`}
   <div class="cor-out">${out||`<p class="hint">Marque o que deseja calcular acima.</p>`}</div>
   ${temItens?`<h4 class="cor-h">📦 Lista de insumos</h4><div class="scroll"><table class="cor-t"><tbody>${L.map(x=>`<tr><th>${E(x.n)}</th><td><b>${F(x.un)} ${E(x.emb)}</b></td><td class="cor-s">${E(x.fonte)}</td></tr>`).join("")}</tbody></table></div>
     <div class="gfp-bt cor-bt"><button type="button" class="btn solid" data-corx="insumos">📦 Enviar para a Gestão de Insumos</button><button type="button" class="btn" data-corx="zap">📲 Enviar por WhatsApp</button></div>`:""}
