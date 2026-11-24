@@ -1340,6 +1340,7 @@ function grpAtivo(){return GRP_FILTRA.includes(grpViewAtual())&&!!grpSel()}
 function grpI(i){return window.__grpIdx?window.__grpIdx[i]:i}
 function grpWrap(fn){return function(...a){if(!window.__grpIdx||window.__grpSwap)return fn.apply(this,a);const all=tanks;tanks=window.__grpIdx.map(i=>all[i]).filter(Boolean);window.__grpSwap=true;try{return fn.apply(this,a)}finally{tanks=all;window.__grpSwap=false}}}
 window.gfCalcRender=()=>render();
+window.gfAplicaProjeto=(groups,subst)=>{try{if(typeof tanks==="undefined")return false;if(subst)for(let i=tanks.length-1;i>=0;i--)if(/\(dim\.\)$/.test(tanks[i].name||""))tanks.splice(i,1);const nid=()=>tanks.reduce((m,t)=>Math.max(m,t.id+1),0),cor=()=>{for(let c=0;c<8;c++)if(!tanks.some(t=>t.c===c))return c;return 8};(groups||[]).forEach(g=>{const vol=Number(g.v);if(!(vol>0)||!(Number(g.q)>0))return;tanks.push({id:nid(),c:cor(),name:String(g.name||"").slice(0,24),q:String(Math.round(Number(g.q))),v:String(Math.round(vol*100)/100).replace(".",",")})});if(typeof drawTanks==="function")drawTanks();if(typeof render==="function")render();if(typeof save==="function")save();return true}catch(e){return false}};
 function render(){if(window.__grpSwap)return renderCore();window.__grpIdx=null;renderCore();dashStateAll=dashState;
   if(grpAtivo()){const all=tanks,s=grpSel(),idx=[];all.forEach((t,i)=>{if(String(t.id)===s)idx.push(i)});window.__grpIdx=idx;tanks=idx.map(i=>all[i]);window.__grpSwap=true;try{renderCore()}finally{tanks=all;window.__grpSwap=false}}
   try{window.drawGrpBar&&drawGrpBar()}catch(e){}}
@@ -19843,7 +19844,11 @@ try{if(!document.getElementById("gf-dim-css")){const st=document.createElement("
 .gf-dim .cor-f input,.gf-dim .cor-f select{width:100%;padding:7px 9px;border:1px solid var(--line,#e2e8f0);border-radius:9px;background:var(--card,#fff);color:inherit;font-size:14px}
 .gf-dim .scroll{overflow-x:auto}
 .dim-aviso{font-size:12.5px;background:#fff4e5;color:#8a5200;border:1px solid #f0c27a;border-radius:9px;padding:8px 10px;margin:8px 0}
-:root[data-theme="dark"] .dim-aviso{background:#3a2c12;color:#f0c27a;border-color:#6b5220}`;
+:root[data-theme="dark"] .dim-aviso{background:#3a2c12;color:#f0c27a;border-color:#6b5220}
+.dim-bt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 4px}
+.dim-bt-h{font-size:12px;color:var(--muted);flex:1;min-width:180px}
+.gf-dim-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);max-width:92vw;background:#0f766e;color:#fff;padding:11px 15px;border-radius:12px;font-size:13.5px;box-shadow:0 8px 26px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999}
+.gf-dim-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}`;
   document.head.appendChild(st)}}catch(e){}
 const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
@@ -20019,6 +20024,7 @@ function saida(){
       ${isFinite(r.vazao)?linha("Vazão de renovação",`${F(r.vazao,1)} L/s`,`${pz.ren} do volume`):""}
       ${isFinite(r.hpTot)?linha("Aeração recomendada",`${F(r.hpTot,1)} hp`,`${pz.aer} · ${pz.hp} hp/ha`):""}
     </tbody></table></div>
+    ${r.cabe?`<div class="gfp-bt dim-bt"><button type="button" class="btn solid" data-dimx="aplica">▶️ Rodar no cálculo da mídia</button><span class="dim-bt-h">Cria ${F(r.nUn)} ${un}(s) de ${F(pV?r.mod:r.Aw*r.prof,1)} m³ na calculadora e dimensiona filtros e mídia para ${F(r.vol)} m³.</span></div>`:""}
     <p class="hint">${pV?`Tanques revestidos/RAS: densidade por volume (kg/m³); paredes verticais ocupam pouco terreno. `:ehCarci()?`Camarão é bentônico: densidade por m² de fundo. `:`Viveiro de peixe: densidade por m² de lâmina d'água. `}O nº de ${un}s vem da geometria (lâmina + taludes + dique); ajuste o tamanho, o talude, o dique, o formato ou o próprio nº se precisar.</p>`;
   }
 }
@@ -20066,6 +20072,18 @@ document.addEventListener("change",e=>{const el=e.target.closest&&e.target.close
   /* limpa overrides para pegar o preset do novo contexto */
   if(k==="cultivo"||k==="esp"||k==="estrutura"||k==="sistema"){S.dens="";if(k!=="sistema"){S.pFinal="";S.sobrev="";S.ciclos="";S.modulo="";S.prof="";S.nUn="";if(k==="estrutura"||k==="cultivo"){S.talude="";S.crista=""}}}
   salva();const b=document.getElementById("gf-dim-body");if(b)b.__h="";desenha()},true);
+
+/* botão: envia o projeto dimensionado para a Calculadora (grupos de tanques) e rola até o cálculo da mídia */
+const toast=t=>{try{let n=document.getElementById("gf-dim-toast");if(!n){n=document.createElement("div");n.id="gf-dim-toast";n.className="gf-dim-toast";document.body.appendChild(n)}n.innerHTML=t;n.classList.add("on");clearTimeout(n._t);n._t=setTimeout(()=>n.classList.remove("on"),5000)}catch(e){}};
+document.addEventListener("click",e=>{const btn=e.target.closest&&e.target.closest('#gf-dim-card [data-dimx="aplica"]');if(!btn)return;
+  const r=T(calc,null);if(!r||!r.cabe){toast("Preencha a área (e um nº de unidades que caiba) antes de rodar.");return}
+  const un=r.pV?"tanque":"viveiro", volUn=r.pV?r.mod:r.Aw*r.prof;
+  const nome=`${espNome(S.esp)} · ${un} (dim.)`;
+  const ok=T(()=>window.gfAplicaProjeto&&window.gfAplicaProjeto([{name:nome,q:r.nUn,v:volUn}],true),false);
+  if(ok){toast(`✅ <b>${F(r.nUn)} ${un}(s)</b> de ${F(volUn,1)} m³ enviados para a Calculadora. Veja abaixo o cálculo de filtros e mídia para ${F(r.vol)} m³.`);
+    setTimeout(()=>{const alvo=document.getElementById("etapa-4")||document.querySelector("#view-calc .right")||document.getElementById("vtotal")||document.getElementById("ras-cad-card");if(alvo)alvo.scrollIntoView({behavior:"smooth",block:"start"})},200);
+  }else toast("Não consegui enviar para a Calculadora nesta versão. Cadastre os tanques manualmente em “Tanques do cliente”.");
+},true);
 
 /* mantém o card presente ao abrir a Calculadora */
 function observa(){const v=host();if(!v)return;card();
