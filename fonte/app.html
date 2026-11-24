@@ -1063,7 +1063,7 @@ body.has-bnav .imp-box{bottom:76px}
     <button type="button" class="tab" role="tab" id="tab-topo" aria-controls="view-topo" data-view="topo">Levantamentos e projetos</button>
     <button type="button" class="tab" role="tab" id="tab-gest" aria-controls="view-gest" data-view="gest">AquaGestão</button>
     <button type="button" class="tab" role="tab" id="tab-dados" aria-controls="view-dados" data-view="dados">Análise de dados</button>
-    <button type="button" class="tab" role="tab" id="tab-repro" aria-controls="view-repro" data-view="repro">Reprodução</button>
+    <button type="button" class="tab" role="tab" id="tab-repro" aria-controls="view-repro" data-view="repro">Reprodução</button><button type="button" class="tab" role="tab" id="tab-correcao" aria-controls="view-correcao" data-view="correcao">Correção</button>
     <button type="button" class="tab" role="tab" id="tab-aqua" aria-controls="view-aqua" data-view="aqua">AquaNictemeral</button>
     <button type="button" class="tab" role="tab" id="tab-bio" aria-controls="view-bio" data-view="bio">Biomassa total em tempo real</button>
     <button type="button" class="tab" role="tab" id="tab-racao" aria-controls="view-racao" data-view="racao">Arraçoamento</button>
@@ -1090,6 +1090,7 @@ body.has-bnav .imp-box{bottom:76px}
   <div class="dash" id="view-benef" role="tabpanel" aria-labelledby="tab-benef" hidden></div>
   <div class="dash" id="view-fin" role="tabpanel" aria-labelledby="tab-fin" hidden></div>
   <div class="dash" id="view-gest" role="tabpanel" aria-labelledby="tab-gest" hidden></div>
+  <div class="dash" id="view-correcao" role="tabpanel" aria-labelledby="tab-correcao" hidden></div>
   <div class="dash" id="view-dados" role="tabpanel" aria-labelledby="tab-dados" hidden></div>
   <div class="dash" id="view-proj" role="tabpanel" aria-labelledby="tab-proj" hidden></div>
   <div class="dash" id="view-users" role="tabpanel" aria-labelledby="tab-users" hidden></div>
@@ -2552,11 +2553,11 @@ function drawPlan(){
 }
 
 /* ---------- Abas ---------- */
-const VIEWS=["local","calc","aqua","bio","racao","dash","repro","topo","gest","dados","merc","benef","fin","proj","users"];
+const VIEWS=["local","calc","aqua","bio","racao","dash","repro","correcao","topo","gest","dados","merc","benef","fin","proj","users"];
 function setView(v){
   if(!VIEWS.includes(v)) v="calc";
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
-  dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}if(v==="bio"){try{loadAqua()}catch(e){}}
+  dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";{const vc=document.getElementById("view-correcao");if(vc)vc.hidden=v!=="correcao"}if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}if(v==="bio"){try{loadAqua()}catch(e){}}
   try{localStorage.setItem(KEY+"-view",v)}catch(e){}
   hideTip();window.drawPjGate&&drawPjGate(v);window.drawFocoBar&&drawFocoBar(v);if(window.__grpIdx||(GRP_FILTRA.includes(v)&&grpSel()))render();if(v==="aqua"){(async()=>{for(let i=0;i<40;i++){try{const w=aquaFrame.contentWindow;if(w&&w.aquaSoGrupo){w.aquaSoGrupo(grpSel()?"ras-"+grpSel():"");return}}catch(e){}await new Promise(r=>setTimeout(r,250))}})()}window.drawGrpBar&&drawGrpBar(v);drawDash();
   if(v==="bio"){drawBioEditor();drawBio()}
@@ -13718,8 +13719,8 @@ window.gfImportarDebug={processar,medidasTexto,coordsTexto,pontosTabela,retMin,u
 </script>
 <script>
 /* v213: menu lateral verde (como a Central de gestão) com as abas em pastas; no celular abre pelo botão ☰ Menu */
-(()=>{const ICO={calc:"🧮",local:"📍",topo:"📐",proj:"🗂",bio:"⚖️",racao:"🍽",aqua:"📈",repro:"🧬",dados:"📊",gest:"🏛",fin:"💰",merc:"🗺",benef:"🏭",dash:"📌",users:"👥"};
-  const GR=[["🏗","Projeto e dimensionamento",["calc","local","topo"]],["🐟","Produção e água",["bio","racao","aqua","repro","dados"]],["💼","Gestão e mercado",["gest","fin","merc","benef","dash"]],["👥","Conta e acesso",["users"]]];
+(()=>{const ICO={calc:"🧮",local:"📍",topo:"📐",proj:"🗂",bio:"⚖️",racao:"🍽",aqua:"📈",repro:"🧬",correcao:"🧪",dados:"📊",gest:"🏛",fin:"💰",merc:"🗺",benef:"🏭",dash:"📌",users:"👥"};
+  const GR=[["🏗","Projeto e dimensionamento",["calc","local","topo"]],["🐟","Produção e água",["bio","racao","aqua","repro","correcao","dados"]],["💼","Gestão e mercado",["gest","fin","merc","benef","dash"]],["👥","Conta e acesso",["users"]]];
   const H=document.documentElement,lg=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},ls=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
   let ab=lg("gf-side-ab",null),mini=!!lg("gf-side-mini",false);
   function run(){const nav=document.querySelector("nav.tabs");if(!nav)return;
@@ -19587,5 +19588,208 @@ if(ehNovo||window.__gfMigraTeste){
   window.gfMigraTela=tela;
 }
 window.gfMigra={pacote,aplica};
+})();
+</script>
+
+<script>
+/* ===================== v332: 🧪 Correção — dentro de "Produção e água".
+   Calagem, correção de água e adubação com base técnica da Embrapa, proporcional ao tamanho da estrutura
+   (viveiro escavado pela análise do solo; tanque de geomembrana/alvenaria pela análise da água).
+   Correlaciona com as dimensões das abas, mostra um aviso na Biomassa e envia a lista para a Gestão de Insumos.
+   Fontes: Embrapa Circular Técnica 14 (Queiroz & Boeira, 2006); Visão Agrícola 11 / BPA (Queiroz & Monteiro, 2012);
+   Cartilha Qualidade da Água na Piscicultura (Corrêa, 2018). Doses de tanque revestido derivadas da química da água. ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const P=v=>{const n=parseFloat(String(v??"").replace(/\./g,x=>x).replace(",","."));return isFinite(n)?n:NaN};
+const num=v=>{const n=typeof v==="number"?v:parseFloat(String(v??"").replace(",","."));return isFinite(n)?n:NaN};
+const F=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d,minimumFractionDigits:0}):"—";
+const LS="gf-correcao-v1";
+const toast=t=>T(()=>window.gfPrevToast?gfPrevToast(t):null);
+
+/* ---- estado salvo ---- */
+const vazio=()=>({estrutura:"viveiro",esp:"tilapia",area:"",prof:"1.2",vol:"",solo_ph:"",solo_tex:"franco",prnt:"85",mat:"dolomitico",
+  agua_ph:"",agua_alk:"",agua_dur:"",fazer_cal:true,fazer_adu:false,fazer_des:false,orgDose:"1500",ureiaDose:"300",em:0});
+let S=T(()=>Object.assign(vazio(),JSON.parse(localStorage.getItem(LS)||"{}")),vazio());
+const salva=()=>{S.em=Date.now();T(()=>localStorage.setItem(LS,JSON.stringify(S)))};
+
+/* ---- espécies do app + metas de água por espécie ---- */
+const ESP=T(()=>window.ESP,null)||{tilapia:["Tilápia"],tambaqui:["Tambaqui"],camarao:["Camarão"],pl:["Pós-larva de camarão"]};
+const espNome=k=>T(()=>ESP[k][0],k)||k;
+/* alcalinidade-alvo (mg/L CaCO₃): camarão exige mais; peixes toleram a partir de 20, ideal 60–150 */
+const META=k=>/camar|pl/.test(k)?{alk:120,dur:120}:{alk:60,dur:60};
+const FAIXA={ph:[6.5,9],alk:[60,150],dur:[60,150]}; /* Cartilha Qualidade da Água */
+
+/* ---- dimensões vindas das abas (proporcional ao tamanho) ---- */
+function volDasAbas(){let v=0;const G=T(()=>window.gfRasCad&&gfRasCad.grupos&&gfRasCad.grupos(),null);
+  if(Array.isArray(G))G.forEach(g=>{const vv=num(g.vol)||num(g.q)*num(g.v)||num(g.volume)||0;if(isFinite(vv))v+=vv});
+  return v>0?Math.round(v):0}
+function aguaDasAbas(){return T(()=>{const r=window.aquaCadResumo&&aquaCadResumo();if(!r)return null;
+  const g=x=>{const n=num(x);return isFinite(n)?n:null};return {ph:g(r.ph),alk:g(r.alk||r.alcalinidade),dur:g(r.dur||r.dureza)}},null)}
+function dims(){const ev=S.estrutura==="viveiro";
+  let area=num(S.area),prof=num(S.prof)||1.2,vol=num(S.vol);
+  const volAbas=volDasAbas();
+  if(!isFinite(vol)||vol<=0)vol=volAbas||(isFinite(area)?area*prof:0);
+  if(ev&&(!isFinite(area)||area<=0))area=isFinite(vol)&&vol>0&&prof>0?vol/prof:0;
+  const ha=isFinite(area)?area/10000:0;
+  return {ev,area:isFinite(area)?area:0,ha,vol:isFinite(vol)?vol:0,prof,volAbas}}
+
+/* ====================== CÁLCULOS ====================== */
+/* Calcário em viveiro — Tabela 1 Embrapa (Visão Agrícola 11, 2012): kg/ha de CaCO₃ por pH da lama e textura */
+const CAL_TAB=[/* [phMax, argiloso, franco, arenoso] */
+  [4.0,14320,7160,4475],[4.5,10740,5370,4475],[5.0,8950,4475,3580],
+  [5.5,5370,3580,1790],[6.0,3580,1790,895],[6.5,1790,1790,0],[99,0,0,0]];
+const TEXI={argiloso:1,franco:2,arenoso:3};
+function calagemViveiro(d){const ph=num(S.solo_ph);if(!isFinite(ph))return null;
+  const lin=CAL_TAB.find(r=>ph<=r[0])||CAL_TAB[CAL_TAB.length-1];const col=TEXI[S.solo_tex]||2;
+  const baseHa=lin[col];const prnt=Math.max(30,Math.min(130,num(S.prnt)||85));
+  const corrHa=baseHa*100/prnt; /* corrige pela qualidade do calcário (PRNT) */
+  const kg=corrHa*d.ha;
+  return {baseHa,corrHa,kg:Math.round(kg),prnt,ph,necessaria:baseHa>0}}
+/* Correção de água em tanque revestido — eleva alcalinidade até a meta (química da água) */
+function calagemTanque(d){const alk=num(S.agua_alk),meta=META(S.esp).alk,alvo=alk;const atual=isFinite(alk)?alk:null;
+  if(atual==null)return null;const dA=Math.max(0,meta-atual);
+  /* 1 mg/L CaCO₃ = 1 g/m³. Bicarbonato de sódio: 84/50 = 1,68 g por g de CaCO₃ equivalente (dissolve bem em tanque) */
+  const bic_gm3=dA*1.68, bic_kg=bic_gm3*d.vol/1000;
+  const carb_gm3=dA*1.0, carb_kg=carb_gm3*d.vol/1000; /* calcário/carbonato: eleva alcalinidade e dureza */
+  return {atual,meta,dA,bic_gm3,bic_kg:Math.round(bic_kg*10)/10,carb_kg:Math.round(carb_kg*10)/10,ok:dA<=0}}
+/* Dureza (cálcio) em tanque — gesso agrícola CaSO₄·2H₂O: 1,72 g/m³ por mg/L de dureza (como CaCO₃) */
+function durezaTanque(d){const dur=num(S.agua_dur),meta=META(S.esp).dur;if(!isFinite(dur))return null;
+  const dH=Math.max(0,meta-dur);const gm3=dH*1.72,kg=gm3*d.vol/1000;
+  return {atual:dur,meta,dH,gm3,kg:Math.round(kg*10)/10,ok:dH<=0}}
+/* Adubação (proporcional à área) — Embrapa BPA 2012 */
+function adubacao(d){if(!d.ha||d.ha<=0)return null;
+  const org=Math.round((num(S.orgDose)||1500)*d.ha);           /* cama de aviário / esterco 1000–2000 kg/ha */
+  const ureia=Math.round((num(S.ureiaDose)||300)*d.ha);        /* ureia 200–400 kg/ha entre ciclos */
+  return {org,ureia}}
+/* Desinfecção de fundo (viveiro vazio) — calcário/cal 1000–2000 kg/ha */
+function desinfeccao(d){if(!d.ha||d.ha<=0)return null;return {kg:Math.round(1500*d.ha)}}
+
+/* lista de insumos que vai para a Gestão de Insumos */
+function itens(){const d=dims(),L=[];
+  if(S.fazer_cal){
+    if(d.ev){const c=calagemViveiro(d);if(c&&c.kg>0)L.push({n:`Calcário ${S.mat==="dolomitico"?"dolomítico":"calcítico"} (calagem)`,emb:"kg",un:c.kg,fonte:"Embrapa CT14 / VA11"})}
+    else{const c=calagemTanque(d);if(c&&!c.ok){L.push({n:"Bicarbonato de sódio (elevar alcalinidade)",emb:"kg",un:Math.max(1,Math.round(c.bic_kg)),fonte:"química da água"});
+      const du=durezaTanque(d);if(du&&!du.ok&&du.kg>0)L.push({n:"Gesso agrícola (elevar dureza)",emb:"kg",un:Math.max(1,Math.round(du.kg)),fonte:"química da água"})}}
+  }
+  if(S.fazer_adu){const a=adubacao(d);if(a){if(a.org>0)L.push({n:"Cama de aviário / esterco (adubação orgânica)",emb:"kg",un:a.org,fonte:"Embrapa BPA 2012"});if(a.ureia>0)L.push({n:"Ureia (adubação)",emb:"kg",un:a.ureia,fonte:"Embrapa BPA 2012"})}}
+  if(S.fazer_des&&d.ev){const x=desinfeccao(d);if(x&&x.kg>0)L.push({n:"Calcário/cal para desinfecção do fundo",emb:"kg",un:x.kg,fonte:"Embrapa BPA 2012"})}
+  return L}
+
+/* status para a Biomassa e outras abas */
+window.gfCorrecao={
+  dados:()=>S, itens,
+  status:()=>{const a=aguaDasAbas()||{ph:num(S.agua_ph),alk:num(S.agua_alk),dur:num(S.agua_dur)};
+    const f=[];if(isFinite(a.ph)&&(a.ph<FAIXA.ph[0]||a.ph>FAIXA.ph[1]))f.push(`pH ${F(a.ph,1)}`);
+    if(isFinite(a.alk)&&a.alk<META(S.esp).alk)f.push(`alcalinidade ${F(a.alk)} mg/L (ideal ≥ ${META(S.esp).alk})`);
+    if(isFinite(a.dur)&&a.dur<META(S.esp).dur)f.push(`dureza ${F(a.dur)} mg/L (ideal ≥ ${META(S.esp).dur})`);
+    return {fora:f,ok:f.length===0,tem:isFinite(a.ph)||isFinite(a.alk)||isFinite(a.dur)}}
+};
+
+/* ====================== INTERFACE ====================== */
+function card(){const v=document.getElementById("view-correcao");if(!v)return null;let c=document.getElementById("gf-corr-card");
+  if(!c){c=document.createElement("section");c.className="card wide";c.id="gf-corr-card";
+    c.innerHTML=`<div class="card-head"><h2>🧪 Correção<span>Calagem, correção de água e adubação pela análise do solo (viveiro) e da água (tanque), proporcional ao tamanho. Base: Embrapa.</span></h2></div><div class="body" id="gf-corr-body"></div>`;
+    v.appendChild(c);const bb=c.querySelector("#gf-corr-body");const h0=T(corpo,"");bb.innerHTML=h0;bb.__h=h0}return c}
+const inp=(k,ph,extra="")=>`<input data-cor="${k}" value="${E(S[k])}" placeholder="${E(ph)}" inputmode="decimal" ${extra} aria-label="${E(ph)}">`;
+const sel=(k,ops)=>`<select data-cor="${k}">${ops.map(([v,t])=>`<option value="${v}"${S[k]===v?" selected":""}>${E(t)}</option>`).join("")}</select>`;
+const chk=(k,t)=>`<label class="cor-ck"><input type="checkbox" data-cor="${k}" ${S[k]?"checked":""}> ${E(t)}</label>`;
+
+function corpo(){const d=dims(),m=META(S.esp),ev=d.ev;
+  const linha=(t,v,s)=>`<tr><th>${t}</th><td>${v}</td><td class="cor-s">${s||""}</td></tr>`;
+  /* saídas */
+  let out="",tot=0;
+  if(S.fazer_cal&&ev){const c=calagemViveiro(d);out+=`<h4 class="cor-h">🪨 Calagem do viveiro</h4>`;
+    if(!c)out+=`<p class="hint">Informe o <b>pH do solo/lama</b> do fundo para calcular a calagem.</p>`;
+    else if(!c.necessaria)out+=`<p class="cor-ok">✓ pH ${F(c.ph,1)}: o solo não precisa de calagem (Tabela Embrapa).</p>`;
+    else out+=`<div class="scroll"><table class="cor-t"><tbody>${linha("Dose base (CaCO₃)",`${F(c.baseHa)} kg/ha`,`pH ${F(c.ph,1)} · solo ${S.solo_tex}`)}${linha("Corrigida pelo PRNT",`${F(c.corrHa)} kg/ha`,`PRNT ${c.prnt}%`)}${linha("Total para esta área",`<b>${F(c.kg)} kg</b> de calcário ${S.mat==="dolomitico"?"dolomítico":"calcítico"}`,`${F(d.area)} m² = ${F(d.ha,3)} ha`)}</tbody></table></div><p class="hint">Aplicar no fundo úmido, ao menos 1 semana antes da adubação; efeito na água em 1–2 semanas.</p>`}
+  if(S.fazer_cal&&!ev){const c=calagemTanque(d),du=durezaTanque(d);out+=`<h4 class="cor-h">💧 Correção da água do tanque</h4>`;
+    if(!c)out+=`<p class="hint">Informe a <b>alcalinidade</b> atual (mg/L) para calcular a correção.</p>`;
+    else if(c.ok)out+=`<p class="cor-ok">✓ Alcalinidade ${F(c.atual)} mg/L já atinge a meta de ${F(c.meta)} para ${espNome(S.esp)}.</p>`;
+    else out+=`<div class="scroll"><table class="cor-t"><tbody>${linha("Elevar alcalinidade",`de ${F(c.atual)} para ${F(c.meta)} mg/L`,`+${F(c.dA)} mg/L`)}${linha("Bicarbonato de sódio",`<b>${F(c.bic_kg,1)} kg</b>`,`${F(c.bic_gm3,1)} g/m³ · ${F(d.vol)} m³`)}${linha("ou Calcário (alcalinidade + dureza)",`${F(c.carb_kg,1)} kg`,`dissolve mais devagar`)}${du&&!du.ok?linha("Gesso agrícola (dureza)",`${F(du.kg,1)} kg`,`de ${F(du.atual)} para ${F(du.meta)} mg/L`):""}</tbody></table></div><p class="hint">Em tanque de geomembrana/alvenaria não há solo: a correção é feita na água. Dissolver e aplicar aos poucos, medindo de novo em 1–2 dias.</p>`}
+  if(S.fazer_adu){const a=adubacao(d);out+=`<h4 class="cor-h">🌱 Adubação</h4>`;
+    if(!a)out+=`<p class="hint">Informe a área para calcular a adubação.</p>`;
+    else out+=`<div class="scroll"><table class="cor-t"><tbody>${linha("Adubo orgânico",`<b>${F(a.org)} kg</b>`,`${F(num(S.orgDose))} kg/ha · cama de aviário/esterco`)}${linha("Ureia",`${F(a.ureia)} kg`,`${F(num(S.ureiaDose))} kg/ha`)}</tbody></table></div><p class="hint">Adubar para produzir plâncton quando a água estiver clara (transparência acima de 50 cm no disco de Secchi). Encher 10–20 cm de água antes e esperar 1–2 semanas para povoar.</p>`}
+  if(S.fazer_des&&ev){const x=desinfeccao(d);out+=`<h4 class="cor-h">🧯 Desinfecção do fundo (viveiro vazio)</h4><p>Calcário/cal: <b>${F(x.kg)} kg</b> (1.500 kg/ha). Aplicar com o fundo úmido, entre ciclos.</p>`}
+
+  const L=itens(),temItens=L.length>0;
+  const faixa=`<div class="cor-metas"><b>Metas para ${espNome(S.esp)}:</b> pH ${FAIXA.ph[0]}–${FAIXA.ph[1]} · alcalinidade ≥ ${m.alk} mg/L (ideal 60–150) · dureza ≥ ${m.dur} mg/L</div>`;
+
+  return `<div class="cor-grid">
+    <label class="cor-f"><span>Estrutura</span>${sel("estrutura",[["viveiro","🏞 Viveiro escavado (solo)"],["geomembrana","🟦 Tanque de geomembrana"],["alvenaria","🧱 Tanque de alvenaria"]])}</label>
+    <label class="cor-f"><span>Espécie</span>${sel("esp",Object.keys(ESP).filter(k=>k!=="outro").map(k=>[k,espNome(k)]))}</label>
+    ${ev?`<label class="cor-f"><span>Área do viveiro (m²)</span>${inp("area",d.area?F(d.area):"ex.: 1000")}</label>
+      <label class="cor-f"><span>Profundidade média (m)</span>${inp("prof","1,2")}</label>`
+     :`<label class="cor-f"><span>Volume do tanque (m³)</span>${inp("vol",d.volAbas?F(d.volAbas)+" (das abas)":"ex.: 50")}</label>`}
+    ${ev?`<label class="cor-f"><span>pH do solo/lama</span>${inp("solo_ph","ex.: 5,5")}</label>
+      <label class="cor-f"><span>Textura do solo</span>${sel("solo_tex",[["argiloso","Argiloso"],["franco","Franco arenoso"],["arenoso","Arenoso"]])}</label>
+      <label class="cor-f"><span>Calcário (PRNT %)</span>${inp("prnt","85")}</label>
+      <label class="cor-f"><span>Tipo de calcário</span>${sel("mat",[["dolomitico","Dolomítico (+ magnésio)"],["calcitico","Calcítico"]])}</label>`
+     :`<label class="cor-f"><span>Alcalinidade (mg/L)</span>${inp("agua_alk","ex.: 25")}</label>
+      <label class="cor-f"><span>Dureza (mg/L)</span>${inp("agua_dur","ex.: 30")}</label>
+      <label class="cor-f"><span>pH da água</span>${inp("agua_ph","ex.: 6,8")}</label>`}
+  </div>
+  ${faixa}
+  <div class="cor-opc">${chk("fazer_cal",ev?"Calagem do solo":"Correção da água")} ${chk("fazer_adu","Adubação (plâncton)")} ${ev?chk("fazer_des","Desinfecção do fundo"):""}</div>
+  ${d.vol>0||d.area>0?`<p class="cor-dim">📐 ${ev?`${F(d.area)} m² (${F(d.ha,3)} ha)`:`${F(d.vol)} m³`}${d.volAbas?` · ${F(d.volAbas)} m³ somados dos tanques das abas`:""}</p>`:`<p class="hint">Preencha as dimensões (ou cadastre os tanques nas abas) para o cálculo ser proporcional ao tamanho.</p>`}
+  <div class="cor-out">${out||`<p class="hint">Marque o que deseja calcular acima.</p>`}</div>
+  ${temItens?`<h4 class="cor-h">📦 Lista de insumos</h4><div class="scroll"><table class="cor-t"><tbody>${L.map(x=>`<tr><th>${E(x.n)}</th><td><b>${F(x.un)} ${E(x.emb)}</b></td><td class="cor-s">${E(x.fonte)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="gfp-bt cor-bt"><button type="button" class="btn solid" data-corx="insumos">📦 Enviar para a Gestão de Insumos</button><button type="button" class="btn" data-corx="zap">📲 Enviar por WhatsApp</button></div>`:""}
+  <p class="cor-fonte">Base técnica: Embrapa — Circular Técnica 14 (2006), Boas Práticas Aquícolas / Visão Agrícola 11 (2012) e Cartilha de Qualidade da Água na Piscicultura (2018). As doses de tanque revestido são calculadas pela química da água. Confira sempre com análise local e um responsável técnico.</p>`}
+
+function desenha(){const v=document.getElementById("view-correcao");if(!v||v.hidden)return;const c=card();if(!c)return;
+  const b=document.getElementById("gf-corr-body");if(!b)return;const foco=document.activeElement,ed=foco&&foco.closest&&foco.closest("#gf-corr-card");if(ed)return;/* não redesenha enquanto digita */
+  const h=T(corpo,"");if(b.__h!==h){b.innerHTML=h;b.__h=h}}
+
+/* texto para WhatsApp */
+function texto(){const d=dims(),L=itens();if(!L.length)return "";
+  const lin=[`🧪 CORREÇÃO · ${S.estrutura==="viveiro"?"Viveiro escavado":S.estrutura==="geomembrana"?"Tanque geomembrana":"Tanque alvenaria"} · ${espNome(S.esp)}`,
+    d.ev?`📐 ${F(d.area)} m² (${F(d.ha,3)} ha)`:`📐 ${F(d.vol)} m³`,"","Insumos:"];
+  L.forEach(x=>lin.push(`• ${x.n}: ${F(x.un)} ${x.emb}`));
+  lin.push("","Base: Embrapa. Confira com análise local.");return lin.join("\n")}
+
+/* ---- eventos ---- */
+document.addEventListener("input",e=>{const el=e.target.closest&&e.target.closest("#gf-corr-card [data-cor]");if(!el)return;
+  const k=el.dataset.cor;S[k]=el.type==="checkbox"?el.checked:el.value;salva();
+  clearTimeout(window.__corT);window.__corT=setTimeout(()=>{const b=document.getElementById("gf-corr-body");if(b)b.__h="";desenha();bioAviso()},300)},true);
+document.addEventListener("change",e=>{const el=e.target.closest&&e.target.closest("#gf-corr-card [data-cor]");if(!el)return;
+  const k=el.dataset.cor;S[k]=el.type==="checkbox"?el.checked:el.value;salva();const b=document.getElementById("gf-corr-body");if(b)b.__h="";desenha();bioAviso()},true);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#gf-corr-card [data-corx]");if(!b)return;const k=b.dataset.corx,L=itens();
+  if(!L.length){toast("Preencha os dados para gerar a lista de insumos.");return}
+  if(k==="insumos"){const id=T(()=>window.gfInsumos&&gfInsumos.novoPedido("",L.map(x=>({n:x.n,kg:"",emb:x.emb,un:x.un,preco:""})),"correção"),"");
+    if(id){toast("📦 Enviado para a Gestão de Insumos: abra para completar o pedido.");T(()=>window.gfInsumos.abrir())}else toast("Não consegui enviar agora. Tente de novo.");return}
+  if(k==="zap"){const t=texto();if(t)window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank","noopener");return}});
+
+/* ---- correlação com a Biomassa: aviso no topo da aba ---- */
+function bioAviso(){const v=document.getElementById("view-bio");if(!v)return;let el=document.getElementById("gf-corr-bioaviso");
+  const st=window.gfCorrecao.status();
+  if(!st.tem||st.ok){if(el)el.remove();return}
+  if(!el){el=document.createElement("div");el.id="gf-corr-bioaviso";el.className="gf-corr-aviso";const first=v.querySelector(".gf-row")||v.firstElementChild;if(first&&first.nextSibling)v.insertBefore(el,first.nextSibling);else v.appendChild(el)}
+  const h=`⚠️ Água fora do ideal para o crescimento: ${st.fora.join(" · ")}. <button type="button" class="linkbtn" data-corx-ir>Corrigir em 🧪 Correção</button>`;
+  if(el.__h!==h){el.innerHTML=h;el.__h=h}}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest("[data-corx-ir]")){T(()=>setView("correcao"))}});
+
+const CSS=`#gf-corr-card .cor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:4px 0}
+.cor-f{display:grid;gap:3px;font-size:13px;min-width:0}.cor-f>span{font-weight:600;color:var(--muted)}
+#gf-corr-card input,#gf-corr-card select{font:inherit;padding:8px 10px;border:1px solid var(--line,#cbd5e1);border-radius:10px;background:var(--surface,#fff);color:inherit;min-width:0;width:100%;box-sizing:border-box}
+.cor-metas{font-size:12.5px;color:var(--muted);background:var(--cinza-soft,#eef1f4);padding:7px 10px;border-radius:9px;margin:8px 0}
+.cor-opc{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0}.cor-ck{display:flex;gap:6px;align-items:center;font-size:13.5px}
+.cor-dim{font-size:13px;color:var(--muted);margin:4px 0}
+.cor-h{margin:14px 0 6px;font-size:14.5px}.cor-ok{color:#15803d;font-weight:600;margin:4px 0}
+.cor-t{width:100%;border-collapse:collapse;font-size:13.5px}.cor-t th{text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line,#e2e8f0);vertical-align:top}.cor-t td{padding:6px 8px;border-bottom:1px solid var(--line,#e2e8f0);vertical-align:top}.cor-s{font-size:12px;color:var(--muted)}
+.cor-bt{margin-top:10px}.cor-fonte{font-size:11.5px;color:var(--muted);margin-top:14px;border-top:1px dashed var(--line,#e2e8f0);padding-top:8px}
+.gf-corr-aviso{margin:8px 0;padding:9px 12px;border-radius:10px;background:#fef3c7;color:#92400e;font-size:13.5px;border:1px solid #fcd34d}
+.gf-corr-aviso .linkbtn{color:#92400e;font-weight:700;text-decoration:underline;background:none;border:0;cursor:pointer;font:inherit;padding:0 2px}
+@media (max-width:600px){.cor-t th{white-space:normal}}`;
+{const st=document.createElement("style");st.textContent=CSS;document.head.appendChild(st)}
+
+/* mantém sincronizado com as abas, sem redesenhar à toa */
+const tic=()=>{T(desenha);T(bioAviso)};
+setInterval(tic,2500);
+new MutationObserver(()=>{clearTimeout(tic.t);tic.t=setTimeout(tic,300)}).observe(document.documentElement,{attributes:true,attributeFilter:["data-view"]});
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest('[data-view="correcao"],#tab-correcao'))setTimeout(tic,60)},true);
+function observaView(){const v=document.getElementById("view-correcao");if(!v){setTimeout(observaView,500);return}T(card);new MutationObserver(()=>tic()).observe(v,{attributes:true,attributeFilter:["hidden"]})}
+const ini=()=>{observaView();setTimeout(tic,800)};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ini);else ini();
 })();
 </script>
