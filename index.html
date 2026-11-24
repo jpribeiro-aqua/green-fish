@@ -14,7 +14,7 @@
 (()=>{const vistos=new Set();let box=null;function mostra(msg){msg=String(msg||"erro desconhecido").slice(0,600);if(vistos.has(msg)||vistos.size>8)return;vistos.add(msg);
   if(!box){box=document.createElement("div");box.id="gf-err";box.setAttribute("role","alert");document.body.appendChild(box)}
   const it=document.createElement("div");it.className="gf-err-it";it.innerHTML='<b>⚠️ Erro no app</b><code></code><span><button type="button" data-c>📋 Copiar</button><button type="button" data-x aria-label="Fechar">✕</button></span>';
-  it.querySelector("code").textContent=msg;const ver="ras-v330";
+  it.querySelector("code").textContent=msg;const ver="ras-v331";
   it.querySelector("[data-c]").onclick=e=>{const t="Green Fish "+ver+" · aba "+(location.hash||"")+" · "+navigator.userAgent.slice(0,80)+"\n"+msg;const b=e.target,ok=()=>{b.textContent="✓ Copiado"},alt=()=>{try{const a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;left:-9999px";document.body.appendChild(a);a.select();const r=document.execCommand("copy");a.remove();if(r)ok();else b.textContent="Selecione e copie o texto"}catch(_){b.textContent="Selecione e copie o texto"}};
   try{const p=navigator.clipboard&&navigator.clipboard.writeText(t);if(p&&p.then)p.then(ok,alt);else alt()}catch(_){alt()}};
   it.querySelector("[data-x]").onclick=()=>it.remove();box.appendChild(it)}
@@ -10840,7 +10840,7 @@ if(hospedado){
       if(document.querySelector("input:focus,textarea:focus,select:focus"))avisoVersao(null);else location.reload()});
     window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{
       const up=()=>r.update().catch(()=>{});setInterval(up,15*60000);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){up();confereVersao()}})}).catch(()=>{}));}
-  const APP_VERSAO="ras-v330";
+  const APP_VERSAO="ras-v331";
   function avisoVersao(nova){let b=document.getElementById("ver-aviso");if(!b){b=document.createElement("div");b.id="ver-aviso";b.className="ver-aviso";document.body.appendChild(b)}
     b.innerHTML=`<span>Há uma versão nova do app${nova?" ("+nova+")":""}.</span><button type="button" class="btn solid" id="ver-ok">Atualizar agora</button>`;
     b.querySelector("#ver-ok").addEventListener("click",()=>{b.querySelector("#ver-ok").textContent="Atualizando…";forcaAtualizar()})}
@@ -21441,5 +21441,107 @@ document.addEventListener("change",e=>{if(e.target.closest&&e.target.closest("[d
 .arq-busca input{width:100%;box-sizing:border-box;font:inherit;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;margin:4px 0 8px}
 @media (max-width:640px){.arq-t thead{display:none}.arq-t,.arq-t tbody,.arq-t tr,.arq-t td{display:block}.arq-t tr{border-bottom:1px solid #e2e8f0;padding:6px 0}.arq-t td{border:0;padding:2px 4px}}`;document.head.appendChild(st)}
 setTimeout(()=>T(purga),4000);
+})();
+</script>
+
+<script>
+/* ===================== v331: endereço novo greenfish.app.br — levar os dados do aparelho do endereço antigo
+   (jpribeiro-aqua.github.io) para o novo com um toque: localStorage + bancos IndexedDB do app (arquivos, fotos, XMLs…).
+   A sessão de login NÃO é copiada (a pessoa entra de novo no endereço novo). Sem janela ligada (app instalado no iPhone),
+   dá para baixar um arquivo no antigo e importar no novo ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+const NOVO="https://greenfish.app.br",VELHO="https://jpribeiro-aqua.github.io";
+const ehVelho=location.origin===VELHO,ehNovo=location.origin===NOVO||/^(www\.)?greenfish\.app\.br$/.test(location.hostname);
+const QP=new URLSearchParams(location.search),MIGRAR=QP.get("migrar")==="1";
+if(!ehVelho&&!ehNovo&&!window.__gfMigraTeste)return;
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DBS=["greenfish-arquivos","greenfish-levantamento","greenfish-aquaauto","greenfish-reg","greenfish-figuras","greenfish-fiscal"];
+const FORA=k=>/^sb-.*-auth-token/.test(k)||k==="gf-migrado"||k==="gf-migra-fechado"||k==="gf-migra-nunca";
+const KM="gf-migrado";
+const tam=n=>n>1048576?(n/1048576).toFixed(1).replace(".",",")+" MB":Math.max(1,Math.round(n/1024))+" KB";
+
+/* ---------- empacotar (Blobs viram dataURL, para caber em arquivo e em mensagem) ---------- */
+const b2u=b=>new Promise(ok=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>ok(null);r.readAsDataURL(b)});
+async function emp(v){if(v instanceof Blob)return {__gfb:await b2u(v),t:v.type,n:v.name||""};if(v instanceof ArrayBuffer)return {__gfab:await b2u(new Blob([v]))};
+  if(Array.isArray(v)){const o=[];for(const x of v)o.push(await emp(x));return o}if(v&&typeof v==="object"&&!(v instanceof Date)){const o={};for(const k in v)o[k]=await emp(v[k]);return o}return v}
+async function des(v){if(v&&typeof v==="object"){if(v.__gfb){const b=await (await fetch(v.__gfb)).blob();return v.n?new File([b],v.n,{type:v.t||b.type}):new Blob([b],{type:v.t||b.type})}
+  if(v.__gfab)return await (await (await fetch(v.__gfab)).blob()).arrayBuffer();if(Array.isArray(v)){const o=[];for(const x of v)o.push(await des(x));return o}if(!(v instanceof Date)){const o={};for(const k in v)o[k]=await des(v[k]);return o}}return v}
+const abre=(n,v)=>new Promise(ok=>{let r;try{r=v?indexedDB.open(n,v):indexedDB.open(n)}catch(e){ok(null);return}let novo=false;r.onupgradeneeded=()=>{if(!v){novo=true;try{r.transaction.abort()}catch(e){}}};r.onsuccess=()=>ok(novo?null:r.result);r.onerror=()=>ok(null);r.onblocked=()=>ok(null)});
+async function lerDB(n){const db=await abre(n);if(!db)return null;const out={n,ver:db.version,st:[]};
+  for(const s of [...db.objectStoreNames]){const t=db.transaction(s,"readonly"),o=t.objectStore(s),rec=[];
+    const info={name:s,kp:o.keyPath,ai:o.autoIncrement,ix:[...o.indexNames].map(i=>{const x=o.index(i);return {name:i,kp:x.keyPath,u:x.unique,m:x.multiEntry}}),rec};
+    await new Promise(ok=>{const c=o.openCursor();c.onsuccess=()=>{const cu=c.result;if(!cu){ok();return}rec.push(o.keyPath?{v:cu.value}:{k:cu.key,v:cu.value});cu.continue()};c.onerror=()=>ok()});
+    for(const r of rec)r.v=await emp(r.v);out.st.push(info)}db.close();return out}
+async function pacote(){const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!FORA(k))ls[k]=localStorage.getItem(k)}
+  const dbs=[];for(const n of DBS){try{const d=await lerDB(n);if(d&&d.st.some(s=>s.rec.length))dbs.push(d)}catch(e){}}
+  return {app:"green-fish",tipo:"migracao",de:location.origin,em:Date.now(),ls,dbs}}
+async function gravaDB(d){let db=await new Promise(ok=>{const r=indexedDB.open(d.n,d.ver);r.onupgradeneeded=()=>{const x=r.result;d.st.forEach(s=>{if(!x.objectStoreNames.contains(s.name)){const o=x.createObjectStore(s.name,{keyPath:s.kp==null?undefined:s.kp,autoIncrement:!!s.ai});(s.ix||[]).forEach(i=>{try{o.createIndex(i.name,i.kp,{unique:i.u,multiEntry:i.m})}catch(e){}})}})};r.onsuccess=()=>ok(r.result);r.onerror=()=>ok(null)});
+  if(!db)db=await abre(d.n);if(!db)return 0;let n=0;
+  for(const s of d.st){if(!db.objectStoreNames.contains(s.name))continue;const vals=[];for(const r of s.rec)vals.push({k:r.k,v:await des(r.v)});
+    await new Promise(ok=>{const t=db.transaction(s.name,"readwrite"),o=t.objectStore(s.name);vals.forEach(r=>{try{if(o.keyPath)o.put(r.v);else o.put(r.v,r.k);n++}catch(e){}});t.oncomplete=ok;t.onerror=ok;t.onabort=ok})}
+  db.close();return n}
+async function aplica(p){if(!p||p.app!=="green-fish"||p.tipo!=="migracao")throw new Error("arquivo não é do Green Fish");let n=0;
+  for(const k in p.ls){if(FORA(k))continue;try{localStorage.setItem(k,p.ls[k]);n++}catch(e){}}
+  for(const d of p.dbs||[])n+=await gravaDB(d);try{localStorage.setItem("gf-migrado-de",JSON.stringify({de:p.de,em:p.em,ate:Date.now(),n}))}catch(e){}return n}
+const temDados=()=>!!T(()=>localStorage.getItem("gf-migrado-de"),null);
+
+/* ---------- interface ---------- */
+const st=document.createElement("style");st.textContent=`#gf-mig{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom));z-index:10060;width:min(560px,calc(100% - 20px));background:#064e3b;color:#ecfdf5;border-radius:14px;padding:12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.3);display:grid;gap:8px;font-size:14px}
+#gf-mig b{font-size:15px}#gf-mig .mg-bt{display:flex;gap:8px;flex-wrap:wrap}#gf-mig button,#gf-mig a,#gf-mig label.mg-f{font:inherit;font-weight:700;border-radius:10px;padding:8px 12px;border:1px solid #6ee7b7;background:transparent;color:#ecfdf5;cursor:pointer;text-decoration:none}
+#gf-mig .mg-p{background:#10b981;border-color:#10b981;color:#052e16}#gf-mig small{opacity:.85}#gf-mig .mg-x{position:absolute;right:8px;top:6px;border:0;padding:2px 6px;font-size:16px}
+#gf-mig-ov{position:fixed;inset:0;z-index:10080;background:rgba(2,20,16,.6);display:grid;place-items:center;padding:16px}#gf-mig-ov>div{background:var(--surface,#fff);color:var(--ink,#0f172a);border-radius:16px;padding:18px;width:min(480px,100%);display:grid;gap:10px;font-size:14.5px}
+#gf-mig-ov h3{margin:0;font-size:18px}#gf-mig-ov .mg-bt{display:flex;gap:8px;flex-wrap:wrap}#gf-mig-ov button,#gf-mig-ov label.mg-f{font:inherit;font-weight:700;border-radius:10px;padding:9px 14px;border:1px solid #0f766e;background:#fff;color:#0f766e;cursor:pointer}#gf-mig-ov .mg-p{background:#0f766e;color:#fff}`;
+document.head.appendChild(st);
+const T=(f,d)=>{try{return f()}catch(e){return d}};
+
+/* ===== endereço ANTIGO: faixa com o botão de levar os dados ===== */
+if(ehVelho){
+  let W=null,pac=null,tm=0;
+  const faixa=()=>{let el=document.getElementById("gf-mig");if(T(()=>sessionStorage.getItem("gf-migra-fechado"),null)){if(el)el.remove();return}
+    const m=T(()=>JSON.parse(localStorage.getItem(KM)||"null"),null);if(!el){el=document.createElement("div");el.id="gf-mig";el.setAttribute("role","region");el.setAttribute("aria-label","Endereço novo do Green Fish");document.body.appendChild(el)}
+    el.innerHTML=`<button type="button" class="mg-x" data-mg="x" aria-label="Fechar">✕</button>${m?`<b>✅ Seus dados já foram levados para greenfish.app.br</b><small>em ${new Date(m.em).toLocaleString("pt-BR")} (${m.n} itens). Use o endereço novo a partir de agora.</small>
+      <div class="mg-bt"><a class="mg-p" href="${NOVO}/" target="_blank" rel="noopener">🌐 Abrir greenfish.app.br</a><button type="button" data-mg="levar">↻ Levar de novo</button></div>`
+     :`<b>🌐 O Green Fish tem endereço novo: greenfish.app.br</b><small>Leve os dados guardados neste aparelho (tanques, rastreabilidade, arquivos, fotos…) com um toque. O que está na sua conta na nuvem volta quando você entrar lá.</small>
+      <div class="mg-bt"><button type="button" class="mg-p" data-mg="levar">📦 Levar meus dados para o endereço novo</button><button type="button" data-mg="baixar">⬇️ Baixar em arquivo</button></div>`}<small class="mg-st" aria-live="polite"></small>`};
+  const msg=t=>{const s=document.querySelector("#gf-mig .mg-st");if(s)s.textContent=t};
+  window.addEventListener("message",async e=>{if(e.origin!==NOVO||!e.data||typeof e.data!=="object")return;
+    if(e.data.t==="gf-mig-pronto"&&W&&e.source===W){clearTimeout(tm);msg("Juntando os dados deste aparelho…");try{pac=pac||await pacote();W.postMessage({t:"gf-mig-dados",p:pac},NOVO);msg(`Enviando ${Object.keys(pac.ls).length} itens e ${pac.dbs.length} banco(s)… confirme na janela do endereço novo.`)}catch(x){msg("Não consegui juntar os dados: "+(x.message||x))}}
+    if(e.data.t==="gf-mig-ok"){try{localStorage.setItem(KM,JSON.stringify({em:Date.now(),n:e.data.n||0}))}catch(_){}pac=null;faixa();msg("")}
+    if(e.data.t==="gf-mig-nao"){msg("Você cancelou no endereço novo. Nada foi mudado.")}});
+  document.addEventListener("click",async e=>{const b=e.target.closest&&e.target.closest("#gf-mig [data-mg]");if(!b)return;const k=b.dataset.mg;
+    if(k==="x"){T(()=>sessionStorage.setItem("gf-migra-fechado","1"));faixa();return}
+    if(k==="levar"){W=window.open(NOVO+"/?migrar=1","gf-novo");if(!W){msg("O navegador bloqueou a janela. Libere as janelas e toque de novo, ou use ⬇️ Baixar em arquivo.");return}
+      msg("Abrindo greenfish.app.br…");clearTimeout(tm);tm=setTimeout(()=>msg("A janela nova não respondeu. Se o app estiver instalado no celular, use ⬇️ Baixar em arquivo e depois 📥 Importar no endereço novo."),20000);return}
+    if(k==="baixar"){msg("Juntando os dados…");try{const p=await pacote(),bl=new Blob([JSON.stringify(p)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download="greenfish-dados-do-aparelho.json";document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+        msg(`Arquivo baixado (${tam(bl.size)}). No endereço novo, toque em 📥 Importar arquivo do endereço antigo.`)}catch(x){msg("Não consegui gerar o arquivo: "+(x.message||x))}}});
+  /* só mostra a faixa quando o endereço novo já estiver no ar */
+  const ini=()=>setTimeout(()=>{fetch(NOVO+"/manifest.webmanifest?v="+Date.now(),{mode:"no-cors",cache:"no-store"}).then(()=>faixa(),()=>{})},1500);if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ini);else ini();
+}
+
+/* ===== endereço NOVO: recebe pela janela ou por arquivo ===== */
+if(ehNovo||window.__gfMigraTeste){
+  const ov=(h)=>{let o=document.getElementById("gf-mig-ov");if(!h){if(o)o.remove();return}if(!o){o=document.createElement("div");o.id="gf-mig-ov";o.setAttribute("role","dialog");o.setAttribute("aria-label","Trazer dados do endereço antigo");document.body.appendChild(o)}o.innerHTML=`<div>${h}</div>`};
+  const fim=n=>{ov(`<h3>✅ Dados trazidos</h3><p>${n} itens do endereço antigo agora estão neste aparelho em greenfish.app.br. Entre na sua conta para ver também o que está na nuvem.</p><div class="mg-bt"><button type="button" class="mg-p" data-mg2="rec">Abrir o app</button></div>`)};
+  const imp=async p=>{const ja=temDados();if(ja&&!confirm("Você já trouxe dados do endereço antigo antes. Trazer de novo e substituir os que tiverem o mesmo nome?"))return -1;
+    ov(`<h3>⏳ Trazendo os dados…</h3><p>Não feche esta janela.</p>`);return await aplica(p)};
+  const tela=()=>ov(`<h3>📦 Trazer os dados do endereço antigo</h3><p>${window.opener?"Aguardando o endereço antigo enviar os dados…":"Abra <b>jpribeiro-aqua.github.io/green-fish</b> neste aparelho e toque em <b>📦 Levar meus dados</b>. Ou importe o arquivo baixado lá:"}</p>
+    <div class="mg-bt"><label class="mg-f">📥 Importar arquivo do endereço antigo<input type="file" accept=".json,application/json" data-mg2="arq" hidden></label><button type="button" data-mg2="x">Agora não</button></div><small class="mg-st2"></small>`);
+  if(MIGRAR){let ok=false;const ping=()=>{if(ok||!window.opener)return;try{window.opener.postMessage({t:"gf-mig-pronto"},VELHO)}catch(e){}};
+    window.addEventListener("message",async e=>{if(e.origin!==VELHO||!e.data||e.data.t!=="gf-mig-dados"||ok)return;ok=true;
+      const p=e.data.p;if(!confirm(`Trazer para greenfish.app.br os dados deste aparelho no endereço antigo?\n\n${Object.keys(p.ls||{}).length} itens e ${(p.dbs||[]).length} banco(s) de arquivos.`)){try{e.source.postMessage({t:"gf-mig-nao"},VELHO)}catch(_){}ov("");return}
+      try{const n=await imp(p);if(n<0){ov("");return}try{e.source.postMessage({t:"gf-mig-ok",n},VELHO)}catch(_){}fim(n)}catch(x){ov(`<h3>Não consegui trazer os dados</h3><p>${E(x.message||x)}</p><div class="mg-bt"><button type="button" data-mg2="x">Fechar</button></div>`)}});
+    const ini=()=>{tela();ping();let n=0;const t=setInterval(()=>{if(ok||++n>40){clearInterval(t);return}ping()},500)};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ini);else setTimeout(ini,300)}
+  document.addEventListener("change",async e=>{const i=e.target.closest&&e.target.closest('[data-mg2="arq"]');if(!i||!i.files||!i.files[0])return;e.stopPropagation();
+    try{const p=JSON.parse(await i.files[0].text());const n=await imp(p);if(n>=0)fim(n)}catch(x){const s=document.querySelector(".mg-st2");if(s)s.textContent="Arquivo inválido: "+(x.message||x)}},true);
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-mg2]");if(!b||b.dataset.mg2==="arq")return;if(b.dataset.mg2==="x"){ov("");T(()=>history.replaceState(null,"",location.pathname))}
+    if(b.dataset.mg2==="rec"){location.replace(location.pathname)}});
+  if(!MIGRAR){const ini=()=>setTimeout(()=>{if(temDados()||T(()=>localStorage.getItem("gf-migra-nunca"),null)||T(()=>sessionStorage.getItem("gf-migra-fechado"),null))return;
+      const el=document.createElement("div");el.id="gf-mig";el.innerHTML=`<button type="button" class="mg-x" data-mg3="x" aria-label="Fechar">✕</button><b>📦 Usava o Green Fish no endereço antigo?</b><small>Traga os dados que ficaram guardados neste aparelho em jpribeiro-aqua.github.io.</small><div class="mg-bt"><button type="button" class="mg-p" data-mg3="ir">📦 Trazer meus dados</button><button type="button" data-mg3="nunca">Nunca usei</button></div>`;document.body.appendChild(el)},2500);
+    if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ini);else ini();
+    document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-mg3]");if(!b)return;const el=document.getElementById("gf-mig");if(el)el.remove();if(b.dataset.mg3==="x"){T(()=>sessionStorage.setItem("gf-migra-fechado","1"));return}if(b.dataset.mg3==="nunca"){T(()=>localStorage.setItem("gf-migra-nunca","1"));return}tela()})}
+  window.gfMigraTela=tela;
+}
+window.gfMigra={pacote,aplica};
 })();
 </script>
