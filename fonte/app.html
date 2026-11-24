@@ -19814,3 +19814,224 @@ function observaView(){const v=document.getElementById("view-correcao");if(!v){s
 const ini=()=>{observaView();setTimeout(tic,800)};if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ini);else ini();
 })();
 </script>
+
+<script>
+/* ===================== v338: 📐 Dimensionamento de projeto — na aba Calculadora.
+   A partir da ÁREA disponível, do SISTEMA de cultivo e da espécie, calcula quantos viveiros/tanques
+   cabem, com que tamanho, profundidade, densidade de povoamento, biomassa/produção por ciclo e por ano,
+   vazão de renovação e aeração. Base de engenharia aquícola (proporcional ao tamanho):
+   - SENAR 210 "Piscicultura: criação de tilápias em viveiros escavados" (2018) — densidade/aeração/renovação
+     por sistema (Tabela 1, peixes de 600–800 g) e tamanho de viveiros (engorda 1.000–5.000 m²).
+   - Embrapa cap.4 "Implantação de piscicultura em viveiros escavados" (Rezende & Bergamin) — profundidade
+     1,0–1,7 m, taludes, borda livre, formato.
+   - Panorama da Aquicultura ed.73 "Os viveiros" (Ono, Campos & Kubitza, 2005) — aproveitamento ~75% da
+     área (lâmina d'água ÷ área total), profundidade e bordas.
+   - Embrapa "Manejo na carcinicultura" (2022) — densidade do camarão L. vannamei por sistema
+     (extensivo 0,5–4/m², semi 5–40/m², intensivo 50–300/m²) e tamanho de viveiros.
+   - Densidades em tanque revestido (kg/m³) conforme os campos de densidade máxima já usados no app
+     (RAS/bioflocos de tilápia 20–37 kg/m³). Confira sempre com projeto e responsável técnico. ===================== */
+(function(){
+if(window.__gfPrevIframe)return;
+if(window.__gfDimOn)return; window.__gfDimOn=1;
+/* estilo próprio (reaproveita .cor-t/.cor-s/.cor-fonte da aba Correção; só define o grid e o span) */
+try{if(!document.getElementById("gf-dim-css")){const st=document.createElement("style");st.id="gf-dim-css";
+  st.textContent=`#view-calc .gf-dim{grid-column:1/-1}
+.dim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin:4px 0}
+.dim-out{margin-top:10px}
+.gf-dim .cor-f{display:grid;gap:3px;font-size:13px;min-width:0}
+.gf-dim .cor-f>span{font-weight:600;color:var(--muted)}
+.gf-dim .cor-f input,.gf-dim .cor-f select{width:100%;padding:7px 9px;border:1px solid var(--line,#e2e8f0);border-radius:9px;background:var(--card,#fff);color:inherit;font-size:14px}
+.gf-dim .scroll{overflow-x:auto}`;
+  document.head.appendChild(st)}}catch(e){}
+const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
+const num=v=>{const n=typeof v==="number"?v:parseFloat(String(v??"").replace(/\s/g,"").replace(".","").replace(",","."));return isFinite(n)?n:NaN};
+/* num aceita "1.000,5" e "1000.5"; para valores sem milhar use parse simples */
+const P=v=>{const s=String(v??"").trim();if(s==="")return NaN;const n=parseFloat(s.replace(",","."));return isFinite(n)?n:NaN};
+const F=(v,d=0)=>isFinite(v)?Number(v).toLocaleString("pt-BR",{maximumFractionDigits:d,minimumFractionDigits:0}):"—";
+/* chave sob o prefixo do projeto (entra no snapshot: zera em projeto novo, volta ao reabrir um projeto) */
+const LS="ras-multitanques-v1-dimensiona";
+
+const ESP=T(()=>window.ESP,null)||{tilapia:["Tilápia"],tambaqui:["Tambaqui"],camarao:["Camarão"],pl:["Pós-larva de camarão"]};
+const espNome=k=>T(()=>ESP[k][0],k)||k;
+
+/* ---- estado salvo (por projeto) ---- */
+const vazio=()=>({cultivo:"pisc",esp:"tilapia",estrutura:"viveiro",sistema:"semi",
+  area:"",aprov:"",prof:"",modulo:"",dens:"",pFinal:"",sobrev:"",ciclos:"",em:0});
+let S=T(()=>Object.assign(vazio(),JSON.parse(localStorage.getItem(LS)||"{}")),vazio());
+const salva=()=>{S.em=Date.now();T(()=>localStorage.setItem(LS,JSON.stringify(S)))};
+
+/* ===================== BASE TÉCNICA ===================== */
+/* Piscicultura em viveiro — por sistema (ref. tilápia 600–800 g, SENAR 210 Tabela 1).
+   dens = peixes/m² · prod = kg/ha de biomassa econômica · aer = aeração · ren = renovação diária · hp = hp/ha */
+const PISC_VIV={
+  extensivo:{dens:1, prod:6000,  aer:"sem aeração",       ren:"0–5%/dia",   hp:0,  renv:0.03},
+  semi:     {dens:2, prod:10500, aer:"≈5 hp/ha",          ren:"5–10%/dia",  hp:5,  renv:0.07},
+  intensivo:{dens:4, prod:27000, aer:"≈10 hp/ha",         ren:"5–10%/dia",  hp:10, renv:0.08},
+  super:    {dens:6, prod:45000, aer:"10–20 hp/ha",       ren:"10–20%/dia", hp:15, renv:0.15}
+};
+/* Piscicultura em tanque revestido/RAS — densidade por volume (kg/m³), campos de DM do app */
+const PISC_TANQ={
+  extensivo:{dm:8,  troca:"troca alta"},
+  semi:     {dm:15, troca:"RAS leve / bioflocos"},
+  intensivo:{dm:25, troca:"RAS / bioflocos"},
+  super:    {dm:37, troca:"RAS com oxigênio"}
+};
+/* Carcinicultura em viveiro — camarões/m² (Embrapa Manejo na carcinicultura, 2022) */
+const CARCI={
+  extensivo:{dens:2,   prodHa:750,   viv:"10–20 ha", ren:"baixa"},
+  semi:     {dens:20,  prodHa:3000,  viv:"1–10 ha",  ren:"5–10%/dia"},
+  intensivo:{dens:100, prodHa:30000, viv:"0,1–1 ha", ren:"baixa + aeração"},
+  super:    {dens:180, prodHa:60000, viv:"tanque revestido (bioflocos)", ren:"mínima + aeração"}
+};
+const SIST=[["extensivo","Extensivo"],["semi","Semi-intensivo"],["intensivo","Intensivo"],["super","Super-intensivo / RAS / bioflocos"]];
+/* peso final (kg) e sobrevivência padrão por espécie */
+const ESP_DEF={
+  tilapia:{p:0.8,  s:85, cic:2, mod:2000},
+  tambaqui:{p:1.5, s:80, cic:1, mod:3000},
+  camarao:{p:0.012,s:65, cic:2, mod:10000},
+  pl:{p:0.012,s:70, cic:3, mod:5000}
+};
+const ehCarci=()=>/camar|pl/.test(S.esp);
+/* modo: carcinicultura sempre por ÁREA (camarão é bentônico); peixe em tanque elevado = por VOLUME */
+const porVolume=()=>!ehCarci()&&S.estrutura==="tanque";
+const temSolo=()=>S.estrutura==="viveiro";
+
+function preset(){const e=ESP_DEF[S.esp]||ESP_DEF.tilapia;
+  if(ehCarci())return {dens:CARCI[S.sistema].dens,prodHa:CARCI[S.sistema].prodHa,aer:"",ren:CARCI[S.sistema].ren,hp:0,viv:CARCI[S.sistema].viv};
+  if(porVolume())return {dm:PISC_TANQ[S.sistema].dm,troca:PISC_TANQ[S.sistema].troca};
+  return PISC_VIV[S.sistema];
+}
+/* aproveitamento padrão: viveiro escavado 75% (taludes/canais); revestido 85%; tanque 90% */
+function aprovPad(){return S.estrutura==="viveiro"?75:S.estrutura==="viveiro_geo"?85:90}
+function profPad(){return porVolume()?1.2:ehCarci()?1.0:1.3}
+
+/* ===================== CÁLCULO ===================== */
+function calc(){
+  const e=ESP_DEF[S.esp]||ESP_DEF.tilapia, pz=preset();
+  const areaTot=num(S.area); // m²
+  const aprov=(P(S.aprov)>0?P(S.aprov):aprovPad())/100;
+  const prof=P(S.prof)>0?P(S.prof):profPad();
+  const pFinal=P(S.pFinal)>0?P(S.pFinal):e.p;         // kg
+  const sobrev=(P(S.sobrev)>0?P(S.sobrev):e.s)/100;
+  const ciclos=P(S.ciclos)>0?P(S.ciclos):e.cic;
+  if(!isFinite(areaTot)||areaTot<=0)return null;
+  const areaUtil=areaTot*aprov;                        // m² de lâmina d'água
+  const vol=areaUtil*prof;                             // m³
+  const ha=areaUtil/10000;
+  const mod=P(S.modulo)>0?P(S.modulo):(porVolume()?100:e.mod); // módulo padrão
+  const nUn=porVolume()?Math.max(1,Math.round(vol/mod)):Math.max(1,Math.floor(areaUtil/mod));
+  const tamUn=porVolume()?vol/nUn:areaUtil/nUn;
+
+  let dens,povoInit,povoFinal,biomassa,prodHa,densTxt;
+  if(porVolume()){
+    const dm=P(S.dens)>0?P(S.dens):pz.dm;              // kg/m³
+    dens=dm; densTxt=F(dm,1)+" kg/m³";
+    biomassa=vol*dm;                                   // kg (biomassa máxima no tanque)
+    povoFinal=pFinal>0?biomassa/pFinal:NaN;            // nº de peixes na despesca
+    povoInit=sobrev>0?povoFinal/sobrev:NaN;
+    prodHa=NaN;
+  }else{
+    const d=P(S.dens)>0?P(S.dens):pz.dens;             // /m²
+    dens=d; densTxt=F(d,ehCarci()?0:1)+(ehCarci()?" camarões/m²":" peixes/m²");
+    povoInit=areaUtil*d;                               // nº povoado
+    povoFinal=povoInit*sobrev;
+    biomassa=povoFinal*pFinal;                         // kg por ciclo
+    prodHa=ha>0?biomassa/ha:NaN;
+  }
+  const anual=isFinite(biomassa)?biomassa*ciclos:NaN;
+  // vazão de renovação (L/s) e aeração (hp)
+  const renv=pz.renv||0; const vazao=renv>0?vol*renv*1000/86400:NaN;
+  const hpTot=pz.hp?ha*pz.hp:NaN;
+  return {areaTot,aprov,areaUtil,prof,vol,ha,mod,nUn,tamUn,dens,densTxt,pFinal,sobrev,ciclos,
+    povoInit,povoFinal,biomassa,prodHa,anual,pz,vazao,hpTot};
+}
+
+/* ===================== INTERFACE ===================== */
+function host(){return document.getElementById("view-calc")}
+function card(){const v=host();if(!v)return null;let c=document.getElementById("gf-dim-card");
+  if(!c){c=document.createElement("section");c.className="card wide gf-dim";c.id="gf-dim-card";
+    c.innerHTML=`<div class="card-head"><h2>📐 Dimensionamento do projeto<span>Quantos viveiros/tanques cabem na área, com que tamanho, densidade, povoamento e produção — pela engenharia aquícola. Base: Embrapa, SENAR e Panorama da Aquicultura.</span></h2></div><div class="body" id="gf-dim-body"></div>`;
+    v.insertBefore(c,v.firstChild);const bb=c.querySelector("#gf-dim-body");const h0=T(corpo,"");bb.innerHTML=h0;bb.__h=h0}return c}
+
+const inp=(k,ph,extra="")=>`<input data-dim="${k}" value="${E(S[k])}" placeholder="${E(ph)}" inputmode="decimal" ${extra} aria-label="${E(ph)}">`;
+const sel=(k,ops)=>`<select data-dim="${k}">${ops.map(([v,t])=>`<option value="${v}"${S[k]===v?" selected":""}>${E(t)}</option>`).join("")}</select>`;
+
+function estruturaOpts(){
+  if(ehCarci())return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"]];
+  return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"],["tanque","🟦 Tanque elevado (geomembrana/alvenaria)"]];
+}
+
+function corpo(){
+  const r=calc(), e=ESP_DEF[S.esp]||ESP_DEF.tilapia, pV=porVolume();
+  const linha=(t,v,s)=>`<tr><th>${t}</th><td>${v}</td><td class="cor-s">${s||""}</td></tr>`;
+  const especies=ehCarci()?[["camarao",espNome("camarao")],["pl",espNome("pl")]]:[["tilapia",espNome("tilapia")],["tambaqui",espNome("tambaqui")]];
+  // saída
+  let out="";
+  if(!r)out=`<p class="hint">Informe a <b>área total disponível</b> (m²) para calcular o dimensionamento.</p>`;
+  else{
+    const pz=r.pz;
+    out=`<div class="scroll"><table class="cor-t"><tbody>
+      ${linha("Área total",`${F(r.areaTot)} m² <small>(${F(r.areaTot/10000,2)} ha)</small>`,`aproveitamento ${F(r.aprov*100)}%`)}
+      ${linha(pV?"Lâmina d'água útil":"Área útil de cultivo",`<b>${F(r.areaUtil)} m²</b> <small>(${F(r.ha,2)} ha)</small>`,"descontando taludes, canais e bordas")}
+      ${linha(pV?"Nº de tanques":"Nº de viveiros",`<b>${F(r.nUn)}</b>`,`${pV?`≈ ${F(r.tamUn)} m³ cada`:`≈ ${F(r.tamUn)} m² cada`}`)}
+      ${linha("Profundidade / lâmina",`${F(r.prof,2)} m`,pV?"tanque":"raso 1,0–1,3 m · fundo 1,5–1,7 m")}
+      ${linha("Volume de água",`${F(r.vol)} m³`,"área útil × profundidade")}
+      ${linha("Densidade de povoamento",`<b>${r.densTxt}</b>`,ehCarci()?`${S.sistema}: ${F(pz.dens)} /m²`:pV?`${S.sistema}: ${F(pz.dm,0)} kg/m³`:`${S.sistema}: ${F(pz.dens)} peixes/m²`)}
+      ${linha("Povoamento total",`<b>${F(r.povoInit)}</b> ${ehCarci()?"PLs":"alevinos"}`,`sobrevivência ${F(r.sobrev*100)}% → ${F(r.povoFinal)} na despesca`)}
+      ${linha("Biomassa por ciclo",`<b>${F(r.biomassa)} kg</b>`,isFinite(r.prodHa)?`${F(r.prodHa)} kg/ha · peso final ${F(r.pFinal*1000)} g`:`peso final ${F(r.pFinal*1000)} g`)}
+      ${linha("Produção anual",`<b>${F(r.anual)} kg</b>`,`${F(r.ciclos,1)} ciclos/ano`)}
+      ${isFinite(r.vazao)?linha("Vazão de renovação",`${F(r.vazao,1)} L/s`,`${pz.ren} do volume`):""}
+      ${isFinite(r.hpTot)?linha("Aeração recomendada",`${F(r.hpTot,1)} hp`,`${pz.aer} · ${pz.hp} hp/ha`):""}
+    </tbody></table></div>
+    <p class="hint">${pV?`Tanques revestidos/RAS: a densidade é por volume (kg/m³). `:ehCarci()?`Camarão é bentônico: a densidade é por m² de fundo. `:`Viveiro de peixe: densidade por m² de lâmina d'água. `}Os números são ponto de partida de engenharia — ajuste os campos à sua realidade e confirme com um responsável técnico.</p>`;
+  }
+
+  return `<div class="dim-grid">
+    <label class="cor-f"><span>Cultivo</span>${sel("cultivo",[["pisc","🐟 Piscicultura"],["carci","🦐 Carcinicultura"]])}</label>
+    <label class="cor-f"><span>Espécie</span>${sel("esp",especies)}</label>
+    <label class="cor-f"><span>Estrutura</span>${sel("estrutura",estruturaOpts())}</label>
+    <label class="cor-f"><span>Sistema de cultivo</span>${sel("sistema",SIST)}</label>
+    <label class="cor-f"><span>Área total disponível (m²)</span>${inp("area","ex.: 10000")}</label>
+    <label class="cor-f"><span>Aproveitamento da área (%)</span>${inp("aprov",String(aprovPad()))}</label>
+    ${pV?`<label class="cor-f"><span>Volume por tanque (m³)</span>${inp("modulo","100")}</label>`
+       :`<label class="cor-f"><span>Tamanho por viveiro (m²)</span>${inp("modulo",String(e.mod))}</label>`}
+    <label class="cor-f"><span>Profundidade (m)</span>${inp("prof",String(profPad()))}</label>
+    <label class="cor-f"><span>Densidade ${pV?"(kg/m³)":ehCarci()?"(camarões/m²)":"(peixes/m²)"}</span>${inp("dens",String(pV?(preset().dm||""):(preset().dens||"")))}</label>
+    <label class="cor-f"><span>Peso final (g)</span>${inp("pFinal",String((e.p*1000)))}</label>
+    <label class="cor-f"><span>Sobrevivência (%)</span>${inp("sobrev",String(e.s))}</label>
+    <label class="cor-f"><span>Ciclos por ano</span>${inp("ciclos",String(e.cic))}</label>
+  </div>
+  <div class="dim-out">${out}</div>
+  <p class="cor-fonte">Base de engenharia: SENAR 210 — Criação de tilápias em viveiros escavados (2018); Embrapa — Implantação de piscicultura em viveiros escavados (cap. 4) e Manejo na carcinicultura (2022); Panorama da Aquicultura ed. 73 — Os viveiros (2005). Densidade de tanque revestido/RAS conforme as faixas de densidade máxima do próprio app. Projeto executivo exige levantamento do terreno e responsável técnico.</p>`;
+}
+
+/* ---- reações de edição ---- */
+function desenha(){const v=host();if(!v||v.hidden)return;const c=card();if(!c)return;
+  const b=document.getElementById("gf-dim-body");if(!b)return;
+  const foco=document.activeElement,ed=foco&&foco.closest&&foco.closest("#gf-dim-card");if(ed&&foco.tagName==="INPUT")return;/* não redesenha enquanto digita num input */
+  const h=T(corpo,"");if(h!==b.__h){b.innerHTML=h;b.__h=h}}
+
+document.addEventListener("input",e=>{const el=e.target.closest&&e.target.closest("#gf-dim-card [data-dim]");if(!el)return;
+  const k=el.dataset.dim;S[k]=el.value;salva();
+  clearTimeout(window.__dimT);window.__dimT=setTimeout(()=>{const b=document.getElementById("gf-dim-body");if(b)b.__h="";desenha()},300)},true);
+document.addEventListener("change",e=>{const el=e.target.closest&&e.target.closest("#gf-dim-card [data-dim]");if(!el)return;
+  const k=el.dataset.dim;S[k]=el.value;
+  /* ao trocar cultivo, ajusta espécie e estrutura coerentes */
+  if(k==="cultivo"){if(S.cultivo==="carci"&&!/camar|pl/.test(S.esp))S.esp="camarao";if(S.cultivo==="pisc"&&/camar|pl/.test(S.esp))S.esp="tilapia";if(S.cultivo==="carci"&&S.estrutura==="tanque")S.estrutura="viveiro_geo"}
+  if(k==="esp"){if(/camar|pl/.test(S.esp)&&S.estrutura==="tanque")S.estrutura="viveiro_geo"}
+  /* limpa overrides para pegar o preset do novo contexto */
+  if(k==="cultivo"||k==="esp"||k==="estrutura"||k==="sistema"){S.dens="";if(k!=="sistema"){S.pFinal="";S.sobrev="";S.ciclos="";S.modulo="";S.prof="";S.aprov=""}}
+  salva();const b=document.getElementById("gf-dim-body");if(b)b.__h="";desenha()},true);
+
+/* mantém o card presente ao abrir a Calculadora */
+function observa(){const v=host();if(!v)return;card();
+  new MutationObserver(()=>{if(!v.hidden){card();desenha()}}).observe(v,{attributes:true,attributeFilter:["hidden"]});}
+document.addEventListener("click",e=>{if(e.target.closest&&e.target.closest('[data-view="calc"],#tab-calc'))setTimeout(()=>{card();desenha()},60)},true);
+const ini=()=>{observa();setTimeout(()=>{card();desenha()},600)};
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",ini);else ini();
+
+/* API p/ outras abas, se quiser usar o dimensionamento */
+window.gfDimensiona={dados:()=>S,calc};
+})();
+</script>
