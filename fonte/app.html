@@ -19640,7 +19640,7 @@ function volDasAbas(){let v=0;const G=T(()=>window.gfRasCad&&gfRasCad.grupos&&gf
   return v>0?Math.round(v):0}
 function aguaDasAbas(){return T(()=>{const r=window.aquaCadResumo&&aquaCadResumo();if(!r)return null;
   const g=x=>{const n=num(x);return isFinite(n)?n:null};return {ph:g(r.ph),alk:g(r.alk||r.alcalinidade),dur:g(r.dur||r.dureza)}},null)}
-function dims(){const temSolo=S.estrutura==="viveiro",porArea=S.estrutura==="viveiro"||S.estrutura==="viveiro_geo";
+function dims(){const temSolo=S.estrutura==="viveiro",porArea=S.estrutura==="viveiro"; /* só o viveiro de solo mede por área (calagem do fundo); revestido e tanques medem por volume (correção da água) */
   let area=num(S.area),prof=num(S.prof)||1.2,vol=num(S.vol);
   const volAbas=volDasAbas();
   if(porArea){ /* viveiro escavado (com ou sem revestimento): medir por área; volume = área × profundidade */
@@ -19740,7 +19740,7 @@ function corpo(){const d=dims(),m=META(S.esp),ev=d.ev,pa=d.porArea;
     ${/camar|pl/.test(S.esp)?`<label class="cor-f"><span>Fase do cultivo</span>${sel("fase",Object.entries(FASES))}</label>`:""}
     ${pa?`<label class="cor-f"><span>Área do viveiro (m²)</span>${inp("area",d.area?F(d.area):"ex.: 1000")}</label>
       <label class="cor-f"><span>Profundidade média (m)</span>${inp("prof","1,2")}</label>`
-     :`<label class="cor-f"><span>Volume do tanque (m³)</span>${inp("vol",d.volAbas?F(d.volAbas)+" (das abas)":"ex.: 50")}</label>`}
+     :`<label class="cor-f"><span>Volume de água (m³)</span>${inp("vol",d.volAbas?F(d.volAbas)+" (das abas)":"ex.: 50")}</label>`}
     ${ev?`<label class="cor-f"><span>pH do solo/lama</span>${inp("solo_ph","ex.: 5,5")}</label>
       <label class="cor-f"><span>Textura do solo</span>${sel("solo_tex",[["argiloso","Argiloso"],["franco","Franco arenoso"],["arenoso","Arenoso"]])}</label>
       <label class="cor-f"><span>Calcário (PRNT %)</span>${inp("prnt","85")}</label>
