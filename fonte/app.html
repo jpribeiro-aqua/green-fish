@@ -19990,17 +19990,15 @@ function estruturaOpts(){
   return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"],["tanque","🟦 Tanque elevado (geomembrana/alvenaria)"]];
 }
 
-function corpo(){
-  const r=calc(), e=ESP_DEF[S.esp]||ESP_DEF.tilapia, pV=porVolume();
+/* resultados (separado dos campos: atualiza ao vivo mesmo com um campo focado) */
+function saida(){
+  const r=calc(), pV=porVolume();
   const linha=(t,v,s)=>`<tr><th>${t}</th><td>${v}</td><td class="cor-s">${s||""}</td></tr>`;
-  const especies=ehCarci()?[["camarao",espNome("camarao")],["pl",espNome("pl")]]:[["tilapia",espNome("tilapia")],["tambaqui",espNome("tambaqui")]];
-  // saída
-  let out="";
-  if(!r)out=`<p class="hint">Informe a <b>área total disponível</b> (m²) para calcular o dimensionamento.</p>`;
-  else{
+  if(!r)return `<p class="hint">Informe a <b>área total disponível</b> (m²) para calcular o dimensionamento.</p>`;
+  {
     const pz=r.pz, un=pV?"tanque":"viveiro";
     const aviso=!r.cabe?`<p class="dim-aviso">⚠️ Cabem no máximo <b>${F(r.nMax)} ${un}s</b> de ${F(r.tamUn)} ${pV?"m³":"m²"} nessa área (com taludes e diques). Você informou ${F(r.nUn)} — reduza o nº, o tamanho de cada ${un} ou aumente a área.</p>`:"";
-    out=`<h4 class="cor-h">🗺️ Como o projeto se encaixa na área</h4>
+    return `<h4 class="cor-h">🗺️ Como o projeto se encaixa na área</h4>
     <div class="scroll"><table class="cor-t"><tbody>
       ${linha("Área total disponível",`${F(r.areaTot)} m² <small>(${F(r.areaTot/10000,2)} ha)</small>`,"terreno")}
       ${linha(`Dimensão da lâmina de cada ${un}`,`${F(r.w,1)} × ${F(r.l,1)} m`,`${r.fmt.t} · ${F(r.tamUn)} ${pV?"m³":"m²"} de lâmina`)}
@@ -20023,7 +20021,11 @@ function corpo(){
     </tbody></table></div>
     <p class="hint">${pV?`Tanques revestidos/RAS: densidade por volume (kg/m³); paredes verticais ocupam pouco terreno. `:ehCarci()?`Camarão é bentônico: densidade por m² de fundo. `:`Viveiro de peixe: densidade por m² de lâmina d'água. `}O nº de ${un}s vem da geometria (lâmina + taludes + dique); ajuste o tamanho, o talude, o dique, o formato ou o próprio nº se precisar.</p>`;
   }
+}
 
+function corpo(){
+  const e=ESP_DEF[S.esp]||ESP_DEF.tilapia, pV=porVolume();
+  const especies=ehCarci()?[["camarao",espNome("camarao")],["pl",espNome("pl")]]:[["tilapia",espNome("tilapia")],["tambaqui",espNome("tambaqui")]];
   return `<div class="dim-grid">
     <label class="cor-f"><span>Cultivo</span>${sel("cultivo",[["pisc","🐟 Piscicultura"],["carci","🦐 Carcinicultura"]])}</label>
     <label class="cor-f"><span>Espécie</span>${sel("esp",especies)}</label>
@@ -20042,14 +20044,15 @@ function corpo(){
     <label class="cor-f"><span>Sobrevivência (%)</span>${inp("sobrev",String(e.s))}</label>
     <label class="cor-f"><span>Ciclos por ano</span>${inp("ciclos",String(e.cic))}</label>
   </div>
-  <div class="dim-out">${out}</div>
+  <div class="dim-out">${T(saida,"")}</div>
   <p class="cor-fonte">Base de engenharia: SENAR 210 — Criação de tilápias em viveiros escavados (2018); Embrapa — Implantação de piscicultura em viveiros escavados (cap. 4) e Manejo na carcinicultura (2022); Panorama da Aquicultura ed. 73 — Os viveiros (2005). Densidade de tanque revestido/RAS conforme as faixas de densidade máxima do próprio app. Projeto executivo exige levantamento do terreno e responsável técnico.</p>`;
 }
 
 /* ---- reações de edição ---- */
 function desenha(){const v=host();if(!v||v.hidden)return;const c=card();if(!c)return;
   const b=document.getElementById("gf-dim-body");if(!b)return;
-  const foco=document.activeElement,ed=foco&&foco.closest&&foco.closest("#gf-dim-card");if(ed&&foco.tagName==="INPUT")return;/* não redesenha enquanto digita num input */
+  const foco=document.activeElement,ed=foco&&foco.closest&&foco.closest("#gf-dim-card")&&foco.tagName==="INPUT";
+  if(ed){const o=b.querySelector(".dim-out");if(o)o.innerHTML=T(saida,"");return} /* digitando: atualiza só os resultados, mantém o campo e o cursor */
   const h=T(corpo,"");if(h!==b.__h){b.innerHTML=h;b.__h=h}}
 
 document.addEventListener("input",e=>{const el=e.target.closest&&e.target.closest("#gf-dim-card [data-dim]");if(!el)return;
