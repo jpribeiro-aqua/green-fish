@@ -15287,6 +15287,7 @@ function desenha(forca){const form=document.getElementById("form"),v=document.ge
   if(sel>=G.length)sel=0;const g=G[sel],tot=G.reduce((a,x)=>a+x.q,0);
   ctl.innerHTML=`<label class="jr-f">Grupo mostrado em "1 tanque"<select data-rcg="1">${G.map((x,i)=>`<option value="${i}"${i===sel?" selected":""}>${E(x.nome)} · ${x.q} × ${F(x.v)} m³</option>`).join("")}</select></label>
    <p class="hint" style="margin:0">${G.map(x=>`<b>${E(x.nome)}</b>: ${x.q} tanque(s) de ${F(x.v)} m³ → Ø ${F(x.D,2)} m com ${F(x.h,2)} m de água`).join(" · ")} · total ${tot} tanque(s), ${F(G.reduce((a,x)=>a+x.q*x.v,0),0)} m³.</p>`;
+  if(box.__rcInit==null){box.__conj=tot>1;box.__rcInit=1}
   T(()=>gfCADInto(box,Object.assign(qDe(g,tot),{nTot:tot}),`Desenho técnico · ${g.nome} (${g.q} × ${F(g.v)} m³)`,()=>conjunto(G)))}
 window.gfRasCad={desenha:()=>desenha(true),grupos};
 setInterval(()=>T(()=>desenha(false)),1200);
