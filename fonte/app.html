@@ -1340,7 +1340,7 @@ function grpAtivo(){return GRP_FILTRA.includes(grpViewAtual())&&!!grpSel()}
 function grpI(i){return window.__grpIdx?window.__grpIdx[i]:i}
 function grpWrap(fn){return function(...a){if(!window.__grpIdx||window.__grpSwap)return fn.apply(this,a);const all=tanks;tanks=window.__grpIdx.map(i=>all[i]).filter(Boolean);window.__grpSwap=true;try{return fn.apply(this,a)}finally{tanks=all;window.__grpSwap=false}}}
 window.gfCalcRender=()=>render();
-window.gfAplicaProjeto=(groups,subst)=>{try{if(typeof tanks==="undefined")return false;if(subst)for(let i=tanks.length-1;i>=0;i--)if(/\(dim\.\)$/.test(tanks[i].name||""))tanks.splice(i,1);const nid=()=>tanks.reduce((m,t)=>Math.max(m,t.id+1),0),cor=()=>{for(let c=0;c<8;c++)if(!tanks.some(t=>t.c===c))return c;return 8};const hoje=new Date().toISOString().slice(0,10);(groups||[]).forEach(g=>{const vol=Number(g.v);if(!(vol>0)||!(Number(g.q)>0))return;const t={id:nid(),c:cor(),name:String(g.name||"").slice(0,24),q:String(Math.round(Number(g.q))),v:String(Math.round(vol*100)/100).replace(".",",")};if(g.sp&&typeof SPECIES!=="undefined"&&SPECIES[g.sp])t.lot={sp:String(g.sp),date:hoje,w0:g.w0!=null?String(g.w0).replace(".",","):"",n:"",alvo:g.alvo!=null?String(g.alvo).replace(".",","):""};tanks.push(t)});if(typeof drawTanks==="function")drawTanks();if(typeof render==="function")render();if(typeof save==="function")save();return true}catch(e){return false}};
+window.gfAplicaProjeto=(groups,subst)=>{try{if(typeof tanks==="undefined")return false;if(subst==="tudo")tanks.length=0;else if(subst)for(let i=tanks.length-1;i>=0;i--)if(/\(dim\.\)$/.test(tanks[i].name||""))tanks.splice(i,1);const nid=()=>tanks.reduce((m,t)=>Math.max(m,t.id+1),0),cor=()=>{for(let c=0;c<8;c++)if(!tanks.some(t=>t.c===c))return c;return 8};const hoje=new Date().toISOString().slice(0,10);(groups||[]).forEach(g=>{const vol=Number(g.v);if(!(vol>0)||!(Number(g.q)>0))return;const t={id:nid(),c:cor(),name:String(g.name||"").slice(0,24),q:String(Math.round(Number(g.q))),v:String(Math.round(vol*100)/100).replace(".",",")};if(g.sp&&typeof SPECIES!=="undefined"&&SPECIES[g.sp])t.lot={sp:String(g.sp),date:hoje,w0:g.w0!=null?String(g.w0).replace(".",","):"",n:"",alvo:g.alvo!=null?String(g.alvo).replace(".",","):""};tanks.push(t)});if(typeof drawTanks==="function")drawTanks();if(typeof render==="function")render();if(typeof save==="function")save();return true}catch(e){return false}};
 window.gfLerProjeto=()=>{try{if(typeof tanks==="undefined")return null;const pr=v=>{const n=(typeof parse==="function")?parse(v):Number(String(v).replace(",","."));return isFinite(n)?n:0};return (tanks||[]).map(t=>({name:t.name||"",q:Math.round(pr(t.q)),v:pr(t.v),sp:t.lot&&t.lot.sp||"",alvo:t.lot?pr(t.lot.alvo):0})).filter(x=>x.v>0&&x.q>0)}catch(e){return null}};
 function render(){if(window.__grpSwap)return renderCore();window.__grpIdx=null;renderCore();dashStateAll=dashState;
   if(grpAtivo()){const all=tanks,s=grpSel(),idx=[];all.forEach((t,i)=>{if(String(t.id)===s)idx.push(i)});window.__grpIdx=idx;tanks=idx.map(i=>all[i]);window.__grpSwap=true;try{renderCore()}finally{tanks=all;window.__grpSwap=false}}
@@ -12068,7 +12068,7 @@ function gfEquip0(q,g){const k=Math.max(0,Math.min(12,Math.round(+q.aer||0))),nc
   for(let i=3;i<nc;i++)col.push({p:[-g.A+2*g.A*(i-2)/(nc-2),-g.B*.45],t:"coleta"});return {aer,col,lc}}
 function gfGeoU(u){const circ=u.circ||u.tipo==="elev",h=Math.max(.1,+u.h||1),bl=Math.max(0,+u.bl||0),zi=u.tipo==="alv"||circ?0:Math.max(0,+u.zi||0),ze=Math.max(.5,+u.ze||2),c=Math.max(0,+u.c||0),dec=+u.dec||0;
   let A,B,Af,Bf,Ai,Bi,Ao,Bo,R=0;if(circ){R=Math.max(.5,(+u.D||+u.L||10)/2);A=B=Af=Bf=Ai=Bi=R;Ao=Bo=R+c}else{A=Math.max(1,(+u.L||40)/2);B=Math.max(1,(+u.W||20)/2);Af=Math.max(.5,A-zi*h);Bf=Math.max(.5,B-zi*h);Ai=A+zi*bl;Bi=B+zi*bl;Ao=Ai+c;Bo=Bi+c}
-  const abs=isFinite(+u.zF)&&u.zF!==""&&u.zF!=null,zF=abs?+u.zF:0;return {aer:u.aer,nCol:u.nCol,dCol:u.dCol,lCmp:u.lCmp,circ,h,bl,zi,ze,c,dec,A,B,Af,Bf,Ai,Bi,Ao,Bo,R,abs,zF,zA:zF+h,zC:zF+h+bl,ti:zi*(h+bl),cx:+u.cx||0,cy:+u.cy||0,r:+u.rotR||0,co:Math.cos(+u.rotR||0),si:Math.sin(+u.rotR||0),nome:u.nome||"",sel:!!u.sel,corte:u.corte,aterro:u.aterro,L:u.L,W:u.W,D:u.D}}
+  const abs=isFinite(+u.zF)&&u.zF!==""&&u.zF!=null,zF=abs?+u.zF:0;return {aer:u.aer,nCol:u.nCol,dCol:u.dCol,lCmp:u.lCmp,circ,h,bl,zi,ze,c,dec,A,B,Af,Bf,Ai,Bi,Ao,Bo,R,abs,zF,zA:zF+h,zC:zF+h+bl,ti:zi*(h+bl),cx:+u.cx||0,cy:+u.cy||0,r:+u.rotR||0,co:Math.cos(+u.rotR||0),si:Math.sin(+u.rotR||0),nome:u.nome||"",sel:!!u.sel,corte:u.corte,aterro:u.aterro,L:u.L,W:u.W,D:u.D,gc:u.gc}}
 /* Calculadora: unidades iguais em filas, dividindo os diques */
 function gfLayoutUnidades(q){if(!q)return null;const tot=Math.max(1,Math.round(+q.n||1)),n=Math.min(tot,60),rows=Math.max(1,Math.min(Math.round(+q.rows||1),n)),per=Math.ceil(n/rows),g=gfGeoU(q);
   const pL=g.circ?2*g.Ao+2:2*g.Ai+g.c,pW=g.circ?2*g.Ao+2:2*g.Bi+g.c,U=[];let i=0;
@@ -12076,7 +12076,7 @@ function gfLayoutUnidades(q){if(!q)return null;const tot=Math.max(1,Math.round(+
   return {unidades:U,total:tot,rot:+q.rot||0,nome:"Conjunto de "+tot+" unidade(s)"}}
 const loc=(g,x,y)=>{const dx=x-g.cx,dy=y-g.cy;return [dx*g.co+dy*g.si,-dx*g.si+dy*g.co]};
 /* ---------- 2D: planta do conjunto ---------- */
-function gfCADConj(Q,q){const G=Q.unidades.map(gfGeoU);if(!G.length)return "";const C={bg:"#12161b",ext:"#e8edf2",cri:"#ffd84d",agua:"#39c6ff",fundo:"#3b82f6",dim:"#4ade80",dimT:"#c8f7d9",txt:"#e5e7eb"};
+function gfCADConj(Q,q){const G=Q.unidades.map(gfGeoU);if(!G.length)return "";const C={bg:"#12161b",ext:"#e8edf2",cri:"#ffd84d",agua:"#39c6ff",fundo:"#3b82f6",dim:"#4ade80",dimT:"#c8f7d9",txt:"#e5e7eb"};const CU=c=>(c==null||c<0)?null:(c<8?"var(--c"+(c+1)+")":"hsl("+((c*53)%360)+" 62% 52%)");
   const nf2=(x,d)=>(+x).toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}),E2=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])),fx=v=>v.toFixed(1);
   const R0=(+Q.rot||0)*Math.PI/180,cr=Math.cos(R0),sr=Math.sin(R0),rw=(x,y)=>[x*cr-y*sr,x*sr+y*cr],TU=(g,u,w)=>rw(g.cx+u*g.co-w*g.si,g.cy+u*g.si+w*g.co);
   const cant=(g,a,b)=>{const P=g.circ?[...Array(28)].map((_,i)=>[a*Math.cos(i/28*2*Math.PI),a*Math.sin(i/28*2*Math.PI)]):[[-a,-b],[a,-b],[a,b],[-a,b]];return P.map(([u,w])=>TU(g,u,w))};
@@ -12086,7 +12086,7 @@ function gfCADConj(Q,q){const G=Q.unidades.map(gfGeoU);if(!G.length)return "";co
   o.push(`<text x="24" y="34" fill="${C.txt}" font-size="17" font-weight="700" letter-spacing="1">PLANTA DO CONJUNTO</text><text x="24" y="54" fill="#93a3b1" font-size="12">${E2(Q.nome||"")}${Q.total>G.length?` · mostrando ${G.length} de ${Q.total}`:""} · ${G.length} unidade(s)</text>`);
   G.forEach((g,i)=>{o.push(`<path d="${pth(cant(g,g.Ao,g.Bo))}" fill="rgba(160,120,70,.12)" stroke="${C.ext}" stroke-width="${g.sel?2.6:1.3}" pathLength="1" class="dw" style="animation-delay:${Math.min(i,20)*40}ms"/>`);
     if(!g.circ)o.push(`<path d="${pth(cant(g,g.Ai,g.Bi))}" fill="none" stroke="${C.cri}" stroke-width="1.2" class="fi"/>`);
-    o.push(`<path d="${pth(cant(g,g.A,g.B))}" fill="rgba(57,198,255,.18)" stroke="${g.sel?"#ffffff":C.agua}" stroke-width="${g.sel?2.4:1.6}" pathLength="1" class="dw2" style="animation-delay:${Math.min(i,20)*40}ms"/>`);
+    const gcC=CU(g.gc);o.push(`<path d="${pth(cant(g,g.A,g.B))}" fill="${gcC||"rgba(57,198,255,.18)"}" fill-opacity="${gcC?.34:1}" stroke="${g.sel?"#ffffff":(gcC||C.agua)}" stroke-width="${g.sel?2.4:1.6}" pathLength="1" class="dw2" style="animation-delay:${Math.min(i,20)*40}ms"/>`);
     if(!g.circ&&g.zi>0)o.push(`<path d="${pth(cant(g,g.Af,g.Bf))}" fill="none" stroke="${C.fundo}" stroke-width="1" stroke-dasharray="6 4" class="fi"/>`);
     {const EQ=gfEquip(g,g),T=(u,w)=>TU(g,u,w),box=(u0,u1,w0,w1)=>pth([T(u0,w0),T(u1,w0),T(u1,w1),T(u0,w1)]),lc=Math.max(EQ.lc,4/k);
       if(!g.circ)o.push(`${EQ.cmp[0]?`<path d="${box(-g.Ao,-g.A,-lc/2,lc/2)}" fill="#dc2626" class="fi"/>`:""}${EQ.cmp[1]?`<path d="${box(g.A,g.Ao,-lc/2,lc/2)}" fill="#dc2626" class="fi"/>`:""}`);
@@ -15272,10 +15272,10 @@ let sel=0;
 function grupos(){let L=T(()=>typeof tanks!=="undefined"?tanks:null,null);if(!Array.isArray(L))L=T(()=>JSON.parse(localStorage.getItem("ras-multitanques-v1")).tanks,[])||[];
   const prof=T(()=>num(JSON.parse(localStorage.getItem("ras-multitanques-v1-local")).prof),NaN),h=prof>0?prof:1.2;
   return L.map((t,i)=>{const q=Math.round(num(t.q)),v=num(t.v);if(!(q>0&&v>0))return null;const D=Math.sqrt(4*v/(Math.PI*h));
-    return {i,q,v,h,D,nome:String(t.name||"").trim()||`Grupo ${i+1}`}}).filter(Boolean)}
+    return {i,gc:t.c,q,v,h,D,nome:String(t.name||"").trim()||`Grupo ${i+1}`}}).filter(Boolean)}
 const qDe=(g,n)=>({nome:`${g.nome} · ${F(g.v)} m³`,tipo:"elev",circ:true,L:+g.D.toFixed(2),W:+g.D.toFixed(2),D:+g.D.toFixed(2),h:g.h,bl:.2,zi:0,ze:0,c:.15,dec:0,n:n||g.q,rows:1,aer:0,nCol:1,dCol:NaN,lCmp:.3,dren:"auto",rot:0});
 function conjunto(G){const U=[];let y=0,tot=0;G.forEach((g,r)=>{const q=qDe(g),geo=T(()=>gfGeoU(q),{Ao:g.D/2+.15}),p=2*geo.Ao+1.2,per=Math.min(g.q,12),lin=Math.ceil(Math.min(g.q,60)/per);
-    for(let k=0;k<Math.min(g.q,60);k++){const c=k%per,l=Math.floor(k/per);U.push(Object.assign({},q,{nome:`T${tot+k+1} · ${F(g.v)} m³`,cx:(c-(per-1)/2)*p,cy:y+l*p,rotR:0}))}tot+=g.q;y+=lin*p+2});
+    for(let k=0;k<Math.min(g.q,60);k++){const c=k%per,l=Math.floor(k/per);U.push(Object.assign({},q,{nome:`T${tot+k+1} · ${F(g.v)} m³`,gc:g.gc,cx:(c-(per-1)/2)*p,cy:y+l*p,rotR:0}))}tot+=g.q;y+=lin*p+2});
   const my=U.length?(Math.min(...U.map(u=>u.cy))+Math.max(...U.map(u=>u.cy)))/2:0;U.forEach(u=>u.cy-=my);return {unidades:U,total:tot,rot:0,nome:`Conjunto de ${tot} tanque(s) em ${G.length} grupo(s)`}}
 function card(){const v=document.getElementById("view-calc"),form=document.getElementById("form");if(!v||!form)return null;let c=document.getElementById("ras-cad-card");
   if(!c){c=document.createElement("section");c.className="card";c.id="ras-cad-card";c.innerHTML=`<div class="card-head"><h2>📐 Desenho técnico dos tanques<span>Tanques circulares de cada grupo da calculadora: volume e quantidade dos grupos, profundidade da aba Local</span></h2></div><div class="rc-b"><div class="rc-ctl"></div><div id="ras-cad"></div></div>`;
@@ -20194,8 +20194,10 @@ document.addEventListener("click",e=>{const btn=e.target.closest&&e.target.close
   if(!groups){groups=[{name:`${espNome(S.esp)} · ${un} (dim.)`,q:r.nUn,v:volUn,sp,alvo:alvoG,w0}];resumo=`${F(r.nUn)} ${un}(s) de ${F(volUn,1)} m³`}
   // alinha a densidade máxima da espécie na Calculadora (kg/m³) com a do dimensionador, para a Biomassa projetar a estocagem na mesma densidade
   if(r.pV&&P(S.dens)>0||r.pV&&r.dens>0){T(()=>{const el=document.getElementById("DM_"+sp);if(el){el.value=String(Math.round((P(S.dens)>0?P(S.dens):r.dens)*10)/10).replace(".",",");el.dispatchEvent(new Event("input",{bubbles:true}))}})}
-  const ok=T(()=>window.gfAplicaProjeto&&window.gfAplicaProjeto(groups,true),false);
-  if(ok){toast(`✅ Enviado para a Calculadora: <b>${resumo}</b>. A aba 🐟 Biomassa já projeta a densidade de estocagem de cada grupo.`);
+  const nAtual=T(()=>window.gfLerProjeto&&window.gfLerProjeto().length,0)||0;
+  const modo=(nAtual>0&&confirm(`Substituir TODOS os tanques da Calculadora por este projeto (${resumo})?\n\nOK = a Calculadora e a Biomassa passam a ter exatamente estes tanques.\nCancelar = mantém os tanques atuais e só acrescenta os projetados.`))?"tudo":true;
+  const ok=T(()=>window.gfAplicaProjeto&&window.gfAplicaProjeto(groups,modo),false);
+  if(ok){toast(`✅ ${modo==="tudo"?"Calculadora e Biomassa agora têm exatamente":"Enviado para a Calculadora:"} <b>${resumo}</b>. A aba 🐟 Biomassa já projeta a densidade de estocagem de cada grupo.`);
     setTimeout(()=>{const alvo=document.getElementById("etapa-4")||document.querySelector("#view-calc .right")||document.getElementById("vtotal")||document.getElementById("ras-cad-card");if(alvo)alvo.scrollIntoView({behavior:"smooth",block:"start"})},200);
   }else toast("Não consegui enviar para a Calculadora nesta versão. Cadastre os tanques manualmente em “Tanques do cliente”.");
 },true);
