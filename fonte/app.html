@@ -19848,7 +19848,18 @@ try{if(!document.getElementById("gf-dim-css")){const st=document.createElement("
 .dim-bt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 4px}
 .dim-bt-h{font-size:12px;color:var(--muted);flex:1;min-width:180px}
 .gf-dim-toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);max-width:92vw;background:#0f766e;color:#fff;padding:11px 15px;border-radius:12px;font-size:13.5px;box-shadow:0 8px 26px rgba(0,0,0,.25);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999}
-.gf-dim-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}`;
+.gf-dim-toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.gf-dim-head{display:flex;align-items:flex-start;gap:8px}
+.gf-dim-tog{flex:none;width:30px;height:30px;border:1px solid var(--line,#e2e8f0);border-radius:8px;background:var(--card,#fff);color:inherit;font-size:15px;cursor:pointer;line-height:1}
+.dim-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0 8px;font-size:12.5px}
+.dim-chips>span{color:var(--muted);margin-right:2px}
+.dim-chip{border:1px solid var(--line,#e2e8f0);border-radius:999px;padding:4px 10px;background:var(--card,#fff);color:inherit;font-size:12.5px;cursor:pointer}
+.dim-chip.on{background:#0f766e;color:#fff;border-color:#0f766e}
+.dim-ck{display:flex;gap:8px;align-items:flex-start;font-size:13px;background:var(--cinza-soft,#eef1f4);padding:9px 11px;border-radius:9px;margin:4px 0 2px;cursor:pointer}
+.dim-ck input{margin-top:2px}
+.dim-cascata th,.dim-cascata td{padding:5px 7px;font-size:13px}
+.dim-fi{width:62px;padding:4px 6px;border:1px solid var(--line,#e2e8f0);border-radius:7px;background:var(--card,#fff);color:inherit;font-size:13px}
+:root[data-theme="dark"] .dim-chip,:root[data-theme="dark"] .gf-dim-tog,:root[data-theme="dark"] .dim-fi{background:#1e293b}`;
   document.head.appendChild(st)}}catch(e){}
 const E=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const T=(f,d)=>{try{const v=f();return v==null?d:v}catch(e){return d}};
@@ -19865,7 +19876,13 @@ const espNome=k=>T(()=>ESP[k][0],k)||k;
 /* ---- estado salvo (por projeto) ---- */
 const vazio=()=>({cultivo:"pisc",esp:"tilapia",estrutura:"viveiro",sistema:"semi",
   area:"",prof:"",modulo:"",formato:"ret",talude:"",crista:"",nUn:"",
-  dens:"",pFinal:"",sobrev:"",ciclos:"",em:0});
+  dens:"",pFinal:"",sobrev:"",ciclos:"",recolhido:false,bateria:false,
+  bat_ber_pf:"",bat_ber_dm:"",bat_ber_s:"",bat_rec_pf:"",bat_rec_dm:"",bat_rec_s:"",bat_eng_dm:"",bat_eng_s:"",em:0});
+/* tamanhos comerciais de tanques redondos suspensos (m³): caixa d'água de polietileno + tanque circular de
+   geomembrana PEAD. Base: catálogos de fornecedores (geomembrana 5–200 mil L; 50 m³ ≈ Ø 7,3 m × 1,2 m). */
+const COMTANKS=[0.5,1,2,3,5,8,10,15,20,35,50,80,135,200];
+const comTanque=v=>COMTANKS.reduce((a,b)=>Math.abs(b-v)<Math.abs(a-v)?b:a,COMTANKS[0]); // comercial mais próximo
+const comMaiorIgual=v=>COMTANKS.find(x=>x>=v)||COMTANKS[COMTANKS.length-1];
 let S=T(()=>Object.assign(vazio(),JSON.parse(localStorage.getItem(LS)||"{}")),vazio());
 const salva=()=>{S.em=Date.now();T(()=>localStorage.setItem(LS,JSON.stringify(S)))};
 
@@ -19984,8 +20001,11 @@ function calc(){
 function host(){return document.getElementById("view-calc")}
 function card(){const v=host();if(!v)return null;let c=document.getElementById("gf-dim-card");
   if(!c){c=document.createElement("section");c.className="card wide gf-dim";c.id="gf-dim-card";
-    c.innerHTML=`<div class="card-head"><h2>📐 Dimensionamento do projeto<span>Quantos viveiros/tanques cabem na área, com que tamanho, densidade, povoamento e produção — pela engenharia aquícola. Base: Embrapa, SENAR e Panorama da Aquicultura.</span></h2></div><div class="body" id="gf-dim-body"></div>`;
-    v.insertBefore(c,v.firstChild);const bb=c.querySelector("#gf-dim-body");const h0=T(corpo,"");bb.innerHTML=h0;bb.__h=h0}return c}
+    c.innerHTML=`<div class="card-head gf-dim-head"><button type="button" class="gf-dim-tog" data-dimx="toggle" aria-expanded="true" title="Encolher/expandir">▾</button><h2>📐 Dimensionamento do projeto<span>Quantos viveiros/tanques cabem na área, com que tamanho, densidade, povoamento e produção — pela engenharia aquícola. Base: Embrapa, SENAR e Panorama da Aquicultura.</span></h2></div><div class="body" id="gf-dim-body"></div>`;
+    v.insertBefore(c,v.firstChild);const bb=c.querySelector("#gf-dim-body");const h0=T(corpo,"");bb.innerHTML=h0;bb.__h=h0}
+  aplicaRecolhido(c);return c}
+function aplicaRecolhido(c){c=c||document.getElementById("gf-dim-card");if(!c)return;const b=c.querySelector("#gf-dim-body"),t=c.querySelector(".gf-dim-tog");
+  if(b)b.style.display=S.recolhido?"none":"";if(t){t.textContent=S.recolhido?"▸":"▾";t.setAttribute("aria-expanded",String(!S.recolhido))}}
 
 const inp=(k,ph,extra="")=>`<input data-dim="${k}" value="${E(S[k])}" placeholder="${E(ph)}" inputmode="decimal" ${extra} aria-label="${E(ph)}">`;
 const sel=(k,ops)=>`<select data-dim="${k}">${ops.map(([v,t])=>`<option value="${v}"${S[k]===v?" selected":""}>${E(t)}</option>`).join("")}</select>`;
@@ -19993,6 +20013,42 @@ const sel=(k,ops)=>`<select data-dim="${k}">${ops.map(([v,t])=>`<option value="$
 function estruturaOpts(){
   if(ehCarci())return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"]];
   return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"],["tanque","🟦 Tanque elevado (geomembrana/alvenaria)"]];
+}
+
+/* ---- cascata por fases: bateria de tanques redondos de volume crescente, dimensionada pela biomassa ---- */
+function escolheTanque(volReq,prevSize){for(const s of COMTANKS){if(s<prevSize)continue;if(Math.ceil(volReq/s)<=4)return s}return COMTANKS[COMTANKS.length-1]}
+function cascata(r){
+  if(!r||ehCarci()||!porVolume())return null;
+  const N0=r.povoInit; if(!(N0>0))return null;
+  const pEngG=r.pFinal*1000;
+  const fases=[
+    {k:"ber",t:"Berçário",pf:P(S.bat_ber_pf)>0?P(S.bat_ber_pf):30, dm:P(S.bat_ber_dm)>0?P(S.bat_ber_dm):15, s:P(S.bat_ber_s)>0?P(S.bat_ber_s):90},
+    {k:"rec",t:"Recria",  pf:P(S.bat_rec_pf)>0?P(S.bat_rec_pf):250,dm:P(S.bat_rec_dm)>0?P(S.bat_rec_dm):25, s:P(S.bat_rec_s)>0?P(S.bat_rec_s):95},
+    {k:"eng",t:"Engorda", pf:pEngG, dm:P(S.bat_eng_dm)>0?P(S.bat_eng_dm):Math.max(25,r.dens||25), s:P(S.bat_eng_s)>0?P(S.bat_eng_s):95}
+  ];
+  let N=N0, prev=0; const linhas=[];
+  for(const f of fases){
+    const Nend=N*f.s/100, bio=Nend*f.pf/1000, volReq=f.dm>0?bio/f.dm:0;
+    const size=escolheTanque(volReq,prev), qtd=Math.max(1,Math.ceil(volReq/size)); prev=size;
+    linhas.push({...f,Nin:Math.round(N),Nend:Math.round(Nend),bio,volReq,size,qtd,volInst:size*qtd});
+    N=Nend;
+  }
+  return linhas;
+}
+function cascataHTML(r){
+  const C=cascata(r); if(!C)return `<p class="hint">A bateria por fases vale para <b>peixe em tanque</b>. Informe a área/volume para gerar a cascata.</p>`;
+  const totTanks=C.reduce((a,x)=>a+x.qtd,0), totVol=C.reduce((a,x)=>a+x.volInst,0);
+  const fi=(k,ph)=>`<input class="dim-fi" data-dim="${k}" value="${E(S[k]||"")}" placeholder="${ph}" inputmode="decimal">`;
+  const ln=c=>`<tr><th>${c.t}</th>
+    <td>${c.k==="eng"?F(c.pf)+" g":`${fi("bat_"+c.k+"_pf",c.pf)} g`}</td>
+    <td>${fi("bat_"+c.k+"_s",c.s)} %</td>
+    <td>${F(c.Nend)}</td><td>${F(c.bio)} kg</td>
+    <td>${fi("bat_"+c.k+"_dm",F(c.dm,0))} kg/m³</td>
+    <td>${F(c.volReq)} m³</td>
+    <td><b>${c.qtd} × ${F(c.size)} m³</b></td></tr>`;
+  return `<h4 class="cor-h">🪜 Bateria de tanques por fase (cascata pela biomassa)</h4>
+  <div class="scroll"><table class="cor-t dim-cascata"><thead><tr><th>Fase</th><th>Peso final</th><th>Sobrev.</th><th>Nº peixes</th><th>Biomassa</th><th>Densidade</th><th>Volume necessário</th><th>Tanque redondo</th></tr></thead><tbody>${C.map(ln).join("")}</tbody></table></div>
+  <p class="hint">Começa com <b>${F(r.povoInit)} alevinos</b> e segue o crescimento: cada fase usa tanques redondos comerciais de volume crescente, dimensionados pela biomassa (biomassa ÷ densidade). Total do conjunto: <b>${totTanks} tanque(s)</b> · ${F(totVol)} m³ instalados. Peso, sobrevivência e densidade de cada fase são editáveis.</p>`;
 }
 
 /* resultados (separado dos campos: atualiza ao vivo mesmo com um campo focado) */
@@ -20024,7 +20080,8 @@ function saida(){
       ${isFinite(r.vazao)?linha("Vazão de renovação",`${F(r.vazao,1)} L/s`,`${pz.ren} do volume`):""}
       ${isFinite(r.hpTot)?linha("Aeração recomendada",`${F(r.hpTot,1)} hp`,`${pz.aer} · ${pz.hp} hp/ha`):""}
     </tbody></table></div>
-    ${r.cabe?`<div class="gfp-bt dim-bt"><button type="button" class="btn solid" data-dimx="aplica">▶️ Rodar no cálculo da mídia</button><span class="dim-bt-h">Cria ${F(r.nUn)} ${un}(s) de ${F(pV?r.mod:r.Aw*r.prof,1)} m³ na calculadora e dimensiona filtros e mídia para ${F(r.vol)} m³.</span></div>`:""}
+    ${S.bateria?cascataHTML(r):""}
+    ${r.cabe?`<div class="gfp-bt dim-bt"><button type="button" class="btn solid" data-dimx="aplica">▶️ Rodar no cálculo da mídia</button><span class="dim-bt-h">${S.bateria&&!ehCarci()&&pV?`Cria a bateria de fases na calculadora e dimensiona filtros e mídia para o conjunto.`:`Cria ${F(r.nUn)} ${un}(s) de ${F(pV?r.mod:r.Aw*r.prof,1)} m³ na calculadora e dimensiona filtros e mídia para ${F(r.vol)} m³.`}</span></div>`:""}
     <p class="hint">${pV?`Tanques revestidos/RAS: densidade por volume (kg/m³); paredes verticais ocupam pouco terreno. `:ehCarci()?`Camarão é bentônico: densidade por m² de fundo. `:`Viveiro de peixe: densidade por m² de lâmina d'água. `}O nº de ${un}s vem da geometria (lâmina + taludes + dique); ajuste o tamanho, o talude, o dique, o formato ou o próprio nº se precisar.</p>`;
   }
 }
@@ -20050,6 +20107,8 @@ function corpo(){
     <label class="cor-f"><span>Sobrevivência (%)</span>${inp("sobrev",String(e.s))}</label>
     <label class="cor-f"><span>Ciclos por ano</span>${inp("ciclos",String(e.cic))}</label>
   </div>
+  ${pV?`<div class="dim-chips"><span>Tamanhos comerciais de tanque redondo:</span>${[5,8,10,15,20,35,50,80,135,200].map(x=>`<button type="button" class="dim-chip${String(num(S.modulo))===String(x)?" on":""}" data-dimvol="${x}">${x} m³</button>`).join("")}</div>
+  <label class="dim-ck"><input type="checkbox" data-dim="bateria" ${S.bateria?"checked":""}> 🪜 Projetar como <b>bateria de fases em cascata</b> (berçário → recria → engorda, tanques redondos de volume crescente, dimensionados pela biomassa)</label>`:""}
   <div class="dim-out">${T(saida,"")}</div>
   <p class="cor-fonte">Base de engenharia: SENAR 210 — Criação de tilápias em viveiros escavados (2018); Embrapa — Implantação de piscicultura em viveiros escavados (cap. 4) e Manejo na carcinicultura (2022); Panorama da Aquicultura ed. 73 — Os viveiros (2005). Densidade de tanque revestido/RAS conforme as faixas de densidade máxima do próprio app. Projeto executivo exige levantamento do terreno e responsável técnico.</p>`;
 }
@@ -20058,14 +20117,18 @@ function corpo(){
 function desenha(){const v=host();if(!v||v.hidden)return;const c=card();if(!c)return;
   const b=document.getElementById("gf-dim-body");if(!b)return;
   const foco=document.activeElement,ed=foco&&foco.closest&&foco.closest("#gf-dim-card")&&foco.tagName==="INPUT";
-  if(ed){const o=b.querySelector(".dim-out");if(o)o.innerHTML=T(saida,"");return} /* digitando: atualiza só os resultados, mantém o campo e o cursor */
+  if(ed){const o=b.querySelector(".dim-out");if(o){
+    const emOut=o.contains(foco),k=emOut?foco.dataset.dim:null,ss=emOut?T(()=>foco.selectionStart,null):null;
+    o.innerHTML=T(saida,"");
+    if(emOut&&k){const n=o.querySelector(`[data-dim="${k}"]`);if(n){try{n.focus();if(ss!=null)n.setSelectionRange(ss,ss)}catch(e){}}}
+  }return} /* digitando: atualiza só os resultados, mantendo o campo e o cursor */
   const h=T(corpo,"");if(h!==b.__h){b.innerHTML=h;b.__h=h}}
 
 document.addEventListener("input",e=>{const el=e.target.closest&&e.target.closest("#gf-dim-card [data-dim]");if(!el)return;
   const k=el.dataset.dim;S[k]=el.value;salva();
   clearTimeout(window.__dimT);window.__dimT=setTimeout(()=>{const b=document.getElementById("gf-dim-body");if(b)b.__h="";desenha()},300)},true);
 document.addEventListener("change",e=>{const el=e.target.closest&&e.target.closest("#gf-dim-card [data-dim]");if(!el)return;
-  const k=el.dataset.dim;S[k]=el.value;
+  const k=el.dataset.dim;S[k]=el.type==="checkbox"?el.checked:el.value;
   /* ao trocar cultivo, ajusta espécie e estrutura coerentes */
   if(k==="cultivo"){if(S.cultivo==="carci"&&!/camar|pl/.test(S.esp))S.esp="camarao";if(S.cultivo==="pisc"&&/camar|pl/.test(S.esp))S.esp="tilapia";if(S.cultivo==="carci"&&S.estrutura==="tanque")S.estrutura="viveiro_geo"}
   if(k==="esp"){if(/camar|pl/.test(S.esp)&&S.estrutura==="tanque")S.estrutura="viveiro_geo"}
@@ -20078,12 +20141,22 @@ const toast=t=>{try{let n=document.getElementById("gf-dim-toast");if(!n){n=docum
 document.addEventListener("click",e=>{const btn=e.target.closest&&e.target.closest('#gf-dim-card [data-dimx="aplica"]');if(!btn)return;
   const r=T(calc,null);if(!r||!r.cabe){toast("Preencha a área (e um nº de unidades que caiba) antes de rodar.");return}
   const un=r.pV?"tanque":"viveiro", volUn=r.pV?r.mod:r.Aw*r.prof;
-  const nome=`${espNome(S.esp)} · ${un} (dim.)`;
-  const ok=T(()=>window.gfAplicaProjeto&&window.gfAplicaProjeto([{name:nome,q:r.nUn,v:volUn}],true),false);
-  if(ok){toast(`✅ <b>${F(r.nUn)} ${un}(s)</b> de ${F(volUn,1)} m³ enviados para a Calculadora. Veja abaixo o cálculo de filtros e mídia para ${F(r.vol)} m³.`);
+  let groups=null, resumo="";
+  if(S.bateria&&!ehCarci()&&porVolume()){const C=cascata(r);if(C&&C.length){groups=C.map(c=>({name:`${espNome(S.esp)} · ${c.t} (dim.)`,q:c.qtd,v:c.size}));
+    const tot=C.reduce((a,x)=>a+x.qtd,0),vol=C.reduce((a,x)=>a+x.volInst,0);resumo=`a bateria de ${tot} tanque(s) (${F(vol)} m³)`}}
+  if(!groups){groups=[{name:`${espNome(S.esp)} · ${un} (dim.)`,q:r.nUn,v:volUn}];resumo=`${F(r.nUn)} ${un}(s) de ${F(volUn,1)} m³`}
+  const ok=T(()=>window.gfAplicaProjeto&&window.gfAplicaProjeto(groups,true),false);
+  if(ok){toast(`✅ Enviado para a Calculadora: <b>${resumo}</b>. Veja abaixo o cálculo de filtros e mídia.`);
     setTimeout(()=>{const alvo=document.getElementById("etapa-4")||document.querySelector("#view-calc .right")||document.getElementById("vtotal")||document.getElementById("ras-cad-card");if(alvo)alvo.scrollIntoView({behavior:"smooth",block:"start"})},200);
   }else toast("Não consegui enviar para a Calculadora nesta versão. Cadastre os tanques manualmente em “Tanques do cliente”.");
 },true);
+
+/* encolher/expandir o card */
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#gf-dim-card [data-dimx="toggle"]');if(!b)return;
+  S.recolhido=!S.recolhido;salva();aplicaRecolhido()},true);
+/* atalhos de volume comercial de tanque redondo */
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#gf-dim-card [data-dimvol]');if(!b)return;
+  S.modulo=b.dataset.dimvol;salva();const bd=document.getElementById("gf-dim-body");if(bd)bd.__h="";desenha()},true);
 
 /* mantém o card presente ao abrir a Calculadora */
 function observa(){const v=host();if(!v)return;card();
