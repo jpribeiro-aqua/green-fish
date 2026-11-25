@@ -1340,7 +1340,8 @@ function grpAtivo(){return GRP_FILTRA.includes(grpViewAtual())&&!!grpSel()}
 function grpI(i){return window.__grpIdx?window.__grpIdx[i]:i}
 function grpWrap(fn){return function(...a){if(!window.__grpIdx||window.__grpSwap)return fn.apply(this,a);const all=tanks;tanks=window.__grpIdx.map(i=>all[i]).filter(Boolean);window.__grpSwap=true;try{return fn.apply(this,a)}finally{tanks=all;window.__grpSwap=false}}}
 window.gfCalcRender=()=>render();
-window.gfAplicaProjeto=(groups,subst)=>{try{if(typeof tanks==="undefined")return false;if(subst)for(let i=tanks.length-1;i>=0;i--)if(/\(dim\.\)$/.test(tanks[i].name||""))tanks.splice(i,1);const nid=()=>tanks.reduce((m,t)=>Math.max(m,t.id+1),0),cor=()=>{for(let c=0;c<8;c++)if(!tanks.some(t=>t.c===c))return c;return 8};(groups||[]).forEach(g=>{const vol=Number(g.v);if(!(vol>0)||!(Number(g.q)>0))return;tanks.push({id:nid(),c:cor(),name:String(g.name||"").slice(0,24),q:String(Math.round(Number(g.q))),v:String(Math.round(vol*100)/100).replace(".",",")})});if(typeof drawTanks==="function")drawTanks();if(typeof render==="function")render();if(typeof save==="function")save();return true}catch(e){return false}};
+window.gfAplicaProjeto=(groups,subst)=>{try{if(typeof tanks==="undefined")return false;if(subst)for(let i=tanks.length-1;i>=0;i--)if(/\(dim\.\)$/.test(tanks[i].name||""))tanks.splice(i,1);const nid=()=>tanks.reduce((m,t)=>Math.max(m,t.id+1),0),cor=()=>{for(let c=0;c<8;c++)if(!tanks.some(t=>t.c===c))return c;return 8};const hoje=new Date().toISOString().slice(0,10);(groups||[]).forEach(g=>{const vol=Number(g.v);if(!(vol>0)||!(Number(g.q)>0))return;const t={id:nid(),c:cor(),name:String(g.name||"").slice(0,24),q:String(Math.round(Number(g.q))),v:String(Math.round(vol*100)/100).replace(".",",")};if(g.sp&&typeof SPECIES!=="undefined"&&SPECIES[g.sp])t.lot={sp:String(g.sp),date:hoje,w0:g.w0!=null?String(g.w0).replace(".",","):"",n:"",alvo:g.alvo!=null?String(g.alvo).replace(".",","):""};tanks.push(t)});if(typeof drawTanks==="function")drawTanks();if(typeof render==="function")render();if(typeof save==="function")save();return true}catch(e){return false}};
+window.gfLerProjeto=()=>{try{if(typeof tanks==="undefined")return null;const pr=v=>{const n=(typeof parse==="function")?parse(v):Number(String(v).replace(",","."));return isFinite(n)?n:0};return (tanks||[]).map(t=>({name:t.name||"",q:Math.round(pr(t.q)),v:pr(t.v),sp:t.lot&&t.lot.sp||"",alvo:t.lot?pr(t.lot.alvo):0})).filter(x=>x.v>0&&x.q>0)}catch(e){return null}};
 function render(){if(window.__grpSwap)return renderCore();window.__grpIdx=null;renderCore();dashStateAll=dashState;
   if(grpAtivo()){const all=tanks,s=grpSel(),idx=[];all.forEach((t,i)=>{if(String(t.id)===s)idx.push(i)});window.__grpIdx=idx;tanks=idx.map(i=>all[i]);window.__grpSwap=true;try{renderCore()}finally{tanks=all;window.__grpSwap=false}}
   try{window.drawGrpBar&&drawGrpBar()}catch(e){}}
@@ -19930,6 +19931,9 @@ const ESP_DEF={
   pl:{p:0.012,s:70, cic:3, mod:5000}
 };
 const ehCarci=()=>/camar|pl/.test(S.esp);
+/* espécie do dimensionador → chave da Biomassa (SPECIES): pós-larva entra como camarão */
+const espSp=()=>({tilapia:"tilapia",tambaqui:"tambaqui",camarao:"camarao",pl:"camarao"}[S.esp]||"tilapia");
+const w0Pad=()=>ehCarci()?1:30; /* peso inicial de povoamento (g) */
 /* modo: carcinicultura sempre por ÁREA (camarão é bentônico); peixe em tanque elevado = por VOLUME */
 const porVolume=()=>!ehCarci()&&S.estrutura==="tanque";
 const temSolo=()=>S.estrutura==="viveiro";
@@ -20044,12 +20048,12 @@ function cascata(r){
     {k:"rec",t:"Recria",  pf:P(S.bat_rec_pf)>0?P(S.bat_rec_pf):250,dm:P(S.bat_rec_dm)>0?P(S.bat_rec_dm):25, s:P(S.bat_rec_s)>0?P(S.bat_rec_s):95},
     {k:"eng",t:"Engorda", pf:pEngG, dm:P(S.bat_eng_dm)>0?P(S.bat_eng_dm):Math.max(25,r.dens||25), s:P(S.bat_eng_s)>0?P(S.bat_eng_s):95}
   ];
-  let N=N0, prev=0; const linhas=[];
+  let N=N0, prev=0, prevPf=1; const linhas=[];
   for(const f of fases){
     const Nend=N*f.s/100, bio=Nend*f.pf/1000, volReq=f.dm>0?bio/f.dm:0;
     const size=escolheTanque(volReq,prev), qtd=Math.max(1,Math.ceil(volReq/size)); prev=size;
-    linhas.push({...f,Nin:Math.round(N),Nend:Math.round(Nend),bio,volReq,size,qtd,volInst:size*qtd});
-    N=Nend;
+    linhas.push({...f,Nin:Math.round(N),Nend:Math.round(Nend),bio,volReq,size,qtd,volInst:size*qtd,w0:prevPf});
+    N=Nend; prevPf=f.pf;
   }
   return linhas;
 }
@@ -20147,7 +20151,8 @@ function corpo(){
     const ml=marcadosLista();
     const lista=ml.length?`<div class="dim-mklist"><span>No projeto:</span>${ml.map(([v,q])=>`<span class="dim-mk"><b>${fv(v)} ${uM}</b> ×<input class="dim-fi dim-mkq" data-dimq="${v}" value="${q}" inputmode="numeric" aria-label="quantidade"><button type="button" class="dim-mkx" data-dimrm="${v}" aria-label="remover">✕</button></span>`).join("")}<button type="button" class="dim-chip" data-dimclear="1">limpar</button></div>`:"";
     const bat=pV?`<label class="dim-ck"><input type="checkbox" data-dim="bateria" ${S.bateria?"checked":""}> 🪜 Projetar como <b>bateria de fases em cascata</b> (berçário → recria → engorda, tanques redondos de volume crescente, dimensionados pela biomassa)</label>`:"";
-    return chips+lista+bat;})()}
+    const puxar=`<div class="dim-chips"><span>Ponte com a Biomassa:</span><button type="button" class="dim-chip dim-puxar" data-dimx="puxar">↩️ Puxar do projeto (tanques e lotes já cadastrados)</button></div>`;
+    return chips+lista+bat+puxar;})()}
   <div class="dim-out">${T(saida,"")}</div>
   <p class="cor-fonte">Base de engenharia: SENAR 210 — Criação de tilápias em viveiros escavados (2018); Embrapa — Implantação de piscicultura em viveiros escavados (cap. 4) e Manejo na carcinicultura (2022); Panorama da Aquicultura ed. 73 — Os viveiros (2005). Densidade de tanque revestido/RAS conforme as faixas de densidade máxima do próprio app. Projeto executivo exige levantamento do terreno e responsável técnico.</p>`;
 }
@@ -20180,18 +20185,34 @@ const toast=t=>{try{let n=document.getElementById("gf-dim-toast");if(!n){n=docum
 document.addEventListener("click",e=>{const btn=e.target.closest&&e.target.closest('#gf-dim-card [data-dimx="aplica"]');if(!btn)return;
   const r=T(calc,null);if(!r||!r.cabe){toast("Preencha a área (e um nº de unidades que caiba) antes de rodar.");return}
   const un=r.pV?"tanque":"viveiro", volUn=r.pV?r.mod:r.Aw*r.prof;
+  const sp=espSp(), alvoG=Math.round(r.pFinal*1000), w0=w0Pad();
   let groups=null, resumo="";
-  if(r.misto){groups=r.unidades.map(u=>({name:`${espNome(S.esp)} · ${F(u.size)} ${r.pV?"m³":"m²"} (dim.)`,q:u.qty,v:u.volUn}));
+  if(r.misto){groups=r.unidades.map(u=>({name:`${espNome(S.esp)} · ${F(u.size)} ${r.pV?"m³":"m²"} (dim.)`,q:u.qty,v:u.volUn,sp,alvo:alvoG,w0}));
     resumo=`${F(r.nUn)} ${un}(s) marcados em ${r.unidades.length} tamanho(s) (${F(r.vol)} m³)`}
-  else if(S.bateria&&!ehCarci()&&porVolume()){const C=cascata(r);if(C&&C.length){groups=C.map(c=>({name:`${espNome(S.esp)} · ${c.t} (dim.)`,q:c.qtd,v:c.size}));
+  else if(S.bateria&&!ehCarci()&&porVolume()){const C=cascata(r);if(C&&C.length){groups=C.map(c=>({name:`${espNome(S.esp)} · ${c.t} (dim.)`,q:c.qtd,v:c.size,sp,alvo:Math.round(c.pf),w0:Math.round(c.w0)}));
     const tot=C.reduce((a,x)=>a+x.qtd,0),vol=C.reduce((a,x)=>a+x.volInst,0);resumo=`a bateria de ${tot} tanque(s) (${F(vol)} m³)`}}
-  if(!groups){groups=[{name:`${espNome(S.esp)} · ${un} (dim.)`,q:r.nUn,v:volUn}];resumo=`${F(r.nUn)} ${un}(s) de ${F(volUn,1)} m³`}
+  if(!groups){groups=[{name:`${espNome(S.esp)} · ${un} (dim.)`,q:r.nUn,v:volUn,sp,alvo:alvoG,w0}];resumo=`${F(r.nUn)} ${un}(s) de ${F(volUn,1)} m³`}
+  // alinha a densidade máxima da espécie na Calculadora (kg/m³) com a do dimensionador, para a Biomassa projetar a estocagem na mesma densidade
+  if(r.pV&&P(S.dens)>0||r.pV&&r.dens>0){T(()=>{const el=document.getElementById("DM_"+sp);if(el){el.value=String(Math.round((P(S.dens)>0?P(S.dens):r.dens)*10)/10).replace(".",",");el.dispatchEvent(new Event("input",{bubbles:true}))}})}
   const ok=T(()=>window.gfAplicaProjeto&&window.gfAplicaProjeto(groups,true),false);
-  if(ok){toast(`✅ Enviado para a Calculadora: <b>${resumo}</b>. Veja abaixo o cálculo de filtros e mídia.`);
+  if(ok){toast(`✅ Enviado para a Calculadora: <b>${resumo}</b>. A aba 🐟 Biomassa já projeta a densidade de estocagem de cada grupo.`);
     setTimeout(()=>{const alvo=document.getElementById("etapa-4")||document.querySelector("#view-calc .right")||document.getElementById("vtotal")||document.getElementById("ras-cad-card");if(alvo)alvo.scrollIntoView({behavior:"smooth",block:"start"})},200);
   }else toast("Não consegui enviar para a Calculadora nesta versão. Cadastre os tanques manualmente em “Tanques do cliente”.");
 },true);
 
+/* ponte reversa: puxar os tanques+lotes já cadastrados no projeto para o dimensionador */
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#gf-dim-card [data-dimx="puxar"]');if(!b)return;
+  const L=T(()=>window.gfLerProjeto&&window.gfLerProjeto(),null);
+  if(!L||!L.length){toast("Nenhum tanque cadastrado na Calculadora para puxar.");return}
+  const porEsp={};L.forEach(t=>{if(t.sp)porEsp[t.sp]=(porEsp[t.sp]||0)+t.v*t.q});
+  const spDom=Object.keys(porEsp).sort((a,b)=>porEsp[b]-porEsp[a])[0];
+  S.bateria=false;
+  const vq={};L.forEach(t=>{const v=Math.round(t.v*100)/100;vq[v]=(vq[v]||0)+t.q});
+  if(spDom==="camarao"){S.cultivo="carci";S.esp="camarao";S.estrutura="viveiro_geo";S.marcados={}} // camarão: volume não mapeia p/ área
+  else{if(spDom){S.cultivo="pisc";S.esp=spDom}S.estrutura="tanque";S.marcados=vq}
+  const alvos=L.filter(t=>t.alvo>0).sort((a,b)=>b.v*b.q-a.v*a.q);if(alvos.length)S.pFinal=String(alvos[0].alvo);
+  salva();const bd=document.getElementById("gf-dim-body");if(bd)bd.__h="";desenha();
+  toast(`↩️ Puxado do projeto: <b>${L.reduce((a,t)=>a+t.q,0)} tanque(s)</b> em ${Object.keys(vq).length} tamanho(s).`)},true);
 /* encolher/expandir o card */
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest('#gf-dim-card [data-dimx="toggle"]');if(!b)return;
   S.recolhido=!S.recolhido;salva();aplicaRecolhido()},true);
