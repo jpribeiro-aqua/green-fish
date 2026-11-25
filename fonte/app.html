@@ -1963,17 +1963,17 @@ function lotModel(t,g,p,rit,mort){
     const fr=feedRow(L.sp,w),feedF=n*gpd*fca/1000*adj,feedT=n*w/1000*fr.pv/100*rr*adj;
     return {on:true,e,w,n,bio:n*w/1000,gpd,fca,fr,feedF,feedT,feed:feedMet==="fca"?feedF:feedT,gain:n*gpd/1000,phase:bandOf(sp.phases,w)};
   };
-  const val=e=>valF(e,true);
+  const _vc=new Map();const val=e=>{const k=Math.round(e*4)/4;let r=_vc.get(k);if(r===undefined){r=valF(k,true);_vc.set(k,r)}return r};
   const at0=ms=>(!ok||ms<start||ms>=harvest0)?{on:false,w:0,n:0,bio:0}:valF((ms-start)/DAY,false);
   const at=ms=>{
     if(!ok||ms<start) return {on:false,pre:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
     if(desp&&ms>=desp) return {on:false,done:true,desp:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
     if(ms>=harvest&&!atras) return {on:false,done:true,w:0,n:0,bio:0,gpd:0,fca:0,feed:0,gain:0};
-    const v=val((ms-start)/DAY);if(ms>=harvest){v.over=true;v.fonte=rOvF}return v;
+    const v=val((ms-start)/DAY);if(ms>=harvest)return Object.assign({},v,{over:true,fonte:rOvF});return v;
   };
   // primeiro dia em que a biomassa do grupo alcança a capacidade (DM × volume do grupo)
   let dmAt=null;
-  if(ok&&cap>0) for(let ms=start;ms<harvest;ms+=DAY/4){if(at(ms).bio>=cap){dmAt=ms;break}}
+  if(ok&&cap>0)for(let ms=start;ms<harvest;ms+=DAY){if(at(ms).bio>=cap){dmAt=ms;break}}
   return {t,g,sp,L,start,w0,alvo,nT,nDef,ok,errs,harvest,cap,at,val,dmAt,adj,cal,at0,harvest0,atras,desp,rOv,rOvF};
 }
 
@@ -2397,10 +2397,11 @@ function drawBio(){
       <div class="dens"><span>Densidade ${fmt(dens,1)} de ${n(dmg,0)} kg/m³</span><div class="meter${o>=1?" hot":""}"><div style="width:${Math.min(100,o*100).toFixed(2)}%"></div></div></div>
       ${tail}${m.L.sp==="camarao"&&(m.g.dm??p.DM)>9?`<div class="warnline">A densidade máxima usada neste grupo (${n(m.g.dm??p.DM,0)} kg/m³) é alta para camarão: em superintensivo usa-se de 3 a 6 kg/m³, e acima de 9 kg/m³ só com oxigênio suplementar.</div>`:""}</div>`}).join("");
   h+=`<section class="card wide"><div class="card-head"><h2>Situação de cada grupo<span>Valores médios do lote ${live?"neste momento":"na data simulada"}</span></h2></div><div class="body"><div class="cards">${cards}</div></div></section>`;
-  h+=bxFasesHTML(models,now);
+  const _bseq=(window.__bioSeq=(window.__bioSeq||0)+1);h+='<div id="bio-fases-slot"></div>';
   out.innerHTML=h;bxTick();
   drawBioChart(document.getElementById("bio-chart"),models.filter(m=>m.ok),cap,now);
   drawFeed(models,now);
+  requestAnimationFrame(()=>{if(_bseq!==window.__bioSeq)return;const sl=document.getElementById("bio-fases-slot");if(!sl)return;try{const tmp=document.createElement("div");tmp.innerHTML=bxFasesHTML(models,now)||"";const sec=tmp.firstElementChild;if(sec)sl.replaceWith(sec);else sl.remove()}catch(e){sl.remove()}});
 }
 
 function drawBioChart(box,models,cap,now){
@@ -2408,7 +2409,7 @@ function drawBioChart(box,models,cap,now){
   if(!models.length){box.innerHTML=`<div class="note">Informe os lotes acima para ver a projeção.</div>`;return}
   let x0=Math.min(...models.map(m=>m.start)),x1=Math.max(...models.map(m=>m.harvest));
   x1=Math.min(x1,x0+900*DAY);x0=Math.min(x0,now);x1=Math.max(x1,now+DAY);
-  const W=Math.max(280,box.clientWidth),H=280,mg={l:56,r:16,t:20,b:30},iw=W-mg.l-mg.r,ih=H-mg.t-mg.b,N=Math.min(240,Math.max(60,Math.round(iw/3)));
+  const W=Math.max(280,box.clientWidth),H=280,mg={l:56,r:16,t:20,b:30},iw=W-mg.l-mg.r,ih=H-mg.t-mg.b,N=Math.min(130,Math.max(50,Math.round(iw/6)));
   const xs=Array.from({length:N+1},(_,i)=>x0+(x1-x0)*i/N);
   const layers=models.map(m=>xs.map(x=>m.at(x).bio));
   const tops=xs.map((_,i)=>layers.reduce((s,l)=>s+l[i],0));
@@ -14565,7 +14566,7 @@ window.gfOcupHTML=function(models,now,live,cap,p){
   const real=modo==="real"&&now>ini0+DAY;if(real){de=ini0;ate=now}
   else{if(!isFinite(de))de=ini0;if(!isFinite(ate))ate=fim0;if(ate<=de+DAY){de=ini0;ate=fim0}}
   const vol=G.reduce((s,m)=>s+(m.g.vol||0),0),capG=m=>(m.g.dm??p.DM)*(m.g.vol||0);
-  const dias=(ate-de)/DAY,step=Math.max(DAY/4,(ate-de)/300),T=[];for(let t=de;t<=ate;t+=step)T.push(t);if(T[T.length-1]<ate)T.push(ate);
+  const dias=(ate-de)/DAY,step=Math.max(DAY/2,(ate-de)/160),T=[];for(let t=de;t<=ate;t+=step)T.push(t);if(T[T.length-1]<ate)T.push(ate);
   /* lote que já chegou ao peso de abate e não foi despescado continua ocupando o espaço com a biomassa final */
   const pronto=m=>m.harvest<=now&&!(m.desp&&m.desp<=now);
   const at=(m,t)=>{try{const v=m.at(t);return v&&v.on!==false?v.bio:0}catch(e){return 0}};
