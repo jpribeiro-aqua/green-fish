@@ -2562,19 +2562,35 @@ function setView(v){
   document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.view===v;t.setAttribute("aria-selected",String(on));t.tabIndex=on?0:-1});
   dashEl.hidden=v!=="dash";document.getElementById("view-calc").hidden=v!=="calc";bioEl.hidden=v!=="bio";document.getElementById("view-aqua").hidden=v!=="aqua";{const vc=document.getElementById("view-correcao");if(vc)vc.hidden=v!=="correcao"}if(v==="aqua"){loadAqua();pushAqua();window.drawAquaPlug&&drawAquaPlug()}if(v==="bio"){try{loadAqua()}catch(e){}}
   try{localStorage.setItem(KEY+"-view",v)}catch(e){}
-  hideTip();window.drawPjGate&&drawPjGate(v);window.drawFocoBar&&drawFocoBar(v);if(window.__grpIdx||(GRP_FILTRA.includes(v)&&grpSel()))render();if(v==="aqua"){(async()=>{for(let i=0;i<40;i++){try{const w=aquaFrame.contentWindow;if(w&&w.aquaSoGrupo){w.aquaSoGrupo(grpSel()?"ras-"+grpSel():"");return}}catch(e){}await new Promise(r=>setTimeout(r,250))}})()}window.drawGrpBar&&drawGrpBar(v);drawDash();
-  if(v==="bio"){drawBioEditor();drawBio()}
-  feedEl.hidden=v!=="racao";if(v==="racao")drawFeedDash();
-  document.getElementById("view-local").hidden=v!=="local";if(v==="local"&&window.drawLocal)drawLocal();
-  document.getElementById("view-repro").hidden=v!=="repro";if(v==="repro"&&window.drawRepro)drawRepro();
-  document.getElementById("view-topo").hidden=v!=="topo";if(v==="topo"&&window.drawTopo)drawTopo();
-  document.getElementById("view-merc").hidden=v!=="merc";if(v==="merc"&&window.drawMerc)drawMerc();
-  document.getElementById("view-benef").hidden=v!=="benef";if(v==="benef"&&window.drawBenef)drawBenef();
-  document.getElementById("view-fin").hidden=v!=="fin";if(v==="fin"&&window.drawFin)drawFin();
-  document.getElementById("view-gest").hidden=v!=="gest";if(v==="gest"&&window.drawGest)drawGest();
-  document.getElementById("view-dados").hidden=v!=="dados";if(v==="dados"&&window.drawDados)drawDados();
-  document.getElementById("view-proj").hidden=v!=="proj";if(v==="proj"&&window.drawProj)drawProj();
-  document.getElementById("view-users").hidden=v!=="users";if(v==="users"&&window.drawUsers)drawUsers();
+  hideTip();window.drawPjGate&&drawPjGate(v);window.drawFocoBar&&drawFocoBar(v);if(window.__grpIdx||(GRP_FILTRA.includes(v)&&grpSel()))render();if(v==="aqua"){(async()=>{for(let i=0;i<40;i++){try{const w=aquaFrame.contentWindow;if(w&&w.aquaSoGrupo){w.aquaSoGrupo(grpSel()?"ras-"+grpSel():"");return}}catch(e){}await new Promise(r=>setTimeout(r,250))}})()}window.drawGrpBar&&drawGrpBar(v);
+  feedEl.hidden=v!=="racao";
+  document.getElementById("view-local").hidden=v!=="local";
+  document.getElementById("view-repro").hidden=v!=="repro";
+  document.getElementById("view-topo").hidden=v!=="topo";
+  document.getElementById("view-merc").hidden=v!=="merc";
+  document.getElementById("view-benef").hidden=v!=="benef";
+  document.getElementById("view-fin").hidden=v!=="fin";
+  document.getElementById("view-gest").hidden=v!=="gest";
+  document.getElementById("view-dados").hidden=v!=="dados";
+  document.getElementById("view-proj").hidden=v!=="proj";
+  document.getElementById("view-users").hidden=v!=="users";
+  const _sv=(window.__svSeq=(window.__svSeq||0)+1);
+  const _draw=()=>{if(_sv!==window.__svSeq)return;try{
+    if(v==="bio"){drawBioEditor();drawBio()}
+    else if(v==="dash")drawDash();
+    else if(v==="racao")drawFeedDash();
+    else if(v==="local"&&window.drawLocal)drawLocal();
+    else if(v==="repro"&&window.drawRepro)drawRepro();
+    else if(v==="topo"&&window.drawTopo)drawTopo();
+    else if(v==="merc"&&window.drawMerc)drawMerc();
+    else if(v==="benef"&&window.drawBenef)drawBenef();
+    else if(v==="fin"&&window.drawFin)drawFin();
+    else if(v==="gest"&&window.drawGest)drawGest();
+    else if(v==="dados"&&window.drawDados)drawDados();
+    else if(v==="proj"&&window.drawProj)drawProj();
+    else if(v==="users"&&window.drawUsers)drawUsers();
+  }catch(e){}};
+  requestAnimationFrame(_draw);
 }
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>setView(t.dataset.view)));
 document.querySelector(".tabs").addEventListener("keydown",e=>{if(e.key!=="ArrowLeft"&&e.key!=="ArrowRight")return;const ts=[...document.querySelectorAll(".tab")];const i=ts.indexOf(document.activeElement);if(i<0)return;const nx=ts[(i+(e.key==="ArrowRight"?1:ts.length-1))%ts.length];nx.focus();setView(nx.dataset.view)});
@@ -17973,7 +17989,7 @@ window.gfInsumos={html:()=>`<div class="pp-tab">${tabHTML()}</div>`,itensRasc:()
 
 const v0=vw();if(v0){desenha(true);new MutationObserver(()=>{if(!v0.hidden)desenha()}).observe(v0,{attributes:true,attributeFilter:["hidden"]})}
 window.addEventListener("storage",e=>{if(e.key===K||/ras-multitanques-v1($|-viv|-cascata)/.test(e.key||""))desenha()});
-setInterval(()=>{const v=vw();if(v&&!v.hidden)desenha()},4000);
+setInterval(()=>{const v=vw();if(v&&!v.hidden)desenha()},20000);
 })();
 </script>
 <style>
@@ -18105,7 +18121,7 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
   else if(b.dataset.lxLimpa){S.bloq=[];grava()}
   desenha(true)});
 const v0=document.getElementById("view-aqua");if(v0){new MutationObserver(()=>{if(!v0.hidden)desenha()}).observe(v0,{attributes:true,attributeFilter:["hidden"]})}
-setInterval(()=>{const v=document.getElementById("view-aqua");if(v&&!v.hidden)desenha()},5000);setTimeout(()=>desenha(true),1500);
+setInterval(()=>{const v=document.getElementById("view-aqua");if(v&&!v.hidden)desenha()},20000);setTimeout(()=>desenha(true),1500);
 window.gfLeituras={permitida:(u,t)=>permitida(u,t),estado:()=>rd(),desenha:()=>desenha(true)};
 })();
 </script>
