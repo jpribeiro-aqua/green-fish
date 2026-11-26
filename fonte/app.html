@@ -2481,6 +2481,7 @@ bioEl.addEventListener("click",e=>{
   if(e.target.closest("#bio-now,#bio-today")){bioRef=null;document.getElementById("bio-ref").value=isoD(new Date());drawBio()}
 });
 // tempo real: recalcula a cada minuto enquanto a aba estiver aberta e na data de hoje
+bioEl.addEventListener("change",function(e){var el=e.target;if(!el||!el.dataset||!el.dataset.lk)return;if(el.dataset.lk!=="date"&&el.dataset.lk!=="w0"&&el.dataset.lk!=="n")return;var tr=el.closest("tr");if(!tr)return;var i=grpI(+tr.dataset.i);if(!tanks[i])return;var L=lotOf(tanks[i]);if(L[el.dataset.lk]===el.value)return;L[el.dataset.lk]=el.value;save();drawBioEditor();drawBio();});
 setInterval(()=>{if(bioRef===null&&!bioEl.hidden&&document.visibilityState!=="hidden") drawBio()},60000);
 /* v208: só redesenha quando a LARGURA muda de verdade (antes qualquer mudança de altura redesenhava e a tela tremia) */
 let rzb,rzbW=0;new ResizeObserver(en=>{const w=Math.round(en[0].contentRect.width);if(!w||Math.abs(w-rzbW)<24)return;const w0=rzbW;rzbW=w;if(!w0)return;clearTimeout(rzb);rzb=setTimeout(()=>{if(!bioEl.hidden)drawBio()},120)}).observe(bioEl);
@@ -15296,14 +15297,14 @@ function conjunto(G){const U=[];let y=0,tot=0;G.forEach((g,r)=>{const q=qDe(g),g
   const my=U.length?(Math.min(...U.map(u=>u.cy))+Math.max(...U.map(u=>u.cy)))/2:0;U.forEach(u=>u.cy-=my);return {unidades:U,total:tot,rot:0,nome:`Conjunto de ${tot} tanque(s) em ${G.length} grupo(s)`}}
 function card(){const v=document.getElementById("view-calc"),form=document.getElementById("form");if(!v||!form)return null;let c=document.getElementById("ras-cad-card");
   if(!c){c=document.createElement("section");c.className="card";c.id="ras-cad-card";c.innerHTML=`<div class="card-head"><h2>📐 Desenho técnico dos tanques<span>Tanques circulares de cada grupo da calculadora: volume e quantidade dos grupos, profundidade da aba Local</span></h2></div><div class="rc-b"><div class="rc-ctl"></div><div id="ras-cad"></div></div>`;
-    c.addEventListener("change",e=>{if(e.target.dataset.rcg!=null){sel=+e.target.value;desenha(true)}})}
+    c.addEventListener("change",e=>{if(e.target.dataset.rcg!=null){sel=+e.target.value;desenha(true)}});c.addEventListener("click",e=>{if(e.target.closest("[data-rcfig]")){e.preventDefault();window.gfFigura?gfFigura.abrir():alert("Recurso de figura indisponivel.")}})}
   if(c.parentNode!==form)form.appendChild(c);return c}
 let ultK="";
 function desenha(forca){const form=document.getElementById("form"),v=document.getElementById("view-calc");if(!v||v.hidden||!form||form.hidden){const c=document.getElementById("ras-cad-card");if(c&&!c.hidden)c.hidden=true;return}
   const c=card();if(!c)return;const G=grupos(),pid=T(()=>(projAtual()||{}).id,"");const k=JSON.stringify([G,pid]);if(!forca&&k===ultK&&!c.hidden)return;ultK=k;c.hidden=false;
-  const box=c.querySelector("#ras-cad"),ctl=c.querySelector(".rc-ctl");if(!G.length){ctl.innerHTML=`<p class="hint">Cadastre os grupos de tanques (quantidade e volume) acima para ver o desenho.</p>`;T(()=>gfCADInto(box,null));return}
+  const box=c.querySelector("#ras-cad"),ctl=c.querySelector(".rc-ctl");if(!G.length){ctl.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button type="button" class="btn" data-rcfig="1">🖼 Projetar de uma figura (colar/soltar imagem)</button></div><p class="hint">Cadastre os grupos de tanques (quantidade e volume) acima para ver o desenho.</p>`;T(()=>gfCADInto(box,null));return}
   if(sel>=G.length)sel=0;const g=G[sel],tot=G.reduce((a,x)=>a+x.q,0);
-  ctl.innerHTML=`<label class="jr-f">Grupo mostrado em "1 tanque"<select data-rcg="1">${G.map((x,i)=>`<option value="${i}"${i===sel?" selected":""}>${E(x.nome)} · ${x.q} × ${F(x.v)} m³</option>`).join("")}</select></label>
+  ctl.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px"><button type="button" class="btn" data-rcfig="1">🖼 Projetar de uma figura (colar/soltar imagem)</button></div><label class="jr-f">Grupo mostrado em "1 tanque"<select data-rcg="1">${G.map((x,i)=>`<option value="${i}"${i===sel?" selected":""}>${E(x.nome)} · ${x.q} × ${F(x.v)} m³</option>`).join("")}</select></label>
    <p class="hint" style="margin:0">${G.map(x=>`<b>${E(x.nome)}</b>: ${x.q} tanque(s) de ${F(x.v)} m³ → Ø ${F(x.D,2)} m com ${F(x.h,2)} m de água`).join(" · ")} · total ${tot} tanque(s), ${F(G.reduce((a,x)=>a+x.q*x.v,0),0)} m³.</p>`;
   if(box.__rcInit==null){box.__conj=tot>1;box.__rcInit=1}
   T(()=>gfCADInto(box,Object.assign(qDe(g,tot),{nTot:tot}),`Desenho técnico · ${g.nome} (${g.q} × ${F(g.v)} m³)`,()=>conjunto(G)))}
@@ -15445,10 +15446,10 @@ document.addEventListener("change",e=>{const t=e.target;if(!t.closest||!t.closes
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#gfig"))e.stopPropagation()},true);
 document.addEventListener("keydown",e=>{if(!ov())return;if(e.key==="Escape"){fechar();return}if(e.key==="Enter"&&e.target.id==="gfig-escm"){e.preventDefault();const b=ov().querySelector('[data-fg="escok"]');b&&b.click()}},true);
 const imgDe=dt=>{const f=[...(dt&&dt.files||[])].find(x=>/^image\//.test(x.type));if(f)return f;const it=[...(dt&&dt.items||[])].find(x=>x.kind==="file"&&/^image\//.test(x.type));return it?it.getAsFile():null};
-const cadVisivel=()=>{const b=document.getElementById("vv-cad");return b&&!b.hidden&&b.offsetParent!==null};
+const vis=id=>{const b=document.getElementById(id);return b&&!b.hidden&&b.offsetParent!==null};const cadVisivel=()=>vis("vv-cad")||vis("ras-cad-card")||vis("view-calc");const soltZona=t=>t&&t.closest&&(t.closest("#gfig")||t.closest("#vv-cad")||t.closest("#ras-cad-card")||t.closest("#view-calc"));
 document.addEventListener("paste",e=>{const f=imgDe(e.clipboardData);if(!f)return;const a=document.activeElement;if(ov()||(cadVisivel()&&!(a&&/INPUT|TEXTAREA/.test(a.tagName)&&!ov()))){e.preventDefault();abrir(f)}});
-document.addEventListener("dragover",e=>{if(e.target.closest&&(e.target.closest("#gfig")||e.target.closest("#vv-cad"))&&[...(e.dataTransfer&&e.dataTransfer.types||[])].includes("Files"))e.preventDefault()});
-document.addEventListener("drop",e=>{if(!(e.target.closest&&(e.target.closest("#gfig")||e.target.closest("#vv-cad"))))return;const f=imgDe(e.dataTransfer);if(f){e.preventDefault();abrir(f)}});
+document.addEventListener("dragover",e=>{if(soltZona(e.target)&&[...(e.dataTransfer&&e.dataTransfer.types||[])].includes("Files"))e.preventDefault()});
+document.addEventListener("drop",e=>{if(!soltZona(e.target))return;const f=imgDe(e.dataTransfer);if(f){e.preventDefault();abrir(f)}});
 addEventListener("resize",()=>{if(FG)pinta()});
 
 window.gfFigura={abrir,fechar,achar,estado:()=>FG};
