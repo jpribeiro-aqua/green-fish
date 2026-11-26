@@ -15563,7 +15563,7 @@ function efeito(trk,modo){const v=document.createElement("video");v.muted=true;v
   return {track:t,parar:()=>{vivo=false;clearInterval(iv);T(()=>t.stop());v.srcObject=null}}}
 
 /* ---------- estado da chamada ---------- */
-let R=null;const ov=()=>document.getElementById("tf");
+let R=null;const ov=()=>document.getElementById("tf");function tfSom(){try{document.querySelectorAll("#tf .tf-t video").forEach(function(v){if(v&&!v.muted){var p=v.play();if(p&&p.catch)p.catch(function(){})}})}catch(e){}}document.addEventListener("pointerdown",function(e){if(e.target&&e.target.closest&&e.target.closest("#tf"))tfSom()},true);
 const eu=()=>R&&R.me;
 function envia(m){if(!R||!R.tr)return;R.tr.send(Object.assign({from:R.me.id},m))}
 const meuSt=()=>({conta:contaOk(),login:!!R.login,nome:R.me.nome,mic:R.mic,cam:R.cam,tela:!!R.tela,mao:R.mao||0,rec:!!R.rec,host:R.host,co:!!R.co,dono:souDono()&&contaOk()||undefined,regras:manda()?R.regras:undefined,espera:R.host?!!R.espera:undefined,cc:!!R.ccOn});
@@ -15600,7 +15600,7 @@ function novoPeer(id,nome,ofertante){const old=R.peers.get(id);if(old&&old.pc&&o
   if(ofertante){P.ta=pc.addTransceiver(R.micT||"audio",{direction:"sendrecv"});P.tv=pc.addTransceiver(vidAtual()||"video",{direction:"sendrecv"})}
   pc.onicecandidate=e=>{if(e.candidate)envia({t:"ice",to:id,c:e.candidate.toJSON()})};
   pc.ontrack=e=>{const tr=e.track;P.stream.getTracks().filter(x=>x.kind===tr.kind&&x!==tr).forEach(x=>P.stream.removeTrack(x));if(!P.stream.getTracks().includes(tr))P.stream.addTrack(tr);
-    tr.onunmute=()=>tile(id);tile(id);if(tr.kind==="audio"){medidor(id,P.stream);if(R.rec)T(()=>R.rec.liga(P.stream))}};
+    tr.onunmute=()=>{tile(id);tfSom()};tile(id);if(tr.kind==="audio"){medidor(id,P.stream);tfSom();if(R.rec)T(()=>R.rec.liga(P.stream))}};
   pc.onconnectionstatechange=()=>{const s=pc.connectionState;P.cs=s;tile(id);
     if(s==="connected"&&!P.ok){P.ok=true;ata(`${P.nome} entrou`);nota(`${P.nome} entrou na chamada`)}
     if(s==="failed"&&ofertante){T(()=>pc.restartIce());oferta(P,true)}
@@ -15699,7 +15699,7 @@ function telaCall(){const o=ov();o.innerHTML=`<div class="tf-call"><header class
   tile(R.me.id);trocaVideo();layout();desenhaEstado()}
 function tile(id){if(!R||!R.dentro)return;const g=ov()&&ov().querySelector(".tf-grid");if(!g)return;let t=R.tiles.get(id);const self=id===R.me.id,P=self?null:R.peers.get(id);if(!self&&!P)return;
   if(!t){t=document.createElement("div");t.className="tf-t";t.dataset.id=id;t.innerHTML=`<video autoplay playsinline${self?" muted":""}></video><div class="tf-av"></div><div class="tf-nm"></div><div class="tf-ic"></div><div class="tf-cc" hidden></div><div class="tf-rx"></div><button type="button" class="tf-pin" data-tf="pin" data-id="${E(id)}" aria-label="Fixar">📌</button>`;g.appendChild(t);R.tiles.set(id,t);
-    if(!self){const v=t.querySelector("video");v.srcObject=P.stream;if(C.dev&&C.dev.spk&&v.setSinkId)T(()=>v.setSinkId(C.dev.spk))}layout()}
+    if(!self){const v=t.querySelector("video");v.srcObject=P.stream;v.muted=false;if(C.dev&&C.dev.spk&&v.setSinkId)T(()=>v.setSinkId(C.dev.spk));T(()=>{const p=v.play();if(p&&p.catch)p.catch(()=>{})})}layout()}
   const st=self?meuSt():P.st||{},nome=self?R.me.nome+" (você)":P.nome,camOn=self?!!vidAtual():st.cam!==false&&P.stream.getVideoTracks().some(x=>x.readyState==="live"&&!x.muted);
   t.classList.toggle("tf-semcam",!camOn);t.classList.toggle("tf-tela",!!st.tela);const av=t.querySelector(".tf-av");av.textContent=ini(self?R.me.nome:P.nome);av.style.setProperty("--c",cor(id));
   t.querySelector(".tf-nm").textContent=nome;t.querySelector(".tf-ic").textContent=[st.mic===false?"🔇":"",st.mao?"✋":"",st.rec?"🔴":"",st.host?"⭐":"",!self&&P.cs&&P.cs!=="connected"?(P.cs==="connecting"||P.cs==="new"?"⏳":"⚠️"):""].join(" ").trim();
