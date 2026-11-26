@@ -3638,7 +3638,7 @@ window.gfMerc={freteKg:()=>{try{const r=rotas();return r&&isFinite(r.freteKg)?r.
 window.gfMercResumo=()=>{const C=(S.crm&&S.crm.clientes)||[],at=C.filter(c=>c.etapa==="cli"),fu=C.filter(c=>c.etapa!=="perd"&&c.etapa!=="cli");let top=null,fr=NaN;try{top=nichosRank()[0]||null}catch(e){}try{const r=rotas();fr=r&&isFinite(r.freteKg)?r.freteKg:NaN}catch(e){}const L=S.crm&&S.crm.local;
   return {mun:S.res&&S.res.mun?S.res.mun.n:(S.mun||""),prosp:!!(S.res&&S.res.mun),pts:((S.res&&S.res.pts)||[]).length,nCli:C.length,ativos:at.length,volAt:at.reduce((a,c)=>a+volSem(c),0),recAt:at.reduce((a,c)=>a+volSem(c)*prec(c),0),funil:fu.length,volFun:fu.reduce((a,c)=>a+volSem(c)*(ET[c.etapa]?ET[c.etapa].p:0),0),
     etapas:ETAPAS.filter(e=>e[0]!=="perd").map(e=>{const l=C.filter(c=>c.etapa===e[0]);return {k:e[0],n:e[1],c:e[3],q:l.length,v:l.reduce((a,c)=>a+volSem(c),0)}}),local:L&&isFinite(L.lat)?{nome:L.nome,fixo:!!L.fixo}:null,top:top?{n:top.n,nota:top.a.nota,v:top.a.v[0]}:null,frete:fr}};
-window.drawMerc=()=>{if(!S.mun){try{const lr=window.lvResumo&&lvResumo();if(lr&&lr.LV&&lr.LV.loc)S.mun=String(lr.LV.loc)}catch(e){}}draw()};
+window.gfSetMercEsp=function(sp){try{if(S&&(S.ramo==="piscicultura"||S.ramo==="carcinicultura")){var r=(sp==="camarao"?"carcinicultura":"piscicultura");if(S.ramo!==r){S.ramo=r;grava();if(window.drawMerc)window.drawMerc()}}}catch(e){}};window.drawMerc=()=>{if(!S.mun){try{const lr=window.lvResumo&&lvResumo();if(lr&&lr.LV&&lr.LV.loc)S.mun=String(lr.LV.loc)}catch(e){}}draw()};
 })();
 
 /* ---------- v119: Beneficiamento do pescado — aulas de Beneficiamento e Tecnologia do Pescado (UFMA), Controle de Qualidade, Bioquímica do Pescado, RIISPOA, IN 21/2017 e Embrapa ---------- */
@@ -4077,7 +4077,7 @@ setInterval(()=>{try{dcRefresh(false)}catch(e){}},3000);window.addEventListener(
 document.addEventListener("input",e=>{const t=e.target;if(!t.closest||!t.closest(".dc-box"))return;const d=t.dataset,st=dcSt();
   if(d.dc)st[d.dc]=t.value;else if(d.dcp)B.preco[d.dcp]=t.value;else if(d.dccp)st.cp[d.dccp]=t.value;else return;e.stopPropagation();grava();clearTimeout(dcTm);dcTm=setTimeout(()=>dcRefresh(true),450)},true);
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-dcz]");if(!b||!b.closest(".dc-box"))return;const st=dcSt();st.dp=st.dr=st.df=st.dc="";st.cKg="";grava();dcRefresh(true)});
-window.drawBenef=draw;
+window.gfSetBenefEsp=function(sp){try{if(typeof ESP!=="undefined"&&ESP[sp]&&B.esp!==sp){B.esp=sp;grava();draw()}}catch(e){}};window.gfGetBenefEsp=function(){try{return B.esp}catch(e){return null}};window.drawBenef=draw;
 /* v226: um lote da Rastreabilidade entra no fluxograma com um clique (espécie, kg, data e código do lote) */
 window.gfBenefLote=o=>{const nm=String(o.esp||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");let k=Object.keys(ESP).find(x=>{const n=String(ESP[x].n||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");return nm&&(n.startsWith(nm)||nm.startsWith(n.split(" ")[0]))});
   const novo=(B.fx||{}).lote!==o.id;if(k)B.esp=k;B.fx=B.fx||{};const kgS=x=>String(Math.round(x*100)/100).replace(".",","),gS=x=>String(Math.round(x));
@@ -20288,5 +20288,103 @@ window.gfDimensiona={dados:()=>S,calc};
     atual=v;
     if(saindoDeDef) setTimeout(recalcLeve,0);
   };
+})();
+</script>
+
+<script>
+/* ===================== v358: ESPÉCIE ATIVA ÚNICA, correlacionada em tempo real.
+   A espécie definida em QUALQUER aba de projeto (Local "Espécie a avaliar", Ração,
+   Beneficiamento) vira a espécie ATIVA do projeto e é propagada às abas que PROCESSAM
+   esses dados: Biomassa (lotes dos tanques), Ração (feedSp), Beneficiamento (B.esp) e
+   Camada de mercado (ramo piscicultura/carcinicultura) — todas recalculam na hora.
+   Mantém a espécie POR TANQUE: ao trocar a ativa, só mudam os tanques que seguiam a
+   espécie anterior (projeto de uma espécie só: mudam todos; projeto misto: os tanques
+   diferentes ficam como estão). Abas que não dependem (ex.: Reprodução) não são tocadas.
+   Observação de escopo: projSp()/espDe() são privados da IIFE da aba Local, por isso
+   aqui a espécie ativa é calculada direto de tanks/lotOf (globais). ===================== */
+(function(){
+  if(typeof tanks==="undefined"||typeof lotOf!=="function"||typeof SPECIES==="undefined")return;
+  function okSp(s){return !!SPECIES[s]}
+  function norm(s){
+    if(okSp(s))return s;
+    var d=String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+    if(okSp(d))return d;
+    if(/camar/.test(d)&&okSp("camarao"))return "camarao";
+    if(/panga/.test(d)&&okSp("pangasius"))return "pangasius";
+    if(/tilap/.test(d)&&okSp("tilapia"))return "tilapia";
+    if(/tambaqui/.test(d)&&okSp("tambaqui"))return "tambaqui";
+    if(/curimat/.test(d)&&okSp("curimata"))return "curimata";
+    return null;
+  }
+  /* espécie ativa = a mais frequente entre os lotes dos tanques (fonte da verdade) */
+  function ativa(){
+    try{
+      var by={},best=null,bn=-1;
+      tanks.forEach(function(t){var s=lotOf(t).sp; if(!s||!okSp(s))return; by[s]=(by[s]||0)+1; if(by[s]>bn){bn=by[s];best=s}});
+      return best||(typeof feedSp!=="undefined"?feedSp:"tilapia");
+    }catch(e){ return (typeof feedSp!=="undefined")?feedSp:"tilapia"; }
+  }
+  var trab=false, ultB=null;
+  function redraw(){
+    ["refreshLocal","render","drawBio","drawFeed","drawFeedDash","drawBenef","drawMerc","drawDash","drawShrimp","pushAqua"].forEach(function(fn){
+      try{if(typeof window[fn]==="function")window[fn]()}catch(e){}
+    });
+  }
+  /* propaga a espécie ativa às abas de espécie única (NÃO mexe nos tanques) */
+  function seguir(sp){
+    sp=norm(sp)||ativa();
+    try{ if(typeof feedSp!=="undefined"&&(typeof FEED==="undefined"||FEED[sp])) feedSp=sp; }catch(e){}
+    try{ if(typeof save==="function") save(); }catch(e){}
+    try{ if(window.gfSetBenefEsp) window.gfSetBenefEsp(sp); }catch(e){}
+    try{ if(window.gfSetMercEsp) window.gfSetMercEsp(sp); }catch(e){}
+    ultB=sp;
+  }
+  /* define a espécie ativa a partir de uma aba-fonte: mexe nos tanques que seguiam a antiga + segue */
+  function aplicar(sp){
+    if(trab)return; sp=norm(sp); if(!sp)return;
+    trab=true;
+    try{
+      var velha=ativa();
+      try{
+        var algum=tanks.some(function(t){return lotOf(t).sp===velha});
+        tanks.forEach(function(t){var L=lotOf(t); if(!algum||L.sp===velha){L.sp=sp}});
+      }catch(e){}
+      seguir(sp);
+    }finally{ trab=false; }
+    redraw();
+  }
+  /* biomassa é a fonte da verdade: ao mudar a espécie de UM tanque, as abas de espécie
+     única seguem a ativa (sem reescrever os outros tanques) */
+  function seguirAtiva(){
+    if(trab)return; trab=true;
+    try{ seguir(ativa()); }finally{ trab=false; }
+    redraw();
+  }
+  window.gfEsp={ativa:ativa, aplicar:function(s){aplicar(s)}, seguir:function(){seguirAtiva()}, norm:norm};
+
+  // ---------- gatilhos de edição do usuário ----------
+  // Local e viabilidade: seletor "Espécie a avaliar"
+  document.addEventListener("change",function(e){
+    var t=e.target; if(!t)return;
+    if(t.id==="lv-espApt"){ var v=t.value; if(v&&v!=="todas") setTimeout(function(){aplicar(v)},0); }
+  },false);
+  // Ração: botões de espécie (o handler nativo já ajustou feedSp; aqui só propagamos)
+  document.addEventListener("click",function(e){
+    var fs=e.target&&e.target.closest&&e.target.closest("[data-fsp]");
+    if(fs&&fs.dataset.fsp){ setTimeout(function(){aplicar(fs.dataset.fsp)},0); }
+  },false);
+  // Biomassa: troca de espécie de um tanque (data-lk="sp") — as abas de espécie única seguem
+  document.addEventListener("change",function(e){
+    var t=e.target; if(!t||!t.dataset||t.dataset.lk!=="sp")return;
+    setTimeout(seguirAtiva,0);
+  },false);
+  // Beneficiamento: troca de espécie no seletor (lê via getter; B é de escopo próprio)
+  document.addEventListener("change",function(e){
+    var t=e.target; if(!t||!t.closest||!t.closest("#view-benef"))return;
+    setTimeout(function(){ try{ var b=window.gfGetBenefEsp&&window.gfGetBenefEsp(); if(b&&b!==ultB) aplicar(b); }catch(_){}},0);
+  },false);
+
+  // harmoniza as abas de espécie única com o projeto ao abrir (sem mexer nos tanques)
+  setTimeout(function(){ try{ seguir(ativa()); redraw(); }catch(e){} }, 400);
 })();
 </script>
