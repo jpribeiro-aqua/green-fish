@@ -20262,3 +20262,31 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 window.gfDimensiona={dados:()=>S,calc};
 })();
 </script>
+
+<script>
+/* ===================== v357: correlação em tempo real — ao SAIR de uma aba que define o projeto
+   (Calculadora, Local e viabilidade, Levantamento), recalcula as abas que PROCESSAM esses dados
+   (Local, Calculadora, Biomassa, Painel, Água) com os valores atuais. Versão leve: NÃO recarrega
+   o AquaNictemeral inteiro (só reenvia os grupos), pra não dar lentidão. Abas que não dependem
+   desses dados (ex.: Reprodução) não são tocadas. ===================== */
+(function(){
+  if(typeof setView!=="function")return;
+  var DEF={calc:1,local:1,topo:1};   // abas que definem o projeto
+  var atual=null, ocupado=false;
+  function recalcLeve(){
+    if(ocupado)return; ocupado=true;
+    try{ if(window.refreshLocal) try{refreshLocal()}catch(e){} }catch(e){}
+    try{ if(typeof render==="function") render() }catch(e){}
+    try{ if(window.drawShrimp) drawShrimp() }catch(e){}
+    try{ if(typeof pushAqua==="function") pushAqua() }catch(e){}
+    setTimeout(function(){ocupado=false},60);
+  }
+  var o=setView;
+  setView=function(v){
+    var saindoDeDef = atual && DEF[atual] && v!==atual;
+    o(v);
+    atual=v;
+    if(saindoDeDef) setTimeout(recalcLeve,0);
+  };
+})();
+</script>
