@@ -8914,11 +8914,11 @@ if(hospedado){
     try{const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}catch(e){}
     location.replace(location.pathname+"?v="+Date.now()+location.hash)}
   window.gfForcaAtualizar=forcaAtualizar;
-  window.gfBuscarVersao=async(btn)=>{if(btn)btn.textContent="Verificando…";let nova=null;try{const t=await (await fetch("sw.js?v="+Date.now(),{cache:"no-store"})).text(),m=t.match(/VERSAO\s*=\s*"([^"]+)"/);nova=m&&m[1]}catch(e){}
+  window.gfBuscarVersao=async(btn)=>{if(btn)btn.textContent="Verificando…";let nova=null;try{const t=await (await fetch("sw.js?v="+Date.now(),{cache:"no-store"})).text(),m=t.match(/VERSAO\s*=\s*"([^"]+)"/);nova=m&&m[1];if(!m&&/<\s*(!doctype|html)\b/i.test(t)){if(btn)btn.textContent="Atualizando…";forcaAtualizar();return}}catch(e){}
     if(nova&&nova!==APP_VERSAO){if(btn)btn.textContent="Atualizando para "+nova.replace("ras-","")+"…";forcaAtualizar();return}
     if(btn)btn.textContent=nova?"✓ Já está na versão mais nova ("+APP_VERSAO.replace("ras-","")+")":"Sem internet para verificar agora"};
   async function confereVersao(auto){if(/^__/.test(APP_VERSAO))return;try{const t=await (await fetch("sw.js?v="+Date.now(),{cache:"no-store"})).text(),m=t.match(/VERSAO\s*=\s*"([^"]+)"/);
-    if(m&&m[1]!==APP_VERSAO){const nv=parseInt(m[1].replace(/\D/g,""),10),av=parseInt(APP_VERSAO.replace(/\D/g,""),10);if(!(nv>av))return;
+    if(!m&&/<\s*(!doctype|html)\b/i.test(t)){let h=0;try{h=+sessionStorage.getItem("gf-heal")||0}catch(e){}if(h<1){try{sessionStorage.setItem("gf-heal",1)}catch(e){}forcaAtualizar();return}}if(m&&m[1]!==APP_VERSAO){const nv=parseInt(m[1].replace(/\D/g,""),10),av=parseInt(APP_VERSAO.replace(/\D/g,""),10);if(!(nv>av))return;
       if(auto&&!document.querySelector("input:focus,textarea:focus,select:focus,#vv-dsn,#gfc-exp,.gfe-on")){let n=0;try{n=+sessionStorage.getItem("gf-auto-upd")||0}catch(e){}if(n<2){try{sessionStorage.setItem("gf-auto-upd",n+1)}catch(e){}forcaAtualizar();return}}
       avisoVersao(m[1])}}catch(e){}}
   window.addEventListener("load",()=>{setTimeout(()=>confereVersao(true),2500);const pb=document.querySelector(".proj-bar");if(pb&&!/^__/.test(APP_VERSAO)){const v=document.createElement("span");v.className="app-ver";v.textContent="versão "+APP_VERSAO.replace("ras-","");v.title="Versão do app instalada neste aparelho · toque para buscar uma versão nova";v.style.cursor="pointer";v.setAttribute("role","button");v.tabIndex=0;

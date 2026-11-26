@@ -1,6 +1,6 @@
 /* Service worker do app RAS Multitanques: guarda o app para abrir sem internet.
    Ao publicar uma versão nova do index.html, aumente o número em VERSAO. */
-const VERSAO = "ras-v357";
+const VERSAO = "ras-v358";
 const BASE = ["./", "index.html", "config.js", "manifest.webmanifest", "icon-192.png", "icon-512.png", "maskable-512.png", "apple-touch-icon.png", "favicon-64.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSAO).then(c => c.addAll(BASE.map(u => new Request(u, { cache: "reload" })))).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSAO).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
@@ -13,7 +13,7 @@ self.addEventListener("fetch", e => {
     // app: tenta a rede (pega versões novas) e cai para a cópia guardada se estiver sem internet
     // cache: "no-store" fura o cache do navegador (o GitHub Pages guarda o index por 10 min)
     e.respondWith(fetch(r.url, { cache: "no-store", credentials: "same-origin" }).then(res => { if (res.ok) { const c = res.clone(); caches.open(VERSAO).then(k => k.put(r, c)); } return res; })
-      .catch(() => caches.match(r).then(x => x || caches.match("index.html"))));
+      .catch(() => caches.match(r).then(x => x || (r.mode === "navigate" ? caches.match("index.html") : Response.error()))));
     return;
   }
   if (mesmo || /fonts\.(googleapis|gstatic)\.com$|cdn\.jsdelivr\.net$|raw\.githubusercontent\.com$/.test(u.hostname)) {
