@@ -20053,7 +20053,8 @@ const inp=(k,ph,extra="")=>`<input data-dim="${k}" value="${E(S[k])}" placeholde
 const sel=(k,ops)=>`<select data-dim="${k}">${ops.map(([v,t])=>`<option value="${v}"${S[k]===v?" selected":""}>${E(t)}</option>`).join("")}</select>`;
 
 function estruturaOpts(){
-  if(ehCarci())return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"]];
+  /* as três estruturas valem para os dois cultivos: peixe ou camarão, em viveiro escavado,
+     viveiro de geomembrana ou tanque elevado. Camarão é sempre dimensionado por área do fundo. */
   return [["viveiro","🏞 Viveiro escavado (solo)"],["viveiro_geo","🟩 Viveiro revestido (geomembrana)"],["tanque","🟦 Tanque elevado (geomembrana/alvenaria)"]];
 }
 
@@ -20194,8 +20195,7 @@ document.addEventListener("input",e=>{const el=e.target.closest&&e.target.closes
 document.addEventListener("change",e=>{const el=e.target.closest&&e.target.closest("#gf-dim-card [data-dim]");if(!el)return;
   const k=el.dataset.dim;S[k]=el.type==="checkbox"?el.checked:el.value;
   /* ao trocar cultivo, ajusta espécie e estrutura coerentes */
-  if(k==="cultivo"){if(S.cultivo==="carci"&&!/camar|pl/.test(S.esp))S.esp="camarao";if(S.cultivo==="pisc"&&/camar|pl/.test(S.esp))S.esp="tilapia";if(S.cultivo==="carci"&&S.estrutura==="tanque")S.estrutura="viveiro_geo"}
-  if(k==="esp"){if(/camar|pl/.test(S.esp)&&S.estrutura==="tanque")S.estrutura="viveiro_geo"}
+  if(k==="cultivo"){if(S.cultivo==="carci"&&!/camar|pl/.test(S.esp))S.esp="camarao";if(S.cultivo==="pisc"&&/camar|pl/.test(S.esp))S.esp="tilapia"}
   /* limpa overrides para pegar o preset do novo contexto */
   if(k==="cultivo"||k==="esp"||k==="estrutura"||k==="sistema"){S.dens="";if(k!=="sistema"){S.pFinal="";S.sobrev="";S.ciclos="";S.modulo="";S.prof="";S.nUn="";if(k==="estrutura"||k==="cultivo"){S.talude="";S.crista="";S.marcados={}}}}
   salva();const b=document.getElementById("gf-dim-body");if(b)b.__h="";desenha()},true);
