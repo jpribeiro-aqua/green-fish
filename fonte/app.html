@@ -15584,7 +15584,7 @@ function nota(t,ms){const o=ov();if(!o)return;const d=document.createElement("di
 function ata(l){if(R)R.ata.push(`[${hm(Date.now())}] ${l}`)}
 
 async function abreMidia(){const d=C.dev||{};R.raw=new MediaStream();
-  try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,deviceId:d.mic?{ideal:d.mic}:undefined}});R.micT=s.getAudioTracks()[0]}catch(e){R.micT=null;R.micErr=String(e&&e.name||e)}
+  try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,deviceId:d.mic?{ideal:d.mic}:undefined}});R.micT=s.getAudioTracks()[0];if(R.micT)R.micT.onended=()=>{T(()=>garanteMic(true))}}catch(e){R.micT=null;R.micErr=String(e&&e.name||e)}
   if(R.cam)await ligaCam();}
 async function ligaCam(){const d=C.dev||{};try{const s=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:24},deviceId:d.cam?{ideal:d.cam}:undefined,facingMode:d.cam?undefined:"user"}});
     R.camT=s.getVideoTracks()[0];R.cam=true;await aplicaFundo(true);return true}catch(e){R.camT=null;R.cam=false;R.camErr=String(e&&e.name||e);return false}}
@@ -15596,15 +15596,16 @@ function micOn(on){R.mic=!!on&&!!R.micT;if(R.micT)R.micT.enabled=R.mic;envia({t:
 
 /* ---------- conexões com cada pessoa (WebRTC) ---------- */
 function novoPeer(id,nome,ofertante){const old=R.peers.get(id);if(old&&old.pc&&old.pc.connectionState!=="closed"){return old}
-  const pc=new RTCPeerConnection({iceServers:ICE()}),P={id,nome:nome||"Convidado",pc,stream:new MediaStream(),st:{},cand:[],t0:Date.now()};R.peers.set(id,P);
+  const pc=new RTCPeerConnection({iceServers:ICE()}),P={id,nome:nome||"Convidado",pc,stream:new MediaStream(),st:{},cand:[],t0:Date.now(),ofertante:!!ofertante};R.peers.set(id,P);
   if(ofertante){P.ta=pc.addTransceiver(R.micT||"audio",{direction:"sendrecv"});P.tv=pc.addTransceiver(vidAtual()||"video",{direction:"sendrecv"})}
   pc.onicecandidate=e=>{if(e.candidate)envia({t:"ice",to:id,c:e.candidate.toJSON()})};
   pc.ontrack=e=>{const tr=e.track;P.stream.getTracks().filter(x=>x.kind===tr.kind&&x!==tr).forEach(x=>P.stream.removeTrack(x));if(!P.stream.getTracks().includes(tr))P.stream.addTrack(tr);
     tr.onunmute=()=>{tile(id);tfSom()};tile(id);if(tr.kind==="audio"){medidor(id,P.stream);tfSom();if(R.rec)T(()=>R.rec.liga(P.stream))}};
   pc.onconnectionstatechange=()=>{const s=pc.connectionState;P.cs=s;tile(id);
     if(s==="connected"&&!P.ok){P.ok=true;ata(`${P.nome} entrou`);nota(`${P.nome} entrou na chamada`)}
-    if(s==="failed"&&ofertante){T(()=>pc.restartIce());oferta(P,true)}
-    if(s==="failed"||s==="disconnected"){clearTimeout(P.tm);P.tm=setTimeout(()=>{if(["failed","disconnected"].includes(pc.connectionState))sai(id,"perdeu a conexão")},20000)}};
+    if(s==="connected"||s==="completed"){clearTimeout(P.tm);clearTimeout(P.tr)}
+    if((s==="failed"||s==="disconnected")&&ofertante){clearTimeout(P.tr);P.tr=setTimeout(()=>{if(["failed","disconnected"].includes(pc.connectionState)){T(()=>pc.restartIce());oferta(P,true)}},1500)}
+    if(s==="failed"||s==="disconnected"){clearTimeout(P.tm);P.tm=setTimeout(()=>{if(["failed","disconnected"].includes(pc.connectionState))sai(id,"perdeu a conexão")},45000)}};
   return P}
 async function oferta(P,restart){try{const of=await P.pc.createOffer(restart?{iceRestart:true}:undefined);await P.pc.setLocalDescription(of);envia({t:"offer",to:P.id,sdp:P.pc.localDescription.toJSON?P.pc.localDescription.toJSON():{type:of.type,sdp:of.sdp},nome:R.me.nome,st:meuSt()})}catch(e){}}
 async function aoOferta(m){let P=R.peers.get(m.from);if(!P||P.saiu||P.pc.connectionState==="closed")P=novoPeer(m.from,m.nome,false);P.nome=m.nome||P.nome;if(m.st)P.st=m.st;
@@ -15867,7 +15868,11 @@ document.addEventListener("change",async e=>{const t=e.target;if(!t.closest||!t.
   if(t.dataset.tfimg&&t.files&&t.files[0]){const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=async()=>{const c=document.createElement("canvas"),r=Math.min(1,1280/im.width);c.width=Math.round(im.width*r);c.height=Math.round(im.height*r);c.getContext("2d").drawImage(im,0,0,c.width,c.height);C.img=c.toDataURL("image/jpeg",0.8);C.fundo="foto";salva();await aplicaFundo();if(!R.dentro)previa();painel("fundos",true)};im.src=fr.result};fr.readAsDataURL(t.files[0]);return}
   if(t.dataset.tfesp){R.espera=t.checked;C.salas[R.code]=Object.assign(C.salas[R.code]||{},{espera:R.espera});salva();envia({t:"st",st:meuSt()})}},true);
 document.addEventListener("input",e=>{if(e.target.closest&&e.target.closest("#tf"))e.stopPropagation()},true);
-window.addEventListener("pagehide",()=>{if(R&&R.dentro)envia({t:"bye"})});window.addEventListener("resize",()=>{if(R&&R.dentro)layout()});
+async function garanteMic(forca){try{if(!R||!R.dentro)return;if(R.micT&&R.micT.readyState==="live"&&!forca)return;const d=C.dev||{};const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,deviceId:d.mic?{ideal:d.mic}:undefined}});const nt=s.getAudioTracks()[0];if(!nt)return;if(R.micT&&R.micT!==nt)T(()=>R.micT.stop());R.micT=nt;R.micErr="";R.micT.enabled=!!R.mic;R.micT.onended=()=>{T(()=>garanteMic(true))};R.peers.forEach(p=>{if(p.ta&&p.ta.sender)T(()=>p.ta.sender.replaceTrack(R.micT))});try{medidor(R.me.id,new MediaStream([R.micT]))}catch(e){}envia({t:"st",st:meuSt()});desenhaEstado()}catch(e){}}
+function recuperaChamada(){try{if(!R||!R.dentro)return;try{if(R.ac&&R.ac.state==="suspended")R.ac.resume().catch(()=>{})}catch(e){}if(!R.micT||R.micT.readyState!=="live")garanteMic(true);R.peers.forEach(p=>{const st=p.pc&&p.pc.connectionState;if(st==="failed"||st==="disconnected"){T(()=>p.pc.restartIce());if(p.ofertante)oferta(p,true)}})}catch(e){}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")setTimeout(recuperaChamada,300)},true);
+window.addEventListener("focus",()=>setTimeout(recuperaChamada,300),true);
+window.addEventListener("pagehide",e=>{if(R&&R.dentro&&!(e&&e.persisted))envia({t:"bye"})});window.addEventListener("resize",()=>{if(R&&R.dentro)layout()});
 
 /* ---------- a seção 📣 Marketing e vendas na Gestão ---------- */
 /* v315: link de convidado — cria a sala e o link sem entrar na chamada; quem recebe entra pelo navegador, sem login */
