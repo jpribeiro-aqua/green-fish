@@ -19947,13 +19947,15 @@ const CARCI={
   intensivo:{dens:100, prodHa:30000, viv:"0,1–1 ha", ren:"baixa + aeração"},
   super:    {dens:180, prodHa:60000, viv:"tanque revestido (bioflocos)", ren:"mínima + aeração"}
 };
-/* Carcinicultura em tanque/raceway revestido (biofloco/RAS) — por VOLUME (PL/m³).
-   Valores usuais da literatura de bioflocos; são padrões AJUSTÁVEIS no campo de densidade. */
+/* Carcinicultura em tanque/raceway revestido (biofloco/RAS) — dimensionada pela BIOMASSA (kg/m³ na
+   despesca); o sistema calcula a estocagem (PLs) a partir dela, do peso final e da sobrevivência.
+   Ref.: ESALQ/Visão Agrícola (Fóes, Gaona & Poersch, 2012) — BFT ~1 kg/m³ em viveiro, raceway
+   super-intensivo até ~10 kg/m³ (recorde ABCC); Embrapa Aquaciência 2018. Padrões AJUSTÁVEIS. */
 const CARCI_TANQ={
-  extensivo:{densV:30},
-  semi:     {densV:100},
-  intensivo:{densV:250},
-  super:    {densV:400}
+  extensivo:{dm:0.3},
+  semi:     {dm:0.8},
+  intensivo:{dm:1.5},
+  super:    {dm:3.0}
 };
 const SIST=[["extensivo","Extensivo"],["semi","Semi-intensivo"],["intensivo","Intensivo"],["super","Super-intensivo / RAS / bioflocos"]];
 /* peso final (kg) e sobrevivência padrão por espécie */
@@ -19973,7 +19975,7 @@ const porVolume=()=>S.estrutura==="tanque";
 const temSolo=()=>S.estrutura==="viveiro";
 
 function preset(){const e=ESP_DEF[S.esp]||ESP_DEF.tilapia;
-  if(ehCarci()&&porVolume())return {densV:(CARCI_TANQ[S.sistema]||CARCI_TANQ.super).densV,ren:CARCI[S.sistema].ren,viv:"tanque/raceway (bioflocos)"};
+  if(ehCarci()&&porVolume())return {dm:(CARCI_TANQ[S.sistema]||CARCI_TANQ.super).dm,ren:CARCI[S.sistema].ren,viv:"tanque/raceway (bioflocos)"};
   if(ehCarci())return {dens:CARCI[S.sistema].dens,prodHa:CARCI[S.sistema].prodHa,aer:"",ren:CARCI[S.sistema].ren,hp:0,viv:CARCI[S.sistema].viv};
   if(porVolume())return {dm:PISC_TANQ[S.sistema].dm,troca:PISC_TANQ[S.sistema].troca};
   return PISC_VIV[S.sistema];
@@ -20031,20 +20033,15 @@ function calc(){
   const ha=lamina/10000;
 
   let dens,povoInit,povoFinal,biomassa,prodHa,densTxt;
-  if(pV&&ehCarci()){
-    // camarão em tanque (biofloco/RAS): densidade de povoamento por VOLUME (PL/m³)
-    const dV=P(S.dens)>0?P(S.dens):pz.densV;           // PL/m³
-    dens=dV; densTxt=F(dV,0)+" PL/m³";
-    povoInit=vol*dV;
-    povoFinal=povoInit*sobrev;
-    biomassa=povoFinal*pFinal;
-    prodHa=NaN;
-  }else if(pV){
-    const dm=P(S.dens)>0?P(S.dens):pz.dm;              // kg/m³
-    dens=dm; densTxt=F(dm,1)+" kg/m³";
+  if(pV){
+    // tanque elevado — dimensionado pela BIOMASSA (kg/m³). Peixe: kg/m³ direto; camarão: idem,
+    // e o sistema deriva a estocagem (PLs); mostra o PL/m³ resultante para referência.
+    const dm=P(S.dens)>0?P(S.dens):pz.dm;              // kg/m³ (biomassa-alvo na despesca)
+    dens=dm;
     biomassa=vol*dm;
     povoFinal=pFinal>0?biomassa/pFinal:NaN;
     povoInit=sobrev>0?povoFinal/sobrev:NaN;
+    densTxt=F(dm,1)+" kg/m³"+(ehCarci()&&povoInit>0&&vol>0?` · ≈ ${F(povoInit/vol,0)} PL/m³`:"");
     prodHa=NaN;
   }else{
     const d=P(S.dens)>0?P(S.dens):pz.dens;             // /m²
@@ -20155,7 +20152,7 @@ function saida(){
     return bloco+`
     <h4 class="cor-h">🐟 Povoamento e produção</h4>
     <div class="scroll"><table class="cor-t"><tbody>
-      ${linha("Densidade de povoamento",`<b>${r.densTxt}</b>`,(ehCarci()&&pV)?`${S.sistema}: ${F(pz.densV,0)} PL/m³ (padrão ajustável)`:ehCarci()?`${S.sistema}: ${F(pz.dens)} /m²`:pV?`${S.sistema}: ${F(pz.dm,0)} kg/m³`:`${S.sistema}: ${F(pz.dens)} peixes/m²`)}
+      ${linha("Densidade de povoamento",`<b>${r.densTxt}</b>`,(ehCarci()&&pV)?`${S.sistema}: ${F(pz.dm,1)} kg/m³ de biomassa (biofloco/RAS; ref. ESALQ/Embrapa — ajustável)`:ehCarci()?`${S.sistema}: ${F(pz.dens)} /m²`:pV?`${S.sistema}: ${F(pz.dm,0)} kg/m³`:`${S.sistema}: ${F(pz.dens)} peixes/m²`)}
       ${linha("Povoamento total",`<b>${F(r.povoInit)}</b> ${ehCarci()?"PLs":"alevinos"}`,`sobrevivência ${F(r.sobrev*100)}% → ${F(r.povoFinal)} na despesca`)}
       ${linha("Biomassa por ciclo",`<b>${F(r.biomassa)} kg</b>`,isFinite(r.prodHa)?`${F(r.prodHa)} kg/ha · peso final ${F(r.pFinal*1000)} g`:`peso final ${F(r.pFinal*1000)} g`)}
       ${linha("Produção anual",`<b>${F(r.anual)} kg</b>`,`${F(r.ciclos,1)} ciclos/ano`)}
@@ -20184,7 +20181,7 @@ function corpo(){
     <label class="cor-f"><span>Talude interno (H:1)${pV?"":""}</span>${inp("talude",String(taludePad()))}</label>
     <label class="cor-f"><span>${pV?"Passagem entre tanques (m)":"Dique/carreador (m)"}</span>${inp("crista",String(cristaPad()))}</label>
     <label class="cor-f"><span>Nº de ${pV?"tanques":"viveiros"} (opcional)</span>${inp("nUn","automático")}</label>
-    <label class="cor-f"><span>Densidade ${pV?(ehCarci()?"(PL/m³)":"(kg/m³)"):ehCarci()?"(camarões/m²)":"(peixes/m²)"}</span>${inp("dens",String(pV?(ehCarci()?(preset().densV||""):(preset().dm||"")):(preset().dens||"")))}</label>
+    <label class="cor-f"><span>Densidade ${pV?"(kg/m³)":ehCarci()?"(camarões/m²)":"(peixes/m²)"}</span>${inp("dens",String(pV?(preset().dm||""):(preset().dens||"")))}</label>
     <label class="cor-f"><span>Peso final (g)</span>${inp("pFinal",String((e.p*1000)))}</label>
     <label class="cor-f"><span>Sobrevivência (%)</span>${inp("sobrev",String(e.s))}</label>
     <label class="cor-f"><span>Ciclos por ano</span>${inp("ciclos",String(e.cic))}</label>
