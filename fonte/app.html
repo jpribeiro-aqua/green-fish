@@ -2149,7 +2149,7 @@ function bxAgua(){try{const w=aquaFrame.contentWindow,R=w&&w.aquaRelatorio?w.aqu
    o quadro para de projetar e mostra só o dado real: peso da última biometria × animais vivos (sem biometria, fica no limite do grupo) */
 function bxReal(models,now){let bio=0,rate=0;const G=[];for(const m of models){if(!m.ok)continue;const s=m.at(now);
     if(!s.on){G.push({m,bio:0,rate:0,cap:m.cap||0,occ:0,fonte:s.done?"despescado":"aguardando povoamento",n:0});continue}
-    const s1=m.at(now+3600e3),cap=m.cap||0;let b=s.bio,r=s1.on?(s1.bio-s.bio)/3600:0,real=false,fonte=m.cal?`curva corrigida pela biometria de ${fmtDs(m.cal.ts)}`:"estimativa pela curva da espécie";
+    const cap=m.cap||0;let b=s.bio,r=(s.gain||0)/86400,real=false,fonte=m.cal?`curva corrigida pela biometria de ${fmtDs(m.cal.ts)}`:"estimativa pela curva da espécie";
     if(s.over)fonte+=` · passou do prazo (${s.fonte||"ritmo da aba"})`;
     if(cap>0&&b>=cap){real=true;r=0;if(m.cal){b=m.cal.pm*s.n/1000;fonte=`real: biometria de ${fmtDs(m.cal.ts)} · ${fw(m.cal.pm)} g × ${f0(s.n)} animais`}else{b=cap;fonte="biomassa máxima atingida: parou de projetar — faça uma biometria para o valor real"}}
     bio+=b;rate+=r;G.push({m,bio:b,rate:r,cap,real,fonte,occ:cap>0?b/cap:NaN,n:s.n,w:s.n>0?b/s.n*1000:s.w,ph:s.phase||"",dias:(now-m.start)/DAY,over:!!s.over})}
@@ -2166,7 +2166,7 @@ function bxOutros(now){let L=[];try{L=window.gfPrev?gfPrev.todos().filter(l=>!l.
     P0.G.push({g:l.g,spn:l.spn,q:l.q,b,dia,w,alvo:l.alvo,ph:bxFaseL(l,now)||bxEstagio(w/l.alvo),real,occ:l.cap>0?b/l.cap:NaN,over:!!l.atras,dias:(now-l.st)/DAY,fonte})}
   const R=Object.values(por);if(!R.length)return "";const tot=R.reduce((a,x)=>a+x.bio,0);
   return `<div class="bx-out"><small>📂 Outras propriedades · fora do projeto aberto · ${R.length} · ${n(tot,0)} kg agora</small><p class="bx-oh">Biomassa dos tanques e viveiros cadastrados nos outros projetos, separada da propriedade aberta. Não entra na biomassa total, na ração nem na ocupação deste projeto.</p>${R.sort((a,b)=>b.bio-a.bio).map(x=>{const o=x.cap>0?x.bio/x.cap:NaN;return `<div class="bx-proj" data-bx-proj="${esc(x.pk)}" role="button" tabindex="0" title="Ver o projeto ${esc(x.nome)}"><div class="bx-orow bx-ph"><span>📂 ${esc(x.nome)}${x.cli?` <i>(${esc(x.cli)})</i>`:""}</span><b>${n(x.bio,0)} kg</b><em>${x.G.length} grupo${x.G.length>1?"s":""} de cultivo${x.dia>0?` · +${n(x.dia,1)} kg/dia no total`:""}${isFinite(o)?` · ${fmt(o*100,1)}% da biomassa máxima`:""}</em></div>${x.G.sort((a,b)=>b.w/b.alvo-a.w/a.alvo).map(bxGrupoHTML).join("")}</div>`}).join("")}</div>`}
-function bxTot(models,now){let b=0,b1=0;for(const m of models){if(!m.ok)continue;b+=m.at(now).bio;b1+=m.at(now+3600e3).bio}return {bio:b,rate:(b1-b)/3600}}
+function bxTot(models,now){let b=0,g=0;for(const m of models){if(!m.ok)continue;const s=m.at(now);b+=s.bio;if(s.on)g+=s.gain||0}return {bio:b,rate:g/86400}}
 let bxTimer=null;
 function bxTick(){clearInterval(bxTimer);const el=document.getElementById("bx-num");if(!el)return;const b0=+el.dataset.b,r=+el.dataset.r,t0=+el.dataset.t;
   if(el.dataset.live!=="1")return;
