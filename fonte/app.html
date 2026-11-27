@@ -19978,7 +19978,7 @@ function calc(){
   const areaTot=num(S.area); // m² de terreno disponível (opcional no modo marcado)
   if((!isFinite(areaTot)||areaTot<=0)&&!temMarcados())return null;
   const prof=P(S.prof)>0?P(S.prof):profPad();
-  const pFinal=P(S.pFinal)>0?P(S.pFinal):e.p;         // kg
+  const pFinal=P(S.pFinal)>0?P(S.pFinal)/1000:e.p;     // o campo "Peso final (g)" é em gramas; converte para kg (e.p já é kg)
   const sobrev=(P(S.sobrev)>0?P(S.sobrev):e.s)/100;
   const ciclos=P(S.ciclos)>0?P(S.ciclos):e.cic;
   // parâmetros de engenharia (editáveis)
